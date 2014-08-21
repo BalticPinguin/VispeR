@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>functions_smsc.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  <div class='section'>
+    <div class='docs'><h1>functions_smsc.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>filename: functions_smsc.py</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">glob</span> <span class="o">,</span> <span class="nn">re</span> <span class="o">,</span> <span class="nn">shutil</span> <span class="o">,</span> <span class="nn">mmap</span> <span class="o">,</span><span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span><span class="o">,</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="nb">open</span> <span class="c">#for python-3 compatibility</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span> <span class="c"># for function sort(). Probably find a better function!!</span>
+<span class="kn">import</span> <span class="nn">Btree</span> <span class="kn">as</span> <span class="nn">bt</span> <span class="c">#class of binary tree</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>Below are the conversion factors and fundamental constant</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">AMU2au</span><span class="o">=</span><span class="mf">1822.88839</span>                                          
+<span class="n">Angs2Bohr</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mf">0.52917721092</span>                                  
+<span class="n">Hartree2GHz</span><span class="o">=</span><span class="mf">6.579684e6</span>                                     
+<span class="n">Hartree2cm_1</span><span class="o">=</span><span class="mf">219474.63</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <p>This function is a self-writen sort-function for floats-arrays (increasing arguments by absolute value). Its input is the array whose elements should not exceed 3e300 (otherwise the sorting will fails) and returns the number of indices sorted by the size of respective elements. Hence, sorting an array A by the size of its elemens (largest first) can be done by</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">sort</span><span class="p">(</span><span class="n">f</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>index=sort(A) 
+B=A[index]</p>
+<p>where B will be the sorted array.
+For not absolute values see resort()."""
+index=np.zeros( len(f), dtype=int ) 
+tmp=deepcopy(f) #for avoiding side effects
+for i in range(len(f)):
+   index[i]=np.argmin(np.abs(tmp)) # there can be frequencies &lt; 0 as well...
+   tmp[index[i]]=3e+300 # this can be considered as smaller than all elements...
+return index</p>
+<p>resort(f): #only temporary of interest
+This function is a self-writen sort-function for floats-arrays (increasing arguments not absolute value). Its input is the array whose elements should not exceed 3e300 (otherwise the sorting will fails) and returns the number of indices sorted by the size of respective elements. Hence, sorting an array A by the size of its elemens (largest first) can be done by</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="n">index</span><span class="o">=</span><span class="n">sort</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> 
+   <span class="n">B</span><span class="o">=</span><span class="n">A</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+   
+   <span class="n">where</span> <span class="n">B</span> <span class="n">will</span> <span class="n">be</span> <span class="n">the</span> <span class="nb">sorted</span> <span class="n">array</span><span class="o">.</span>
+   <span class="n">For</span> <span class="n">sorting</span> <span class="n">of</span> <span class="n">absolute</span> <span class="n">values</span> <span class="n">see</span> <span class="n">sort</span><span class="p">()</span><span class="o">.</span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">   index=np.zeros( len(f), dtype=int ) </span>
+<span class="s">   tmp=deepcopy(f) #for avoiding side effects</span>
+<span class="s">   for i in range(len(f)):</span>
+<span class="s">      index[i]=np.argmin(tmp) </span>
+<span class="s">      tmp[index[i]]=3e+300 # this can be considered as smaller than all elements...</span>
+<span class="s">   return index</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def gs(A):</span>
+<span class="s">   &#39;&#39;&#39;This function does row-wise Gram-Schmidt orthonormalization of matrices. </span>
+<span class="s">   The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)&#39;&#39;&#39;</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def proj(v1, v2):</span>
+<span class="s">      return map(lambda x : x *(np.dot(v2,</span>
+<span class="s">   	       v1) / np.dot(v1, v1)) , v1)</span>
+
+<span class="s">   X=A.T # I want to orthogonalize row-wise</span>
+<span class="s">   Y = []</span>
+<span class="s">   for i in range(len(X)):</span>
+<span class="s">      temp_vec = X[i]</span>
+<span class="s">      for inY in Y :</span>
+<span class="s">	 proj_vec = proj(inY, X[i])</span>
+<span class="s">	 temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)</span>
+<span class="s">      a=np.sqrt(sum(temp_vec[j]*temp_vec[j] for j in range(len(temp_vec)) )) #calculate norm</span>
+<span class="s">      Y.append( temp_vec/a) #normalize all vectors</span>
+<span class="s">   return np.matrix(Y).T # undo transposition in the beginning</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def replace(files, freq, L):</span>
+<span class="s">   &#39;&#39;&#39; This function creates a new file (determined by files, ending with &quot;.rep&quot; and copies the log-file (files) into it, replacing the frequencies and normal modes by those calculated by smallscript.</span>
+<span class="s">   The function is suited to test, whether these results coincide qualitatively with the gaussian&#39;s.&#39;&#39;&#39;</span>
+<span class="s">   freq*=Hartree2cm_1</span>
+<span class="s">   for i in range(len(files)):</span>
+<span class="s">      with open(files[i][0]) as f:</span>
+<span class="s">	 out_fname = files[i][0] + &quot;.rep&quot;</span>
+<span class="s">	 out = open(out_fname, &quot;w&quot;)</span>
+<span class="s">	 s=0</span>
+<span class="s">	 t=0</span>
+<span class="s">	 u=-3</span>
+<span class="s">	 for line in f:</span>
+<span class="s">	    if re.search(r&#39;Frequencies -- [\d .-]+&#39;, line) is not None:</span>
+<span class="s">	       t=0 #reset t, when frequencies occur</span>
+<span class="s">	       u+=3 #</span>
+<span class="s">	       logging.debug(&#39;frequencies not yet written to file:&#39;+ repr(len(freq[i][s:].T))+ repr(freq[i][s:].T))</span>
+<span class="s">	       if len(freq[i][s:].T)&gt; 2: # there are at least three more frequencies</span>
+<span class="s">		  out.write(re.sub(r&#39;Frequencies -- [\d .-]+&#39;,</span>
+<span class="s">		       	&#39;Frequencies --&#39;+&#39;    &#39;+repr(freq[i][s])+&#39;          &#39;</span><span class="se">\</span>
+<span class="s">			+repr(freq[i][s+1])+&#39;          &#39;+repr(freq[i][s+2]), line))</span>
+<span class="s">	       elif len(freq[i][s:].T)== 2: # there are only two frequencies left</span>
+<span class="s">		  out.write(re.sub(r&#39;Frequencies -- [\d .-]+&#39;,</span>
+<span class="s">			&#39;Frequencies --&#39;+&#39;     &#39;+repr(freq[i][s])+&#39;          &#39;</span><span class="se">\</span>
+<span class="s">			+repr(freq[i][s+1]), line))</span>
+<span class="s">	       elif len(freq[i][s:].T)== 1: # there is just one additional freq</span>
+<span class="s">		  out.write(re.sub(r&#39;Frequencies -- [\d .-]+&#39;,</span>
+<span class="s">			&#39;Frequencies --&#39;+&#39;    &#39;+repr(freq[i][s]), line))</span>
+<span class="s">	       s+=3</span>
+<span class="s">	    elif re.search(r&#39;[ ]+\d+[ ]+\d+[ -]+\d.\d\d[ -]+\d.\d\d+[ \d.-]+&#39;, line) is not None:</span>
+<span class="s">	       logging.debug(&#39;number of modes left:&#39;+ repr(len(L[i][t][u:].T)))</span>
+<span class="s">	       if len(L[i][t][u:].T)&gt; 2: # there are at least three more frequencies</span>
+<span class="s">		  out.write(re.sub(r&#39;[\d .-]+&#39;, &#39;    &#39;+repr(t/3)+&#39;    &#39;+repr(s)+&#39;   &#39;+</span>
+<span class="s">		     &#39;   &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t][u+0])+&#39;  &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+1][u+0])+&#39; &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+2][u+0])+</span>
+<span class="s">		     &#39;   &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t][u+1])+&#39;  &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+1][u+1])+&#39; &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+2][u+1])+</span>
+<span class="s">		     &#39;   &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t][u+2])+&#39;  &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+1][u+2])+&#39; &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+2][u+2]), line))</span>
+<span class="s">	       elif len(L[i][t][u:].T)== 2:</span>
+<span class="s">		  out.write(re.sub(r&#39;[\d .-]+&#39;, &#39;    &#39;+repr(t/3)+&#39;    &#39;+repr(s)+&#39;   &#39;+</span>
+<span class="s">		     &#39;   &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t][u+0])+&#39;  &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+1][u+0])+&#39; &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+2][u+0])+</span>
+<span class="s">		     &#39;   &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t][u+1])+&#39;  &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+1][u+1])+&#39; &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+2][u+1]), line))</span>
+<span class="s">	       elif len(L[i][t][u:].T)== 1:</span>
+<span class="s">		  out.write(re.sub(r&#39;[\d .-]+&#39;, &#39;    &#39;+repr(t/3)+&#39;    &#39;+repr(s)+&#39;   &#39;+</span>
+<span class="s">		     &#39;   &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t][u+0])+&#39;  &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+1][u+0])+&#39; &#39;+str(&quot;</span><span class="si">%.2f</span><span class="s">&quot; % L[i][t+2][u+0]), line))</span>
+<span class="s">	       t+=3 # </span>
+<span class="s">	    else: </span>
+<span class="s">	       out.write(re.sub(&#39;replace nothing&#39;,&#39;by nothing&#39;, line)) #just write line as it is</span>
+<span class="s">	 out.close()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def gaussianfreq(ContntInfo, dim):</span>
+<span class="s">   &#39;&#39;&#39;Extraction of the frequencies from g09-log file&#39;&#39;&#39;</span>
+<span class="s">   f=np.zeros((len(ContntInfo), dim-6))</span>
+<span class="s">   for i in range(len(ContntInfo)): </span>
+<span class="s">      files=open(ContntInfo[i][0], &quot;r&quot;) #open file and map it for better working</span>
+<span class="s">      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations</span>
+<span class="s">      files.close</span>
+<span class="s">      f1=re.findall(r&quot; Frequencies -- [\d .-]+&quot;, mapedlog, re.M)# </span>
+<span class="s">      f2=[re.findall(r&quot;[- ]\d+.\d+&quot;, f1[j]) for j in range(len(f1))]</span>
+<span class="s">      s=0</span>
+<span class="s">      for j in range(len(f2)):</span>
+<span class="s">	 f[i][s:s+len(f2[j])]=f2[j]</span>
+<span class="s">	 s+=len(f2[j])</span>
+<span class="s">   return f</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def TrafoCoord(F, P, Coord, dim):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   Y=np.zeros((dim,dim)) </span>
+<span class="s">   one=np.eye(dim)</span>
+<span class="s">   S=np.zeros((3,3))</span>
+<span class="s">   for i in range(3):</span>
+<span class="s">      for j in range(3):</span>
+<span class="s">	 S[i][j]=np.dot(Coord[0][i],Coord[1][j])</span>
+<span class="s">      S[i]/=np.linalg.norm(S[i])</span>
+<span class="s">   print &#39;Overlapmatrix of coordinates:</span><span class="se">\n</span><span class="s">&#39;, S</span>
+<span class="s">   for i in range(3):</span>
+<span class="s">      for j in range(3):</span>
+<span class="s">	 S[i][j]=round(S[i][j])</span>
+<span class="s">   print &#39;rounded overlapmatrix:</span><span class="se">\n</span><span class="s">&#39;, S</span>
+<span class="s">   Coord[1]=np.dot(S,Coord[1])</span>
+<span class="s">   for j in range(dim/3):</span>
+<span class="s">      Y[3*j:3*j+3].T[3*j:3*j+3]=S</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   logging.debug( &#39;new Coords</span><span class="se">\n</span><span class="s">&#39;+ repr(S)+&#39;</span><span class="se">\n</span><span class="s">&#39;+repr(Y))</span>
+<span class="s">   F[1]=np.dot(np.dot(Y.T,F[1]),Y)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   P[1]=one-np.dot(np.dot(Y.T,one-P[1]),Y) #for second file: D -&gt; YD (Y.T: redirect of axes)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   return F, P, Coord</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def Contentcheck(inputs): #look through it in detail! In the way it is, it is senseless!!</span>
+<span class="s">   &#39;&#39;&#39;</span>
+<span class="s">   This function opens the given g09-log files and checks, whether frequency-calculations are done and if they converged. Otherwise these states are not taken into account.</span>
+<span class="s">   The function is valid for any number of files.</span>
+<span class="s">   </span>
+<span class="s">   Arguments:</span>
+<span class="s">   1.</span>
+
+<span class="s">   returns:</span>
+<span class="s">   A list containing the file-names and calculation-names (of g09) of successfull frequency-calculations</span>
+<span class="s">   &#39;&#39;&#39;</span>
+<span class="s">   ContntInfo=[] #create array: name(char), Stoichiometry(char), root(int), freq(bool),</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   for files in inputs:</span>
+<span class="s">      name= files</span>
+<span class="s">      log=open(name, &quot;r&quot;) #open file and map it for better working</span>
+<span class="s">      mapedlog=mmap.mmap(log.fileno(), 0, prot=mmap.PROT_READ) # improve by finding a better size</span>
+<span class="s">      log.close</span>
+<span class="s">      stoi=re.findall(r&quot;[\w]+&quot; ,re.findall(r&quot;-+</span><span class="se">\n</span><span class="s"> [\w \d]+</span><span class="se">\n</span><span class="s"> -+</span><span class="se">\n</span><span class="s"> Charge =&quot;, mapedlog, re.I)[0])[0]</span>
+<span class="s">      freq=re.search(r&quot;-+</span><span class="se">\n</span><span class="s"> \#[\w\d\- \)\(\/=</span><span class="se">\n</span><span class="s">]+</span><span class="se">\</span>
+<span class="s">	    freq [\w\d \)\(\/=\-</span><span class="se">\n</span><span class="s">]+</span><span class="se">\n</span><span class="s"> -+&quot;,</span>
+<span class="s">	    mapedlog, re.M) is not None #I hope, this is reasonable</span>
+<span class="s">      freq=re.search(r&quot; freq &quot;, mapedlog, re.I) is not None #I hope, this is reasonable</span>
+<span class="s">      if freq is True:</span>
+<span class="s">	 if (re.search(r&quot; Error termination&quot;, mapedlog) is None) is True: #if successful calculations were done</span>
+<span class="s">	    ContntInfo.extend([[name, stoi]]) #write into array all information about files</span>
+<span class="s">	 else:</span>
+<span class="s">	    logging.error(&quot;Some error occured. In file &quot;+</span><span class="se">\</span>
+<span class="s">		     name + &quot;. It seems as if the calculation did not end correctly. Please check the log-file.&quot;)</span>
+<span class="s">   Contnt=ContntInfo</span>
+<span class="s">   return Contnt</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def extractL(ContntInfo, dim):</span>
+<span class="s">   for i in range(len(ContntInfo)): </span>
+<span class="s">      files=open(ContntInfo[i][0], &quot;r&quot;) #open file and map it for better working</span>
+<span class="s">      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations</span>
+<span class="s">      files.close</span>
+<span class="s">      f1=re.findall(r&quot; Atom  AN [</span><span class="se">\n</span><span class="s">\d XYZ.-]+&quot;, mapedlog, re.M)</span>
+<span class="s">      mapedlog.close() </span>
+<span class="s">      Ltemp=[re.findall(r&quot;[- ]\d.\d\d&quot;, f1[j]) for j in range(len(f1))]</span>
+<span class="s">      assert len(Ltemp)&gt;=0, &#39;PROGRAMM ERROR: file&#39;+repr(ContntInfo[i][0])+ </span><span class="se">\</span>
+<span class="s">	       &#39; does not contain frequency informations.</span><span class="se">\</span>
+<span class="s">	       This should have been avoided above already.&#39;</span>
+<span class="s">      if i==0:</span>
+<span class="s">	 L2=np.zeros((len(ContntInfo),dim,dim-6)) # similar to L</span>
+<span class="s">      for k in range(len(Ltemp)): # </span>
+<span class="s">	 for j in range(len(Ltemp[k])): </span>
+<span class="s">	    L2[i][j%3+(j/9)*3][(j/3)%3+3*k]=Ltemp[k][j]</span>
+<span class="s">      for k in range(len(L2[i][0])): #renormalization</span>
+<span class="s">	 L2[i][:].T[k]/=np.sqrt(np.sum( L2[i][:].T[k]*L2[i][:].T[k]))</span>
+<span class="s">   return L2</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def ReadLog(fileN):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   files=open(fileN, &quot;r&quot;)</span>
+<span class="s">   log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)</span>
+<span class="s">   files.close</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   atmwgt=re.findall(r&quot;AtmWgt= [\d .]+&quot;,log)</span>
+<span class="s">   mtemp=[]</span>
+<span class="s">   foonum=0</span>
+<span class="s">   for j in range(len(atmwgt)/2): # because atomic masses are printed twize in log-files...</span>
+<span class="s">      mtemp.append(re.findall(r&#39;[\d.]+&#39;,atmwgt[j]))</span>
+<span class="s">   dim=0</span>
+<span class="s">   for j in range(len(mtemp)):</span>
+<span class="s">	 dim+=len(mtemp[j]) # dim will be sum over all elements of temp</span>
+<span class="s">   dim*=3</span>
+<span class="s">   mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity</span>
+<span class="s">   for j in range(len(mtemp)):</span>
+<span class="s">      for k in range(len(mtemp[j])):</span>
+<span class="s">	 mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass</span>
+<span class="s">      foonum+=len(mtemp[j])</span>
+<span class="s">   logging.debug(&quot;atmwgt: &quot;+ repr(atmwgt)+&#39;</span><span class="se">\n</span><span class="s">mtemp: &#39;+ repr(mtemp))</span>
+<span class="s">   logging.info(&quot;Number of atoms: &quot;+ repr(dim/3)+&#39;</span><span class="se">\n</span><span class="s">Dimensions of a problem: &#39;+</span><span class="se">\</span>
+<span class="s">	 repr(dim)+&#39;Sqrt of masses in a.u. as read from log file</span><span class="se">\n</span><span class="s">&#39;+ repr(mass))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   temp=[]</span>
+<span class="s">   temp=re.findall(r&#39; Number     Number       Type             X           Y           Z[</span><span class="se">\n</span><span class="s"> -.\d]+&#39;, log)</span>
+<span class="s">   tmp=re.findall(r&#39;[ -][\d]+.[\d]+&#39;, temp[-1])</span>
+<span class="s">   assert len(tmp)==dim, &#39;Not all atoms were found! Something went wrong...&#39;</span>
+<span class="s">   Coord=np.zeros((3, dim/3))</span>
+<span class="s">   MassCenter=np.zeros(3)</span>
+<span class="s">   for j in range(len(tmp)):</span>
+<span class="s">      Coord[j%3][j/3]=tmp[j]</span>
+<span class="s">   for j in range(3):</span>
+<span class="s">      MassCenter[j]=np.sum(Coord[j]*mass)</span>
+<span class="s">      MassCenter[j]/=np.sum(mass) #now it is cartesian center of mass</span>
+<span class="s">   logging.debug(&quot;Cartesian (Angstrom) coordinates before alignment to center of mass</span><span class="se">\n</span><span class="s">&quot;+ repr(Coord.T)+</span><span class="se">\</span>
+<span class="s">	 &quot;Center of mass coordinates (Angstrom)</span><span class="se">\n</span><span class="s">&quot;+ repr(MassCenter))</span>
+<span class="s">   for j in range(3):#displacement of molecule into center of mass:</span>
+<span class="s">      Coord[j]-=MassCenter[j] # if commented we get rotational constants in agreement with Gaussian log</span>
+<span class="s">   logging.debug(&quot;Cartesian coords with respect to center of mass</span><span class="se">\n</span><span class="s">&quot;+ repr(Coord.T))</span>
+<span class="s">   Coord*=Angs2Bohr</span>
+<span class="s">   logging.info(&quot;Cartesian coordinates (a.u.) in center of mass system</span><span class="se">\n</span><span class="s">&quot;+repr(Coord.T))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   moi=np.zeros((3,3))# this is Moment Of Inertia</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   for j in range(3):</span>
+<span class="s">      for k in range(3):</span>
+<span class="s">	 if k is j:</span>
+<span class="s">	    moi[j][k]=np.sum(mass*mass*(Coord[0]*Coord[0]+</span><span class="se">\</span>
+<span class="s">		     Coord[1]*Coord[1]+Coord[2]*Coord[2]-</span><span class="se">\</span>
+<span class="s">		     Coord[j]*Coord[k]))</span>
+<span class="s">	 else:</span>
+<span class="s">	    moi[j][k]=np.sum(mass*mass*(Coord[j]*Coord[k]))</span>
+<span class="s">   logging.debug(&quot;Moments of intertia as read from log file</span><span class="se">\n</span><span class="s">&quot;+repr(moi))</span>
+<span class="s">   diagI,X=np.linalg.eig(moi) # this can be shortened of course!</span>
+<span class="s">   index=sort(diagI)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   X=np.matrix(X) #sorting by eigenvalues</span>
+<span class="s">   diagI=diagI[index]</span>
+<span class="s">   logging.debug(&quot;Moments of inertia (a.u.) in principle axes</span><span class="se">\n</span><span class="s">&quot;+repr(diagI.T)+</span><span class="se">\</span>
+<span class="s">	 &#39;</span><span class="se">\n</span><span class="s">Rotational constants (GHz) in principle axes</span><span class="se">\n</span><span class="s">&#39;+ repr(1/(2*diagI.T)*Hartree2GHz)+</span><span class="se">\</span>
+<span class="s">      &quot;Rotation matrix</span><span class="se">\n</span><span class="s">&quot;+repr(X))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   f=re.findall(r&quot;Force constants in Cartesian coordinates: [</span><span class="se">\n</span><span class="s">\d .+-D]+&quot;, log, re.M)</span>
+<span class="s">   f_str=str(f)[2:-2]</span>
+<span class="s">   lines=f_str.strip().split(&quot;</span><span class="se">\\</span><span class="s">n&quot;)</span>
+<span class="s">   F=np.zeros((dim,dim))</span>
+<span class="s">   n=0</span>
+<span class="s">   k=0</span>
+<span class="s">   for i in range(2,len(lines)):</span>
+<span class="s">      if i == dim+k-5*n+2: # is &#39;is&#39; ok as well?</span>
+<span class="s">         k=i-1</span>
+<span class="s">         n+=1</span>
+<span class="s">         continue</span>
+<span class="s">      elements=lines[i].replace(&#39;D&#39;,&#39;e&#39;).split()</span>
+<span class="s">      for j in range(1,len(elements)):</span>
+<span class="s">         F[int(elements[0])-1][j-1+5*n]=float(elements[j])</span>
+<span class="s">         F[j-1+5*n][int(elements[0])-1]=float(elements[j])</span>
+<span class="s">   logging.debug(&#39;F matrix as read from log file</span><span class="se">\n</span><span class="s">&#39;+ repr(F) +&#39;</span><span class="se">\n</span><span class="s">0:9x0:9</span><span class="se">\n</span><span class="s">&#39;+ repr(F[:9].T[:9].T))</span>
+<span class="s">   for i in range(0,dim):</span>
+<span class="s">      for j in range(0,dim):</span>
+<span class="s">         F[i][j]/= (mass[i/3]*mass[j/3]) </span>
+
+<span class="s">   Etemp=re.findall(r&#39;HF=-[\d.</span><span class="se">\n</span><span class="s"> ]+&#39;, log, re.M)</span>
+<span class="s">   assert len(Etemp)&gt;=1, &#39;Some error occured! The states energy can not be read.&#39;</span>
+<span class="s">   if re.search(r&#39;</span><span class="se">\n</span><span class="s"> &#39;, Etemp[-1]) is not None:</span>
+<span class="s">      Etemp[-1]=Etemp[-1].replace(&quot;</span><span class="se">\n</span><span class="s"> &quot;, &quot;&quot;) </span>
+<span class="s">   logging.info(&#39;temporary energy of state:&#39;+repr(Etemp[-1]))</span>
+<span class="s">   E=-float(re.findall(r&#39;[\d.]+&#39;, Etemp[-1])[0])# energy is negative (bound state)</span>
+<span class="s">   return dim, Coord, mass, X, F, E</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def GetProjector(X, dim, m, Coord):</span>
+<span class="s">   D=np.zeros((dim,6))</span>
+<span class="s">   for k in range(3):# first three rows in D: The translational vectors</span>
+<span class="s">      for j in range(dim/3):</span>
+<span class="s">	 D[3*j+k][k]=m[j]</span>
+<span class="s">   for k in range(dim):# next three rows in D: The rotational vectors</span>
+<span class="s">      D[k][3:6]=(np.cross(np.dot(X,Coord)[:].T[k/3],X[:].T[k%3]))*m[k/3]</span>
+
+<span class="s">   logging.debug(&quot;Original translational and rotational displacement vectors&quot;+repr(D[3:13].T))</span>
+<span class="s">   AOE=gs(np.array(D)) #orhogonalize it</span>
+<span class="s">   ones=np.identity(dim)</span>
+<span class="s">   one_P=ones-np.dot(AOE,AOE.T)</span>
+<span class="s">   prob_vec=(AOE.T[1]+AOE.T[4]+AOE.T[0]+AOE.T[5]).T #what is this actually??</span>
+<span class="s">   assert not np.any(np.abs(prob_vec-np.dot(np.dot(AOE,AOE.T),prob_vec))&gt;0.00001), </span><span class="se">\</span>
+<span class="s">	    &#39;Translations and rotations are affected by projection operator.&#39;+</span><span class="se">\</span>
+<span class="s">	    repr(np.abs(prob_vec-np.dot(np.dot(AOE,AOE.T),prob_vec)))</span>
+<span class="s">   assert not  np.any(np.abs(np.dot(one_P,prob_vec))&gt;0.00001), </span><span class="se">\</span>
+<span class="s">	    &quot;Projecting out translations and rotations from probe vector&quot;</span>
+<span class="s">   return one_P</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def GetL(dim, mass, F, D):</span>
+<span class="s">   logging.info(&quot;Len(F) is &quot;+repr(len(F)))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) </span>
+<span class="s">   N=np.zeros(( len(F), len(F[0]), len(F[0]) )) </span>
+<span class="s">   Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) </span>
+<span class="s">   f=np.zeros(( len(F), len(F[0])-6 ))</span>
+<span class="s">   Ltemp=np.zeros(( len(F[0]), len(F[0])-6 ))</span>
+<span class="s">   ftemp=np.zeros(len(F[0]-6))</span>
+<span class="s">   for i in range(len(F)): #temporary for understanding only (this loop)</span>
+<span class="s">      ftemp,Ltemp=np.linalg.eig(F[i])</span>
+<span class="s">      index=sort(np.real(ftemp)) # ascending sorting f</span>
+<span class="s">      N[i]=Ltemp[index]</span>
+<span class="s">      foo=ftemp[index]</span>
+<span class="s">      logging.debug(&quot;Before projecting onto internal coords subspace:</span><span class="se">\n</span><span class="s">&quot;+ &#39;Forces:</span><span class="se">\n</span><span class="s">&#39;+</span><span class="se">\</span>
+<span class="s">	    repr(F[i])+&#39;</span><span class="se">\n</span><span class="s">Frequencies (cm-1) </span><span class="se">\n</span><span class="s">&#39;+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1)+</span><span class="se">\</span>
+<span class="s">            &quot;</span><span class="se">\n</span><span class="s">L-matrix </span><span class="se">\n</span><span class="s">&quot;+ repr(N[i]))</span>
+
+<span class="s">   for i in range(len(F)):</span>
+<span class="s">      ftemp,Ltemp=np.linalg.eig(np.dot(np.dot(D[i].T,F[i]),D[i]))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      index=sort(np.real(ftemp)) # ascending sorting f</span>
+<span class="s">      f[i]=np.real(ftemp[index]).T[:].T[6:].T</span>
+<span class="s">      L[i]=np.real(Ltemp[index]).T[:].T[6:].T # or =Ltemp[index].T (see above)</span>
+<span class="s">      logging.debug(&quot;Frequencies (cm-1) </span><span class="se">\n</span><span class="s">&quot;+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      N[i]=np.real(Ltemp[index]) # or =Ltemp[index].T (see above)</span>
+<span class="s">      M=np.zeros((dim,dim))</span>
+<span class="s">      for j in range(0,dim):</span>
+<span class="s">         M[j,j]=1/mass[j/3]</span>
+<span class="s">      Lcart=np.dot(M,np.dot(D[i],np.real(Ltemp)))</span>
+<span class="s">      for j in range(0,dim):</span>
+<span class="s">         norm=np.sum(Lcart.T[j]*Lcart.T[j])</span>
+<span class="s">	 if np.abs(norm)&gt;1e-12:</span>
+<span class="s">	    Lcart.T[j]/=np.sqrt(norm)</span>
+<span class="s">      Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T</span>
+<span class="s">      index=resort(f[i]) # only of temporary interest!! .......</span>
+<span class="s">      bar=L[i] #...............................................</span>
+<span class="s">      L[i]=bar[:].T[index].T #.................................</span>
+<span class="s">      bar=Lsorted[i] #.........................................</span>
+<span class="s">      Lsorted[i]=bar[:].T[index].T #...........................</span>
+<span class="s">      bar=f[i] #...............................................</span>
+<span class="s">      f[i]=bar[index] #........................................</span>
+<span class="s">      logging.debug(&quot;Normalized Lcart</span><span class="se">\n</span><span class="s">&quot;+ repr(Lcart)+&quot;</span><span class="se">\n</span><span class="s">Normalized, sorted and truncated Lcart</span><span class="se">\n</span><span class="s">&quot;+ repr(Lsorted[i]))</span>
+
+<span class="s">      for j in range(len(f[i])):</span>
+<span class="s">     	 f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))</span>
+<span class="s">      logging.info(&quot;After projecting onto internal coords subspace</span><span class="se">\n</span><span class="s">&quot;+&quot;Frequencies (cm-1)</span><span class="se">\n</span><span class="s">&quot;+</span><span class="se">\</span>
+<span class="s">	    repr(f[i]*Hartree2cm_1)+&quot;L-matrix </span><span class="se">\n</span><span class="s">&quot;+ repr(L[i]))</span>
+<span class="s">   return N, L, f, Lsorted</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def GetL1(dim, mass, F, G09f, P):</span>
+<span class="s">   np.set_printoptions(suppress=True)</span>
+<span class="s">   np.set_printoptions(precision=2, linewidth=122)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def InvIteration(F,L,Lambda): #inverse iteration to find better modes</span>
+<span class="s">      ones=np.eye(len(F))</span>
+<span class="s">      for i in range(len(L)):</span>
+<span class="s">	 for j in range(len(ones)): #there is no built-in for scalar*matrix</span>
+<span class="s">	    ones[j][j]*=Lambda[i]</span>
+<span class="s">	 print len(F),&#39; &#39;, len(F[0]),&#39;  &#39;,len(ones),&#39;  &#39;,len(ones[0])</span>
+<span class="s">	 A=np.matrix(F-ones)</span>
+<span class="s">	 print A</span>
+<span class="s">	 print len(A),&#39; &#39;,len(A[0]),&#39;  &#39;, len(L),&#39; &#39;,len(L[0]),&#39;  &#39;,len(Lambda)</span>
+<span class="s">	 print np.linalg.cond(A) #this eigenvalue is close to the exact one; hence no </span>
+<span class="s">	 if np.linalg.cond(A)&gt;10000: #this eigenvalue is close to the exact one; hence no </span>
+<span class="s">	    break                   #optimization is needed (and not possible)</span>
+<span class="s">	 A_1=np.linalg.inv(A)       # is this sufficient numerically stable?</span>
+<span class="s">	 tmp=L[i]-L[i]</span>
+<span class="s">	 while np.linalg.norm(tmp-L[i])&gt;0.00001/len(L[i]): #this should be a reasonable threshold</span>
+<span class="s">	    tmp=L[i]</span>
+<span class="s">	    L[i]=np.dot(A_1,L[i].T).T/np.linalg.norm(A_1.dot(L[i].T))</span>
+<span class="s">      return L</span>
+
+<span class="s">   logging.info(&quot;Len(F) is &quot;+repr(len(F)))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) </span>
+<span class="s">   Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) </span>
+<span class="s">   f=np.zeros(( len(F), len(F[0])-6 ))</span>
+<span class="s">   Ltemp=np.zeros(( len(F[0]), len(F[0])-6 ))</span>
+<span class="s">   ftemp=np.zeros(len(F[0]-6))</span>
+<span class="s">   for i in range(len(F)):</span>
+<span class="s">      ftemp,Ltemp=np.linalg.eig(np.dot(np.dot(P[i].T,F[i]),P[i]))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      index=sort(np.real(ftemp)) # ascending sorting f</span>
+<span class="s">      f[i]=np.real(ftemp[index]).T[:].T[6:].T</span>
+<span class="s">      L[i]=np.real(Ltemp[index]).T[:].T[6:].T # or =Ltemp[index].T (see above)</span>
+<span class="s">      logging.debug(&quot;Frequencies (cm-1) </span><span class="se">\n</span><span class="s">&quot;+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      print np.dot(np.dot(P[i].T,F[i]),P[i])</span>
+<span class="s">      print f[i]</span>
+<span class="s">      print L[i]</span>
+<span class="s">      L[i]=InvIteration(np.dot(np.dot(P[i].T,F[i]),P[i]), L[i], G09f[i]) #&#39;repair&#39; L-matrix (truncated)</span>
+<span class="s">      M=np.zeros((dim,dim))</span>
+<span class="s">      for j in range(0,dim):</span>
+<span class="s">         M[j,j]=1/mass[j/3]</span>
+<span class="s">      Lcart=np.dot(M,np.dot(P[i],np.real(Ltemp)))</span>
+<span class="s">      for j in range(0,dim):</span>
+<span class="s">         norm=np.sum(Lcart.T[j]*Lcart.T[j])</span>
+<span class="s">	 if np.abs(norm)&gt;1e-12:</span>
+<span class="s">	    Lcart.T[j]/=np.sqrt(norm)</span>
+<span class="s">      Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T</span>
+<span class="s">      index=resort(f[i]) # only of temporary interest!! .......</span>
+<span class="s">      bar=L[i] #...............................................</span>
+<span class="s">      L[i]=bar[:].T[index].T #.................................</span>
+<span class="s">      bar=Lsorted[i] #.........................................</span>
+<span class="s">      Lsorted[i]=bar[:].T[index].T #...........................</span>
+<span class="s">      bar=f[i] #...............................................</span>
+<span class="s">      f[i]=bar[index] #........................................</span>
+<span class="s">      logging.debug(&quot;Normalized Lcart</span><span class="se">\n</span><span class="s">&quot;+ repr(Lcart)+&quot;</span><span class="se">\n</span><span class="s">Normalized, sorted and truncated Lcart</span><span class="se">\n</span><span class="s">&quot;+ repr(Lsorted[i]))</span>
+
+<span class="s">      for j in range(len(f[i])):</span>
+<span class="s">     	 f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))</span>
+<span class="s">      logging.info(&quot;After projecting onto internal coords subspace</span><span class="se">\n</span><span class="s">&quot;+&quot;Frequencies (cm-1)</span><span class="se">\n</span><span class="s">&quot;+</span><span class="se">\</span>
+<span class="s">	    repr(f[i]*Hartree2cm_1)+&quot;L-matrix </span><span class="se">\n</span><span class="s">&quot;+ repr(L[i]))</span>
+<span class="s">   return L, f, Lsorted  #attention! The frequencies are NOT stabilized...</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def Geometries(ContntInfo, problems):</span>
+<span class="s">   name=[]</span>
+<span class="s">   geometry=[] # will contain names of the files refering to different states</span>
+<span class="s">   coordName=[]</span>
+<span class="s">   coordNumb=[]</span>
+<span class="s">   geometry.append(ContntInfo[0][0])</span>
+<span class="s">   for i in range(len(ContntInfo)):  #loop over all states investigated</span>
+<span class="s">      files=open(ContntInfo[i][0], &quot;r&quot;)#open file and map it for better working</span>
+<span class="s">      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)</span>
+<span class="s">      files.close</span>
+<span class="s">      coords=re.findall(</span>
+<span class="s">	    r&quot; ! Name  Definition[ ]+Value[]+Derivative Info.[ ]+![!,()RADEXcalutenyi\d /=</span><span class="se">\n</span><span class="s"> .-]+&quot;,</span>
+<span class="s">	    mapedlog, re.I)</span>
+<span class="s">      if len(coords)==0:</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	    print &quot;in file &quot;+ContntInfo[i][0]+&#39; are no coordinate-informations&#39;</span>
+<span class="s">	    continue</span>
+<span class="s">      mapedlog.close()</span>
+<span class="s">      coordName.append(re.findall(r&quot; [RAD]{1}\([\d,]+\)&quot;, coords[-1]))</span>
+<span class="s">      coordNumb.append(re.findall(r&quot; \d+.\d+&quot;, coords[-1]))</span>
+<span class="s">      check=np.zeros(len(coordName)-1)</span>
+<span class="s">      if i==0:</span>
+<span class="s">         for k in range(len(coordName[0])):</span>
+<span class="s">            coordNumb[0][k]=float(coordNumb[0][k])</span>
+<span class="s">      for j in range(len(coordName)-1):  #loop over all previously investigated files</span>
+<span class="s">         if len(coordName[j]) != len(coordName[i]): #if number of coordinates doesn&#39;t mach</span>
+<span class="s">	    check[j]+=1</span>
+<span class="s">	    continue</span>
+<span class="s">	 for k in range(len(coordName[j])):</span>
+<span class="s">	    if coordName[j][k] != coordName[i][k]: ##here an error occurs!!!!</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	       check[j]+=1</span>
+<span class="s">	       continue</span>
+<span class="s">	    coordNumb[-1][k]=float(coordNumb[i][k])</span>
+<span class="s">	    if np.abs(coordNumb[-1][k])&lt;0.1: #avoid dividing by 0</span>
+<span class="s">	       if np.abs(coordNumb[j][k]-coordNumb[-1][k])&gt;3:</span>
+<span class="s">		  check[j]+=1</span>
+<span class="s">		  continue</span>
+<span class="s">	    elif np.abs(</span>
+<span class="s">		  (coordNumb[j][k]-coordNumb[-1][k])</span>
+<span class="s">		  /coordNumb[-1][k])&gt;0.04: #difference more than 4%</span>
+<span class="s">	       check[j]+=1</span>
+<span class="s">	       continue</span>
+<span class="s">      if np.all(check &gt; 0):</span>
+<span class="s">	 geometry.append(ContntInfo[i][0])</span>
+<span class="s">   return geometry</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def Duschinsky(N, L, mass, dim, x):</span>
+<span class="s">   J=np.zeros((dim-6,dim-6))</span>
+<span class="s">   FF=np.zeros((len(L),dim,dim))</span>
+<span class="s">   K=np.zeros(dim-6)</span>
+<span class="s">   I=np.zeros((len(L),dim))</span>
+<span class="s">   M=np.zeros((dim,dim)) #this is a diagonal matrix</span>
+<span class="s">   for i in range(dim):</span>
+<span class="s">      M[i][i]=mass[i/3] #square root of masses</span>
+<span class="s">   DeltaX=np.zeros((len(L),dim))</span>
+<span class="s">   for i in range(len(DeltaX[0])/3):</span>
+<span class="s">      DeltaX[0][3*i:3*i+3]=x[0].T[i]</span>
+<span class="s">   J=np.dot(L[0].T, np.linalg.pinv(L[1].T)) #always relaxation into ground state</span>
+
+<span class="s">   np.set_printoptions(suppress=True)</span>
+<span class="s">   np.set_printoptions(precision=3, linewidth=138)</span>
+<span class="s">   print&#39;Duschinsky</span><span class="se">\n</span><span class="s">&#39;,  J</span>
+<span class="s">   print</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">   DeltaX=np.array(x[0]-x[1]).flatten(&#39;F&#39;)</span>
+<span class="s">   logging.debug(&#39;Flatted</span><span class="se">\n</span><span class="s">&#39;+repr(DeltaX))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   K=np.dot(L[1].T,DeltaX.T)</span>
+<span class="s">   one=np.eye(len(FF[0]))</span>
+<span class="s">   logging.info(&#39;Duschinsky rotation matrix, &#39;+</span><span class="se">\</span>
+<span class="s">	 repr(np.linalg.norm(J[1]-np.eye(dim-6))/(dim-6))+ &#39;  :</span><span class="se">\n</span><span class="s">&#39;+ repr(J)+</span><span class="se">\</span>
+<span class="s">	 &#39;  :</span><span class="se">\n</span><span class="s">&#39;+ repr(J[:4].T[11:25])+</span><span class="se">\</span>
+<span class="s">	 &#39;</span><span class="se">\n</span><span class="s">Duschinsky displacement vector:</span><span class="se">\n</span><span class="s">&#39;+ repr(K))</span>
+<span class="s">   return J, K #J[0] is unity (if not everything goes wrong), second is of interenst...</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def HuangR(K, f): #what is with different frequencies???</span>
+<span class="s">   unif=np.zeros(len(K))</span>
+<span class="s">   multif=np.zeros(len(K))</span>
+<span class="s">   logging.info(&#39;Delta Q:&#39;+repr( K))</span>
+<span class="s">   unif=K*K*f[1]/(2)</span>
+<span class="s">   multif=K*K*f[0]*f[0]/(2*f[1])</span>
+<span class="s">   index=sort(multif)</span>
+<span class="s">   sortmulti=multif[index]</span>
+<span class="s">   sortfG=f[1][index]</span>
+<span class="s">   sortfE=f[0][index]</span>
+<span class="s">   index=sort(unif)</span>
+<span class="s">   sortuni=unif[index]</span>
+<span class="s">   funi=f[1][index]</span>
+<span class="s">   if any(multif)&lt;0:</span>
+<span class="s">      logging.warning(&#39;ATTENTION: some HR-factors are &lt;0 for different frequencies in ground- and excited state.</span><span class="se">\</span>
+<span class="s">	    In the following their absolute value is used.&#39;)</span>
+<span class="s">   if any(unif)&lt;0:</span>
+<span class="s">      logging.warning(&#39;ATTENTION: some HR-factors are &lt;0 if coinciding frequencies are assumed.</span><span class="se">\</span>
+<span class="s">	    In the following their absolute value is used.&#39;)</span>
+<span class="s">   for j in range(len(unif)):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      print(&#39;uni_freq:&#39;,funi[-j]*Hartree2cm_1,&#39;  &#39;, sortuni[-j])</span>
+<span class="s">   return sortuni, funi, sortmulti, sortfG, sortfE</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def unifSpect(intens, E, freq, N, M):</span>
+<span class="s">   logging.debug(&#39;Spectrum</span><span class="se">\n</span><span class="s">&#39;+ repr(N)+&#39; &#39;+repr(M)+&#39;  &#39;+repr(len(intens))+&#39;  &#39;+repr(len(intens[0])))</span>
+<span class="s">   spect=np.zeros((2,len(intens)*len(freq)))</span>
+<span class="s">   for x in range(N):</span>
+<span class="s">      for a in range(len(freq)):</span>
+<span class="s">	 spect[1][x*len(freq)+a]=sum(intens[x+i][i] for i in range( int(min(M,N-x))) ) #not correct at the moment??</span>
+<span class="s">	 spect[0][x*len(freq)+a]=(E-freq[a]*x)*Hartree2cm_1</span>
+<span class="s">   for x in range(1,M):</span>
+<span class="s">      for a in range(len(freq)):</span>
+<span class="s">	 spect[1][x*len(freq)+a]=sum(intens[i][x+i] for i in range( int(min(N,M-x))) ) #not correct at the moment??</span>
+<span class="s">	 spect[0][x*len(freq)+a]=(E+freq[a]*x)*Hartree2cm_1</span>
+<span class="s">   return spect</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def calcspect(HR, freq, E, N, M):</span>
+<span class="s">   &#39;&#39;&#39;This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.</span>
+
+<span class="s">   Arguments:</span>
+<span class="s">   1. Huang-Rhys factors</span>
+<span class="s">   2. frequencies (have to be in the same order as HR</span>
+<span class="s">   3. energy difference of energy surfaces</span>
+<span class="s">   4, 5. N and M are the numbers of vibrational quanta can be in the modes</span>
+<span class="s">   All arguments are neccesary.</span>
+
+<span class="s">   returns:</span>
+
+<span class="s">   &#39;&#39;&#39;</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def occOPA(dim, N, M):</span>
+<span class="s">      Xi_g=np.zeros((dim,M*dim))</span>
+<span class="s">      Xi_e=np.zeros((dim,N*dim))</span>
+<span class="s">      for i in range(dim):</span>
+<span class="s">	 for j in range(M):</span>
+<span class="s">	    Xi_g[i][i+j]=j+1</span>
+<span class="s">	 for j in range(N):</span>
+<span class="s">	    Xi_e[i][i+j]=j+1</span>
+<span class="s">      return Xi_g, Xi_e</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def FCeqf( Deltag, M, N):</span>
+<span class="s">      exg=np.exp(-np.abs(Deltag)/2) #actually Deltag should be &gt;0, but is not always due to negative frequencies</span>
+<span class="s">      faktNM=math.factorial(M)*math.factorial(N)</span>
+<span class="s">      FC=0</span>
+<span class="s">      for x in range(int(min(N,M))+1):</span>
+<span class="s">	 FC+=exg*math.pow(-1,N-x)*math.pow(np.abs(Deltag),(M+N-2*x)//2)/(math.factorial(M-x)*math.factorial(N-x))*</span><span class="se">\</span>
+<span class="s">	       math.sqrt(faktNM/(math.factorial(x)*math.factorial(x)))</span>
+<span class="s">      return FC</span>
+<span class="s">   </span>
+<span class="s">   </span>
+<span class="s">   Xi_g, Xi_e=occOPA(len(HR), N, M)</span>
+<span class="s">   intens=np.ones((len(Xi_e[0]), len(Xi_g[0]))) #matrix consisting of 1 </span>
+<span class="s">   FC=np.zeros((len(Xi_g),len(Xi_e[0]), len(Xi_g[0]))) #general for other approximations as well</span>
+<span class="s">   for i in range(len(Xi_g)):</span>
+<span class="s">      FC00=FCeqf(HR[i], 0, 0)</span>
+<span class="s">      for j in range(len(Xi_g[i])):</span>
+<span class="s">      	 for k in range(len(Xi_e[i])):</span>
+<span class="s">   	    if Xi_g[i][j]==0 and  Xi_e[i][k]==0: #this saves time at least if OPA is taken into account</span>
+<span class="s">	       FC[i][k][j]=FC00</span>
+<span class="s">	    else:</span>
+<span class="s">	       FC[i][k][j]=FCeqf(HR[i], Xi_g[i][j], Xi_e[i][k])</span>
+<span class="s">   for i in range(len(FC)):</span>
+<span class="s">      intens=intens*FC[i] #proportional to square of FC factors &gt;FC is already the sqare of overlap-integral</span>
+<span class="s">   spect=unifSpect(intens, E, freq, len(Xi_e[0]), len(Xi_g[0]))</span>
+<span class="s">   return spect</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def FCf(J, K, f, E, N):</span>
+<span class="s">   &#39;&#39;&#39;Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA</span>
+
+<span class="s">   Arguments:</span>
+<span class="s">   1.  Duschinsky-rotation matrix</span>
+<span class="s">   2.  Displacement-Vector</span>
+<span class="s">   3.  frequency: two-dim array (freq_initial, freq_final)</span>
+<span class="s">   4.  Energy-difference of minima</span>
+<span class="s">   5.  Max. number of excitation quanta state considered</span>
+<span class="s">     </span>
+<span class="s">   All arguments are obligatory.</span>
+<span class="s">   returns:</span>
+<span class="s">   linespectrum </span>
+<span class="s">   &#39;&#39;&#39;</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def CalcI00(J, K, Gamma, Gammap):</span>
+<span class="s">      &#39;&#39;&#39;This function calculates the overlap-integral for no vibrations &#39;&#39;&#39;</span>
+<span class="s">      pref=np.sqrt(math.pow(2,len(Gamma))*</span>
+<span class="s">	    np.sqrt(np.linalg.det(Gamma.dot(Gamma)))/</span>
+<span class="s">	    (np.linalg.det(J.dot(J.T.dot(Gammap).dot(J)+Gamma))))</span>
+<span class="s">      print pref</span>
+<span class="s">      exp=np.exp(0.5*K.T.dot(Gammap.dot(J). ###DIMENSIONALITY!!!</span>
+<span class="s">	    dot(np.linalg.inv(J.T.dot(Gammap).dot(J)+</span>
+<span class="s">	    Gamma)).dot(J.T) -np.eye(len(Gamma)).dot(Gammap).dot(K)))</span>
+<span class="s">      print exp</span>
+<span class="s">      L=bt.Tree(len(K))</span>
+<span class="s">      L.fill(0)</span>
+<span class="s">      Zero=np.zeros(len(K))</span>
+<span class="s">      for alpha in range(len(K)):</span>
+<span class="s">	 linspectf.append(freq(E, Gamma[alpha][alpha]/2, Gammap[alpha][alpha]/2)) #ground state-transition</span>
+<span class="s">	 linspectI.append(L.extract()) #I_00 transition</span>
+<span class="s">      L.insert(Zero, pref*exp)</span>
+<span class="s">      print L.extract()</span>
+<span class="s">      return 0, L</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def freq(E, Gamma, Gammap):</span>
+<span class="s">	return (E+Gammap-Gamma)*Hartree2cm_1</span>
+
+<span class="s">   Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i</span>
+<span class="s">   sqGamma=np.diag(np.sqrt(f[0])) #in atomic units. It is equivalent to 4pi^2/h f_i</span>
+<span class="s">   Gammap=np.diag(f[1]) # for final state</span>
+<span class="s">   sqGammap=np.diag(np.sqrt(f[1])) # for final state</span>
+<span class="s">   unity=np.eye(len(Gamma))</span>
+
+<span class="s">   A=J.T.dot(Gammap).dot(J)+Gamma           #due to numeric problems they should be split</span>
+<span class="s">   A=np.dot(J,np.dot(np.linalg.inv(A),J.T))</span>
+<span class="s">   A=2*np.dot(Gammap,np.dot(J,A))-unity</span>
+
+<span class="s">   C=J.T.dot(Gammap).dot(J)+Gamma</span>
+<span class="s">   C=2*Gamma.dot(np.linalg.inv(C))-unity</span>
+
+<span class="s">   E=J.T.dot(Gammap).dot(J)+Gamma</span>
+<span class="s">   E=4*sqGamma.dot(np.linalg.inv(E)).dot(J.T).dot(sqGammap)</span>
+
+<span class="s">   b=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma)</span>
+<span class="s">   b=(unity-J.dot(b).dot(J.T).dot(Gammap))</span>
+<span class="s">   b=2*sqGammap.dot(unity-b).dot(K)</span>
+
+<span class="s">   d=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma)</span>
+<span class="s">   d=-2*sqGamma.dot(d).dot(J.T).dot(Gammap).dot(K)</span>
+
+<span class="s">   linspectf=[] #frequncies</span>
+<span class="s">   linspectI=[] #intensities</span>
+<span class="s">   L2=CalcI00(J, K, Gamma, Gammap)</span>
+<span class="s">   L1=L2 #for first state this is ok</span>
+<span class="s">   for i in range(1,N+1):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      for alpha in range(len(b)):</span>
+<span class="s">	 linspectf.append(freq(E, Gamma[alpha][alpha], Gammap[alpha][alpha]))</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">def iterate(L1, L2, i, b, d, A, E, C):</span>
+<span class="s">   alpha=len(b)</span>
+<span class="s">   L3=bt.Tree(i)  # initialize root-node</span>
+<span class="s">   L3.fill(alpha) # initialize tree</span>
+<span class="s">   States=states(alpha, i) # States are all possible</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def FirstNonzero(n): # find first non-zero elements in first and second half of array n</span>
+<span class="s">      ni=n[len(n)/2:]</span>
+<span class="s">      nf=n[:len(n)/2]</span>
+<span class="s">      m=len(ni)+1 #this means there is no excitation in this state</span>
+<span class="s">      mp=len(nf)+1</span>
+<span class="s">      for j in range(len(ni)):</span>
+<span class="s">	 if ni[j]&gt;0:</span>
+<span class="s">	    m=j</span>
+<span class="s">	    break</span>
+<span class="s">      for j in range(len(nf)):</span>
+<span class="s">	 if nf[j]&gt;0:</span>
+<span class="s">	    mp=j</span>
+<span class="s">	    break</span>
+<span class="s">      return m, mp</span>
+
+<span class="s">   for n in States: #for each possible state, described by n(vector)</span>
+<span class="s">      m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state</span>
+<span class="s">      if m&lt;=mp: #need first iteration formula</span>
+<span class="s">	 n_m=n[m]</span>
+<span class="s">	 ntemp=n</span>
+<span class="s">	 ntemp[m]-=1 #n[m] is at least 1</span>
+<span class="s">	 I_nn=b[m]*L2.getState(ntemp)# first term </span>
+<span class="s">	 if nmtemp[m]&gt;0:</span>
+<span class="s">	    ntemp[m]-=1</span>
+<span class="s">	    I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*L1.getState(ntemp)# second term</span>
+<span class="s">	 for i in range(m+1, len(n)/2):</span>
+<span class="s">	    if n[i]&gt;0:</span>
+<span class="s">	       ntemp=n</span>
+<span class="s">	       ntemp[m]-=1</span>
+<span class="s">	       ntemp[i]-=1</span>
+<span class="s">	       I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*L1.getState(ntemp)# second term</span>
+<span class="s">	 for i in range(mp+len(n)/2, len(n)): #sum over respective final states</span>
+<span class="s">	    if n[i]&gt;0:</span>
+<span class="s">	       ntemp=n</span>
+<span class="s">	       ntemp[m]-=1</span>
+<span class="s">	       ntemp[i]-=1</span>
+<span class="s">	       I_nn+=np.sqrt(n[i]/2)*(E[i][m])*L1.getState(ntemp)# second term</span>
+<span class="s">      else: #need other iteration-formula</span>
+<span class="s">	 n_m=n[mp]</span>
+<span class="s">	 ntemp=n</span>
+<span class="s">	 ntemp[mp]-=1</span>
+<span class="s">	 I_nn=d[mp]*L2.getState(ntemp)# first term </span>
+<span class="s">	 if nmtemp[m]&gt;0:</span>
+<span class="s">	    ntemp[mp]-=1</span>
+<span class="s">	    I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*L1.getState(ntemp)# second term</span>
+<span class="s">	 for i in range(mp+1, len(n)):</span>
+<span class="s">	    if n[i]&gt;0:</span>
+<span class="s">	       ntemp=n</span>
+<span class="s">	       ntemp[mp]-=1</span>
+<span class="s">	       ntemp[i]-=1</span>
+<span class="s">	       I_nn+=np.sqrt(n[i]/2)*(C[mp][i]+C[i][mp])*L1.getState(ntemp)# second term</span>
+<span class="s">	 for i in range(mp, len(n)): #sum over respective final states</span>
+<span class="s">	    if n[i]&gt;0:</span>
+<span class="s">	       ntemp=n</span>
+<span class="s">	       ntemp[mp]-=1</span>
+<span class="s">	       ntemp[i]-=1</span>
+<span class="s">	       I_nn+=np.sqrt(n[i]/2)*(E[mp][i])*L1.getState(ntemp)# second term</span>
+<span class="s">      I_nn/=np.sqrt(2*n_m)</span>
+<span class="s">      L3.insert(n, I_nn)</span>
+<span class="s">   return L2, L3</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def outspect(spectfile, gridpt, linspect, gamma):</span>
+<span class="s">   &#39;&#39;&#39;This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. </span>
+<span class="s">   As basis-function a Lorentzian is assumed with a common width.</span>
+<span class="s">   </span>
+<span class="s">   Arguments:</span>
+<span class="s">   1.  file, the result is written in (ascii-table). In addition a graph is created and shown on the fly. This graph is not saved.</span>
+<span class="s">   2.  number of grid-points to be used for the calculation</span>
+<span class="s">   3.  line-spectrum list (frequency, intensity) </span>
+<span class="s">   4.  broadening constant for the Lorentzians. It is the same for all peaks</span>
+<span class="s">   </span>
+<span class="s">   All arguments are obligatory.&#39;&#39;&#39;</span>
+<span class="s">   out = open(spectfile, &quot;w&quot;)</span>
+<span class="s">   minfreq=linspect[0][np.argmin(linspect[0])] # min-freq   of fluorescence</span>
+<span class="s">   maxfreq=linspect[0][np.argmax(linspect[0])] # max freq</span>
+<span class="s">   print&#39;maximal and minimal frequencies:</span><span class="se">\n</span><span class="s">&#39;, maxfreq, minfreq</span>
+<span class="s">   minfreq-=1000 #the range should be greater than the transition-frequencies</span>
+<span class="s">   maxfreq+=1000 </span>
+<span class="s">   omega=np.linspace(minfreq,maxfreq,gridpt)</span>
+<span class="s">   spect=np.zeros(len(omega))</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   for i in range(len(omega)):</span>
+<span class="s">      intens=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)</span>
+<span class="s">	    for j in range(len(linspect[0])) )</span>
+<span class="s">      out.write(u&quot; &#39;{0}&#39;  &#39;{1}&#39;</span><span class="se">\n</span><span class="s">&quot;.format(omega[i] ,intens))</span>
+<span class="s">      spect[i]=intens</span>
+<span class="s">   plt.plot(omega, spect)</span>
+<span class="s">   plt.title(&#39;Broadened pectrum of Ir-PS&#39;)</span>
+<span class="s">   plt.xlabel(&#39;Frequency [$cm^{-1}$]&#39;)</span>
+<span class="s">   plt.ylabel(&#39;Intensity (arb. units)&#39;)</span>
+<span class="s">   plt.show()</span>
+<span class="s">   out.close()</span>
+<span class="s">#DIVIDER</span>
+<span class="s">def states(alpha, n):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for &#39;states&#39;</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      def _unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for &#39;unlabeled_balls_in_labeled_boxes&#39; needed for &#39;states&#39;</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">	 if not balls:</span>
+<span class="s">	    yield len(box_sizes) * (0,)</span>
+<span class="s">      </span>
+<span class="s">       	 elif len(box_sizes) == 1:</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	    if box_sizes[0] &gt;= balls:</span>
+<span class="s">	       yield (balls,)</span>
+<span class="s">      </span>
+<span class="s">       	 else:</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	    for balls_in_first_box in xrange( min(balls, box_sizes[0]), -1, -1 ):</span>
+<span class="s">	       balls_in_other_boxes= balls - balls_in_first_box</span>
+<span class="s">	       for distribution_other in _unlabeled_balls_in_labeled_boxes(</span>
+<span class="s">	       balls_in_other_boxes, box_sizes[1:]):</span>
+<span class="s">		  yield (balls_in_first_box,) + distribution_other</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   </span>
+<span class="s">      if not isinstance(balls, int):</span>
+<span class="s">   	    raise TypeError(&quot;balls must be a non-negative integer.&quot;)</span>
+<span class="s">      if balls &lt; 0:</span>
+<span class="s">       	 raise ValueError(&quot;balls must be a non-negative integer.&quot;)</span>
+<span class="s">   </span>
+<span class="s">      if not isinstance(box_sizes,list):</span>
+<span class="s">       	 raise ValueError(&quot;box_sizes must be a non-empty list.&quot;)</span>
+<span class="s">   </span>
+<span class="s">      capacity= 0</span>
+<span class="s">      for size in box_sizes:</span>
+<span class="s">	 if not isinstance(size, int):</span>
+<span class="s">	    raise TypeError(&quot;box_sizes must contain only positive integers.&quot;)</span>
+<span class="s">	 if size &lt; 1:</span>
+<span class="s">	    raise ValueError(&quot;box_sizes must contain only positive integers.&quot;)</span>
+<span class="s">	 capacity+= size</span>
+<span class="s">   </span>
+<span class="s">      if capacity &lt; balls:</span>
+<span class="s">       	 raise ValueError(&quot;The total capacity of the boxes is less than the &quot;</span>
+<span class="s">	 &quot;number of balls to be distributed.&quot;)</span>
+<span class="s">   </span>
+<span class="s">      return _unlabeled_balls_in_labeled_boxes(balls, box_sizes)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   </span>
+<span class="s">   States=np.zeros((math.factorial(n+alpha-1)/(math.factorial(n)*math.factorial(alpha-1)),alpha))</span>
+<span class="s">   a=np.ones(alpha).tolist()</span>
+<span class="s">   for i in range(len(a)):</span>
+<span class="s">      a[i]=n*int(a[i]) #create the needed list</span>
+<span class="s">   i=0</span>
+<span class="s">   for distributions in unlabeled_balls_in_labeled_boxes(n,a):</span>
+<span class="s">      States[i]=np.matrix(distributions)</span>
+<span class="s">      i+=1</span>
+<span class="s">   return States</span>
+
+<span class="s">version=2.5</span>
+<span class="s">#DIVIDER</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>assuming two files !! (more are impossible here...)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>Returning the read values</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>print P[1]
+the following seems to have problems!!</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>print P[1]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>for files in glob.glob('*.log'):</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>extracting the L-matrix from the log file for comparing with the one calculated above</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>Mapping the log file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+      <p>Reading Cartesian coordinates</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p>Getting tensor of inertia, transforming to principlas axes</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
+      </div>
+      <p>print Coord[1]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
+      <p>X=np.matrix(X[index]) #sorting by eigenvalues</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      <p>Reading of Cartesian force constant matrix  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+      <p>Defining arrays</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>assert np.any(ftemp&lt;0) or np.imag(ftemp)!=0, 'Frequencies smaller than 0 occured. Please check the input-file!!'</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>assert any(ftemp&lt;0), 'negative frequencies occured. Please check the geometry!'</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>Defining arrays</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>assert np.any(ftemp&lt;0) or np.imag(ftemp)!=0, 'Frequencies smaller than 0 occured. Please check the input-file!!'
+'repair' L-matrix using G09-frequencies</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>assert any(ftemp&lt;0), 'negative frequencies occured. Please check the geometry!'</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      <p>problems.append()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>print coordName[j][k]+' '+coordName[i][k]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-38'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-38'>#</a>
+      </div>
+      <p>logging.info('error in Duschinsky-rotation matrix (smallest and biggest deviation):'+\ ##this is not a valid relation
+repr(np.min(np.dot(J,L[1].T)-L[0].T))+'  '+repr(np.max(np.dot(J,L[1].T)-L[0].T)))
+assert np.min(np.dot(J,L[1].T)-L[0].T)&gt;-0.34 and np.max(np.dot(J,L[1].T)-L[0].T)&lt;0.34,\
+'error: Duschinsky rotation went wrong! Probably a numeric instability?'</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>for j in range(len(DeltaX[0])/3):
+DeltaX[i][3<em>j:3</em>j+3]=DeltaX[0][3<em>j:3</em>j+3]-x[i].T[j]
+K[i]=np.dot(L[i].T,np.dot(M,DeltaX.T))</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
+      </div>
+      <p>if aoe[-j]&gt;0.2: 
+print 'multi_freq:',sortfG[-j]<em>Hartree2cm_1,'  ',sortfE[-j]</em>Hartree2cm_1,'  ' , sortmulti[-j]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-45'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-47'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-47'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-48'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-48'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-49'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-49'>#</a>
+      </div>
+      <p>L1, L2=iterate(L1, L2, i, b, d, A, E, C)
+linspectI.append(L2.bt.extract)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>return linespectf, linspectI #2-dimensional array</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-52'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-52'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-53'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-53'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-54'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-54'>#</a>
+      </div>
+      <p>grid=np.zeros(len(omega)) #data-points
+print grid</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-55'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-55'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-56'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-56'>#</a>
+      </div>
+      <p>These functions are part of python-package: 'combinatorics' 
+(download from https://pypi.python.org/pypi/Combinatorics)
+unlabeled_balls_in_labeled_boxes(balls, box_sizes): This function 
+returns a generator that produces all distinct distributions of indistinguishable balls
+among labeled boxes with specified box sizes (capacities). This is 
+a generalization of the most common formulation of the problem, where each box is
+sufficiently large to accommodate all of the balls, and is an important 
+example of a class of combinatorics problems called 'weak composition' problems.</p>
+<p>OVERVIEW</p>
+<p>This function returns a generator that produces all distinct distributions of
+indistinguishable balls among labeled boxes with specified box sizes
+(capacities).  This is a generalization of the most common formulation of the
+problem, where each box is sufficiently large to accommodate all of the
+balls, and is an important example of a class of combinatorics problems
+called 'weak composition' problems.</p>
+<p>CONSTRUCTOR INPUTS</p>
+<p>n: the number of balls</p>
+<p>box_sizes: This argument is a list of length 1 or greater.  The length of
+the list corresponds to the number of boxes.  <code>box_sizes[i]</code> is a positive
+integer that specifies the maximum capacity of the ith box.  If
+<code>box_sizes[i]</code> equals <code>n</code> (or greater), the ith box can accommodate all <code>n</code>
+balls and thus effectively has unlimited capacity.</p>
+<p>ACKNOWLEDGMENT</p>
+<p>I'd like to thank Chris Rebert for helping me to convert my prototype
+class-based code into a generator function.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-57'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-57'>#</a>
+      </div>
+      <p>This recursive generator function was designed to be returned by
+<code>unlabeled_balls_in_labeled_boxes</code>.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-58'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-58'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-59'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-59'>#</a>
+      </div>
+      <p>If there are no balls, all boxes must be empty:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-60'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-60'>#</a>
+      </div>
+      <p>If the single available box has sufficient capacity to store the balls,
+there is only one possible distribution, and we return it to the caller
+via <code>yield</code>.  Otherwise, the flow of control will pass to the end of the
+function, triggering a <code>StopIteration</code> exception.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-61'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-61'>#</a>
+      </div>
+      <p>Iterate over the number of balls in the first box (from the maximum
+possible down to zero), recursively invoking the generator to distribute
+the remaining balls among the remaining boxes.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-62'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-62'>#</a>
+      </div>
+      <p>end three alternative blocks</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-63'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-63'>#</a>
+      </div>
+      <p>end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-64'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-64'>#</a>
+      </div>
+      <p>End of functions_smsc.py</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
