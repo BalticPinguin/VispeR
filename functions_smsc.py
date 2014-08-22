@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, glob , re , shutil , mmap ,os, sys, math, matplotlib.pyplot as plt, logging
+import numpy as np, glob , re , shutil , mmap ,os, sys, math, logging#, matplotlib.pyplot as plt
 from io import open #for python-3 compatibility
 from copy import deepcopy # for function sort(). Probably find a better function!!
+#include [[Btree.py]]
 import Btree as bt #class of binary tree
 
 # Below are the conversion factors and fundamental constant
@@ -43,8 +44,8 @@ def resort(f): #only temporary of interest
 
 #code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
 def gs(A):
-   '''This function does row-wise Gram-Schmidt orthonormalization of matrices. 
-   The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)'''
+   """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
+   The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)"""
 
    def proj(v1, v2):
       return map(lambda x : x *(np.dot(v2,
@@ -62,7 +63,7 @@ def gs(A):
    return np.matrix(Y).T # undo transposition in the beginning
 
 def replace(files, freq, L):
-   ''' This function creates a new file (determined by files, ending with ".rep" and copies the log-file (files) into it, replacing the frequencies and normal modes by those calculated by smallscript.
+   """ This function creates a new file (determined by files, ending with ".rep" and copies the log-file (files) into it, replacing the frequencies and normal modes by those calculated by smallscript.
    The function is suited to test, whether these results coincide qualitatively with the gaussian's.
 
    ** Arguments: **
@@ -70,8 +71,8 @@ def replace(files, freq, L):
    2.   
    3.   
 
-   no return
-   '''
+   no return-statements (results are written to file)
+   """
    freq*=Hartree2cm_1
    for i in range(len(files)):
       with open(files[i][0]) as f:
@@ -117,7 +118,7 @@ def replace(files, freq, L):
 	 out.close()
 
 def gaussianfreq(ContntInfo, dim):
-   '''Extraction of the frequencies from g09-log file'''
+   """Extraction of the frequencies from g09-log file"""
    f=np.zeros((len(ContntInfo), dim-6))
    for i in range(len(ContntInfo)): 
       files=open(ContntInfo[i][0], "r") #open file and map it for better working
@@ -179,7 +180,7 @@ def TrafoCoord(F, P, Coord, dim):
    return F, P, Coord
 
 def Contentcheck(inputs): #look through it in detail! In the way it is, it is senseless!!
-   '''
+   """
    This function opens the given g09-log files and checks, whether frequency-calculations are done and if they converged. Otherwise these states are not taken into account.
    The function is valid for any number of files.
    
@@ -188,7 +189,7 @@ def Contentcheck(inputs): #look through it in detail! In the way it is, it is se
 
    returns:
    A list containing the file-names and calculation-names (of g09) of successfull frequency-calculations
-   '''
+   """
    ContntInfo=[] #create array: name(char), Stoichiometry(char), root(int), freq(bool), 
    #for files in glob.glob('*.log'):
    for files in inputs:
@@ -326,7 +327,21 @@ def GetProjector(X, dim, m, Coord):
    return one_P
 
 def GetL(dim, mass, F, D):
-   logging.info("Len(F) is "+repr(len(F)))
+   """ Function that calculates the frequencies and normal modes from force constant matrix 
+   with and without projection onto internal degrees of freedom
+
+   **argumets**
+   1. The dimensions of force-constant matrix
+   2. square-root of masses dim/3-dimensional array
+   3. force-constant matrix
+   4. projection-matrix onto vibrations
+
+   **return**
+   1. matrix of all normal modes (including global modes) 
+   2. matrix of vibr. normal modes (including global modes) 
+   3. frequencies 
+   4. massweighted L for comparison with the respective matrix from the g09 log-file
+   """
    # Defining arrays
    L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
    N=np.zeros(( len(F), len(F[0]), len(F[0]) )) 
@@ -377,6 +392,22 @@ def GetL(dim, mass, F, D):
    return N, L, f, Lsorted
 
 def GetL1(dim, mass, F, G09f, P):
+   """ Function that calculates the frequencies and normal modes from force constant matrix 
+   with projection onto internal degrees of freedom and uses inverse iteration to get 
+   numerically better results for normal modes. Therefore the g09-frequencies are used
+
+   **argumets**
+   1. The dimensions of force-constant matrix
+   2. square-root of masses dim/3-dimensional array
+   3. force-constant matrix
+   4. dim-6-dimensional array of frequencies calculated by g09
+   5. projection-matrix onto vibrations
+
+   **return**
+   1. matrix of vibr. normal modes (including global modes) 
+   2. frequencies 
+   3. massweighted L for comparison with the respective matrix from the g09 log-file
+   """
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=2, linewidth=122)
 
@@ -396,6 +427,7 @@ def GetL1(dim, mass, F, G09f, P):
 	 tmp=L[i]-L[i]
 	 while np.linalg.norm(tmp-L[i])>0.00001/len(L[i]): #this should be a reasonable threshold
 	    tmp=L[i]
+	    #ERROR: elements not aligned
 	    L[i]=np.dot(A_1,L[i].T).T/np.linalg.norm(A_1.dot(L[i].T))
       return L
 
@@ -526,6 +558,20 @@ def Duschinsky(N, L, mass, dim, x):
    return J, K #J[0] is unity (if not everything goes wrong), second is of interenst...
 
 def HuangR(K, f): #what is with different frequencies???
+   """ Function that calculates the Huang-Rhys factors for all vibrational states
+
+   **Arguments**
+   1. The displacements of minima in internal coordinates
+   2. The frequencies of respective modes
+
+   **returns**
+   return sortuni, funi, sortmulti, sortfG, sortfE
+   1. HR-factors for coinciding frequencies sorted by size (decreasing)
+   2. respective frequencies for 1. (same order)
+   3. HR-factors for different frequencies of involved electronic states sorted by size (decreasing)
+   4. respecivp frequencies of initial state for 3 (same order)
+   5. respecivp frequencies of final state for 3 (same order)
+   """
    unif=np.zeros(len(K))
    multif=np.zeros(len(K))
    logging.info('Delta Q:'+repr( K))
@@ -533,8 +579,8 @@ def HuangR(K, f): #what is with different frequencies???
    multif=K*K*f[0]*f[0]/(2*f[1])
    index=sort(multif)
    sortmulti=multif[index]
-   sortfG=f[1][index]
-   sortfE=f[0][index]
+   sortfI=f[1][index]
+   sortfF=f[0][index]
    index=sort(unif)
    sortuni=unif[index]
    funi=f[1][index]
@@ -548,9 +594,22 @@ def HuangR(K, f): #what is with different frequencies???
       #if aoe[-j]>0.2: 
       #print 'multi_freq:',sortfG[-j]*Hartree2cm_1,'  ',sortfE[-j]*Hartree2cm_1,'  ' , sortmulti[-j]
       print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
-   return sortuni, funi, sortmulti, sortfG, sortfE
+   return sortuni, funi, sortmulti, sortfI, sortfF
 
 def unifSpect(intens, E, freq, N, M):
+   """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
+   and assuming coinciding frequencies for initial and final state
+
+   **Arguments**
+   1. array of intensities of transitions
+   2. diffenece of ground-state energy difference of the electronic states involved
+   3. array of frequencies of the respected states
+   4. maximum number of allowed excitations in initial mode
+   5. maximum number of allowed excitations in final mode
+
+   **returns**
+   a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
+   """
    logging.debug('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
    spect=np.zeros((2,len(intens)*len(freq)))
    for x in range(N):
@@ -564,7 +623,7 @@ def unifSpect(intens, E, freq, N, M):
    return spect
 
 def calcspect(HR, freq, E, N, M):
-   '''This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
+   """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
 
    Arguments:
    1. Huang-Rhys factors
@@ -575,7 +634,7 @@ def calcspect(HR, freq, E, N, M):
 
    returns:
 
-   '''
+   """
 
    def occOPA(dim, N, M):
       Xi_g=np.zeros((dim,M*dim))
@@ -614,9 +673,9 @@ def calcspect(HR, freq, E, N, M):
    return spect
 
 def FCf(J, K, f, E, N):
-   '''Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
+   """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
 
-   Arguments:
+   *Arguments*:
    1.  Duschinsky-rotation matrix
    2.  Displacement-Vector
    3.  frequency: two-dim array (freq_initial, freq_final)
@@ -624,19 +683,24 @@ def FCf(J, K, f, E, N):
    5.  Max. number of excitation quanta state considered
      
    All arguments are obligatory.
-   returns:
+   *returns*:
    linespectrum 
-   '''
+   """
    def CalcI00(J, K, Gamma, Gammap):
-      '''This function calculates the overlap-integral for no vibrations '''
-      pref=np.sqrt(math.pow(2,len(Gamma))*
-	    np.sqrt(np.linalg.det(Gamma.dot(Gamma)))/
-	    (np.linalg.det(J.dot(J.T.dot(Gammap).dot(J)+Gamma))))
-      print pref
-      exp=np.exp(0.5*K.T.dot(Gammap.dot(J). ###DIMENSIONALITY!!!
-	    dot(np.linalg.inv(J.T.dot(Gammap).dot(J)+
-	    Gamma)).dot(J.T) -np.eye(len(Gamma)).dot(Gammap).dot(K)))
-      print exp
+      """This function calculates the overlap-integral for no vibrations """
+      invJ=np.linalg.inv(J)
+      pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
+      TMP=J.dot(invJ.dot(Gammap).dot(J)+Gamma)
+      pref/=np.linalg.det(TMP)
+
+      #error!!!! This has to be positive but is not always!!
+      pref=np.sqrt(pref)
+      TMP=invJ.dot(Gammap).dot(J)+Gamma
+      TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(invJ)-np.eye(len(J))
+      exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))
+      #print pref
+      #print exp
+
       L=bt.Tree(len(K))
       L.fill(0)
       Zero=np.zeros(len(K))
@@ -644,8 +708,7 @@ def FCf(J, K, f, E, N):
 	 linspectf.append(freq(E, Gamma[alpha][alpha]/2, Gammap[alpha][alpha]/2)) #ground state-transition
 	 linspectI.append(L.extract()) #I_00 transition
       L.insert(Zero, pref*exp)
-      print L.extract()
-      return 0, L
+      return L
 
    def freq(E, Gamma, Gammap):
 	return (E+Gammap-Gamma)*Hartree2cm_1
@@ -655,47 +718,44 @@ def FCf(J, K, f, E, N):
    Gammap=np.diag(f[1]) # for final state
    sqGammap=np.diag(np.sqrt(f[1])) # for final state
    unity=np.eye(len(Gamma))
-
-   A=J.T.dot(Gammap).dot(J)+Gamma           #due to numeric problems they should be split
-   A=np.dot(J,np.dot(np.linalg.inv(A),J.T))
+   invJ=np.linalg.inv(J)
+   
+   #quantities for the iterative spectrum-calculation
+   #C is only temporary matrix here
+   C=np.linalg.inv(invJ.dot(Gammap).dot(J)+Gamma)
+   A=np.dot(J,np.dot(C,invJ)) 
    A=2*np.dot(Gammap,np.dot(J,A))-unity
-
-   print "A:",'  ', len(A),'  ',len(A[0])
-   C=J.T.dot(Gammap).dot(J)+Gamma
-   C=2*Gamma.dot(np.linalg.inv(C))-unity
-
-   print "C:",'  ', len(C),'  ',len(C[0])
-   E=J.T.dot(Gammap).dot(J)+Gamma
-   E=4*sqGamma.dot(np.linalg.inv(E)).dot(J.T).dot(sqGammap)
-
-   print "E:",'  ', len(E),'  ',len(E[0])
-   b=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma)
-   b=(unity-J.dot(b).dot(J.T).dot(Gammap))
+   b=unity-J.dot(C).dot(invJ).dot(Gammap)
    b=2*sqGammap.dot(unity-b).dot(K)
+   E=4*sqGamma.dot(C).dot(invJ).dot(sqGammap)
+   d=-2*sqGamma.dot(C).dot(invJ).dot(Gammap).dot(K)
+   #this is 'real' C-matrix
+   C=2*Gamma.dot(C)-unity
 
-   print "b:",'  ', len(b),'  ',len(b[0])
-   d=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma)
-   d=-2*sqGamma.dot(d).dot(J.T).dot(Gammap).dot(K)
-
-   print "d:",'  ', len(d),'  ',len(d[0])
    linspectf=[] #frequncies
    linspectI=[] #intensities
    L2=CalcI00(J, K, Gamma, Gammap)
+   print L2.extract() #this is 'tupel' FFUUUCK YOU PYTHON!!
    L1=L2 #for first state this is ok
    for i in range(1,N+1):
-      #L1, L2=iterate(L1, L2, i, b, d, A, E, C)
-      #linspectI.append(L2.bt.extract)
+      print L2.extract()
+      L1, L2=iterate(L1, L2, i, b, d, A, E, C)
+      linspectI.append(L2.extract)
       for alpha in range(len(b)):
 	 linspectf.append(freq(E, Gamma[alpha][alpha], Gammap[alpha][alpha]))
-   #return linespectf, linspectI #2-dimensional array
+   return linspectf, linspectI #2-dimensional array
 
 def iterate(L1, L2, i, b, d, A, E, C):
+   """ Calculates the Franck-Condon factors of ... using the lower levels L1 and L2
+   """
+   print L2.extract()
    alpha=len(b)
    L3=bt.Tree(i)  # initialize root-node
    L3.fill(alpha) # initialize tree
    States=states(alpha, i) # States are all possible
 
-   def FirstNonzero(n): # find first non-zero elements in first and second half of array n
+   def FirstNonzero(n): 
+      """Find first non-zero elements in first and second half of array n """
       ni=n[len(n)/2:]
       nf=n[:len(n)/2]
       m=len(ni)+1 #this means there is no excitation in this state
@@ -712,12 +772,13 @@ def iterate(L1, L2, i, b, d, A, E, C):
 
    for n in States: #for each possible state, described by n(vector)
       m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state
-      if m<=mp: #need first iteration formula
+      # if the 'first' excited state is in initial state: need first iteration formula
+      if m<=mp:
 	 n_m=n[m]
 	 ntemp=n
 	 ntemp[m]-=1 #n[m] is at least 1
 	 I_nn=b[m]*L2.getState(ntemp)# first term 
-	 if nmtemp[m]>0:
+	 if ntemp[m]>0:
 	    ntemp[m]-=1
 	    I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*L1.getState(ntemp)# second term
 	 for i in range(m+1, len(n)/2):
@@ -732,12 +793,13 @@ def iterate(L1, L2, i, b, d, A, E, C):
 	       ntemp[m]-=1
 	       ntemp[i]-=1
 	       I_nn+=np.sqrt(n[i]/2)*(E[i][m])*L1.getState(ntemp)# second term
-      else: #need other iteration-formula
+      #else: need the other iteration-formula
+      else: 
 	 n_m=n[mp]
 	 ntemp=n
 	 ntemp[mp]-=1
 	 I_nn=d[mp]*L2.getState(ntemp)# first term 
-	 if nmtemp[m]>0:
+	 if ntemp[m]>0:
 	    ntemp[mp]-=1
 	    I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*L1.getState(ntemp)# second term
 	 for i in range(mp+1, len(n)):
@@ -757,7 +819,7 @@ def iterate(L1, L2, i, b, d, A, E, C):
    return L2, L3
 
 def outspect(spectfile, gridpt, linspect, gamma):
-   '''This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
+   """This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
    As basis-function a Lorentzian is assumed with a common width.
    
    Arguments:
@@ -766,7 +828,7 @@ def outspect(spectfile, gridpt, linspect, gamma):
    3.  line-spectrum list (frequency, intensity) 
    4.  broadening constant for the Lorentzians. It is the same for all peaks
    
-   All arguments are obligatory.'''
+   All arguments are obligatory."""
    out = open(spectfile, "w")
    minfreq=linspect[0][np.argmin(linspect[0])] # min-freq   of fluorescence
    maxfreq=linspect[0][np.argmax(linspect[0])] # max freq

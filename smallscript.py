@@ -1,7 +1,12 @@
 #!/usr/bin/python
-import functions_smsc as of
+#include [[functions_smsc.py]]
+import functions_smsc as of 
 import numpy as np, re , shutil , mmap ,os, sys
 import logging #implement this!!
+
+""" script for the spectrum-calculation using two log-files from
+g09 frequency calculations (input-argument 1 (initial state) and 2(final state))
+"""
 
 logging.basicConfig(filename='calculation.log',level=logging.DEBUG)
 logging.info('Initializing the log-file')
@@ -16,7 +21,7 @@ logging.info('START of calculations. initial-state file: '+\
 	 repr(inputs[0])+', final-state file: '+repr(inputs[1])+\
 	 '. The spectrum will be printed into '+repr(spectfile)+'.')
 
-# look for the investigated molecule and where opt/freq was researched
+# look for the investigated molecule and where opt/freq was researched 
 ContntInfo=of.Contentcheck(inputs) # function: makes tests referring integrity, gathers general information
 if len(ContntInfo)!=2:
    logging.error('one of the files has invalid data.')
@@ -44,21 +49,21 @@ Gauf=of.gaussianfreq(ContntInfo, dim) #read frequencies calculated by g09 from f
 Gauf/=219474.63  #convert to atomic units
 
 F, P, CartCoord=of.TrafoCoord(F, P, CartCoord, dim)
-#print 'Cartesion coordinates of final system:\n', CartCoord[0].T, '\n', CartCoord[1].T
-#print 'forces:', repr(F[i])
+print 'Cartesion coordinates of final system:\n', CartCoord[0].T, '\n', CartCoord[1].T
+print 'forces:', repr(F[i])
 
 N, L, f, Lsorted=of.GetL(dim, mass, F, P)
 #L1, f1, Lsorted1=of.GetL1(dim, mass, F, Gauf, P)
-#L2=of.extractL(ContntInfo, dim)
+L2=of.extractL(ContntInfo, dim)
 
 J, K=of.Duschinsky(N, L, mass, dim, CartCoord)
 ##calculate HR-Spectrum:
-#HR_unif, funi, HR_multif, sortfG, sortfE= of.HuangR(K, f)
-#linspect=of.calcspect(HR_unif[-5:], funi[-5:], Energy[1]-Energy[0], 5, 5)
+HR_unif, funi, HR_multif, sortfG, sortfE= of.HuangR(K, f)
+linspect=of.calcspect(HR_unif[-5:], funi[-5:], Energy[1]-Energy[0], 5, 5)
 #of.outspect(spectfile, 3000, linspect, 4002)
 
 ##calculate Duschinsky-Rotated Spectrum:
-linespect=of.FCf(J, K, f, Energy[1]-Energy[0], 5)
+#linespect=of.FCf(J, K, f, Energy[1]-Energy[0], 5)
 #of.outspect(spectfile, 3000, linspect, 80)
 
 logging.info('END of calculations')

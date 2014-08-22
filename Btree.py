@@ -3,11 +3,26 @@
 import numpy as np
 
 class Tree:
+   """the class Tree is a binary tree having a certain structure depending on 'alpha' 
+   and (n+apha-1)!/(n!(alpha-1)!) data-points.
+   For better structurisation, it has  4 different data-types:
+
+   1. node: has two child-trees attached ('left' and *right*)
+   2. leaf: has one child-tree ('left') and one data-point
+   2. reaf: has one child-tree ('right') and one data-point
+   2. lleaf: has two data-points attached
+
+   in addition, for the 0-th order tree there is a type _ having only one data-point attached.
+   """
    def __init__(self,alph):
+      """ initializes the tree root of a (sub-) tree"""
       self.root=None
+      #self.alpha is not the same for different nodes in the tree.
+      # For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational modes
       self.alpha=alph
 
    def fill(self, n):
+      """ fills the Tree with the specific structure required for the level-fixed binary tree"""
       assert self.alpha!=0, 'There must be at least 1 vibrational mode!!'
       assert n>=0, 'The dimensionality of a tree can not be smaller 0'
       if n==0:
@@ -35,6 +50,16 @@ class Tree:
 	 self.type='node'
 
    def insert(self, N, FC): #data=[........] alpha-dim array...
+      """ function that inserts some data into a specific placed denoted by the 2*alpha-dimensional array
+      (note: 2*alpha-1 is 'self.alpha' of the main node)
+      **Argumens**
+      1. A 2*alpha-dimensional array 'attention: The size is never checked. 
+      Wrong-sized arrays will can lead to unexpected beaviour.
+      Additionally the sum over all elemens has to coincide with 'n' used for 
+      the function 'fill()'. This is not checked as well and will NOT lead 
+      to asserts but will fill the element into wrong nodes'
+      2. The data to be filled into the respective node
+      """
       n=M=0
       test=1
       m=np.sum(N[i] for i in range(len(N)))
@@ -43,7 +68,7 @@ class Tree:
 	    break
 	 M+=N[i]
 	 if self.type=='node':
-	    for j in range(0,N[i]):
+	    for j in range(0,int(N[i])):
 	       self=self.right
 	       n+=1
 	       if self.type=='leaf': #exception for 'diagonal' elements
@@ -53,7 +78,7 @@ class Tree:
 		     break
 	    self=self.left
 	 elif self.type=='reaf': #allways has success
-	    for j in range(0,N[i]):
+	    for j in range(0,int(N[i])):
 	       self=self.right
 	       n+=1
 	       if self.type == 'lleaf': #important for last elements
@@ -77,14 +102,14 @@ class Tree:
 	    break
 
    def extract(self): #extract all elements 
-      ''' This function is for ordered extraction of all elements in the tree and additionally can be used 
+      """ This function is for ordered extraction of all elements in the tree and additionally can be used 
       instead of print (by 'print instance.extract()').
       the returned statement is a vector containing all values created by the inner function
-      '''
+      """
       result=[]
 
       def extra(self,result):
-   	 '''creates the vector to be returned in a recursive way '''
+   	 """creates the vector to be returned in a recursive way """
 	 if self.type=='node':
 	    extra(self.right,result)
 	    extra(self.left,result)
@@ -104,14 +129,14 @@ class Tree:
       return result
 
    def getState(self, N): 
-      '''This function returns a particular state denoted by the array N (comprising thi initial and final state).
+      """This function returns a particular state denoted by the array N (comprising thi initial and final state).
 
       **Input-Arguments:**
       Vector of length 2*alpha
 
       **returns:**
       the Franck-Condon factor for this state
-      '''
+      """
       if any(N)<0: 
 	 return 0 ##from iteration it will happen
       n=M=0
@@ -119,7 +144,7 @@ class Tree:
       for i in range(self.alpha+1): #self.alpha==alpha since this is root-node
 	 M+=N[i]
 	 if self.type=='node':
-	    for j in range(0,N[i]):
+	    for j in range(0,int(N[i])):
 	       self=self.right
 	       n+=1
 	       if self.type=='leaf': #exception for 'diagonal' elements
@@ -127,7 +152,7 @@ class Tree:
 		     return self.data
 	    self=self.left
 	 elif self.type=='reaf': #allways has success
-	    for j in range(0,N[i]):
+	    for j in range(0,int(N[i])):
 	       self=self.right
 	       n+=1
 	       if self.type == 'lleaf': #important for last elements
@@ -149,6 +174,10 @@ class Tree:
 	       return self.data2
 
    def size(self):
+      """ function that returns the size of the tree (number of data-points). 
+      It is needed for temporary needs and debugging only since the size can be calculated
+      by the input-argumens of '__init__' and 'fill'.
+      """
       if self.type=='lleaf':
 	 return 2
       if self.type=='reaf':
