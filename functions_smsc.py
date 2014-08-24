@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, glob , re , shutil , mmap ,os, sys, math, logging#, matplotlib.pyplot as plt
-from io import open #for python-3 compatibility
+import numpy as np, glob , re , shutil , mmap ,os, sys, math, logging, matplotlib.pyplot as plt
+#for python-3 compatibility
+from io import open 
 from copy import deepcopy # for function sort(). Probably find a better function!!
 #include [[Btree.py]]
 import Btree as bt #class of binary tree
@@ -21,11 +22,13 @@ def quantity(dim):
    return F, CartCoord, X, P, Energy
 
 def sort(f):
-   """This function is a self-writen sort-function for floats-arrays (increasing arguments by absolute value). Its input is the array whose elements should not exceed 3e300 (otherwise the sorting will fails) and returns the number of indices sorted by the size of respective elements. Hence, sorting an array A by the size of its elemens (largest first) can be done by 
-
+   """This function is a self-writen sort-function for floats-arrays 
+   (increasing arguments by absolute value). Its input is the array whose elements 
+   should not exceed 3e300 (otherwise the sorting will fails) and returns the number 
+   of indices sorted by the size of respective elements. Hence, sorting an array A
+   by the size of its elemens (largest first) can be done by 
    index=sort(A) 
    B=A[index]
-   
    where B will be the sorted array.
    For not absolute values see resort()."""
    index=np.zeros( len(f), dtype=int ) 
@@ -36,11 +39,13 @@ def sort(f):
    return index
 
 def resort(f): #only temporary of interest
-   """This function is a self-writen sort-function for floats-arrays (increasing arguments not absolute value). Its input is the array whose elements should not exceed 3e300 (otherwise the sorting will fails) and returns the number of indices sorted by the size of respective elements. Hence, sorting an array A by the size of its elemens (largest first) can be done by 
-
+   """This function is a self-writen sort-function for floats-arrays (increasing 
+   arguments not absolute value). Its input is the array whose elements should 
+   not exceed 3e300 (otherwise the sorting will fails) and returns the number of indices 
+   sorted by the size of respective elements. Hence, sorting an array A by the size of its 
+   elemens (largest first) can be done by 
    index=sort(A) 
    B=A[index]
-   
    where B will be the sorted array.
    For sorting of absolute values see sort()."""
    index=np.zeros( len(f), dtype=int ) 
@@ -53,8 +58,8 @@ def resort(f): #only temporary of interest
 #code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
 def gs(A):
    """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
-   The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)"""
-
+   The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)
+   """
    def proj(v1, v2):
       return map(lambda x : x *(np.dot(v2,
    	       v1) / np.dot(v1, v1)) , v1)
@@ -71,9 +76,10 @@ def gs(A):
    return np.matrix(Y).T # undo transposition in the beginning
 
 def replace(files, freq, L):
-   """ This function creates a new file (determined by files, ending with ".rep" and copies the log-file (files) into it, replacing the frequencies and normal modes by those calculated by smallscript.
+   """ This function creates a new file (determined by files, ending with 
+   ".rep" and copies the log-file (files) into it, replacing the frequencies and 
+   normal modes by those calculated by smallscript.
    The function is suited to test, whether these results coincide qualitatively with the gaussian's.
-
    ** Arguments: **
    1.    
    2.   
@@ -553,10 +559,6 @@ def Duschinsky(N, L, mass, dim, x):
    np.set_printoptions(precision=3, linewidth=138)
    print'Duschinsky\n',  J
    print 
-   #logging.info('error in Duschinsky-rotation matrix (smallest and biggest deviation):'+\ ##this is not a valid relation
-	 #repr(np.min(np.dot(J,L[1].T)-L[0].T))+'  '+repr(np.max(np.dot(J,L[1].T)-L[0].T)))
-   #assert np.min(np.dot(J,L[1].T)-L[0].T)>-0.34 and np.max(np.dot(J,L[1].T)-L[0].T)<0.34,\
-	    #'error: Duschinsky rotation went wrong! Probably a numeric instability?'
 
    DeltaX=np.array(x[0]-x[1]).flatten('F')
    logging.debug('Flatted\n'+repr(DeltaX))
@@ -607,7 +609,8 @@ def HuangR(K, f): #what is with different frequencies???
    for j in range(len(unif)):
       #if aoe[-j]>0.2: 
       #print 'multi_freq:',sortfG[-j]*Hartree2cm_1,'  ',sortfE[-j]*Hartree2cm_1,'  ' , sortmulti[-j]
-      print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
+      s=1
+      #print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
    return sortuni, funi, sortmulti, sortfI, sortfF
 
 def unifSpect(intens, E, freq, N, M):
@@ -700,7 +703,7 @@ def FCf(J, K, f, Energy, N):
    *returns*:
    linespectrum 
    """
-   def CalcI00(J, K, Gamma, Gammap):
+   def CalcI00(J, K, Gamma, Gammap, E):
       """This function calculates the overlap-integral for no vibrations """
       invJ=np.linalg.inv(J)
       pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
@@ -712,64 +715,60 @@ def FCf(J, K, f, Energy, N):
       TMP=invJ.dot(Gammap).dot(J)+Gamma
       TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(invJ)-np.eye(len(J))
       exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))
-      #print pref
-      #print exp
 
-      L=bt.Tree(len(K))
+      L=bt.Tree(2*len(K))
       L.fill(0)
-      Zero=np.zeros(len(K))
+      Zero=np.zeros(2*len(K))
+      L.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
       for alpha in range(len(K)):
-	 linspectf.append(freq(E, Gamma[alpha][alpha]/2, Gammap[alpha][alpha]/2)) #ground state-transition
-	 linspectI.append(L.extract()) #I_00 transition
-      L.insert(Zero, pref*exp)
+	 linspect.append(L.extract()) #I_00 transition
       return L
 
-   def freq(E, Gamma, Gammap):
-	return (E+Gammap-Gamma)*Hartree2cm_1
-
    Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
-   sqGamma=np.diag(np.sqrt(f[0])) #in atomic units. It is equivalent to 4pi^2/h f_i
    Gammap=np.diag(f[1]) # for final state
-   sqGammap=np.diag(np.sqrt(f[1])) # for final state
+
+   linspect=[] #intensities
+   L2=CalcI00(J, K, Gamma, Gammap, Energy)
+   print 'state0 is ready'
+   L1=L2 #for first state this is ok
+   for i in range(1,N+1):
+      L1, L2=iterate(L1, L2, Energy, i, f, J,K)
+      linspect.append(L2.extract)  
+   return linspect #2-dimensional array
+
+def iterate(L1, L2, Energy, i, f, J, K):
+   """ Calculates the Franck-Condon factors of ... using the lower levels L1 and L2
+   """
+
+   #quantities for the iterative spectrum-calculation
+   Gamma=np.diag(f[0])              # in atomic units. It is equivalent to 4pi^2/h f_i
+   Gammap=np.diag(f[1])             # for final state
+   sqGamma=np.diag(np.sqrt(f[0]))   
+   sqGammap=np.diag(np.sqrt(f[1]))  
    unity=np.eye(len(Gamma))
    invJ=np.linalg.inv(J)
-   
-   #quantities for the iterative spectrum-calculation
-   #C is only temporary matrix here
-   C=np.linalg.inv(invJ.dot(Gammap).dot(J)+Gamma)
+
+   C=np.linalg.inv(invJ.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
    A=np.dot(J,np.dot(C,invJ)) 
    A=2*np.dot(Gammap,np.dot(J,A))-unity
    b=unity-J.dot(C).dot(invJ).dot(Gammap)
    b=2*sqGammap.dot(unity-b).dot(K)
    E=4*sqGamma.dot(C).dot(invJ).dot(sqGammap)
    d=-2*sqGamma.dot(C).dot(invJ).dot(Gammap).dot(K)
-   #this is 'real' C-matrix
-   C=2*Gamma.dot(C)-unity
-
-   linspect=[] #intensities
-   L2=CalcI00(J, K, Gamma, Gammap)
-   L1=L2 #for first state this is ok
-   for i in range(1,N+1):
-      #print L2.extract()
-      L1, L2=iterate(L1, L2, i, b, d, A, E, C)
-      linspectI.append(L2.extract) # be careful with '0's which are not printed --> need to be changed
-      for alpha in range(len(b)):
-	 linspectf.append(freq(E, Gamma[alpha][alpha], Gammap[alpha][alpha]))
-   return linspectf, linspectI #2-dimensional array
-
-def iterate(L1, L2, i, b, d, A, E, C):
-   """ Calculates the Franck-Condon factors of ... using the lower levels L1 and L2
-   """
-   print L2.extract()
-   alpha=len(b)
-   L3=bt.Tree(i)  # initialize root-node
-   L3.fill(alpha) # initialize tree
+   C=2*Gamma.dot(C)-unity #this is 'real' C-matrix
+   
+   #initialize new tree
+   alpha=2*len(b)
+   L3=bt.Tree(i)           # initialize root-node
+   L3.fill(alpha)          # initialize tree
    States=states(alpha, i) # States are all possible
+   def freq(E, Gamma, Gammap):
+	return (E+sum(Gammap-Gamma))*Hartree2cm_1 
 
    def FirstNonzero(n): 
       """Find first non-zero elements in first and second half of array n """
-      ni=n[len(n)/2:]
-      nf=n[:len(n)/2]
+      ni=n[len(n)//2:] #interger division (python3-compatible)
+      nf=n[:len(n)//2]
       m=len(ni)+1 #this means there is no excitation in this state
       mp=len(nf)+1
       for j in range(len(ni)):
@@ -781,53 +780,72 @@ def iterate(L1, L2, i, b, d, A, E, C):
 	    mp=j
 	    break
       return m, mp
-
    for n in States: #for each possible state, described by n(vector)
       m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state
       # if the 'first' excited state is in initial state: need first iteration formula
+      I_nn=0
       if m<=mp:
 	 n_m=n[m]
-	 ntemp=n
+	 ntemp=deepcopy(n)
 	 ntemp[m]-=1 #n[m] is at least 1
-	 I_nn=b[m]*L2.getState(ntemp)# first term 
+	 #print L2.getState(ntemp)
+	 Ps=L2.getState(ntemp)[0]
+     	 if not math.isnan(Ps):
+	    I_nn=b[m]*Ps					# first term 
 	 if ntemp[m]>0:
 	    ntemp[m]-=1
-	    I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*L1.getState(ntemp)# second term
+	    Ps=L1.getState(ntemp)[0]
+	    if not math.isnan(Ps):
+	       I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term
 	 for i in range(m+1, len(n)/2):
 	    if n[i]>0:
-	       ntemp=n
+	       ntemp=deepcopy(n)
 	       ntemp[m]-=1
 	       ntemp[i]-=1
-	       I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*L1.getState(ntemp)# second term
-	 for i in range(mp+len(n)/2, len(n)): #sum over respective final states
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps):
+		  I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*Ps	# second term
+	 for i in range(mp+len(n)//2, len(n)): 			#sum over respective final states
 	    if n[i]>0:
-	       ntemp=n
+	       ntemp=deepcopy(n)
 	       ntemp[m]-=1
 	       ntemp[i]-=1
-	       I_nn+=np.sqrt(n[i]/2)*(E[i][m])*L1.getState(ntemp)# second term
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps):
+		  I_nn+=np.sqrt(n[i]/2)*(E[i-len(n)//2][m])*Ps		# second term
       #else: need the other iteration-formula
       else: 
 	 n_m=n[mp]
-	 ntemp=n
+	 ntemp=deepcopy(n)
 	 ntemp[mp]-=1
-	 I_nn=d[mp]*L2.getState(ntemp)# first term 
+	 Ps=L2.getState(ntemp)[0]
+     	 if not math.isnan(Ps):
+   	    I_nn=d[mp]*Ps					# first term 
 	 if ntemp[m]>0:
 	    ntemp[mp]-=1
-	    I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*L1.getState(ntemp)# second term
+	    Ps=L1.getState(ntemp)[0]
+	    if not math.isnan(Ps):
+	       I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps          	# second term
 	 for i in range(mp+1, len(n)):
 	    if n[i]>0:
-	       ntemp=n
+	       ntemp=deepcopy(n)
 	       ntemp[mp]-=1
 	       ntemp[i]-=1
-	       I_nn+=np.sqrt(n[i]/2)*(C[mp][i]+C[i][mp])*L1.getState(ntemp)# second term
-	 for i in range(mp, len(n)): #sum over respective final states
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps):
+		  I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+    # second term
+			   C[i-len(n)//2][mp])*Ps	
+	 for i in range(mp, len(n)): 				#sum over respective final states
 	    if n[i]>0:
-	       ntemp=n
+	       ntemp=deepcopy(n)
 	       ntemp[mp]-=1
 	       ntemp[i]-=1
-	       I_nn+=np.sqrt(n[i]/2)*(E[mp][i])*L1.getState(ntemp)# second term
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps):
+		  I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term
       I_nn/=np.sqrt(2*n_m)
-      L3.insert(n, I_nn)
+      L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
+   print L3.extract()
    return L2, L3
 
 def outspect(spectfile, gridpt, linspect, gamma):
@@ -964,5 +982,5 @@ def states(alpha, n):
       i+=1
    return States
 
-version=2.5
+version=2.6
 # End of functions_smsc.py

@@ -20,7 +20,7 @@
       <p>filename: Btree.py</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">math</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -29,10 +29,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
-      
+      <p>contstant is important for <a href="Btree.html#extract">Btree.py</a></p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Tree</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre><span class="n">DATATHRESHOLD</span><span class="o">=</span><span class="mf">1e-10</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -41,12 +41,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
       </div>
-      
+      <p>the class Tree is a binary tree having a certain structure depending on 'alpha'</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">alph</span><span class="p">):</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">=</span><span class="bp">None</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">=</span><span class="n">alph</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Tree</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -55,26 +53,83 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
+      <p>and (n+apha-1)!/(n!(alpha-1)!) data-points.
+For better structurisation, it has  4 different data-types:</p>
+<ol>
+<li>node: has two child-trees attached ('left' and <em>right</em>)</li>
+<li>leaf: has one child-tree ('left') and one data-point</li>
+<li>reaf: has one child-tree ('right') and one data-point</li>
+<li>lleaf: has two data-points attached</li>
+</ol>
+<p>in addition, for the 0-th order tree there is a type _ having only one data-point attached.</p>
+<p>initializes the tree root of a (sub-) tree</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">alph</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-      <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">!=</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;There must be at least 1 vibrational mode!!&#39;</span>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">=</span><span class="bp">None</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>self.alpha is not the same for different nodes in the tree.
+For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational modes</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">=</span><span class="n">alph</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>fills the Tree with the specific structure required for the level-fixed binary tree</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">fill</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">!=</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;There must be at least 1 vibrational mode!!&#39;</span>
       <span class="k">assert</span> <span class="n">n</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;The dimensionality of a tree can not be smaller 0&#39;</span>
       <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
 	 <span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="o">=</span><span class="mi">0</span> <span class="c">#this is extra-tree</span>
 	 <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;_&#39;</span>
       <span class="k">elif</span> <span class="n">n</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
-	 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="mi">0</span>
-	 <span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="o">=</span><span class="mi">0</span>
+	 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+	 <span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 	 <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;lleaf&#39;</span>
       <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
-  	 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="mi">0</span>
+  	 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
   	 <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">=</span><span class="n">Tree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
   	 <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 	 <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;reaf&#39;</span>
       <span class="k">elif</span> <span class="n">n</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
-  	 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="mi">0</span>
+  	 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
   	 <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">=</span><span class="n">Tree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
   	 <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 	 <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;leaf&#39;</span>
@@ -87,16 +142,34 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-4'>
+  <div class='section' id='section-8'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-4'>#</a>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
-      
+      <p>function that inserts some data into a specific placed denoted by the 2*alpha-dimensional array</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">FC</span><span class="p">):</span> <span class="c">#data=[........] alpha-dim array...</span>
-      <span class="n">n</span><span class="o">=</span><span class="n">M</span><span class="o">=</span><span class="mi">0</span>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">FC</span><span class="p">):</span> <span class="c">#data=[........] alpha-dim array...</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>note: 2<em>alpha-1 is 'self.alpha' of the main node)
+</em>Argumens*<em>
+. A 2</em>alpha-dimensional array 'attention: The size is never checked. 
+rong-sized arrays will can lead to unexpected beaviour.
+dditionally the sum over all elemens has to coincide with 'n' used for 
+he function 'fill()'. This is not checked as well and will NOT lead 
+o asserts but will fill the element into wrong nodes'
+. The data to be filled into the respective node</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">n</span><span class="o">=</span><span class="n">M</span><span class="o">=</span><span class="mi">0</span>
       <span class="n">test</span><span class="o">=</span><span class="mi">1</span>
       <span class="n">m</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">N</span><span class="p">)))</span>
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span> <span class="c">#self.alpha==alpha since this is root-node</span>
@@ -104,7 +177,7 @@
 	    <span class="k">break</span>
 	 <span class="n">M</span><span class="o">+=</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 	 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;node&#39;</span><span class="p">:</span>
-	    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+	    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
 	       <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span>
 	       <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
 	       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;leaf&#39;</span><span class="p">:</span> <span class="c">#exception for &#39;diagonal&#39; elements</span>
@@ -114,7 +187,7 @@
 		     <span class="k">break</span>
 	    <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span>
 	 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;reaf&#39;</span><span class="p">:</span> <span class="c">#allways has success</span>
-	    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+	    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
 	       <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span>
 	       <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
 	       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s">&#39;lleaf&#39;</span><span class="p">:</span> <span class="c">#important for last elements</span>
@@ -139,84 +212,131 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-5'>
+  <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-5'>#</a>
+        <a class='octothorpe' href='#section-10'>#</a>
       </div>
-      
+      <p>===extract===
+This function is for ordered extraction of all elements in the tree and additionally can be used 
+instead of print (by 'print instance.extract()').
+the returned statement is a vector containing all values created by the inner function
+==return:==</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c">#extract all elements </span>
-      <span class="n">result</span><span class="o">=</span><span class="p">[]</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c">#extract all elements</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-6'>
+  <div class='section' id='section-11'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-6'>#</a>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">def</span> <span class="nf">extra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span>
-	 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;node&#39;</span><span class="p">:</span>
+      <div class="highlight"><pre>      <span class="n">result</span><span class="o">=</span><span class="p">[]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>creates the vector to be returned in a recursive way</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">def</span> <span class="nf">extra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;node&#39;</span><span class="p">:</span>
 	    <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
 	    <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
 	 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;leaf&#39;</span><span class="p">:</span>
-	    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> 
+	    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">DATATHRESHOLD</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+   	       <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 	    <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
 	 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;reaf&#39;</span><span class="p">:</span>
 	    <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
-	    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+	    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">DATATHRESHOLD</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+   	       <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 	 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;lleaf&#39;</span><span class="p">:</span>
-	    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-	    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="p">)</span>
+	    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">DATATHRESHOLD</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+	       <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+	    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">DATATHRESHOLD</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+	       <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="p">)</span>
 	 <span class="k">else</span><span class="p">:</span>
-	    <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="p">)</span>
-      <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
-      <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="c">#valid only if filled with 2-dim arrays...</span></pre></div>
+	    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">DATATHRESHOLD</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+	       <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data2</span><span class="p">)</span>
+      <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-7'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
-      <p>return result</p>
+      <p>return np.matrix(result) #</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+	 <span class="k">return</span> <span class="mi">0</span>
+      <span class="k">return</span> <span class="n">result</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-8'>
+  <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
-      
+      <p>This function returns a particular state denoted by the array N (comprising thi initial and final state).</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">getState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span> 
-      <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">N</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span> 
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">getState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <p><strong>Input-Arguments:</strong>
+Vector of length 2*alpha</p>
+<p><strong>returns:</strong>
+the Franck-Condon factor for this state</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">N</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span> 
 	 <span class="k">return</span> <span class="mi">0</span> <span class="c">##from iteration it will happen</span>
       <span class="n">n</span><span class="o">=</span><span class="n">M</span><span class="o">=</span><span class="mi">0</span>
       <span class="n">m</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">N</span><span class="p">)))</span>
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span> <span class="c">#self.alpha==alpha since this is root-node</span>
 	 <span class="n">M</span><span class="o">+=</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 	 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;node&#39;</span><span class="p">:</span>
-	    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+	    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
 	       <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span>
 	       <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
 	       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;leaf&#39;</span><span class="p">:</span> <span class="c">#exception for &#39;diagonal&#39; elements</span>
 		  <span class="k">if</span> <span class="n">M</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
+		     <span class="k">print</span>  <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
 		     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
 	    <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span>
 	 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;reaf&#39;</span><span class="p">:</span> <span class="c">#allways has success</span>
-	    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+	    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
 	       <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span>
 	       <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
 	       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s">&#39;lleaf&#39;</span><span class="p">:</span> <span class="c">#important for last elements</span>
@@ -239,16 +359,28 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
-      
+      <p>function that returns the size of the tree (number of data-points).</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;lleaf&#39;</span><span class="p">:</span>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>t is needed for temporary needs and debugging only since the size can be calculated
+y the input-argumens of '<strong>init</strong>' and 'fill'.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;lleaf&#39;</span><span class="p">:</span>
 	 <span class="k">return</span> <span class="mi">2</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;reaf&#39;</span><span class="p">:</span>
 	 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
@@ -257,14 +389,14 @@
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;node&#39;</span><span class="p">:</span>
 	 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
 
-<span class="n">version</span><span class="o">=</span><span class="mf">1.1</span></pre></div>
+<span class="n">version</span><span class="o">=</span><span class="mf">1.3</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-10'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-10'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       <p>End of Btree.py</p>
     </div>

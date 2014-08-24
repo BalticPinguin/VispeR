@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # filename: Btree.py
-import numpy as np
-DATATHRESHOLD=1e-10
+import numpy as np, math
+#contstant is important for [[Btree.py#extract]]
+DATATHRESHOLD=1e-10 
 
 class Tree:
    """the class Tree is a binary tree having a certain structure depending on 'alpha' 
@@ -30,16 +31,16 @@ class Tree:
 	 self.data2=0 #this is extra-tree
 	 self.type='_'
       elif n==1 and self.alpha==1:
-	 self.data=0
-	 self.data2=0
+	 self.data=[0, 0]
+	 self.data2=[0, 0]
 	 self.type='lleaf'
       elif self.alpha==1:
-  	 self.data=0
+  	 self.data=[0, 0]
   	 self.right=Tree(self.alpha)
   	 self.right.fill(n-1)
 	 self.type='reaf'
       elif n==1:
-  	 self.data=0
+  	 self.data=[0, 0]
   	 self.left=Tree(self.alpha-1)
   	 self.left.fill(1)
 	 self.type='leaf'
@@ -103,9 +104,12 @@ class Tree:
 	    break
 
    def extract(self): #extract all elements 
-      """ This function is for ordered extraction of all elements in the tree and additionally can be used 
+      """
+      ===extract===
+      This function is for ordered extraction of all elements in the tree and additionally can be used 
       instead of print (by 'print instance.extract()').
       the returned statement is a vector containing all values created by the inner function
+      ==return:==
       """
       result=[]
 
@@ -115,19 +119,20 @@ class Tree:
 	    extra(self.right,result)
 	    extra(self.left,result)
 	 elif self.type=='leaf':
-	    result.append(self.data) 
+	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
+   	       result.append(self.data)
 	    extra(self.left,result)
 	 elif self.type=='reaf':
 	    extra(self.right,result)
-	    if self.data>DATATHRESHOLD
-	    result.append(self.data)
+	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
+   	       result.append(self.data)
 	 elif self.type=='lleaf':
-	    if self.data>DATATHRESHOLD
+	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
 	       result.append(self.data)
-	    if self.data2>DATATHRESHOLD
+	    if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
 	       result.append(self.data2)
 	 else:
-	    if self.data2>DATATHRESHOLD
+	    if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
 	       result.append(self.data2)
       extra(self,result)
       #return np.matrix(result) #
@@ -156,6 +161,7 @@ class Tree:
 	       n+=1
 	       if self.type=='leaf': #exception for 'diagonal' elements
 		  if M==m:
+		     print  self.data
 		     return self.data
 	    self=self.left
 	 elif self.type=='reaf': #allways has success
@@ -194,5 +200,5 @@ class Tree:
       if self.type=='node':
 	 return self.left.size() + self.right.size()
 
-version=1.2
+version=1.3
 # End of Btree.py

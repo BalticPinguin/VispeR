@@ -17,15 +17,12 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-0'>#</a>
       </div>
-      
+      <p>include <a href="functions_smsc.html">functions_smsc.py</a>
+script for the spectrum-calculation using two log-files from</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">functions_smsc</span> <span class="kn">as</span> <span class="nn">of</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">re</span> <span class="o">,</span> <span class="nn">shutil</span> <span class="o">,</span> <span class="nn">mmap</span> <span class="o">,</span><span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">logging</span> <span class="c">#implement this!!</span>
-
-<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Initializing the log-file&#39;</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">functions_smsc</span> <span class="kn">as</span> <span class="nn">of</span> 
+<span class="kn">import</span> <span class="nn">logging</span> <span class="o">,</span><span class="nn">sys</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -34,7 +31,20 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
-      <p>handling of input-arguments:</p>
+      <p>09 frequency calculations (input-argument 1 (initial state) and 2(final state))</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Initializing the log-file&#39;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <h3><span id="handling-of-input-arguments:" href="handling-of-input-arguments:">handling of input-arguments:</span></h3>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="n">inputs</span> <span class="o">=</span><span class="p">[]</span>
@@ -48,12 +58,12 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-2'>
+  <div class='section' id='section-3'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-2'>#</a>
+        <a class='octothorpe' href='#section-3'>#</a>
       </div>
-      <p>look for the investigated molecule and where opt/freq was researched</p>
+      <h2><span id="look-for-the-investigated-molecule-and-where-opt/freq-was-researched" href="look-for-the-investigated-molecule-and-where-opt/freq-was-researched">look for the investigated molecule and where opt/freq was researched </span></h2>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="n">ContntInfo</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">Contentcheck</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span> <span class="c"># function: makes tests referring integrity, gathers general information</span>
@@ -65,11 +75,7 @@
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span> <span class="c">#read coordinates, force constant, binding energies from log-files and calculate needed quantities</span>
    <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">ReadLog</span><span class="p">(</span><span class="n">ContntInfo</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
    <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span><span class="c"># do only in first run</span>
-      <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span> 
-      <span class="n">CartCoord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">))</span>
-      <span class="n">X</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
-      <span class="n">P</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
-      <span class="n">Energy</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+      <span class="n">F</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Energy</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">quantity</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Dimensions: &quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span><span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> Masses: &#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">mass</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
    <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">B</span>
    <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">A</span>
@@ -80,32 +86,17 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-3'>
+  <div class='section' id='section-4'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-3'>#</a>
+        <a class='octothorpe' href='#section-4'>#</a>
       </div>
       <p>print 'Force-difference\n',F[0]-F[1]</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;difference of minimum energy between states:  &#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 <span class="n">Gauf</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">gaussianfreq</span><span class="p">(</span><span class="n">ContntInfo</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span> <span class="c">#read frequencies calculated by g09 from file</span>
-<span class="n">Gauf</span><span class="o">/=</span><span class="mf">219474.63</span>  <span class="c">#convert to atomic units</span>
-
-<span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">CartCoord</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">TrafoCoord</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-4'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-4'>#</a>
-      </div>
-      <p>print 'Cartesion coordinates of final system:\n', CartCoord[0].T, '\n', CartCoord[1].T
-print 'forces:', repr(F[i])</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre><span class="n">N</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Lsorted</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">GetL</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span></pre></div>
+<span class="n">Gauf</span><span class="o">/=</span><span class="mf">219474.63</span>  <span class="c">#convert to atomic units</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -114,12 +105,13 @@ print 'forces:', repr(F[i])</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
-      <p>L1, f1, Lsorted1=of.GetL1(dim, mass, F, Gauf, P)</p>
+      <p>F, P, CartCoord=of.TrafoCoord(F, P, CartCoord, dim)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="n">L2</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">extractL</span><span class="p">(</span><span class="n">ContntInfo</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+      <div class="highlight"><pre><span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Cartesion coordinates of final system:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;forces:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;final state:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 
-<span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">Duschinsky</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">)</span></pre></div>
+<span class="n">N</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Lsorted</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">GetL</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span><span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -128,13 +120,10 @@ print 'forces:', repr(F[i])</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-6'>#</a>
       </div>
-      <h1>calculate HR-Spectrum:</h1>
-<p>HR_unif, funi, HR_multif, sortfG, sortfE= of.HuangR(K, f)
-linspect=of.calcspect(HR_unif[-5:], funi[-5:], Energy[1]-Energy[0], 5, 5)
-of.outspect(spectfile, 3000, linspect, 4002)</p>
+      <p>L1, f1, Lsorted1=of.GetL1(dim, mass, F, Gauf, P)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre><span class="n">L2</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">extractL</span><span class="p">(</span><span class="n">ContntInfo</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -143,10 +132,10 @@ of.outspect(spectfile, 3000, linspect, 4002)</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-7'>#</a>
       </div>
-      <h1>calculate Duschinsky-Rotated Spectrum:</h1>
+      <h3><span id="spectrum-calculation" href="spectrum-calculation"> Spectrum calculation </span></h3>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="n">linespect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">FCf</span><span class="p">(</span><span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">5</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre><span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">Duschinsky</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -154,6 +143,43 @@ of.outspect(spectfile, 3000, linspect, 4002)</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <h2><span id="calculate-hr-spectrum" href="calculate-hr-spectrum">calculate HR-Spectrum</span></h2>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">HR_unif</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">HR_multif</span><span class="p">,</span> <span class="n">sortfG</span><span class="p">,</span> <span class="n">sortfE</span><span class="o">=</span> <span class="n">of</span><span class="o">.</span><span class="n">HuangR</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">HR_unif</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:],</span> <span class="n">funi</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">:],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>of.outspect(spectfile, 3000, linspect, 4002)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <h2><span id="calculate-duschinsky-rotated-spectrum" href="calculate-duschinsky-rotated-spectrum">calculate Duschinsky-Rotated Spectrum</span></h2>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">linespect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">FCf</span><span class="p">(</span><span class="n">J</span><span class="p">,</span><span class="n">K</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">5</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <p>of.outspect(spectfile, 3000, linspect, 80)</p>
     </div>
