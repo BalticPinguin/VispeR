@@ -12,6 +12,14 @@ Angs2Bohr=1/0.52917721092
 Hartree2GHz=6.579684e6                                     
 Hartree2cm_1=219474.63 
 
+def quantity(dim):
+   F=np.zeros((2,dim,dim)) 
+   CartCoord=np.zeros((2,3, dim/3))
+   X=np.zeros((2,3,3))
+   P=np.zeros((2,dim,dim))
+   Energy=np.zeros(2)
+   return F, CartCoord, X, P, Energy
+
 def sort(f):
    """This function is a self-writen sort-function for floats-arrays (increasing arguments by absolute value). Its input is the array whose elements should not exceed 3e300 (otherwise the sorting will fails) and returns the number of indices sorted by the size of respective elements. Hence, sorting an array A by the size of its elemens (largest first) can be done by 
 
@@ -102,16 +110,22 @@ def replace(files, freq, L):
 	       logging.debug('number of modes left:'+ repr(len(L[i][t][u:].T)))
 	       if len(L[i][t][u:].T)> 2: # there are at least three more frequencies
 		  out.write(re.sub(r'[\d .-]+', '    '+repr(t/3)+'    '+repr(s)+'   '+
-		     '   '+str("%.2f" % L[i][t][u+0])+'  '+str("%.2f" % L[i][t+1][u+0])+' '+str("%.2f" % L[i][t+2][u+0])+
-		     '   '+str("%.2f" % L[i][t][u+1])+'  '+str("%.2f" % L[i][t+1][u+1])+' '+str("%.2f" % L[i][t+2][u+1])+
-		     '   '+str("%.2f" % L[i][t][u+2])+'  '+str("%.2f" % L[i][t+1][u+2])+' '+str("%.2f" % L[i][t+2][u+2]), line))
+		     '   '+str("%.2f" % L[i][t][u+0])+'  '+str("%.2f" % L[i][t+1][u+0])+' '+
+		  	   str("%.2f" % L[i][t+2][u+0])+
+		     '   '+str("%.2f" % L[i][t][u+1])+'  '+str("%.2f" % L[i][t+1][u+1])+' '+
+			   str("%.2f" % L[i][t+2][u+1])+
+		     '   '+str("%.2f" % L[i][t][u+2])+'  '+str("%.2f" % L[i][t+1][u+2])+' '+
+			   str("%.2f" % L[i][t+2][u+2]), line))
 	       elif len(L[i][t][u:].T)== 2:
 		  out.write(re.sub(r'[\d .-]+', '    '+repr(t/3)+'    '+repr(s)+'   '+
-		     '   '+str("%.2f" % L[i][t][u+0])+'  '+str("%.2f" % L[i][t+1][u+0])+' '+str("%.2f" % L[i][t+2][u+0])+
-		     '   '+str("%.2f" % L[i][t][u+1])+'  '+str("%.2f" % L[i][t+1][u+1])+' '+str("%.2f" % L[i][t+2][u+1]), line))
+		     '   '+str("%.2f" % L[i][t][u+0])+'  '+str("%.2f" % L[i][t+1][u+0])+' '+
+			   str("%.2f" % L[i][t+2][u+0])+
+		     '   '+str("%.2f" % L[i][t][u+1])+'  '+str("%.2f" % L[i][t+1][u+1])+' '+
+			   str("%.2f" % L[i][t+2][u+1]), line))
 	       elif len(L[i][t][u:].T)== 1:
 		  out.write(re.sub(r'[\d .-]+', '    '+repr(t/3)+'    '+repr(s)+'   '+
-		     '   '+str("%.2f" % L[i][t][u+0])+'  '+str("%.2f" % L[i][t+1][u+0])+' '+str("%.2f" % L[i][t+2][u+0]), line))
+		     '   '+str("%.2f" % L[i][t][u+0])+'  '+str("%.2f" % L[i][t+1][u+0])+' '+
+			   str("%.2f" % L[i][t+2][u+0]), line))
 	       t+=3 # 
 	    else: 
 	       out.write(re.sub('replace nothing','by nothing', line)) #just write line as it is
@@ -672,7 +686,7 @@ def calcspect(HR, freq, E, N, M):
    spect=unifSpect(intens, E, freq, len(Xi_e[0]), len(Xi_g[0]))
    return spect
 
-def FCf(J, K, f, E, N):
+def FCf(J, K, f, Energy, N):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
 
    *Arguments*:
@@ -732,15 +746,13 @@ def FCf(J, K, f, E, N):
    #this is 'real' C-matrix
    C=2*Gamma.dot(C)-unity
 
-   linspectf=[] #frequncies
-   linspectI=[] #intensities
+   linspect=[] #intensities
    L2=CalcI00(J, K, Gamma, Gammap)
-   print L2.extract() #this is 'tupel' FFUUUCK YOU PYTHON!!
    L1=L2 #for first state this is ok
    for i in range(1,N+1):
-      print L2.extract()
+      #print L2.extract()
       L1, L2=iterate(L1, L2, i, b, d, A, E, C)
-      linspectI.append(L2.extract)
+      linspectI.append(L2.extract) # be careful with '0's which are not printed --> need to be changed
       for alpha in range(len(b)):
 	 linspectf.append(freq(E, Gamma[alpha][alpha], Gammap[alpha][alpha]))
    return linspectf, linspectI #2-dimensional array

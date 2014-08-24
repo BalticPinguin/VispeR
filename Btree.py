@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # filename: Btree.py
 import numpy as np
+DATATHRESHOLD=1e-10
 
 class Tree:
    """the class Tree is a binary tree having a certain structure depending on 'alpha' 
@@ -118,14 +119,20 @@ class Tree:
 	    extra(self.left,result)
 	 elif self.type=='reaf':
 	    extra(self.right,result)
+	    if self.data>DATATHRESHOLD
 	    result.append(self.data)
 	 elif self.type=='lleaf':
-	    result.append(self.data)
-	    result.append(self.data2)
+	    if self.data>DATATHRESHOLD
+	       result.append(self.data)
+	    if self.data2>DATATHRESHOLD
+	       result.append(self.data2)
 	 else:
-	    result.append(self.data2)
+	    if self.data2>DATATHRESHOLD
+	       result.append(self.data2)
       extra(self,result)
       #return np.matrix(result) #
+      if len(result)==0:
+	 return 0
       return result
 
    def getState(self, N): 
@@ -187,5 +194,5 @@ class Tree:
       if self.type=='node':
 	 return self.left.size() + self.right.size()
 
-version=1.1
+version=1.2
 # End of Btree.py
