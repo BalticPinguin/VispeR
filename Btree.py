@@ -2,7 +2,7 @@
 # filename: Btree.py
 import numpy as np, math
 #contstant is important for [[Btree.py#extract]]
-DATATHRESHOLD=1e-10 
+DATATHRESHOLD=1e-6
 
 class Tree:
    """the class Tree is a binary tree having a certain structure depending on 'alpha' 
@@ -16,9 +16,12 @@ class Tree:
 
    in addition, for the 0-th order tree there is a type _ having only one data-point attached.
    """
-   def __init__(self,alph):
+   #all possible attributes; it saves memory especially for huge trees,
+   #see http://tech.oyster.com/save-ram-with-python-slots/
+   __slots__=['data', 'data2', 'left','right','alpha'] 
+
+   def __init__(self,alph): #should it be __new__?
       """ initializes the tree root of a (sub-) tree"""
-      self.root=None
       #self.alpha is not the same for different nodes in the tree.
       # For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational modes
       self.alpha=alph
@@ -31,16 +34,16 @@ class Tree:
 	 self.data2=0 #this is extra-tree
 	 self.type='_'
       elif n==1 and self.alpha==1:
-	 self.data=[0, 0]
-	 self.data2=[0, 0]
+	 self.data=int([0, 0])
+	 self.data2=int([0, 0])
 	 self.type='lleaf'
       elif self.alpha==1:
-  	 self.data=[0, 0]
+  	 self.data=int([0, 0])
   	 self.right=Tree(self.alpha)
   	 self.right.fill(n-1)
 	 self.type='reaf'
       elif n==1:
-  	 self.data=[0, 0]
+  	 self.data=int([0, 0])
   	 self.left=Tree(self.alpha-1)
   	 self.left.fill(1)
 	 self.type='leaf'
@@ -109,7 +112,9 @@ class Tree:
       This function is for ordered extraction of all elements in the tree and additionally can be used 
       instead of print (by 'print instance.extract()').
       the returned statement is a vector containing all values created by the inner function
-      ==return:==
+
+      *RETURN:*
+      two-dimensional array containing intensities([0]) and frequencies([1])
       """
       result=[]
 
@@ -136,7 +141,7 @@ class Tree:
 	       result.append(self.data2)
       extra(self,result)
       #return np.matrix(result) #
-      if len(result)==0:
+      if len(result)==0: #if no intensity is higher than DATATHRESHOLD
 	 return 0
       return result
 
@@ -199,6 +204,37 @@ class Tree:
 	 return self.left.size() + 1
       if self.type=='node':
 	 return self.left.size() + self.right.size()
+
+   def compress(float32):
+      """Code from davidejones (http://davidejones.com/blog/1413-python-precision-floating-point/)
+      does this help reducing the memory-requirement of my function?
+      """ 
+      F16_EXPONENT_BITS = 0x1F
+      F16_EXPONENT_SHIFT = 10
+      F16_EXPONENT_BIAS = 15
+      F16_MANTISSA_BITS = 0x3ff
+      F16_MANTISSA_SHIFT =  (23 - F16_EXPONENT_SHIFT)
+      F16_MAX_EXPONENT =  (F16_EXPONENT_BITS << F16_EXPONENT_SHIFT)
+      a = struct.pack('>f',float32)
+      b = binascii.hexlify(a)
+      f32 = int(b,16)
+      f16 = 0
+      sign = (f32 >> 16) & 0x8000
+      exponent = ((f32 >> 23) & 0xff) - 127
+      mantissa = f32 & 0x007fffff
+      if exponent == 128:
+	 f16 = sign | F16_MAX_EXPONENT
+      if mantissa:
+	 f16 |= (mantissa & F16_MANTISSA_BITS)
+      elif exponent > 15:
+	 f16 = sign | F16_MAX_EXPONENT
+      elif exponent > -15:
+	 exponent += F16_EXPONENT_BIAS
+	 mantissa >>= F16_MANTISSA_SHIFT
+	 f16 = sign | exponent << F16_EXPONENT_SHIFT | mantissa
+      else:
+	 f16 = sign
+      return f16
 
 version=1.3
 # End of Btree.py

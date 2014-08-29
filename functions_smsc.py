@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, glob , re , shutil , mmap ,os, sys, math, logging, matplotlib.pyplot as plt
+import numpy as np, glob , re , shutil , mmap ,os, sys, math, logging#, matplotlib.pyplot as plt
 #for python-3 compatibility
 from io import open 
 from copy import deepcopy # for function sort(). Probably find a better function!!
@@ -411,7 +411,7 @@ def GetL(dim, mass, F, D):
 	    repr(f[i]*Hartree2cm_1)+"L-matrix \n"+ repr(L[i]))
    return N, L, f, Lsorted
 
-def GetL1(dim, mass, F, G09f, P):
+def GetLstab(dim, mass, F, G09f, P):
    """ Function that calculates the frequencies and normal modes from force constant matrix 
    with projection onto internal degrees of freedom and uses inverse iteration to get 
    numerically better results for normal modes. Therefore the g09-frequencies are used
@@ -429,30 +429,27 @@ def GetL1(dim, mass, F, G09f, P):
    3. massweighted L for comparison with the respective matrix from the g09 log-file
    """
    np.set_printoptions(suppress=True)
-   np.set_printoptions(precision=2, linewidth=122)
+   np.set_printoptions(precision=4, linewidth=122)
 
-   def InvIteration(F,L,Lambda): #inverse iteration to find better modes
+   def Newton(F,L,Lambda):			   # inverse iteration to find better modes
       ones=np.eye(len(F))
+      Tmp=np.zeros((len(F)+1,len(F)+1))
+      tmp=np.zeros(len(F)+1)
       for i in range(len(L)):
-	 for j in range(len(ones)): #there is no built-in for scalar*matrix
+	 for j in range(len(ones)):			   # there is no built-in for scalar*matrix
 	    ones[j][j]*=Lambda[i]
-	 print len(F),' ', len(F[0]),'  ',len(ones),'  ',len(ones[0])
 	 A=np.matrix(F-ones)
-	 print A
-	 print len(A),' ',len(A[0]),'  ', len(L),' ',len(L[0]),'  ',len(Lambda)
-	 print np.linalg.cond(A) #this eigenvalue is close to the exact one; hence no 
-	 if np.linalg.cond(A)>10000: #this eigenvalue is close to the exact one; hence no 
-	    break                   #optimization is needed (and not possible)
-	 A_1=np.linalg.inv(A)       # is this sufficient numerically stable?
-	 tmp=L[i]-L[i]
-	 while np.linalg.norm(tmp-L[i])>0.00001/len(L[i]): #this should be a reasonable threshold
-	    tmp=L[i]
-	    #ERROR: elements not aligned
-	    L[i]=np.dot(A_1,L[i].T).T/np.linalg.norm(A_1.dot(L[i].T))
+      Tmp[:-1].T[:-1].T=A
+      for i in range(len(L)):
+	 Tmp[:].T[-1]=L[i]
+	 Tmp[-1]=L[i].T
+	 tmp[:-1].T=L[i]
+	 tmp[-1]=Lambda[i]
+	 resid=Tmp.dot(tmp)
+	 while np.linalg.norm(resid, ord=2)<Lambda[i]*5e-5:
+	    tmp[:-1]+=resid[:-1]
+	    tmp[-1]-=resid[-1]#probably leaf this to fix frequencies...
       return L
-
-   logging.info("Len(F) is "+repr(len(F)))
-   # Defining arrays
    L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
    Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
    f=np.zeros(( len(F), len(F[0])-6 ))
@@ -466,11 +463,7 @@ def GetL1(dim, mass, F, G09f, P):
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       L[i]=np.real(Ltemp[index]).T[:].T[6:].T # or =Ltemp[index].T (see above)
       logging.debug("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
-      #assert any(ftemp<0), 'negative frequencies occured. Please check the geometry!'
-      print np.dot(np.dot(P[i].T,F[i]),P[i])
-      print f[i]
-      print L[i]
-      L[i]=InvIteration(np.dot(np.dot(P[i].T,F[i]),P[i]), L[i], G09f[i]) #'repair' L-matrix (truncated)
+      L[i]=Newton(np.dot(np.dot(P[i].T,F[i]),P[i]), L[i].T, G09f[i]).T #'repair' L-matrix (truncated)
       M=np.zeros((dim,dim))
       for j in range(0,dim):
          M[j,j]=1/mass[j/3]
@@ -544,29 +537,26 @@ def Geometries(ContntInfo, problems):
 
 def Duschinsky(N, L, mass, dim, x):
    J=np.zeros((dim-6,dim-6))
-   FF=np.zeros((len(L),dim,dim))
    K=np.zeros(dim-6)
    I=np.zeros((len(L),dim))
-   M=np.zeros((dim,dim)) #this is a diagonal matrix
+   M=np.zeros((dim,dim))
+   DeltaX=np.zeros((len(L),dim))
+
    for i in range(dim):
       M[i][i]=mass[i/3] #square root of masses
-   DeltaX=np.zeros((len(L),dim))
    for i in range(len(DeltaX[0])/3):
       DeltaX[0][3*i:3*i+3]=x[0].T[i]
    J=np.dot(L[0].T, np.linalg.pinv(L[1].T)) #always relaxation into ground state
 
-   np.set_printoptions(suppress=True)
-   np.set_printoptions(precision=3, linewidth=138)
-   print'Duschinsky\n',  J
-   print 
-
    DeltaX=np.array(x[0]-x[1]).flatten('F')
    logging.debug('Flatted\n'+repr(DeltaX))
-   #for j in range(len(DeltaX[0])/3):
-      #DeltaX[i][3*j:3*j+3]=DeltaX[0][3*j:3*j+3]-x[i].T[j]
-   #K[i]=np.dot(L[i].T,np.dot(M,DeltaX.T))
-   K=np.dot(L[1].T,DeltaX.T)
-   one=np.eye(len(FF[0]))
+   #K=np.dot(L[1].T,DeltaX.T)
+   K=np.dot(L[1].T.dot(M),DeltaX.T) #at the moment: mass-weighted
+
+   np.set_printoptions(suppress=True)
+   np.set_printoptions(precision=3, linewidth=138)
+   print'Duschinsky\n',  J[:14].T[:14].T
+
    logging.info('Duschinsky rotation matrix, '+\
 	 repr(np.linalg.norm(J[1]-np.eye(dim-6))/(dim-6))+ '  :\n'+ repr(J)+\
 	 '  :\n'+ repr(J[:4].T[11:25])+\
@@ -610,60 +600,42 @@ def HuangR(K, f): #what is with different frequencies???
       #if aoe[-j]>0.2: 
       #print 'multi_freq:',sortfG[-j]*Hartree2cm_1,'  ',sortfE[-j]*Hartree2cm_1,'  ' , sortmulti[-j]
       s=1
-      #print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
+      print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
    return sortuni, funi, sortmulti, sortfI, sortfF
-
-def unifSpect(intens, E, freq, N, M):
-   """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
-   and assuming coinciding frequencies for initial and final state
-
-   **Arguments**
-   1. array of intensities of transitions
-   2. diffenece of ground-state energy difference of the electronic states involved
-   3. array of frequencies of the respected states
-   4. maximum number of allowed excitations in initial mode
-   5. maximum number of allowed excitations in final mode
-
-   **returns**
-   a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
-   """
-   logging.debug('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
-   spect=np.zeros((2,len(intens)*len(freq)))
-   for x in range(N):
-      for a in range(len(freq)):
-	 spect[1][x*len(freq)+a]=sum(intens[x+i][i] for i in range( int(min(M,N-x))) ) #not correct at the moment??
-	 spect[0][x*len(freq)+a]=(E-freq[a]*x)*Hartree2cm_1
-   for x in range(1,M):
-      for a in range(len(freq)):
-	 spect[1][x*len(freq)+a]=sum(intens[i][x+i] for i in range( int(min(N,M-x))) ) #not correct at the moment??
-	 spect[0][x*len(freq)+a]=(E+freq[a]*x)*Hartree2cm_1
-   return spect
 
 def calcspect(HR, freq, E, N, M):
    """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
 
-   Arguments:
+   PARAMETERS:
    1. Huang-Rhys factors
    2. frequencies (have to be in the same order as HR
    3. energy difference of energy surfaces
    4, 5. N and M are the numbers of vibrational quanta can be in the modes
    All arguments are neccesary.
 
-   returns:
-
+   RETURNS:
+   2-dimensional array of intensities and frequencies of all investigated transitions (unsorted)
    """
 
    def occOPA(dim, N, M):
-      Xi_g=np.zeros((dim,M*dim))
-      Xi_e=np.zeros((dim,N*dim))
+      Xi_i=np.zeros((dim,M*dim))
+      Xi_f=np.zeros((dim,N*dim))
       for i in range(dim):
 	 for j in range(M):
-	    Xi_g[i][i+j]=j+1
+	    Xi_i[i][i+j]=j+1
 	 for j in range(N):
-	    Xi_e[i][i+j]=j+1
-      return Xi_g, Xi_e
+	    Xi_f[i][i+j]=j+1
+      return Xi_i, Xi_f
 
    def FCeqf( Deltag, M, N):
+      """Calculate Franck-Condon factors under assumption of equal frequencies 
+      for only one vibrational mode
+
+      PARAMETERS:
+      Deltag: HR-factor of respective state
+
+      RETURNS:
+      """
       exg=np.exp(-np.abs(Deltag)/2) #actually Deltag should be >0, but is not always due to negative frequencies
       faktNM=math.factorial(M)*math.factorial(N)
       FC=0
@@ -672,39 +644,60 @@ def calcspect(HR, freq, E, N, M):
 	       math.sqrt(faktNM/(math.factorial(x)*math.factorial(x)))
       return FC
    
+   def unifSpect(intens, E, freq, N, M):
+      """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
+      and assuming coinciding frequencies for initial and final state
+      **PARAMETERS:**
+      1. array of intensities of transitions
+      2. diffenece of ground-state energy difference of the electronic states involved
+      3. array of frequencies of the respected states
+      4. maximum number of allowed excitations in initial mode
+      5. maximum number of allowed excitations in final mode
+      **RETURNS**
+      a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
+      """
+      logging.debug('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
+      spect=np.zeros((2,len(intens)*len(freq)))
+      for x in range(N):
+	 for a in range(len(freq)):
+	    spect[1][x*len(freq)+a]=sum(intens[x+i][i] for i in range( int(min(M,N-x))) ) #not correct at the moment??
+	    spect[0][x*len(freq)+a]=(E-freq[a]*x)*Hartree2cm_1
+      for x in range(1,M):
+	 for a in range(len(freq)):
+	    spect[1][x*len(freq)+a]=sum(intens[i][x+i] for i in range( int(min(N,M-x))) ) #not correct at the moment??
+	    spect[0][x*len(freq)+a]=(E+freq[a]*x)*Hartree2cm_1
+      return spect
    
-   Xi_g, Xi_e=occOPA(len(HR), N, M)
-   intens=np.ones((len(Xi_e[0]), len(Xi_g[0]))) #matrix consisting of 1 
-   FC=np.zeros((len(Xi_g),len(Xi_e[0]), len(Xi_g[0]))) #general for other approximations as well
-   for i in range(len(Xi_g)):
-      FC00=FCeqf(HR[i], 0, 0)
-      for j in range(len(Xi_g[i])):
-      	 for k in range(len(Xi_e[i])):
-   	    if Xi_g[i][j]==0 and  Xi_e[i][k]==0: #this saves time at least if OPA is taken into account
-	       FC[i][k][j]=FC00
-	    else:
-	       FC[i][k][j]=FCeqf(HR[i], Xi_g[i][j], Xi_e[i][k])
-   for i in range(len(FC)):
-      intens=intens*FC[i] #proportional to square of FC factors >FC is already the sqare of overlap-integral
-   spect=unifSpect(intens, E, freq, len(Xi_e[0]), len(Xi_g[0]))
+   Xi_i, Xi_f=occOPA(len(HR), N, M)
+   FC=np.ones((len(Xi_i[0]),len(Xi_f[0]))) #general for other approximations as well
+   for i in range(len(Xi_i[0])):
+      for j in range(len(Xi_f[0])):
+	 #FC00=FCeqf(HR[i], 0, 0)
+      	 for k in range(len(HR)):
+   	    #if Xi_i[k][j]==0 and  Xi_f[k][i]==0: #this saves time at least if OPA is taken into account
+	    #   FC[i][j]*=FC00
+	    #else:
+	    FC[i][j]*=FCeqf(HR[k], Xi_i[k][j], Xi_f[k][i])
+   spect=unifSpect(FC, E, freq, len(Xi_f[0]), len(Xi_i[0]))
    return spect
 
 def FCf(J, K, f, Energy, N):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
-
-   *Arguments*:
-   1.  Duschinsky-rotation matrix
-   2.  Displacement-Vector
-   3.  frequency: two-dim array (freq_initial, freq_final)
-   4.  Energy-difference of minima
-   5.  Max. number of excitation quanta state considered
+   
+   *PARAMETERS:*
+   J:      Duschisky-matrix
+   K:      Displacement-Vector
+   f:      frequency: two-dim array (freq_initial, freq_final)
+   Energy: Energy-difference of minima
+   N.      Max. number of excitation quanta state considered
      
    All arguments are obligatory.
-   *returns*:
+
+   *RETURNS:*
    linespectrum 
    """
    def CalcI00(J, K, Gamma, Gammap, E):
-      """This function calculates the overlap-integral for no vibrations """
+      """This function calculates the overlap-integral for zero vibrations """
       invJ=np.linalg.inv(J)
       pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
       TMP=J.dot(invJ.dot(Gammap).dot(J)+Gamma)
@@ -716,13 +709,144 @@ def FCf(J, K, f, Energy, N):
       TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(invJ)-np.eye(len(J))
       exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))
 
-      L=bt.Tree(2*len(K))
-      L.fill(0)
+      Tree=bt.Tree(2*len(K))
+      Tree.fill(0)
       Zero=np.zeros(2*len(K))
-      L.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
+      Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
       for alpha in range(len(K)):
-	 linspect.append(L.extract()) #I_00 transition
-      return L
+	 #I_00 transition-probability [[Btree.py#extract]]
+	 linspect.append(Tree.extract()) 
+      return Tree
+   def iterate(L1, L2, Energy, i, f, J, K):
+      """ Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2
+   
+      *PARAMETERS:*
+      L1:     binary tree where i-2 quanta are excited (structure: [[Btree.py]]
+      L2:     binary tree where i-1 quanta are excited
+      Energy: Energy-difference between the states (minimal energy)
+      i:      number of excitation-quanta
+      f:      (2xN) frequencies of both states
+      J:	   Duschisky-rotation matrix
+      K:	   Displacement-vector
+
+      *RETURNS:*
+      L2:     input-parameter (needed for next iteration)
+      L3:     new binary tree 
+      """
+   
+      #quantities for the iterative spectrum-calculation
+      Gamma=np.diag(f[0])              	# in atomic units. It is equivalent to 4pi^2/h f_i
+      Gammap=np.diag(f[1])             	# for final state
+      sqGamma=np.diag(np.sqrt(f[0]))   
+      sqGammap=np.diag(np.sqrt(f[1]))  
+      unity=np.eye(len(Gamma))
+      invJ=np.linalg.inv(J)
+   
+      C=np.linalg.inv(invJ.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
+      A=np.dot(J,np.dot(C,invJ)) 
+      A=2*np.dot(Gammap,np.dot(J,A))-unity
+      b=unity-J.dot(C).dot(invJ).dot(Gammap)
+      b=2*sqGammap.dot(unity-b).dot(K)
+      E=4*sqGamma.dot(C).dot(invJ).dot(sqGammap)
+      d=-2*sqGamma.dot(C).dot(invJ).dot(Gammap).dot(K)
+      C=2*Gamma.dot(C)-unity 		#this is 'real' C-matrix
+   
+      #initialize new tree
+      alpha=2*len(b)
+      L3=bt.Tree(i)    	       		# initialize root-node
+      L3.fill(alpha)         		# initialize tree
+      States=states(alpha, i) 		# States are all possible
+
+      def freq(E, Gamma, Gammap):
+	 return (E+sum(Gammap-Gamma))*Hartree2cm_1 
+   
+      def FirstNonzero(n): 
+	 """Find first non-zero elements in first and second half of array n """
+	 ni=n[len(n)//2:] #interger division (python3-compatible)
+	 nf=n[:len(n)//2]
+	 m=len(ni)+1 #this means there is no excitation in this state
+	 mp=len(nf)+1
+	 for j in range(len(ni)):
+	    if ni[j]>0:
+	       m=j
+	       break
+	 for j in range(len(nf)):
+	    if nf[j]>0:
+	       mp=j
+	       break
+	 return m, mp
+      for n in States: #for each possible state, described by n(vector)
+	 m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state
+	 # if the 'first' excited state is in initial state: need first iteration formula
+	 I_nn=0
+	 if m<=mp:
+	    n_m=n[m]
+	    ntemp=deepcopy(n)
+	    ntemp[m]-=1 #n[m] is at least 1
+	    #print L2.getState(ntemp)
+	    Ps=L2.getState(ntemp)[0]
+	    if not math.isnan(Ps) and abs(Ps)>1e-8:
+	       I_nn=b[m]*Ps					# first term 
+	    if ntemp[m]>0:
+	       ntemp[m]-=1
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps) and abs(Ps)>1e-8:
+		  I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term
+	    for i in range(m+1, len(n)/2):
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[m]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*Ps	# second term
+
+	    for i in range(mp+len(n)//2, len(n)): 			# sum over respective final states
+	       if mp>len(n)//2:					# that means: there are no excited vibrations
+		  break
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[m]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(E[i-len(n)//2][m])*Ps		# second term
+	 #else: need the other iteration-formula
+	 else: 
+	    n_m=n[mp]
+	    ntemp=deepcopy(n)
+	    ntemp[mp]-=1
+	    Ps=L2.getState(ntemp)[0]
+	    if not math.isnan(Ps) and abs(Ps)>1e-8:
+	       I_nn=d[mp]*Ps					# first term 
+	    if ntemp[mp]>0:
+	       ntemp[mp]-=1
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps) and abs(Ps)>1e-8:
+		  I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps          	# second term
+	    for i in range(mp+1, len(n)):
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[mp]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+    # second term
+			      C[i-len(n)//2][mp])*Ps	
+	    for i in range(m, len(n)): 				#sum over respective final states
+	       if m>len(n)//2:					# that means: there are no excited vibrations
+		  break
+   	       if n[i]>0:
+   		  ntemp=deepcopy(n)
+   		  ntemp[mp]-=1
+   		  ntemp[i]-=1
+   		  Ps=L1.getState(ntemp)[0]
+   		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+   		     I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term
+     	 I_nn/=np.sqrt(2*n_m)
+       	 L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
+      print L3.extract()
+      return L2, L3
 
    Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
    Gammap=np.diag(f[1]) # for final state
@@ -730,158 +854,22 @@ def FCf(J, K, f, Energy, N):
    linspect=[] #intensities
    L2=CalcI00(J, K, Gamma, Gammap, Energy)
    print 'state0 is ready'
-   L1=L2 #for first state this is ok
+   #both trees can be expected to coincide for only one excitation
+   L1=L2 
    for i in range(1,N+1):
       L1, L2=iterate(L1, L2, Energy, i, f, J,K)
       linspect.append(L2.extract)  
    return linspect #2-dimensional array
 
-def iterate(L1, L2, Energy, i, f, J, K):
-   """ Calculates the Franck-Condon factors of ... using the lower levels L1 and L2
+#this actually belongs to FCf()
+def states(alpha, n): 
+   """This function creates all possible states having a total number of n excitations in alpha different states
+
+   *PARAMETERS:*
+   alpha: number of degrees of freedom
+
+   *RETURNS:*
    """
-
-   #quantities for the iterative spectrum-calculation
-   Gamma=np.diag(f[0])              # in atomic units. It is equivalent to 4pi^2/h f_i
-   Gammap=np.diag(f[1])             # for final state
-   sqGamma=np.diag(np.sqrt(f[0]))   
-   sqGammap=np.diag(np.sqrt(f[1]))  
-   unity=np.eye(len(Gamma))
-   invJ=np.linalg.inv(J)
-
-   C=np.linalg.inv(invJ.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
-   A=np.dot(J,np.dot(C,invJ)) 
-   A=2*np.dot(Gammap,np.dot(J,A))-unity
-   b=unity-J.dot(C).dot(invJ).dot(Gammap)
-   b=2*sqGammap.dot(unity-b).dot(K)
-   E=4*sqGamma.dot(C).dot(invJ).dot(sqGammap)
-   d=-2*sqGamma.dot(C).dot(invJ).dot(Gammap).dot(K)
-   C=2*Gamma.dot(C)-unity #this is 'real' C-matrix
-   
-   #initialize new tree
-   alpha=2*len(b)
-   L3=bt.Tree(i)           # initialize root-node
-   L3.fill(alpha)          # initialize tree
-   States=states(alpha, i) # States are all possible
-   def freq(E, Gamma, Gammap):
-	return (E+sum(Gammap-Gamma))*Hartree2cm_1 
-
-   def FirstNonzero(n): 
-      """Find first non-zero elements in first and second half of array n """
-      ni=n[len(n)//2:] #interger division (python3-compatible)
-      nf=n[:len(n)//2]
-      m=len(ni)+1 #this means there is no excitation in this state
-      mp=len(nf)+1
-      for j in range(len(ni)):
-	 if ni[j]>0:
-	    m=j
-	    break
-      for j in range(len(nf)):
-	 if nf[j]>0:
-	    mp=j
-	    break
-      return m, mp
-   for n in States: #for each possible state, described by n(vector)
-      m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state
-      # if the 'first' excited state is in initial state: need first iteration formula
-      I_nn=0
-      if m<=mp:
-	 n_m=n[m]
-	 ntemp=deepcopy(n)
-	 ntemp[m]-=1 #n[m] is at least 1
-	 #print L2.getState(ntemp)
-	 Ps=L2.getState(ntemp)[0]
-     	 if not math.isnan(Ps):
-	    I_nn=b[m]*Ps					# first term 
-	 if ntemp[m]>0:
-	    ntemp[m]-=1
-	    Ps=L1.getState(ntemp)[0]
-	    if not math.isnan(Ps):
-	       I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term
-	 for i in range(m+1, len(n)/2):
-	    if n[i]>0:
-	       ntemp=deepcopy(n)
-	       ntemp[m]-=1
-	       ntemp[i]-=1
-	       Ps=L1.getState(ntemp)[0]
-	       if not math.isnan(Ps):
-		  I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*Ps	# second term
-	 for i in range(mp+len(n)//2, len(n)): 			#sum over respective final states
-	    if n[i]>0:
-	       ntemp=deepcopy(n)
-	       ntemp[m]-=1
-	       ntemp[i]-=1
-	       Ps=L1.getState(ntemp)[0]
-	       if not math.isnan(Ps):
-		  I_nn+=np.sqrt(n[i]/2)*(E[i-len(n)//2][m])*Ps		# second term
-      #else: need the other iteration-formula
-      else: 
-	 n_m=n[mp]
-	 ntemp=deepcopy(n)
-	 ntemp[mp]-=1
-	 Ps=L2.getState(ntemp)[0]
-     	 if not math.isnan(Ps):
-   	    I_nn=d[mp]*Ps					# first term 
-	 if ntemp[m]>0:
-	    ntemp[mp]-=1
-	    Ps=L1.getState(ntemp)[0]
-	    if not math.isnan(Ps):
-	       I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps          	# second term
-	 for i in range(mp+1, len(n)):
-	    if n[i]>0:
-	       ntemp=deepcopy(n)
-	       ntemp[mp]-=1
-	       ntemp[i]-=1
-	       Ps=L1.getState(ntemp)[0]
-	       if not math.isnan(Ps):
-		  I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+    # second term
-			   C[i-len(n)//2][mp])*Ps	
-	 for i in range(mp, len(n)): 				#sum over respective final states
-	    if n[i]>0:
-	       ntemp=deepcopy(n)
-	       ntemp[mp]-=1
-	       ntemp[i]-=1
-	       Ps=L1.getState(ntemp)[0]
-	       if not math.isnan(Ps):
-		  I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term
-      I_nn/=np.sqrt(2*n_m)
-      L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
-   print L3.extract()
-   return L2, L3
-
-def outspect(spectfile, gridpt, linspect, gamma):
-   """This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
-   As basis-function a Lorentzian is assumed with a common width.
-   
-   Arguments:
-   1.  file, the result is written in (ascii-table). In addition a graph is created and shown on the fly. This graph is not saved.
-   2.  number of grid-points to be used for the calculation
-   3.  line-spectrum list (frequency, intensity) 
-   4.  broadening constant for the Lorentzians. It is the same for all peaks
-   
-   All arguments are obligatory."""
-   out = open(spectfile, "w")
-   minfreq=linspect[0][np.argmin(linspect[0])] # min-freq   of fluorescence
-   maxfreq=linspect[0][np.argmax(linspect[0])] # max freq
-   print'maximal and minimal frequencies:\n', maxfreq, minfreq
-   minfreq-=1000 #the range should be greater than the transition-frequencies
-   maxfreq+=1000 
-   omega=np.linspace(minfreq,maxfreq,gridpt)
-   spect=np.zeros(len(omega))
-   #grid=np.zeros(len(omega)) #data-points
-   #print grid
-   for i in range(len(omega)):
-      intens=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)
-	    for j in range(len(linspect[0])) )
-      out.write(u" '{0}'  '{1}'\n".format(omega[i] ,intens))
-      spect[i]=intens
-   plt.plot(omega, spect)
-   plt.title('Broadened pectrum of Ir-PS')
-   plt.xlabel('Frequency [$cm^{-1}$]')
-   plt.ylabel('Intensity (arb. units)')
-   plt.show()
-   out.close()
-
-def states(alpha, n):
    def unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'states'
       """
       These functions are part of python-package: 'combinatorics' 
@@ -981,6 +969,39 @@ def states(alpha, n):
       States[i]=np.matrix(distributions)
       i+=1
    return States
+
+def outspect(spectfile, gridpt, linspect, gamma):
+   """This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
+   As basis-function a Lorentzian is assumed with a common width.
+   
+   Arguments:
+   1.  file, the result is written in (ascii-table). In addition a graph is created and shown on the fly. This graph is not saved.
+   2.  number of grid-points to be used for the calculation
+   3.  line-spectrum list (frequency, intensity) 
+   4.  broadening constant for the Lorentzians. It is the same for all peaks
+   
+   All arguments are obligatory."""
+   out = open(spectfile, "w")
+   minfreq=linspect[0][np.argmin(linspect[0])] # min-freq   of fluorescence
+   maxfreq=linspect[0][np.argmax(linspect[0])] # max freq
+   print'maximal and minimal frequencies:\n', maxfreq, minfreq
+   minfreq-=1000 #the range should be greater than the transition-frequencies
+   maxfreq+=1000 
+   omega=np.linspace(minfreq,maxfreq,gridpt)
+   spect=np.zeros(len(omega))
+   #grid=np.zeros(len(omega)) #data-points
+   #print grid
+   for i in range(len(omega)):
+      intens=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)
+	    for j in range(len(linspect[0])) )
+      out.write(u" '{0}'  '{1}'\n".format(omega[i] ,intens))
+      spect[i]=intens
+   plt.plot(omega, spect)
+   plt.title('Broadened pectrum of Ir-PS')
+   plt.xlabel('Frequency [$cm^{-1}$]')
+   plt.ylabel('Intensity (arb. units)')
+   plt.show()
+   out.close()
 
 version=2.6
 # End of functions_smsc.py

@@ -1,0 +1,8 @@
+this python-script uses gaussian09 log-files to calculate frequencies and normal modes of a electronic state of a given molecule and uses this further to calculate the spectrum respecting Duschinsky effect as well as not respecting it.
+
+At the moment the calculation of normal modes and frequencies works within the numeric instability due to poor precision of the gaussian-output
+
+BOTH SPECTRAL CALCULATIONS ARE NOT CORRECT at this point. 
+The duschisky-matrix and -shift have to be verified, further calculations as well.
+
+
