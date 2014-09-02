@@ -20,7 +20,8 @@
       <p>filename: functions_smsc.py</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">glob</span> <span class="o">,</span> <span class="nn">re</span> <span class="o">,</span> <span class="nn">shutil</span> <span class="o">,</span> <span class="nn">mmap</span> <span class="o">,</span><span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">glob</span> <span class="o">,</span> <span class="nn">re</span> <span class="o">,</span> <span class="nn">shutil</span> <span class="o">,</span> <span class="nn">mmap</span> <span class="o">,</span><span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">logging</span><span class="c">#, matplotlib.pyplot as plt</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span> <span class="c"># for function sort(). Probably find a better function!!</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -32,8 +33,7 @@
       <p>for python-3 compatibility</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="nb">open</span> 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span> <span class="c"># for function sort(). Probably find a better function!!</span></pre></div>
+      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="nb">open</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -445,33 +445,30 @@ This function is a self-writen sort-function for floats-arrays (increasing</p>
 <span class="s">	    repr(f[i]*Hartree2cm_1)+&quot;L-matrix </span><span class="se">\n</span><span class="s">&quot;+ repr(L[i]))</span>
 <span class="s">   return N, L, f, Lsorted</span>
 <span class="s">#DIVIDER</span>
-<span class="s">def GetL1(dim, mass, F, G09f, P):</span>
+<span class="s">def GetLstab(dim, mass, F, G09f, P):</span>
 <span class="s">#DIVIDER</span>
 <span class="s">   np.set_printoptions(suppress=True)</span>
-<span class="s">   np.set_printoptions(precision=2, linewidth=122)</span>
+<span class="s">   np.set_printoptions(precision=4, linewidth=122)</span>
 <span class="s">#DIVIDER</span>
-<span class="s">   def InvIteration(F,L,Lambda): #inverse iteration to find better modes</span>
+<span class="s">   def Newton(F,L,Lambda):			   # inverse iteration to find better modes</span>
 <span class="s">      ones=np.eye(len(F))</span>
+<span class="s">      Tmp=np.zeros((len(F)+1,len(F)+1))</span>
+<span class="s">      tmp=np.zeros(len(F)+1)</span>
 <span class="s">      for i in range(len(L)):</span>
-<span class="s">	 for j in range(len(ones)): #there is no built-in for scalar*matrix</span>
+<span class="s">	 for j in range(len(ones)):			   # there is no built-in for scalar*matrix</span>
 <span class="s">	    ones[j][j]*=Lambda[i]</span>
-<span class="s">	 print len(F),&#39; &#39;, len(F[0]),&#39;  &#39;,len(ones),&#39;  &#39;,len(ones[0])</span>
 <span class="s">	 A=np.matrix(F-ones)</span>
-<span class="s">	 print A</span>
-<span class="s">	 print len(A),&#39; &#39;,len(A[0]),&#39;  &#39;, len(L),&#39; &#39;,len(L[0]),&#39;  &#39;,len(Lambda)</span>
-<span class="s">	 print np.linalg.cond(A) #this eigenvalue is close to the exact one; hence no </span>
-<span class="s">	 if np.linalg.cond(A)&gt;10000: #this eigenvalue is close to the exact one; hence no </span>
-<span class="s">	    break                   #optimization is needed (and not possible)</span>
-<span class="s">	 A_1=np.linalg.inv(A)       # is this sufficient numerically stable?</span>
-<span class="s">	 tmp=L[i]-L[i]</span>
-<span class="s">	 while np.linalg.norm(tmp-L[i])&gt;0.00001/len(L[i]): #this should be a reasonable threshold</span>
-<span class="s">	    tmp=L[i]</span>
-<span class="s">#DIVIDER</span>
-<span class="s">	    L[i]=np.dot(A_1,L[i].T).T/np.linalg.norm(A_1.dot(L[i].T))</span>
+<span class="s">      Tmp[:-1].T[:-1].T=A</span>
+<span class="s">      for i in range(len(L)):</span>
+<span class="s">	 Tmp[:].T[-1]=L[i]</span>
+<span class="s">	 Tmp[-1]=L[i].T</span>
+<span class="s">	 tmp[:-1].T=L[i]</span>
+<span class="s">	 tmp[-1]=Lambda[i]</span>
+<span class="s">	 resid=Tmp.dot(tmp)</span>
+<span class="s">	 while np.linalg.norm(resid, ord=2)&lt;Lambda[i]*5e-5:</span>
+<span class="s">	    tmp[:-1]+=resid[:-1]</span>
+<span class="s">	    tmp[-1]-=resid[-1]#probably leaf this to fix frequencies...</span>
 <span class="s">      return L</span>
-
-<span class="s">   logging.info(&quot;Len(F) is &quot;+repr(len(F)))</span>
-<span class="s">#DIVIDER</span>
 <span class="s">   L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) </span>
 <span class="s">   Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) </span>
 <span class="s">   f=np.zeros(( len(F), len(F[0])-6 ))</span>
@@ -484,11 +481,7 @@ This function is a self-writen sort-function for floats-arrays (increasing</p>
 <span class="s">      f[i]=np.real(ftemp[index]).T[:].T[6:].T</span>
 <span class="s">      L[i]=np.real(Ltemp[index]).T[:].T[6:].T # or =Ltemp[index].T (see above)</span>
 <span class="s">      logging.debug(&quot;Frequencies (cm-1) </span><span class="se">\n</span><span class="s">&quot;+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))</span>
-<span class="s">#DIVIDER</span>
-<span class="s">      print np.dot(np.dot(P[i].T,F[i]),P[i])</span>
-<span class="s">      print f[i]</span>
-<span class="s">      print L[i]</span>
-<span class="s">      L[i]=InvIteration(np.dot(np.dot(P[i].T,F[i]),P[i]), L[i], G09f[i]) #&#39;repair&#39; L-matrix (truncated)</span>
+<span class="s">      L[i]=Newton(np.dot(np.dot(P[i].T,F[i]),P[i]), L[i].T, G09f[i]).T #&#39;repair&#39; L-matrix (truncated)</span>
 <span class="s">      M=np.zeros((dim,dim))</span>
 <span class="s">      for j in range(0,dim):</span>
 <span class="s">         M[j,j]=1/mass[j/3]</span>
@@ -562,27 +555,30 @@ This function is a self-writen sort-function for floats-arrays (increasing</p>
 <span class="s">#DIVIDER</span>
 <span class="s">def Duschinsky(N, L, mass, dim, x):</span>
 <span class="s">   J=np.zeros((dim-6,dim-6))</span>
-<span class="s">   FF=np.zeros((len(L),dim,dim))</span>
 <span class="s">   K=np.zeros(dim-6)</span>
 <span class="s">   I=np.zeros((len(L),dim))</span>
-<span class="s">   M=np.zeros((dim,dim)) #this is a diagonal matrix</span>
+<span class="s">   M=np.zeros((dim,dim))</span>
+<span class="s">   DeltaX=np.zeros((len(L),dim))</span>
+
 <span class="s">   for i in range(dim):</span>
 <span class="s">      M[i][i]=mass[i/3] #square root of masses</span>
-<span class="s">   DeltaX=np.zeros((len(L),dim))</span>
 <span class="s">   for i in range(len(DeltaX[0])/3):</span>
 <span class="s">      DeltaX[0][3*i:3*i+3]=x[0].T[i]</span>
 <span class="s">   J=np.dot(L[0].T, np.linalg.pinv(L[1].T)) #always relaxation into ground state</span>
 
-<span class="s">   np.set_printoptions(suppress=True)</span>
-<span class="s">   np.set_printoptions(precision=3, linewidth=138)</span>
-<span class="s">   print&#39;Duschinsky</span><span class="se">\n</span><span class="s">&#39;,  J</span>
-<span class="s">   print </span>
-
 <span class="s">   DeltaX=np.array(x[0]-x[1]).flatten(&#39;F&#39;)</span>
 <span class="s">   logging.debug(&#39;Flatted</span><span class="se">\n</span><span class="s">&#39;+repr(DeltaX))</span>
 <span class="s">#DIVIDER</span>
-<span class="s">   K=np.dot(L[1].T,DeltaX.T)</span>
-<span class="s">   one=np.eye(len(FF[0]))</span>
+<span class="s">   K=np.dot(L[1].T.dot(M),DeltaX.T) #at the moment: mass-weighted</span>
+
+<span class="s">   np.set_printoptions(suppress=True)</span>
+<span class="s">   np.set_printoptions(precision=3, linewidth=138)</span>
+<span class="s">   print&#39;Duschinsky</span><span class="se">\n</span><span class="s">&#39;, </span>
+<span class="s">   for i in range(len(J)):</span>
+<span class="s">      for j in range(len(J[0])):</span>
+<span class="s">	 print(repr(j)+&#39; &#39;+repr(i)+&#39; &#39;+repr(J[i][j]))</span>
+<span class="s">      print</span>
+
 <span class="s">   logging.info(&#39;Duschinsky rotation matrix, &#39;+</span><span class="se">\</span>
 <span class="s">	 repr(np.linalg.norm(J[1]-np.eye(dim-6))/(dim-6))+ &#39;  :</span><span class="se">\n</span><span class="s">&#39;+ repr(J)+</span><span class="se">\</span>
 <span class="s">	 &#39;  :</span><span class="se">\n</span><span class="s">&#39;+ repr(J[:4].T[11:25])+</span><span class="se">\</span>
@@ -612,38 +608,25 @@ This function is a self-writen sort-function for floats-arrays (increasing</p>
 <span class="s">   for j in range(len(unif)):</span>
 <span class="s">#DIVIDER</span>
 <span class="s">      s=1</span>
-<span class="s">#DIVIDER</span>
+<span class="s">      print(&#39;uni_freq:&#39;,funi[-j]*Hartree2cm_1,&#39;  &#39;, sortuni[-j])</span>
 <span class="s">   return sortuni, funi, sortmulti, sortfI, sortfF</span>
-<span class="s">#DIVIDER</span>
-<span class="s">def unifSpect(intens, E, freq, N, M):</span>
-<span class="s">#DIVIDER</span>
-<span class="s">   logging.debug(&#39;Spectrum</span><span class="se">\n</span><span class="s">&#39;+ repr(N)+&#39; &#39;+repr(M)+&#39;  &#39;+repr(len(intens))+&#39;  &#39;+repr(len(intens[0])))</span>
-<span class="s">   spect=np.zeros((2,len(intens)*len(freq)))</span>
-<span class="s">   for x in range(N):</span>
-<span class="s">      for a in range(len(freq)):</span>
-<span class="s">	 spect[1][x*len(freq)+a]=sum(intens[x+i][i] for i in range( int(min(M,N-x))) ) #not correct at the moment??</span>
-<span class="s">	 spect[0][x*len(freq)+a]=(E-freq[a]*x)*Hartree2cm_1</span>
-<span class="s">   for x in range(1,M):</span>
-<span class="s">      for a in range(len(freq)):</span>
-<span class="s">	 spect[1][x*len(freq)+a]=sum(intens[i][x+i] for i in range( int(min(N,M-x))) ) #not correct at the moment??</span>
-<span class="s">	 spect[0][x*len(freq)+a]=(E+freq[a]*x)*Hartree2cm_1</span>
-<span class="s">   return spect</span>
 <span class="s">#DIVIDER</span>
 <span class="s">def calcspect(HR, freq, E, N, M):</span>
 <span class="s">#DIVIDER</span>
 
 <span class="s">#DIVIDER</span>
 <span class="s">   def occOPA(dim, N, M):</span>
-<span class="s">      Xi_g=np.zeros((dim,M*dim))</span>
-<span class="s">      Xi_e=np.zeros((dim,N*dim))</span>
+<span class="s">      Xi_i=np.zeros((dim,M*dim))</span>
+<span class="s">      Xi_f=np.zeros((dim,N*dim))</span>
 <span class="s">      for i in range(dim):</span>
 <span class="s">	 for j in range(M):</span>
-<span class="s">	    Xi_g[i][i+j]=j+1</span>
+<span class="s">	    Xi_i[i][i+j]=j+1</span>
 <span class="s">	 for j in range(N):</span>
-<span class="s">	    Xi_e[i][i+j]=j+1</span>
-<span class="s">      return Xi_g, Xi_e</span>
+<span class="s">	    Xi_f[i][i+j]=j+1</span>
+<span class="s">      return Xi_i, Xi_f</span>
 <span class="s">#DIVIDER</span>
 <span class="s">   def FCeqf( Deltag, M, N):</span>
+<span class="s">#DIVIDER</span>
 <span class="s">      exg=np.exp(-np.abs(Deltag)/2) #actually Deltag should be &gt;0, but is not always due to negative frequencies</span>
 <span class="s">      faktNM=math.factorial(M)*math.factorial(N)</span>
 <span class="s">      FC=0</span>
@@ -651,22 +634,30 @@ This function is a self-writen sort-function for floats-arrays (increasing</p>
 <span class="s">	 FC+=exg*math.pow(-1,N-x)*math.pow(np.abs(Deltag),(M+N-2*x)//2)/(math.factorial(M-x)*math.factorial(N-x))*</span><span class="se">\</span>
 <span class="s">	       math.sqrt(faktNM/(math.factorial(x)*math.factorial(x)))</span>
 <span class="s">      return FC</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def unifSpect(intens, E, freq, N, M):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      logging.debug(&#39;Spectrum</span><span class="se">\n</span><span class="s">&#39;+ repr(N)+&#39; &#39;+repr(M)+&#39;  &#39;+repr(len(intens))+&#39;  &#39;+repr(len(intens[0])))</span>
+<span class="s">      spect=np.zeros((2,len(intens)*len(freq)))</span>
+<span class="s">      for x in range(N):</span>
+<span class="s">	 for a in range(len(freq)):</span>
+<span class="s">	    spect[1][x*len(freq)+a]=sum(intens[x+i][i] for i in range( int(min(M,N-x))) ) #not correct at the moment??</span>
+<span class="s">	    spect[0][x*len(freq)+a]=(E-freq[a]*x)*Hartree2cm_1</span>
+<span class="s">      for x in range(1,M):</span>
+<span class="s">	 for a in range(len(freq)):</span>
+<span class="s">	    spect[1][x*len(freq)+a]=sum(intens[i][x+i] for i in range( int(min(N,M-x))) ) #not correct at the moment??</span>
+<span class="s">	    spect[0][x*len(freq)+a]=(E+freq[a]*x)*Hartree2cm_1</span>
+<span class="s">      return spect</span>
 <span class="s">   </span>
-<span class="s">   </span>
-<span class="s">   Xi_g, Xi_e=occOPA(len(HR), N, M)</span>
-<span class="s">   intens=np.ones((len(Xi_e[0]), len(Xi_g[0]))) #matrix consisting of 1 </span>
-<span class="s">   FC=np.zeros((len(Xi_g),len(Xi_e[0]), len(Xi_g[0]))) #general for other approximations as well</span>
-<span class="s">   for i in range(len(Xi_g)):</span>
-<span class="s">      FC00=FCeqf(HR[i], 0, 0)</span>
-<span class="s">      for j in range(len(Xi_g[i])):</span>
-<span class="s">      	 for k in range(len(Xi_e[i])):</span>
-<span class="s">   	    if Xi_g[i][j]==0 and  Xi_e[i][k]==0: #this saves time at least if OPA is taken into account</span>
-<span class="s">	       FC[i][k][j]=FC00</span>
-<span class="s">	    else:</span>
-<span class="s">	       FC[i][k][j]=FCeqf(HR[i], Xi_g[i][j], Xi_e[i][k])</span>
-<span class="s">   for i in range(len(FC)):</span>
-<span class="s">      intens=intens*FC[i] #proportional to square of FC factors &gt;FC is already the sqare of overlap-integral</span>
-<span class="s">   spect=unifSpect(intens, E, freq, len(Xi_e[0]), len(Xi_g[0]))</span>
+<span class="s">   Xi_i, Xi_f=occOPA(len(HR), N, M)</span>
+<span class="s">   FC=np.ones((len(Xi_i[0]),len(Xi_f[0]))) #general for other approximations as well</span>
+<span class="s">   for i in range(len(Xi_i[0])):</span>
+<span class="s">      for j in range(len(Xi_f[0])):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      	 for k in range(len(HR)):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	    FC[i][j]*=FCeqf(HR[k], Xi_i[k][j], Xi_f[k][i])</span>
+<span class="s">   spect=unifSpect(FC, E, freq, len(Xi_f[0]), len(Xi_i[0]))</span>
 <span class="s">   return spect</span>
 <span class="s">#DIVIDER</span>
 <span class="s">def FCf(J, K, f, Energy, N):</span>
@@ -683,13 +674,191 @@ This function is a self-writen sort-function for floats-arrays (increasing</p>
 <span class="s">      TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(invJ)-np.eye(len(J))</span>
 <span class="s">      exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))</span>
 
-<span class="s">      L=bt.Tree(2*len(K))</span>
-<span class="s">      L.fill(0)</span>
+<span class="s">      Tree=bt.Tree(2*len(K))</span>
+<span class="s">      Tree.fill(0)</span>
 <span class="s">      Zero=np.zeros(2*len(K))</span>
-<span class="s">      L.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix</span>
+<span class="s">      Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix</span>
 <span class="s">      for alpha in range(len(K)):</span>
-<span class="s">	 linspect.append(L.extract()) #I_00 transition</span>
-<span class="s">      return L</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	 linspect.append(Tree.extract()) </span>
+<span class="s">      return Tree</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def iterate(L1, L2, Energy, i, f, J, K):</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">      Gamma=np.diag(f[0])              	# in atomic units. It is equivalent to 4pi^2/h f_i</span>
+<span class="s">      Gammap=np.diag(f[1])             	# for final state</span>
+<span class="s">      sqGamma=np.diag(np.sqrt(f[0]))   </span>
+<span class="s">      sqGammap=np.diag(np.sqrt(f[1]))  </span>
+<span class="s">      unity=np.eye(len(Gamma))</span>
+<span class="s">      invJ=np.linalg.inv(J)</span>
+<span class="s">   </span>
+<span class="s">      C=np.linalg.inv(invJ.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here</span>
+<span class="s">      A=np.dot(J,np.dot(C,invJ)) </span>
+<span class="s">      A=2*np.dot(Gammap,np.dot(J,A))-unity</span>
+<span class="s">      b=unity-J.dot(C).dot(invJ).dot(Gammap)</span>
+<span class="s">      b=2*sqGammap.dot(unity-b).dot(K)</span>
+<span class="s">      E=4*sqGamma.dot(C).dot(invJ).dot(sqGammap)</span>
+<span class="s">      d=-2*sqGamma.dot(C).dot(invJ).dot(Gammap).dot(K)</span>
+<span class="s">      C=2*Gamma.dot(C)-unity 		#this is &#39;real&#39; C-matrix</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      alpha=2*len(b)</span>
+<span class="s">      L3=bt.Tree(i)    	       		# initialize root-node</span>
+<span class="s">      L3.fill(alpha)         		# initialize tree</span>
+<span class="s">      States=states(alpha, i) 		# States are all possible</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      def freq(E, Gamma, Gammap):</span>
+<span class="s">	 return (E+sum(Gammap-Gamma))*Hartree2cm_1</span>
+<span class="s">#DIVIDER</span>
+<span class="s">      def FirstNonzero(n):</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	 ni=n[len(n)//2:] #interger division (python3-compatible)</span>
+<span class="s">	 nf=n[:len(n)//2]</span>
+<span class="s">	 m=len(ni)+1 #this means there is no excitation in this state</span>
+<span class="s">	 mp=len(nf)+1</span>
+<span class="s">	 for j in range(len(ni)):</span>
+<span class="s">	    if ni[j]&gt;0:</span>
+<span class="s">	       m=j</span>
+<span class="s">	       break</span>
+<span class="s">	 for j in range(len(nf)):</span>
+<span class="s">	    if nf[j]&gt;0:</span>
+<span class="s">	       mp=j</span>
+<span class="s">	       break</span>
+<span class="s">	 return m, mp</span>
+<span class="s">      for n in States: #for each possible state, described by n(vector)</span>
+<span class="s">	 m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	 I_nn=0</span>
+<span class="s">	 if m&lt;=mp:</span>
+<span class="s">	    n_m=n[m]</span>
+<span class="s">	    ntemp=deepcopy(n)</span>
+<span class="s">	    ntemp[m]-=1 #n[m] is at least 1</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	    Ps=L2.getState(ntemp)[0]</span>
+<span class="s">	    if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</span>
+<span class="s">	       I_nn=b[m]*Ps					# first term </span>
+<span class="s">	    if ntemp[m]&gt;0:</span>
+<span class="s">	       ntemp[m]-=1</span>
+<span class="s">	       Ps=L1.getState(ntemp)[0]</span>
+<span class="s">	       if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</span>
+<span class="s">		  I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term</span>
+<span class="s">	    for i in range(m+1, len(n)/2):</span>
+<span class="s">	       if n[i]&gt;0:</span>
+<span class="s">		  ntemp=deepcopy(n)</span>
+<span class="s">		  ntemp[m]-=1</span>
+<span class="s">		  ntemp[i]-=1</span>
+<span class="s">		  Ps=L1.getState(ntemp)[0]</span>
+<span class="s">		  if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</span>
+<span class="s">		     I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*Ps	# second term</span>
+
+<span class="s">	    for i in range(mp+len(n)//2, len(n)): 			# sum over respective final states</span>
+<span class="s">	       if mp&gt;len(n)//2:					# that means: there are no excited vibrations</span>
+<span class="s">		  break</span>
+<span class="s">	       if n[i]&gt;0:</span>
+<span class="s">		  ntemp=deepcopy(n)</span>
+<span class="s">		  ntemp[m]-=1</span>
+<span class="s">		  ntemp[i]-=1</span>
+<span class="s">		  Ps=L1.getState(ntemp)[0]</span>
+<span class="s">		  if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</span>
+<span class="s">		     I_nn+=np.sqrt(n[i]/2)*(E[i-len(n)//2][m])*Ps		# second term</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	 else: </span>
+<span class="s">	    n_m=n[mp]</span>
+<span class="s">	    ntemp=deepcopy(n)</span>
+<span class="s">	    ntemp[mp]-=1</span>
+<span class="s">	    Ps=L2.getState(ntemp)[0]</span>
+<span class="s">	    if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</span>
+<span class="s">	       I_nn=d[mp]*Ps					# first term </span>
+<span class="s">	    if ntemp[mp]&gt;0:</span>
+<span class="s">	       ntemp[mp]-=1</span>
+<span class="s">	       Ps=L1.getState(ntemp)[0]</span>
+<span class="s">	       if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</span>
+<span class="s">		  I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps          	# second term</span>
+<span class="s">	    for i in range(mp+1, len(n)):</span>
+<span class="s">	       if n[i]&gt;0:</span>
+<span class="s">		  ntemp=deepcopy(n)</span>
+<span class="s">		  ntemp[mp]-=1</span>
+<span class="s">		  ntemp[i]-=1</span>
+<span class="s">		  Ps=L1.getState(ntemp)[0]</span>
+<span class="s">		  if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</span>
+<span class="s">		     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+    # second term</span>
+<span class="s">			      C[i-len(n)//2][mp])*Ps	</span>
+<span class="s">	    for i in range(m, len(n)): 				#sum over respective final states</span>
+<span class="s">	       if m&gt;len(n)//2:					# that means: there are no excited vibrations</span>
+<span class="s">		  break</span>
+<span class="s">   	       if n[i]&gt;0:</span>
+<span class="s">   		  ntemp=deepcopy(n)</span>
+<span class="s">   		  ntemp[mp]-=1</span>
+<span class="s">   		  ntemp[i]-=1</span>
+<span class="s">   		  Ps=L1.getState(ntemp)[0]</span>
+<span class="s">   		  if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</span>
+<span class="s">   		     I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term</span>
+<span class="s">     	 I_nn/=np.sqrt(2*n_m)</span>
+<span class="s">       	 L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])</span>
+<span class="s">      print L3.extract()</span>
+<span class="s">      return L2, L3</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   def states(alpha, n):</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">      def unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for &#39;states&#39;</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	 def _unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for &#39;unlabeled_balls_in_labeled_boxes&#39; needed for &#39;states&#39;</span>
+<span class="s">#DIVIDER</span>
+
+<span class="s">#DIVIDER</span>
+<span class="s">	    if not balls:</span>
+<span class="s">	       yield len(box_sizes) * (0,)</span>
+<span class="s">	 </span>
+<span class="s">	    elif len(box_sizes) == 1:</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	       if box_sizes[0] &gt;= balls:</span>
+<span class="s">   		  yield (balls,)</span>
+<span class="s">      </span>
+<span class="s">	    else:</span>
+<span class="s">#DIVIDER</span>
+<span class="s">	       for balls_in_first_box in xrange( min(balls, box_sizes[0]), -1, -1 ):</span>
+<span class="s">		  balls_in_other_boxes= balls - balls_in_first_box</span>
+<span class="s">		  for distribution_other in _unlabeled_balls_in_labeled_boxes(</span>
+<span class="s">		  balls_in_other_boxes, box_sizes[1:]):</span>
+<span class="s">		     yield (balls_in_first_box,) + distribution_other</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   </span>
+<span class="s">	 if not isinstance(balls, int):</span>
+<span class="s">	       raise TypeError(&quot;balls must be a non-negative integer.&quot;)</span>
+<span class="s">	 if balls &lt; 0:</span>
+<span class="s">	    raise ValueError(&quot;balls must be a non-negative integer.&quot;)</span>
+<span class="s">      </span>
+<span class="s">       	 if not isinstance(box_sizes,list):</span>
+<span class="s">	    raise ValueError(&quot;box_sizes must be a non-empty list.&quot;)</span>
+<span class="s">      </span>
+<span class="s">       	 capacity= 0</span>
+<span class="s">	 for size in box_sizes:</span>
+<span class="s">	    if not isinstance(size, int):</span>
+<span class="s">	       raise TypeError(&quot;box_sizes must contain only positive integers.&quot;)</span>
+<span class="s">	    if size &lt; 1:</span>
+<span class="s">	       raise ValueError(&quot;box_sizes must contain only positive integers.&quot;)</span>
+<span class="s">	    capacity+= size</span>
+<span class="s">      </span>
+<span class="s">       	 if capacity &lt; balls:</span>
+<span class="s">	    raise ValueError(&quot;The total capacity of the boxes is less than the &quot;</span>
+<span class="s">	    &quot;number of balls to be distributed.&quot;)</span>
+<span class="s">   </span>
+<span class="s">	 return _unlabeled_balls_in_labeled_boxes(balls, box_sizes)</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   </span>
+<span class="s">      States=np.zeros((math.factorial(n+alpha-1)/(math.factorial(n)*math.factorial(alpha-1)),alpha))</span>
+<span class="s">      a=np.ones(alpha).tolist()</span>
+<span class="s">      for i in range(len(a)):</span>
+<span class="s">	 a[i]=n*int(a[i]) #create the needed list</span>
+<span class="s">      i=0</span>
+<span class="s">      for distributions in unlabeled_balls_in_labeled_boxes(n,a):</span>
+<span class="s">	 States[i]=np.matrix(distributions)</span>
+<span class="s">	 i+=1</span>
+<span class="s">      return States</span>
+
 
 <span class="s">   Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i</span>
 <span class="s">   Gammap=np.diag(f[1]) # for final state</span>
@@ -697,162 +866,14 @@ This function is a self-writen sort-function for floats-arrays (increasing</p>
 <span class="s">   linspect=[] #intensities</span>
 <span class="s">   L2=CalcI00(J, K, Gamma, Gammap, Energy)</span>
 <span class="s">   print &#39;state0 is ready&#39;</span>
-<span class="s">   L1=L2 #for first state this is ok</span>
+<span class="s">#DIVIDER</span>
+<span class="s">   L1=L2 </span>
 <span class="s">   for i in range(1,N+1):</span>
 <span class="s">      L1, L2=iterate(L1, L2, Energy, i, f, J,K)</span>
 <span class="s">      linspect.append(L2.extract)  </span>
 <span class="s">   return linspect #2-dimensional array</span>
 <span class="s">#DIVIDER</span>
-<span class="s">def iterate(L1, L2, Energy, i, f, J, K):</span>
-<span class="s">#DIVIDER</span>
-
-<span class="s">#DIVIDER</span>
-<span class="s">   Gamma=np.diag(f[0])              # in atomic units. It is equivalent to 4pi^2/h f_i</span>
-<span class="s">   Gammap=np.diag(f[1])             # for final state</span>
-<span class="s">   sqGamma=np.diag(np.sqrt(f[0]))   </span>
-<span class="s">   sqGammap=np.diag(np.sqrt(f[1]))  </span>
-<span class="s">   unity=np.eye(len(Gamma))</span>
-<span class="s">   invJ=np.linalg.inv(J)</span>
-
-<span class="s">   C=np.linalg.inv(invJ.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here</span>
-<span class="s">   A=np.dot(J,np.dot(C,invJ)) </span>
-<span class="s">   A=2*np.dot(Gammap,np.dot(J,A))-unity</span>
-<span class="s">   b=unity-J.dot(C).dot(invJ).dot(Gammap)</span>
-<span class="s">   b=2*sqGammap.dot(unity-b).dot(K)</span>
-<span class="s">   E=4*sqGamma.dot(C).dot(invJ).dot(sqGammap)</span>
-<span class="s">   d=-2*sqGamma.dot(C).dot(invJ).dot(Gammap).dot(K)</span>
-<span class="s">   C=2*Gamma.dot(C)-unity #this is &#39;real&#39; C-matrix</span>
-<span class="s">#DIVIDER</span>
-<span class="s">   alpha=2*len(b)</span>
-<span class="s">   L3=bt.Tree(i)           # initialize root-node</span>
-<span class="s">   L3.fill(alpha)          # initialize tree</span>
-<span class="s">   States=states(alpha, i) # States are all possible</span>
-<span class="s">#DIVIDER</span>
-<span class="s">   def freq(E, Gamma, Gammap):</span>
-<span class="s">	return (E+sum(Gammap-Gamma))*Hartree2cm_1</span>
-<span class="s">#DIVIDER</span>
-<span class="s">   def FirstNonzero(n):</span>
-<span class="s">#DIVIDER</span>
-<span class="s">      ni=n[len(n)//2:] #interger division (python3-compatible)</span>
-<span class="s">      nf=n[:len(n)//2]</span>
-<span class="s">      m=len(ni)+1 #this means there is no excitation in this state</span>
-<span class="s">      mp=len(nf)+1</span>
-<span class="s">      for j in range(len(ni)):</span>
-<span class="s">	 if ni[j]&gt;0:</span>
-<span class="s">	    m=j</span>
-<span class="s">	    break</span>
-<span class="s">      for j in range(len(nf)):</span>
-<span class="s">	 if nf[j]&gt;0:</span>
-<span class="s">	    mp=j</span>
-<span class="s">	    break</span>
-<span class="s">      return m, mp</span>
-<span class="s">   for n in States: #for each possible state, described by n(vector)</span>
-<span class="s">      m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state</span>
-<span class="s">#DIVIDER</span>
-<span class="s">      I_nn=0</span>
-<span class="s">      if m&lt;=mp:</span>
-<span class="s">	 n_m=n[m]</span>
-<span class="s">	 ntemp=deepcopy(n)</span>
-<span class="s">	 ntemp[m]-=1 #n[m] is at least 1</span>
-<span class="s">#DIVIDER</span>
-<span class="s">	 Ps=L2.getState(ntemp)[0]</span>
-<span class="s">     	 if not math.isnan(Ps):</span>
-<span class="s">	    I_nn=b[m]*Ps					# first term </span>
-<span class="s">	 if ntemp[m]&gt;0:</span>
-<span class="s">	    ntemp[m]-=1</span>
-<span class="s">	    Ps=L1.getState(ntemp)[0]</span>
-<span class="s">	    if not math.isnan(Ps):</span>
-<span class="s">	       I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term</span>
-<span class="s">	 for i in range(m+1, len(n)/2):</span>
-<span class="s">	    if n[i]&gt;0:</span>
-<span class="s">	       ntemp=deepcopy(n)</span>
-<span class="s">	       ntemp[m]-=1</span>
-<span class="s">	       ntemp[i]-=1</span>
-<span class="s">	       Ps=L1.getState(ntemp)[0]</span>
-<span class="s">	       if not math.isnan(Ps):</span>
-<span class="s">		  I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*Ps	# second term</span>
-<span class="s">	 for i in range(mp+len(n)//2, len(n)): 			#sum over respective final states</span>
-<span class="s">	    if n[i]&gt;0:</span>
-<span class="s">	       ntemp=deepcopy(n)</span>
-<span class="s">	       ntemp[m]-=1</span>
-<span class="s">	       ntemp[i]-=1</span>
-<span class="s">	       Ps=L1.getState(ntemp)[0]</span>
-<span class="s">	       if not math.isnan(Ps):</span>
-<span class="s">		  I_nn+=np.sqrt(n[i]/2)*(E[i-len(n)//2][m])*Ps		# second term</span>
-<span class="s">#DIVIDER</span>
-<span class="s">      else: </span>
-<span class="s">	 n_m=n[mp]</span>
-<span class="s">	 ntemp=deepcopy(n)</span>
-<span class="s">	 ntemp[mp]-=1</span>
-<span class="s">	 Ps=L2.getState(ntemp)[0]</span>
-<span class="s">     	 if not math.isnan(Ps):</span>
-<span class="s">   	    I_nn=d[mp]*Ps					# first term </span>
-<span class="s">	 if ntemp[m]&gt;0:</span>
-<span class="s">	    ntemp[mp]-=1</span>
-<span class="s">	    Ps=L1.getState(ntemp)[0]</span>
-<span class="s">	    if not math.isnan(Ps):</span>
-<span class="s">	       I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps          	# second term</span>
-<span class="s">	 for i in range(mp+1, len(n)):</span>
-<span class="s">	    if n[i]&gt;0:</span>
-<span class="s">	       ntemp=deepcopy(n)</span>
-<span class="s">	       ntemp[mp]-=1</span>
-<span class="s">	       ntemp[i]-=1</span>
-<span class="s">	       Ps=L1.getState(ntemp)[0]</span>
-<span class="s">	       if not math.isnan(Ps):</span>
-<span class="s">		  I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+    # second term</span>
-<span class="s">			   C[i-len(n)//2][mp])*Ps	</span>
-<span class="s">	 for i in range(mp, len(n)): 				#sum over respective final states</span>
-<span class="s">	    if n[i]&gt;0:</span>
-<span class="s">	       ntemp=deepcopy(n)</span>
-<span class="s">	       ntemp[mp]-=1</span>
-<span class="s">	       ntemp[i]-=1</span>
-<span class="s">	       Ps=L1.getState(ntemp)[0]</span>
-<span class="s">	       if not math.isnan(Ps):</span>
-<span class="s">		  I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term</span>
-<span class="s">      I_nn/=np.sqrt(2*n_m)</span>
-<span class="s">      L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])</span>
-<span class="s">   print L3.extract()</span>
-<span class="s">   return L2, L3</span>
-<span class="s">#DIVIDER</span>
 <span class="s">def outspect(spectfile, gridpt, linspect, gamma):</span>
-<span class="s">#DIVIDER</span>
-<span class="s">      These functions are part of python-package: &#39;combinatorics&#39; </span>
-<span class="s">      (download from https://pypi.python.org/pypi/Combinatorics)</span>
-<span class="s">      unlabeled_balls_in_labeled_boxes(balls, box_sizes): This function </span>
-<span class="s">      returns a generator that produces all distinct distributions of indistinguishable balls</span>
-<span class="s">      among labeled boxes with specified box sizes (capacities). This is </span>
-<span class="s">      a generalization of the most common formulation of the problem, where each box is</span>
-<span class="s">      sufficiently large to accommodate all of the balls, and is an important </span>
-<span class="s">      example of a class of combinatorics problems called &#39;weak composition&#39; problems.</span>
-<span class="s">   </span>
-<span class="s">      OVERVIEW</span>
-<span class="s">   </span>
-<span class="s">      This function returns a generator that produces all distinct distributions of</span>
-<span class="s">      indistinguishable balls among labeled boxes with specified box sizes</span>
-<span class="s">      (capacities).  This is a generalization of the most common formulation of the</span>
-<span class="s">      problem, where each box is sufficiently large to accommodate all of the</span>
-<span class="s">      balls, and is an important example of a class of combinatorics problems</span>
-<span class="s">      called &#39;weak composition&#39; problems.</span>
-<span class="s">   </span>
-<span class="s">   </span>
-<span class="s">      CONSTRUCTOR INPUTS</span>
-<span class="s">   </span>
-<span class="s">      n: the number of balls</span>
-<span class="s">      </span>
-<span class="s">      box_sizes: This argument is a list of length 1 or greater.  The length of</span>
-<span class="s">      the list corresponds to the number of boxes.  `box_sizes[i]` is a positive</span>
-<span class="s">      integer that specifies the maximum capacity of the ith box.  If</span>
-<span class="s">      `box_sizes[i]` equals `n` (or greater), the ith box can accommodate all `n`</span>
-<span class="s">      balls and thus effectively has unlimited capacity.</span>
-<span class="s">   </span>
-<span class="s">   </span>
-<span class="s">      ACKNOWLEDGMENT</span>
-<span class="s">   </span>
-<span class="s">      I&#39;d like to thank Chris Rebert for helping me to convert my prototype</span>
-<span class="s">      class-based code into a generator function.</span>
-<span class="s">#DIVIDER</span>
-<span class="s">	 This recursive generator function was designed to be returned by</span>
-<span class="s">	 `unlabeled_balls_in_labeled_boxes`.</span>
 <span class="s">#DIVIDER</span>
 
 </pre></div>
@@ -1272,7 +1293,8 @@ umerically better results for normal modes. Therefore the g09-frequencies are us
       <div class='octowrap'>
         <a class='octothorpe' href='#section-38'>#</a>
       </div>
-      <p>ERROR: elements not aligned</p>
+      <p>assert np.any(ftemp&lt;0) or np.imag(ftemp)!=0, 'Frequencies smaller than 0 occured. Please check the input-file!!'
+'repair' L-matrix using G09-frequencies</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1284,7 +1306,7 @@ umerically better results for normal modes. Therefore the g09-frequencies are us
       <div class='octowrap'>
         <a class='octothorpe' href='#section-39'>#</a>
       </div>
-      <p>Defining arrays</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1296,8 +1318,7 @@ umerically better results for normal modes. Therefore the g09-frequencies are us
       <div class='octowrap'>
         <a class='octothorpe' href='#section-40'>#</a>
       </div>
-      <p>assert np.any(ftemp&lt;0) or np.imag(ftemp)!=0, 'Frequencies smaller than 0 occured. Please check the input-file!!'
-'repair' L-matrix using G09-frequencies</p>
+      <p>problems.append()</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1309,7 +1330,7 @@ umerically better results for normal modes. Therefore the g09-frequencies are us
       <div class='octowrap'>
         <a class='octothorpe' href='#section-41'>#</a>
       </div>
-      <p>assert any(ftemp&lt;0), 'negative frequencies occured. Please check the geometry!'</p>
+      <p>print coordName[j][k]+' '+coordName[i][k]</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1333,7 +1354,7 @@ umerically better results for normal modes. Therefore the g09-frequencies are us
       <div class='octowrap'>
         <a class='octothorpe' href='#section-43'>#</a>
       </div>
-      <p>problems.append()</p>
+      <p>K=np.dot(L[1].T,DeltaX.T)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1345,7 +1366,7 @@ umerically better results for normal modes. Therefore the g09-frequencies are us
       <div class='octowrap'>
         <a class='octothorpe' href='#section-44'>#</a>
       </div>
-      <p>print coordName[j][k]+' '+coordName[i][k]</p>
+      <p>Function that calculates the Huang-Rhys factors for all vibrational states</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1356,44 +1377,6 @@ umerically better results for normal modes. Therefore the g09-frequencies are us
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-45'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-46'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
-      </div>
-      <p>for j in range(len(DeltaX[0])/3):
-DeltaX[i][3<em>j:3</em>j+3]=DeltaX[0][3<em>j:3</em>j+3]-x[i].T[j]
-K[i]=np.dot(L[i].T,np.dot(M,DeltaX.T))</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-47'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
-      </div>
-      <p>Function that calculates the Huang-Rhys factors for all vibrational states</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-48'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
       </div>
       <p><em>Arguments</em>*
 . The displacements of minima in internal coordinates
@@ -1411,13 +1394,56 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
+      </div>
+      <p>if aoe[-j]&gt;0.2: 
+print 'multi_freq:',sortfG[-j]<em>Hartree2cm_1,'  ',sortfE[-j]</em>Hartree2cm_1,'  ' , sortmulti[-j]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-47'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-47'>#</a>
+      </div>
+      <p>This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-48'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-48'>#</a>
+      </div>
+      <p>PARAMETERS:
+1. Huang-Rhys factors
+2. frequencies (have to be in the same order as HR
+3. energy difference of energy surfaces
+4, 5. N and M are the numbers of vibrational quanta can be in the modes
+All arguments are neccesary.</p>
+<p>RETURNS:
+2-dimensional array of intensities and frequencies of all investigated transitions (unsorted)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-49'>#</a>
       </div>
-      <p>if aoe[-j]&gt;0.2: 
-print 'multi_freq:',sortfG[-j]<em>Hartree2cm_1,'  ',sortfE[-j]</em>Hartree2cm_1,'  ' , sortmulti[-j]</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1429,7 +1455,7 @@ print 'multi_freq:',sortfG[-j]<em>Hartree2cm_1,'  ',sortfE[-j]</em>Hartree2cm_1,
       <div class='octowrap'>
         <a class='octothorpe' href='#section-50'>#</a>
       </div>
-      <p>print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])</p>
+      <p>Calculate Franck-Condon factors under assumption of equal frequencies</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1441,7 +1467,10 @@ print 'multi_freq:',sortfG[-j]<em>Hartree2cm_1,'  ',sortfE[-j]</em>Hartree2cm_1,
       <div class='octowrap'>
         <a class='octothorpe' href='#section-51'>#</a>
       </div>
-      <p>Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation)</p>
+      <p>for only one vibrational mode</p>
+<p>PARAMETERS:
+Deltag: HR-factor of respective state</p>
+<p>RETURNS:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1453,15 +1482,7 @@ print 'multi_freq:',sortfG[-j]<em>Hartree2cm_1,'  ',sortfE[-j]</em>Hartree2cm_1,
       <div class='octowrap'>
         <a class='octothorpe' href='#section-52'>#</a>
       </div>
-      <p>nd assuming coinciding frequencies for initial and final state</p>
-<p><em>Arguments</em>*
-. array of intensities of transitions
-. diffenece of ground-state energy difference of the electronic states involved
-. array of frequencies of the respected states
-. maximum number of allowed excitations in initial mode
-. maximum number of allowed excitations in final mode</p>
-<p><em>returns</em>*
- 2-dimensional array with energies of transition (1. column) and their rate (2. column)</p>
+      <p>Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1473,7 +1494,15 @@ print 'multi_freq:',sortfG[-j]<em>Hartree2cm_1,'  ',sortfE[-j]</em>Hartree2cm_1,
       <div class='octowrap'>
         <a class='octothorpe' href='#section-53'>#</a>
       </div>
-      <p>This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.</p>
+      <p>nd assuming coinciding frequencies for initial and final state
+*PARAMETERS:<strong>
+. array of intensities of transitions
+. diffenece of ground-state energy difference of the electronic states involved
+. array of frequencies of the respected states
+. maximum number of allowed excitations in initial mode
+. maximum number of allowed excitations in final mode
+*RETURNS</strong>
+ 2-dimensional array with energies of transition (1. column) and their rate (2. column)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1485,13 +1514,7 @@ print 'multi_freq:',sortfG[-j]<em>Hartree2cm_1,'  ',sortfE[-j]</em>Hartree2cm_1,
       <div class='octowrap'>
         <a class='octothorpe' href='#section-54'>#</a>
       </div>
-      <p>Arguments:
-1. Huang-Rhys factors
-2. frequencies (have to be in the same order as HR
-3. energy difference of energy surfaces
-4, 5. N and M are the numbers of vibrational quanta can be in the modes
-All arguments are neccesary.</p>
-<p>returns:</p>
+      <p>FC00=FCeqf(HR[i], 0, 0)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1503,7 +1526,9 @@ All arguments are neccesary.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-55'>#</a>
       </div>
-      
+      <p>if Xi_i[k][j]==0 and  Xi_f[k][i]==0: #this saves time at least if OPA is taken into account
+  FC[i][j]*=FC00
+else:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1515,7 +1540,7 @@ All arguments are neccesary.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-56'>#</a>
       </div>
-      
+      <p>Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1527,7 +1552,16 @@ All arguments are neccesary.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-57'>#</a>
       </div>
-      <p>Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA</p>
+      <p><em>PARAMETERS:</em>
+J:      Duschisky-matrix
+K:      Displacement-Vector
+f:      frequency: two-dim array (freq_initial, freq_final)
+Energy: Energy-difference of minima
+N.      Max. number of excitation quanta state considered</p>
+<p>All parameters are obligatory.</p>
+<p><em>RETURNS:</em>
+linespectrum </p>
+<p>This function calculates the overlap-integral for zero vibrations</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1539,16 +1573,7 @@ All arguments are neccesary.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-58'>#</a>
       </div>
-      <p><em>Arguments</em>:
-1.  Duschinsky-rotation matrix
-2.  Displacement-Vector
-3.  frequency: two-dim array (freq_initial, freq_final)
-4.  Energy-difference of minima
-5.  Max. number of excitation quanta state considered</p>
-<p>All arguments are obligatory.
-<em>returns</em>:
-linespectrum </p>
-<p>This function calculates the overlap-integral for no vibrations</p>
+      
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1560,7 +1585,7 @@ linespectrum </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-59'>#</a>
       </div>
-      
+      <p>error!!!! This has to be positive but is not always!!</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1572,7 +1597,7 @@ linespectrum </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-60'>#</a>
       </div>
-      <p>error!!!! This has to be positive but is not always!!</p>
+      <p>I_00 transition-probability <a href="Btree.html#extract">Btree.py</a></p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1584,7 +1609,7 @@ linespectrum </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-61'>#</a>
       </div>
-      <p>Calculates the Franck-Condon factors of ... using the lower levels L1 and L2</p>
+      <p>Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1596,7 +1621,17 @@ linespectrum </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-62'>#</a>
       </div>
-      
+      <p>PARAMETERS:*
+1:     binary tree where i-2 quanta are excited (structure: <a href="Btree.html">Btree.py</a>
+2:     binary tree where i-1 quanta are excited
+nergy: Energy-difference between the states (minimal energy)
+:      number of excitation-quanta
+:      (2xN) frequencies of both states
+:      Duschisky-rotation matrix
+:      Displacement-vector</p>
+<p>RETURNS:*
+2:     input-parameter (needed for next iteration)
+3:     new binary tree </p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1704,7 +1739,7 @@ linespectrum </p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-71'>#</a>
       </div>
-      <p>This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument.</p>
+      <p>This function creates all possible states having a total number of n excitations in alpha different states</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -1715,6 +1750,173 @@ linespectrum </p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-72'>#</a>
+      </div>
+      <p><em>PARAMETERS:</em>
+alpha: number of degrees of freedom</p>
+<p><em>RETURNS:</em></p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-73'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-73'>#</a>
+      </div>
+      <p>These functions are part of python-package: 'combinatorics' 
+(download from https://pypi.python.org/pypi/Combinatorics)
+unlabeled_balls_in_labeled_boxes(balls, box_sizes): This function 
+returns a generator that produces all distinct distributions of indistinguishable balls
+among labeled boxes with specified box sizes (capacities). This is 
+a generalization of the most common formulation of the problem, where each box is
+sufficiently large to accommodate all of the balls, and is an important 
+example of a class of combinatorics problems called 'weak composition' problems.</p>
+<pre><code>     OVERVIEW
+
+     This function returns a generator that produces all distinct distributions of
+</code></pre>
+<p>indistinguishable balls among labeled boxes with specified box sizes
+(capacities).  This is a generalization of the most common formulation of the
+problem, where each box is sufficiently large to accommodate all of the
+balls, and is an important example of a class of combinatorics problems
+called 'weak composition' problems.</p>
+<p>CONSTRUCTOR INPUTS</p>
+<pre><code>     n: the number of balls
+</code></pre>
+<p>box_sizes: This argument is a list of length 1 or greater.  The length of
+the list corresponds to the number of boxes.  <code>box_sizes[i]</code> is a positive
+integer that specifies the maximum capacity of the ith box.  If
+<code>box_sizes[i]</code> equals <code>n</code> (or greater), the ith box can accommodate all <code>n</code>
+balls and thus effectively has unlimited capacity.</p>
+<p>ACKNOWLEDGMENT</p>
+<p>I'd like to thank Chris Rebert for helping me to convert my prototype
+class-based code into a generator function.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-74'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-74'>#</a>
+      </div>
+      <p>This recursive generator function was designed to be returned by
+<code>unlabeled_balls_in_labeled_boxes</code>.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-75'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-75'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-76'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-76'>#</a>
+      </div>
+      <p>If there are no balls, all boxes must be empty:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-77'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-77'>#</a>
+      </div>
+      <p>If the single available box has sufficient capacity to store the balls,
+there is only one possible distribution, and we return it to the caller
+via <code>yield</code>.  Otherwise, the flow of control will pass to the end of the
+function, triggering a <code>StopIteration</code> exception.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-78'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-78'>#</a>
+      </div>
+      <p>Iterate over the number of balls in the first box (from the maximum
+possible down to zero), recursively invoking the generator to distribute
+the remaining balls among the remaining boxes.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-79'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-79'>#</a>
+      </div>
+      <p>end three alternative blocks</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-80'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-80'>#</a>
+      </div>
+      <p>end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-81'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-81'>#</a>
+      </div>
+      <p>both trees can be expected to coincide for only one excitation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-82'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-82'>#</a>
+      </div>
+      <p>This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-83'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-83'>#</a>
       </div>
       <p>As basis-function a Lorentzian is assumed with a common width.</p>
 <p>Arguments:
@@ -1744,90 +1946,8 @@ plt.xlabel('Frequency [$cm^{-1}$]')
 plt.ylabel('Intensity (arb. units)')
 plt.show()
 out.close()</p>
-<p>states(alpha, n):
-def unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'states'</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-73'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-73'>#</a>
-      </div>
-      <p>def _unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'unlabeled_balls_in_labeled_boxes' needed for 'states'</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-74'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-74'>#</a>
-      </div>
-      <pre><code>
-     # If there are no balls, all boxes must be empty:
-</code></pre>
-<p>if not balls:
-   yield len(box_sizes) * (0,)</p>
-<pre><code>     elif len(box_sizes) == 1:
-
-        # If the single available box has sufficient capacity to store the balls,
-</code></pre>
-<p># there is only one possible distribution, and we return it to the caller
-   # via <code>yield</code>.  Otherwise, the flow of control will pass to the end of the
-   # function, triggering a <code>StopIteration</code> exception.
-   if box_sizes[0] &gt;= balls:
-      yield (balls,)</p>
-<pre><code>     else:
-</code></pre>
-<p># Iterate over the number of balls in the first box (from the maximum
-   # possible down to zero), recursively invoking the generator to distribute
-   # the remaining balls among the remaining boxes.
-   for balls_in_first_box in xrange( min(balls, box_sizes[0]), -1, -1 ):
-      balls_in_other_boxes= balls - balls_in_first_box
-      for distribution_other in _unlabeled_balls_in_labeled_boxes(
-      balls_in_other_boxes, box_sizes[1:]):
-  yield (balls_in_first_box,) + distribution_other</p>
-<h1>end three alternative blocks</h1>
-<pre><code>if not isinstance(balls, int):
-    raise TypeError("balls must be a non-negative integer.")
-if balls &lt; 0:
-     raise ValueError("balls must be a non-negative integer.")
-
-if not isinstance(box_sizes,list):
-     raise ValueError("box_sizes must be a non-empty list.")
-
-capacity= 0
-for size in box_sizes:
-</code></pre>
-<p>if not isinstance(size, int):
-   raise TypeError("box_sizes must contain only positive integers.")
-if size &lt; 1:
-   raise ValueError("box_sizes must contain only positive integers.")
-capacity+= size</p>
-<pre><code>if capacity &lt; balls:
-     raise ValueError("The total capacity of the boxes is less than the "
-</code></pre>
-<p>"number of balls to be distributed.")</p>
-<pre><code>return _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
-# end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
-</code></pre>
-<p>States=np.zeros((math.factorial(n+alpha-1)/(math.factorial(n)<em>math.factorial(alpha-1)),alpha))
- a=np.ones(alpha).tolist()
- for i in range(len(a)):
-    a[i]=n</em>int(a[i]) #create the needed list
- i=0
- for distributions in unlabeled_balls_in_labeled_boxes(n,a):
-    States[i]=np.matrix(distributions)
-    i+=1
- return States</p>
-<p>rsion=2.6
-End of functions_smsc.py</p>
+<p>sion=2.7
+nd of functions_smsc.py</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

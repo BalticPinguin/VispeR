@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, glob , re , shutil , mmap ,os, sys, math, logging#, matplotlib.pyplot as plt
+import numpy as np, glob , re , shutil , mmap ,os, sys, math, logging, matplotlib.pyplot as plt
+from copy import deepcopy # for function sort(). Probably find a better function!!
 #for python-3 compatibility
 from io import open 
-from copy import deepcopy # for function sort(). Probably find a better function!!
 #include [[Btree.py]]
 import Btree as bt #class of binary tree
 
@@ -555,7 +555,11 @@ def Duschinsky(N, L, mass, dim, x):
 
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=3, linewidth=138)
-   print'Duschinsky\n',  J[:14].T[:14].T
+   #print'Duschinsky', 
+   #for i in range(len(J)):
+      #for j in range(len(J[0])):
+	 #print(repr(j)+' '+repr(i)+' '+repr(J[i][j]))
+      #print
 
    logging.info('Duschinsky rotation matrix, '+\
 	 repr(np.linalg.norm(J[1]-np.eye(dim-6))/(dim-6))+ '  :\n'+ repr(J)+\
@@ -603,29 +607,20 @@ def HuangR(K, f): #what is with different frequencies???
       print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
    return sortuni, funi, sortmulti, sortfI, sortfF
 
-def calcspect(HR, freq, E, N, M):
+def calcspect(HR, n, freq, E, N, M):
    """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
 
    PARAMETERS:
-   1. Huang-Rhys factors
-   2. frequencies (have to be in the same order as HR
-   3. energy difference of energy surfaces
-   4, 5. N and M are the numbers of vibrational quanta can be in the modes
+   HR:   Huang-Rhys factors
+   n:    number of modes that are considered here (with biggest HR)
+   freq: frequencies (have to be in the same order as HR
+   E:    energy difference of energy surfaces
+   N,M:  are the numbers of vibrational quanta can be in the modes
    All arguments are neccesary.
 
    RETURNS:
    2-dimensional array of intensities and frequencies of all investigated transitions (unsorted)
    """
-
-   def occOPA(dim, N, M):
-      Xi_i=np.zeros((dim,M*dim))
-      Xi_f=np.zeros((dim,N*dim))
-      for i in range(dim):
-	 for j in range(M):
-	    Xi_i[i][i+j]=j+1
-	 for j in range(N):
-	    Xi_f[i][i+j]=j+1
-      return Xi_i, Xi_f
 
    def FCeqf( Deltag, M, N):
       """Calculate Franck-Condon factors under assumption of equal frequencies 
@@ -644,41 +639,46 @@ def calcspect(HR, freq, E, N, M):
 	       math.sqrt(faktNM/(math.factorial(x)*math.factorial(x)))
       return FC
    
-   def unifSpect(intens, E, freq, N, M):
+   def unifSpect(intens, freqs):
       """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
       and assuming coinciding frequencies for initial and final state
       **PARAMETERS:**
-      1. array of intensities of transitions
-      2. diffenece of ground-state energy difference of the electronic states involved
-      3. array of frequencies of the respected states
-      4. maximum number of allowed excitations in initial mode
-      5. maximum number of allowed excitations in final mode
+      intens: matrix of intensities of transitions
+      freqs:  matrix of respective energies
+
       **RETURNS**
       a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
       """
       logging.debug('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
-      spect=np.zeros((2,len(intens)*len(freq)))
-      for x in range(N):
-	 for a in range(len(freq)):
-	    spect[1][x*len(freq)+a]=sum(intens[x+i][i] for i in range( int(min(M,N-x))) ) #not correct at the moment??
-	    spect[0][x*len(freq)+a]=(E-freq[a]*x)*Hartree2cm_1
-      for x in range(1,M):
-	 for a in range(len(freq)):
-	    spect[1][x*len(freq)+a]=sum(intens[i][x+i] for i in range( int(min(N,M-x))) ) #not correct at the moment??
-	    spect[0][x*len(freq)+a]=(E+freq[a]*x)*Hartree2cm_1
+      J=len(intens[0])
+      spect=np.zeros((2,len(intens)*len(intens[0])))
+      for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
+	 for j in range(J):
+	    spect[1][i*J+j]=intens[i][j]
+	    spect[0][i*J+j]=freqs[i][j]
       return spect
    
-   Xi_i, Xi_f=occOPA(len(HR), N, M)
-   FC=np.ones((len(Xi_i[0]),len(Xi_f[0]))) #general for other approximations as well
-   for i in range(len(Xi_i[0])):
-      for j in range(len(Xi_f[0])):
-	 #FC00=FCeqf(HR[i], 0, 0)
-      	 for k in range(len(HR)):
-   	    #if Xi_i[k][j]==0 and  Xi_f[k][i]==0: #this saves time at least if OPA is taken into account
-	    #   FC[i][j]*=FC00
-	    #else:
-	    FC[i][j]*=FCeqf(HR[k], Xi_i[k][j], Xi_f[k][i])
-   spect=unifSpect(FC, E, freq, len(Xi_f[0]), len(Xi_i[0]))
+   FC=np.ones((N*n,M*n)) 
+   uency=np.zeros((N*n,M*n)) #freqUENCY
+   #calculate 0->0 transition
+   for i in range(len(HR)):
+      tmp=FCeqf(HR[i], 0,0)
+      FC[0][0]=tmp*tmp*100 #scale whole spectrum
+   uency[0][0]=E*Hartree2cm_1 #zero-zero transition
+   for a in range(n):
+      for i in range(M):
+	 temp=FCeqf(HR[a], i, 0)/FCeqf(HR[a],0,0)
+       	 for j in range(N):
+	    tmp=FCeqf(HR[a], i, j)/FCeqf(HR[a],0,0)
+	    FC[a*M+i][j]=tmp*tmp*FC[0][0]
+	    print tmp*tmp
+	    uency[a*M+i][j]=(E+freq[a]*(i-j))*Hartree2cm_1
+	    for b in range(1,n):
+	       tmp=temp*FCeqf(HR[b], 0, j)/FCeqf(HR[b],0,0)
+	       FC[a*M+i][b*N+j]=tmp*tmp*FC[0][0]
+	       print tmp*tmp
+	       uency[a*M+i][b*N+j]=(E+freq[a]*i-freq[b]*j)*Hartree2cm_1
+   spect=unifSpect(FC, uency)
    return spect
 
 def FCf(J, K, f, Energy, N):
@@ -691,7 +691,7 @@ def FCf(J, K, f, Energy, N):
    Energy: Energy-difference of minima
    N.      Max. number of excitation quanta state considered
      
-   All arguments are obligatory.
+   All parameters are obligatory.
 
    *RETURNS:*
    linespectrum 
@@ -717,6 +717,7 @@ def FCf(J, K, f, Energy, N):
 	 #I_00 transition-probability [[Btree.py#extract]]
 	 linspect.append(Tree.extract()) 
       return Tree
+   
    def iterate(L1, L2, Energy, i, f, J, K):
       """ Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2
    
@@ -756,8 +757,19 @@ def FCf(J, K, f, Energy, N):
       L3=bt.Tree(i)    	       		# initialize root-node
       L3.fill(alpha)         		# initialize tree
       States=states(alpha, i) 		# States are all possible
+      #handle: if this leads to error: use something similar to iterate > try ... except (?)
 
       def freq(E, Gamma, Gammap):
+         """Calculates the frequency of respective transition including vibrational frequency
+
+	 *PARAMETERS:*
+	 E:	 energy-difference of states
+	 Gamma:	 vector of vibrational frequencies in inital state (in atomic units)
+	 Gammap: vector of vibrational frequencies in final state (in atomic units)
+
+	 *RETURNS;*
+	 frequency of respective transition
+	 """
 	 return (E+sum(Gammap-Gamma))*Hartree2cm_1 
    
       def FirstNonzero(n): 
@@ -775,6 +787,7 @@ def FCf(J, K, f, Energy, N):
 	       mp=j
 	       break
 	 return m, mp
+
       for n in States: #for each possible state, described by n(vector)
 	 m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state
 	 # if the 'first' excited state is in initial state: need first iteration formula
@@ -844,131 +857,137 @@ def FCf(J, K, f, Energy, N):
    		  if not math.isnan(Ps) and abs(Ps)>1e-8:
    		     I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term
      	 I_nn/=np.sqrt(2*n_m)
-       	 L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
+	 #threshold for insertion: saves memory, since int insead of float is used
+	 if I_nn>1e-8:
+	    L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
       print L3.extract()
       return L2, L3
+
+   def states(alpha, n): 
+      """This function creates all possible states having a total number of n excitations in alpha different states
+   
+      *PARAMETERS:*
+      alpha: number of degrees of freedom
+   
+      *RETURNS:*
+      """
+
+      def unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'states'
+	 """
+	 These functions are part of python-package: 'combinatorics' 
+	 (download from https://pypi.python.org/pypi/Combinatorics)
+	 unlabeled_balls_in_labeled_boxes(balls, box_sizes): This function 
+	 returns a generator that produces all distinct distributions of indistinguishable balls
+	 among labeled boxes with specified box sizes (capacities). This is 
+	 a generalization of the most common formulation of the problem, where each box is
+	 sufficiently large to accommodate all of the balls, and is an important 
+	 example of a class of combinatorics problems called 'weak composition' problems.
+      
+       	 OVERVIEW
+      
+       	 This function returns a generator that produces all distinct distributions of
+	 indistinguishable balls among labeled boxes with specified box sizes
+	 (capacities).  This is a generalization of the most common formulation of the
+	 problem, where each box is sufficiently large to accommodate all of the
+	 balls, and is an important example of a class of combinatorics problems
+	 called 'weak composition' problems.
+   
+   
+	 CONSTRUCTOR INPUTS
+      
+       	 n: the number of balls
+	 
+	 box_sizes: This argument is a list of length 1 or greater.  The length of
+	 the list corresponds to the number of boxes.  `box_sizes[i]` is a positive
+	 integer that specifies the maximum capacity of the ith box.  If
+	 `box_sizes[i]` equals `n` (or greater), the ith box can accommodate all `n`
+	 balls and thus effectively has unlimited capacity.
+   
+   
+	 ACKNOWLEDGMENT
+   
+	 I'd like to thank Chris Rebert for helping me to convert my prototype
+	 class-based code into a generator function.
+	 """
+	 def _unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'unlabeled_balls_in_labeled_boxes' needed for 'states'
+	    """
+	    This recursive generator function was designed to be returned by
+	    `unlabeled_balls_in_labeled_boxes`.
+	    """
+      
+	    # If there are no balls, all boxes must be empty:
+	    if not balls:
+	       yield len(box_sizes) * (0,)
+	 
+	    elif len(box_sizes) == 1:
+      
+	       # If the single available box has sufficient capacity to store the balls,
+	       # there is only one possible distribution, and we return it to the caller
+	       # via `yield`.  Otherwise, the flow of control will pass to the end of the
+	       # function, triggering a `StopIteration` exception.
+	       if box_sizes[0] >= balls:
+   		  yield (balls,)
+      
+	    else:
+	       # Iterate over the number of balls in the first box (from the maximum
+	       # possible down to zero), recursively invoking the generator to distribute
+	       # the remaining balls among the remaining boxes.
+	       for balls_in_first_box in xrange( min(balls, box_sizes[0]), -1, -1 ):
+		  balls_in_other_boxes= balls - balls_in_first_box
+		  for distribution_other in _unlabeled_balls_in_labeled_boxes(
+		  balls_in_other_boxes, box_sizes[1:]):
+		     yield (balls_in_first_box,) + distribution_other
+	    # end three alternative blocks
+   
+	 if not isinstance(balls, int):
+	       raise TypeError("balls must be a non-negative integer.")
+	 if balls < 0:
+	    raise ValueError("balls must be a non-negative integer.")
+      
+       	 if not isinstance(box_sizes,list):
+	    raise ValueError("box_sizes must be a non-empty list.")
+      
+       	 capacity= 0
+	 for size in box_sizes:
+	    if not isinstance(size, int):
+	       raise TypeError("box_sizes must contain only positive integers.")
+	    if size < 1:
+	       raise ValueError("box_sizes must contain only positive integers.")
+	    capacity+= size
+      
+       	 if capacity < balls:
+	    raise ValueError("The total capacity of the boxes is less than the "
+	    "number of balls to be distributed.")
+   
+	 return _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
+	 # end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
+   
+      #States=np.zeros((math.factorial(n+alpha-1)/(math.factorial(n)*math.factorial(alpha-1)),alpha))
+      States2=[]
+      a=np.ones(alpha).tolist()
+      for i in range(len(a)):
+	 a[i]=n*int(a[i]) #create the needed list
+      i=0
+      for distributions in unlabeled_balls_in_labeled_boxes(n,a):
+	 #States[i]=np.matrix(distributions)
+	 States2.append(np.array(distributions, dtype=np.int8)) #save memory!
+	 i+=1
+      return States2
+
 
    Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
    Gammap=np.diag(f[1]) # for final state
 
    linspect=[] #intensities
    L2=CalcI00(J, K, Gamma, Gammap, Energy)
-   print 'state0 is ready'
-   #both trees can be expected to coincide for only one excitation
+   print('state0 is ready')
+   #both trees can be expected to coincide for first state. 
    L1=L2 
    for i in range(1,N+1):
+      print('state '+repr(i)+' is in calculation')
       L1, L2=iterate(L1, L2, Energy, i, f, J,K)
-      linspect.append(L2.extract)  
+      linspect.append(L2.extract)
    return linspect #2-dimensional array
-
-#this actually belongs to FCf()
-def states(alpha, n): 
-   """This function creates all possible states having a total number of n excitations in alpha different states
-
-   *PARAMETERS:*
-   alpha: number of degrees of freedom
-
-   *RETURNS:*
-   """
-   def unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'states'
-      """
-      These functions are part of python-package: 'combinatorics' 
-      (download from https://pypi.python.org/pypi/Combinatorics)
-      unlabeled_balls_in_labeled_boxes(balls, box_sizes): This function 
-      returns a generator that produces all distinct distributions of indistinguishable balls
-      among labeled boxes with specified box sizes (capacities). This is 
-      a generalization of the most common formulation of the problem, where each box is
-      sufficiently large to accommodate all of the balls, and is an important 
-      example of a class of combinatorics problems called 'weak composition' problems.
-   
-      OVERVIEW
-   
-      This function returns a generator that produces all distinct distributions of
-      indistinguishable balls among labeled boxes with specified box sizes
-      (capacities).  This is a generalization of the most common formulation of the
-      problem, where each box is sufficiently large to accommodate all of the
-      balls, and is an important example of a class of combinatorics problems
-      called 'weak composition' problems.
-   
-   
-      CONSTRUCTOR INPUTS
-   
-      n: the number of balls
-      
-      box_sizes: This argument is a list of length 1 or greater.  The length of
-      the list corresponds to the number of boxes.  `box_sizes[i]` is a positive
-      integer that specifies the maximum capacity of the ith box.  If
-      `box_sizes[i]` equals `n` (or greater), the ith box can accommodate all `n`
-      balls and thus effectively has unlimited capacity.
-   
-   
-      ACKNOWLEDGMENT
-   
-      I'd like to thank Chris Rebert for helping me to convert my prototype
-      class-based code into a generator function.
-      """
-      def _unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'unlabeled_balls_in_labeled_boxes' needed for 'states'
-	 """
-	 This recursive generator function was designed to be returned by
-	 `unlabeled_balls_in_labeled_boxes`.
-	 """
-      
-       	 # If there are no balls, all boxes must be empty:
-	 if not balls:
-	    yield len(box_sizes) * (0,)
-      
-       	 elif len(box_sizes) == 1:
-      
-       	    # If the single available box has sufficient capacity to store the balls,
-	    # there is only one possible distribution, and we return it to the caller
-	    # via `yield`.  Otherwise, the flow of control will pass to the end of the
-	    # function, triggering a `StopIteration` exception.
-	    if box_sizes[0] >= balls:
-	       yield (balls,)
-      
-       	 else:
-	    # Iterate over the number of balls in the first box (from the maximum
-	    # possible down to zero), recursively invoking the generator to distribute
-	    # the remaining balls among the remaining boxes.
-	    for balls_in_first_box in xrange( min(balls, box_sizes[0]), -1, -1 ):
-	       balls_in_other_boxes= balls - balls_in_first_box
-	       for distribution_other in _unlabeled_balls_in_labeled_boxes(
-	       balls_in_other_boxes, box_sizes[1:]):
-		  yield (balls_in_first_box,) + distribution_other
-	 # end three alternative blocks
-   
-      if not isinstance(balls, int):
-   	    raise TypeError("balls must be a non-negative integer.")
-      if balls < 0:
-       	 raise ValueError("balls must be a non-negative integer.")
-   
-      if not isinstance(box_sizes,list):
-       	 raise ValueError("box_sizes must be a non-empty list.")
-   
-      capacity= 0
-      for size in box_sizes:
-	 if not isinstance(size, int):
-	    raise TypeError("box_sizes must contain only positive integers.")
-	 if size < 1:
-	    raise ValueError("box_sizes must contain only positive integers.")
-	 capacity+= size
-   
-      if capacity < balls:
-       	 raise ValueError("The total capacity of the boxes is less than the "
-	 "number of balls to be distributed.")
-   
-      return _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
-      # end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
-   
-   States=np.zeros((math.factorial(n+alpha-1)/(math.factorial(n)*math.factorial(alpha-1)),alpha))
-   a=np.ones(alpha).tolist()
-   for i in range(len(a)):
-      a[i]=n*int(a[i]) #create the needed list
-   i=0
-   for distributions in unlabeled_balls_in_labeled_boxes(n,a):
-      States[i]=np.matrix(distributions)
-      i+=1
-   return States
 
 def outspect(spectfile, gridpt, linspect, gamma):
    """This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
@@ -984,7 +1003,7 @@ def outspect(spectfile, gridpt, linspect, gamma):
    out = open(spectfile, "w")
    minfreq=linspect[0][np.argmin(linspect[0])] # min-freq   of fluorescence
    maxfreq=linspect[0][np.argmax(linspect[0])] # max freq
-   print'maximal and minimal frequencies:\n', maxfreq, minfreq
+   print('maximal and minimal frequencies:\n', maxfreq, minfreq)
    minfreq-=1000 #the range should be greater than the transition-frequencies
    maxfreq+=1000 
    omega=np.linspace(minfreq,maxfreq,gridpt)
@@ -997,11 +1016,11 @@ def outspect(spectfile, gridpt, linspect, gamma):
       out.write(u" '{0}'  '{1}'\n".format(omega[i] ,intens))
       spect[i]=intens
    plt.plot(omega, spect)
-   plt.title('Broadened pectrum of Ir-PS')
+   plt.title('Broadened spectrum of Ir-PS')
    plt.xlabel('Frequency [$cm^{-1}$]')
    plt.ylabel('Intensity (arb. units)')
    plt.show()
    out.close()
 
-version=2.6
+version=2.7
 # End of functions_smsc.py

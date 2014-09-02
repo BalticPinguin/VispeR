@@ -10,3 +10,7 @@ The Duschinsky-rotation and shift vector are not verified yet, hence
 BOTH SPECTRAL CALCULATIONS ARE NOT CORRECT at this point.
 
 Further commits will fix these issues
+
+==DOCUMENTATION==
+For documentation of the code/functions, please use the html-files in folder 'doc'.
+Further you can use the doc-string by the help-function (in python type help(<function-name>) and the comments in the code.
