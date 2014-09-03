@@ -513,7 +513,18 @@ def Geometries(ContntInfo, problems):
 	 geometry.append(ContntInfo[i][0])
    return geometry
 
-def Duschinsky(N, L, mass, dim, x):
+def Duschinsky(L, mass, dim, x):
+   """
+   **PARAMETERS:**
+   L:    Matrix having mass-weighted normal modes as column-vectors
+   mass: array of square-roots of nuclear masses (length: N)
+   dim:  dimensionality of the problem: 3*N
+   x:    ??
+
+   **RETURN:**
+   J:    Duschinsky-rotation matrix
+   K:    displacement-vector of energy-minima in normal coordinates
+   """
    J=np.zeros((dim-6,dim-6))
    K=np.zeros(dim-6)
    I=np.zeros((len(L),dim))
@@ -573,13 +584,17 @@ def HuangR(K, f): #what is with different frequencies???
    if any(unif)<0:
       logging.warning('ATTENTION: some HR-factors are <0 if coinciding frequencies are assumed.\
 	    In the following their absolute value is used.')
+   uniHR=[]
+   uniF=[]
    for j in range(len(unif)):
+      #select all 'big' HR-factors 
       if sortuni[-j]>0.2: 
-	 print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
-      s=1
-   return sortuni, funi, sortmulti, sortfI, sortfF
+	 uniHR.append(sortuni[-j])
+	 uniF.append(sortuni[-j])
+   return uniHR, uniF
+   #return sortuni, funi , sortmulti, sortfI, sortfF
 
-def calcspect(HR, n, freq, E, N, M):
+def calcspect(HR, freq, E, N, M, T):
    """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
@@ -631,23 +646,25 @@ def calcspect(HR, n, freq, E, N, M):
 	    spect[0][i*J+j]=freqs[i][j]
       return spect
    
+   n=len(HR) #=len(freq)
    FC=np.ones((N*n,M*n)) 
    uency=np.zeros((N*n,M*n)) #freqUENCY
    #calculate 0->0 transition
    for i in range(len(HR)):
       tmp=FCeqf(HR[i], 0,0)
-      FC[0][0]=tmp*tmp*100 #scale whole spectrum
+      #scale whole spectrum
+      FC[0][0]=tmp*tmp*100*T/E
    uency[0][0]=E*Hartree2cm_1 #zero-zero transition
    for a in range(n):
       for i in range(M):
 	 temp=FCeqf(HR[a], i, 0)/FCeqf(HR[a],0,0)
        	 for j in range(N):
 	    tmp=FCeqf(HR[a], i, j)/FCeqf(HR[a],0,0)
-	    FC[a*M+i][j]=tmp*tmp*FC[0][0]
+	    FC[a*M+i][j]=tmp*tmp*FC[0][0]*T*E/(E+freq[a]*i)
 	    uency[a*M+i][j]=(E+freq[a]*(i-j))*Hartree2cm_1
 	    for b in range(1,n):
 	       tmp=temp*FCeqf(HR[b], 0, j)/FCeqf(HR[b],0,0)
-	       FC[a*M+i][b*N+j]=tmp*tmp*FC[0][0]
+	       FC[a*M+i][b*N+j]=tmp*tmp*FC[0][0]*T*E/(E+freq[a]*i)
 	       uency[a*M+i][b*N+j]=(E+freq[a]*i-freq[b]*j)*Hartree2cm_1
    spect=unifSpect(FC, uency)
    return spect
@@ -971,7 +988,7 @@ def FCf(J, K, f, Energy, N):
       linspect.append(L2.extract)
    return linspect #2-dimensional array
 
-def outspect(spectfile, gridpt, linspect, gamma):
+def outspect(gridpt, linspect, gamma,spectfile='/dev/none'):
    """This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
    As basis-function a Lorentzian is assumed with a common width.
    
@@ -1003,7 +1020,7 @@ def outspect(spectfile, gridpt, linspect, gamma):
    plt.show()
    out.close()
 
-def fileoutspect(spectfile, gridpt, gamma):
+def fileoutspect(gridpt, gamma,spectfile='/dev/none'):
    """This function calculates the broadened spectrum given the line spectrum, frequency-rage 
       and output-file whose name is first argument. 
    As basis-function a Lorentzian is assumed with a common width.
@@ -1119,7 +1136,6 @@ def fileFCf(J, K, f, Energy, N):
       Zero=np.zeros(2*len(K))
       Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
       #I_00 transition-probability [[Btree.py#extract]]
-      print Tree.extract()
      # with open("/tmp/linspect", "a") as linspect:
 	# for lines in Tree.extract():
 	 #   linspect.write(repr(lines[0])+'  '+repr(lines[1]))
