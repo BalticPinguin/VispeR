@@ -6,6 +6,10 @@ Hartree2cm_1=219474.63
 
 """ script for the spectrum-calculation using two log-files from
 g09 frequency calculations (input-argument 1 (initial state) and 2(final state))
+
+The program requires the non-standard libraries
+numpy
+matplotlib (this can be excluded easily)
 """
 logging.basicConfig(filename='calculation.log',level=logging.DEBUG)
 logging.info('Initializing the log-file')
@@ -59,22 +63,22 @@ N, L, f, Lsorted=of.GetL(dim, mass,F, P)
 L2=of.extractL(ContntInfo, dim)
 
 ##=== Spectrum calculation ===
-#J, K=of.Duschinsky(N, L2, mass, dim, CartCoord) #use gaussians
+#J, K=of.Duschinsky(N, L2, mass, dim, CartCoord) #use gaussians normal modes
 J, K=of.Duschinsky(N, Lsorted, mass, dim, CartCoord) #use own quantities
 
 ##==calculate HR-Spectrum==
-HR_unif, funi, HR_multif, sortfG, sortfE= of.HuangR(K, f)
-print 'Huang-Rhys for spect:'
-print HR_unif[-5:]
-print 'respective frequencies'
-print funi[-5:]
-print 'energies:', Energy[0]-Energy[1]
-linspect=of.calcspect(HR_unif, 5, funi, Energy[0]-Energy[1], 5, 5)
-of.outspect(spectfile, 3000, linspect, 20)
+#HR_unif, funi, HR_multif, sortfG, sortfE= of.HuangR(K, f)
+#linspect=of.calcspect(HR_unif, 5, funi, Energy[0]-Energy[1], 5, 5)
+#of.outspect(spectfile, 3000, linspect, 20)
 
 #==calculate Duschinsky-Rotated Spectrum==
-#linespect=of.FCf(J,K,f,Energy[0]-Energy[1],5)
-#of.outspect(spectfile, 3000, linspect, 80)
+#of.FCf(J,K,f,Energy[0]-Energy[1],5)
+#of.outspect(spectfile, 3000, linspect, 20)
+
+#==calculate Duschinsky-Rotated Spectrum==
+of.fileFCf(J,K,f,Energy[0]-Energy[1],5)
+of.sortfile()
+of.fileoutspect(spectfile, 3000, linspect, 20)
 
 logging.info('END of calculations')
 
