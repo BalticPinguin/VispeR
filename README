@@ -11,6 +11,27 @@ BOTH SPECTRAL CALCULATIONS ARE NOT CORRECT at this point.
 
 Further commits will fix these issues
 
+==REQUIREMENTS==
+The programm on hand requires the non-standard-packages
+numpy 
+matplotlib
+the latter can be, if not availible, excluded easily by commenting/removing the respective lines in the function 'calcspect'. Than no autamated plot will be possible but the data can be stored in a file for further use (see sect. 'call').
+
+==CALL==
+the programm is called by './smallscript.py argument1 argument2 (argument3)'.
+The parameters are:
+argument1: initial states log-file
+argument2: log-file of final state
+argument3: (this is not required) file where the broadened spectrum is written in. If this is not given, it is discarted (only plotted by matplotlib)
+
+
 ==DOCUMENTATION==
 For documentation of the code/functions, please use the html-files in folder 'doc'.
 Further you can use the doc-string by the help-function (in python type help(<function-name>) and the comments in the code.
+
+==ISSUES==
+This code is expected to have several bugs somewhere.
+The Duschinsky-rotated spectrum has memory-leaks:
+both: file-based as well as ram-based functions allocate too much memory and hence lead to blow-ups of memory.
+   ATTENTION: These memory-allocations can lead to errors in the operating system; be careful by running it!
+

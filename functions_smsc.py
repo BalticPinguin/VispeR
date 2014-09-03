@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, glob , re , shutil , mmap ,os, sys, math, logging, matplotlib.pyplot as plt
+import numpy as np, glob , re , shutil , mmap, os, sys, math, logging, matplotlib.pyplot as plt
 from copy import deepcopy # for function sort(). Probably find a better function!!
 #for python-3 compatibility
 from io import open 
@@ -38,27 +38,9 @@ def sort(f):
       tmp[index[i]]=3e+300 # this can be considered as smaller than all elements...
    return index
 
-def resort(f): #only temporary of interest
-   """This function is a self-writen sort-function for floats-arrays (increasing 
-   arguments not absolute value). Its input is the array whose elements should 
-   not exceed 3e300 (otherwise the sorting will fails) and returns the number of indices 
-   sorted by the size of respective elements. Hence, sorting an array A by the size of its 
-   elemens (largest first) can be done by 
-   index=sort(A) 
-   B=A[index]
-   where B will be the sorted array.
-   For sorting of absolute values see sort()."""
-   index=np.zeros( len(f), dtype=int ) 
-   tmp=deepcopy(f) #for avoiding side effects
-   for i in range(len(f)):
-      index[i]=np.argmin(tmp) 
-      tmp[index[i]]=3e+300 # this can be considered as smaller than all elements...
-   return index
-
-#code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
 def gs(A):
    """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
-   The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)
+   code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
    """
    def proj(v1, v2):
       return map(lambda x : x *(np.dot(v2,
@@ -80,12 +62,16 @@ def replace(files, freq, L):
    ".rep" and copies the log-file (files) into it, replacing the frequencies and 
    normal modes by those calculated by smallscript.
    The function is suited to test, whether these results coincide qualitatively with the gaussian's.
-   ** Arguments: **
-   1.    
-   2.   
-   3.   
+
+   ** PARAMETERS: **
+   files: files taken as basis ('.rep' added to be used for replacements)
+   freq:  frequencies to be inserted
+   L:     normal modes to be inserted  
 
    no return-statements (results are written to file)
+
+   **NOTE:**
+   The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)
    """
    freq*=Hartree2cm_1
    for i in range(len(files)):
@@ -380,12 +366,11 @@ def GetL(dim, mass, F, D):
 
    for i in range(len(F)):
       ftemp,Ltemp=np.linalg.eig(np.dot(np.dot(D[i].T,F[i]),D[i]))
-      #assert np.any(ftemp<0) or np.imag(ftemp)!=0, 'Frequencies smaller than 0 occured. Please check the input-file!!'
+      assert np.any(ftemp<0) or np.imag(ftemp)!=0, 'Frequencies smaller than 0 occured. Please check the input-file!!'
       index=sort(np.real(ftemp)) # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       L[i]=np.real(Ltemp[index]).T[:].T[6:].T # or =Ltemp[index].T (see above)
       logging.debug("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
-      #assert any(ftemp<0), 'negative frequencies occured. Please check the geometry!'
       N[i]=np.real(Ltemp[index]) # or =Ltemp[index].T (see above)
       M=np.zeros((dim,dim))
       for j in range(0,dim):
@@ -396,19 +381,14 @@ def GetL(dim, mass, F, D):
 	 if np.abs(norm)>1e-12:
 	    Lcart.T[j]/=np.sqrt(norm)
       Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T
-      index=resort(f[i]) # only of temporary interest!! .......
-      bar=L[i] #...............................................
-      L[i]=bar[:].T[index].T #.................................
-      bar=Lsorted[i] #.........................................
-      Lsorted[i]=bar[:].T[index].T #...........................
-      bar=f[i] #...............................................
-      f[i]=bar[index] #........................................
       logging.debug("Normalized Lcart\n"+ repr(Lcart)+"\nNormalized, sorted and truncated Lcart\n"+ repr(Lsorted[i]))
 
       for j in range(len(f[i])):
      	 f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
       logging.info("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
 	    repr(f[i]*Hartree2cm_1)+"L-matrix \n"+ repr(L[i]))
+      
+   #np.set_printoptions(precision=4, linewidth=122, suppress=True)
    return N, L, f, Lsorted
 
 def GetLstab(dim, mass, F, G09f, P):
@@ -502,8 +482,7 @@ def Geometries(ContntInfo, problems):
 	    r" ! Name  Definition[ ]+Value[]+Derivative Info.[ ]+![!,()RADEXcalutenyi\d /=\n .-]+",
 	    mapedlog, re.I)
       if len(coords)==0:
-	    #problems.append()
-	    print "in file "+ContntInfo[i][0]+' are no coordinate-informations'
+	    print("in file "+ContntInfo[i][0]+' are no coordinate-informations')
 	    continue
       mapedlog.close()
       coordName.append(re.findall(r" [RAD]{1}\([\d,]+\)", coords[-1]))
@@ -518,7 +497,6 @@ def Geometries(ContntInfo, problems):
 	    continue
 	 for k in range(len(coordName[j])):
 	    if coordName[j][k] != coordName[i][k]: ##here an error occurs!!!!
-	       #print coordName[j][k]+' '+coordName[i][k]
 	       check[j]+=1
 	       continue
 	    coordNumb[-1][k]=float(coordNumb[i][k])
@@ -555,11 +533,6 @@ def Duschinsky(N, L, mass, dim, x):
 
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=3, linewidth=138)
-   #print'Duschinsky', 
-   #for i in range(len(J)):
-      #for j in range(len(J[0])):
-	 #print(repr(j)+' '+repr(i)+' '+repr(J[i][j]))
-      #print
 
    logging.info('Duschinsky rotation matrix, '+\
 	 repr(np.linalg.norm(J[1]-np.eye(dim-6))/(dim-6))+ '  :\n'+ repr(J)+\
@@ -601,16 +574,15 @@ def HuangR(K, f): #what is with different frequencies???
       logging.warning('ATTENTION: some HR-factors are <0 if coinciding frequencies are assumed.\
 	    In the following their absolute value is used.')
    for j in range(len(unif)):
-      #if aoe[-j]>0.2: 
-      #print 'multi_freq:',sortfG[-j]*Hartree2cm_1,'  ',sortfE[-j]*Hartree2cm_1,'  ' , sortmulti[-j]
+      if sortuni[-j]>0.2: 
+	 print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
       s=1
-      print('uni_freq:',funi[-j]*Hartree2cm_1,'  ', sortuni[-j])
    return sortuni, funi, sortmulti, sortfI, sortfF
 
 def calcspect(HR, n, freq, E, N, M):
    """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
 
-   PARAMETERS:
+   **PARAMETERS:**
    HR:   Huang-Rhys factors
    n:    number of modes that are considered here (with biggest HR)
    freq: frequencies (have to be in the same order as HR
@@ -618,8 +590,8 @@ def calcspect(HR, n, freq, E, N, M):
    N,M:  are the numbers of vibrational quanta can be in the modes
    All arguments are neccesary.
 
-   RETURNS:
-   2-dimensional array of intensities and frequencies of all investigated transitions (unsorted)
+   **RETURNS:**
+   nothing (output into /tmp/linspect)
    """
 
    def FCeqf( Deltag, M, N):
@@ -642,6 +614,7 @@ def calcspect(HR, n, freq, E, N, M):
    def unifSpect(intens, freqs):
       """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
       and assuming coinciding frequencies for initial and final state
+
       **PARAMETERS:**
       intens: matrix of intensities of transitions
       freqs:  matrix of respective energies
@@ -671,18 +644,17 @@ def calcspect(HR, n, freq, E, N, M):
        	 for j in range(N):
 	    tmp=FCeqf(HR[a], i, j)/FCeqf(HR[a],0,0)
 	    FC[a*M+i][j]=tmp*tmp*FC[0][0]
-	    print tmp*tmp
 	    uency[a*M+i][j]=(E+freq[a]*(i-j))*Hartree2cm_1
 	    for b in range(1,n):
 	       tmp=temp*FCeqf(HR[b], 0, j)/FCeqf(HR[b],0,0)
 	       FC[a*M+i][b*N+j]=tmp*tmp*FC[0][0]
-	       print tmp*tmp
 	       uency[a*M+i][b*N+j]=(E+freq[a]*i-freq[b]*j)*Hartree2cm_1
    spect=unifSpect(FC, uency)
    return spect
 
 def FCf(J, K, f, Energy, N):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
+ 
    
    *PARAMETERS:*
    J:      Duschisky-matrix
@@ -713,9 +685,8 @@ def FCf(J, K, f, Energy, N):
       Tree.fill(0)
       Zero=np.zeros(2*len(K))
       Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
-      for alpha in range(len(K)):
-	 #I_00 transition-probability [[Btree.py#extract]]
-	 linspect.append(Tree.extract()) 
+      #I_00 transition-probability [[Btree.py#extract]]
+      linspect.append(Tree.extract()) 
       return Tree
    
    def iterate(L1, L2, Energy, i, f, J, K):
@@ -757,7 +728,6 @@ def FCf(J, K, f, Energy, N):
       L3=bt.Tree(i)    	       		# initialize root-node
       L3.fill(alpha)         		# initialize tree
       States=states(alpha, i) 		# States are all possible
-      #handle: if this leads to error: use something similar to iterate > try ... except (?)
 
       def freq(E, Gamma, Gammap):
          """Calculates the frequency of respective transition including vibrational frequency
@@ -796,7 +766,6 @@ def FCf(J, K, f, Energy, N):
 	    n_m=n[m]
 	    ntemp=deepcopy(n)
 	    ntemp[m]-=1 #n[m] is at least 1
-	    #print L2.getState(ntemp)
 	    Ps=L2.getState(ntemp)[0]
 	    if not math.isnan(Ps) and abs(Ps)>1e-8:
 	       I_nn=b[m]*Ps					# first term 
@@ -859,8 +828,14 @@ def FCf(J, K, f, Energy, N):
      	 I_nn/=np.sqrt(2*n_m)
 	 #threshold for insertion: saves memory, since int insead of float is used
 	 if I_nn>1e-8:
-	    L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
-      print L3.extract()
+	    try:
+	       L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
+	    except MemoryError: 
+	       print('memory-error by inserting data. Finishing calculation.')
+	       linspect=open('/tmp/linspect', "a")
+	       linspect.writelines("%s\n" % item  for item in L2.extract())
+	       linspect.close()
+	       return 0,0
       return L2, L3
 
    def states(alpha, n): 
@@ -970,7 +945,12 @@ def FCf(J, K, f, Energy, N):
       i=0
       for distributions in unlabeled_balls_in_labeled_boxes(n,a):
 	 #States[i]=np.matrix(distributions)
-	 States2.append(np.array(distributions, dtype=np.int8)) #save memory!
+	 try:
+	    States2.append(np.array(distributions, dtype=np.int8)) #save memory!
+	 except MemoryError: 
+	    #if the memory is not enough: don't add further states and use what is availibleA
+	    print('Memory is full for state',n,'having only', len(States2),'objects in it. Use these states only.')
+	    break #in principle: do more stuff here!
 	 i+=1
       return States2
 
@@ -978,14 +958,16 @@ def FCf(J, K, f, Energy, N):
    Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
    Gammap=np.diag(f[1]) # for final state
 
-   linspect=[] #intensities
+   linspect=[]
    L2=CalcI00(J, K, Gamma, Gammap, Energy)
-   print('state0 is ready')
    #both trees can be expected to coincide for first state. 
    L1=L2 
    for i in range(1,N+1):
-      print('state '+repr(i)+' is in calculation')
       L1, L2=iterate(L1, L2, Energy, i, f, J,K)
+      #only by assert: MemoryError
+      if L1==0 and L2==0:
+	 linspect.append(L2.extract) #for this probably there is no more space
+	 break #finish calculation
       linspect.append(L2.extract)
    return linspect #2-dimensional array
 
@@ -993,13 +975,13 @@ def outspect(spectfile, gridpt, linspect, gamma):
    """This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
    As basis-function a Lorentzian is assumed with a common width.
    
-   Arguments:
-   1.  file, the result is written in (ascii-table). In addition a graph is created and shown on the fly. This graph is not saved.
-   2.  number of grid-points to be used for the calculation
-   3.  line-spectrum list (frequency, intensity) 
-   4.  broadening constant for the Lorentzians. It is the same for all peaks
+   **PARAMETERS:**
+   spectfile: file, the result is written in (ascii-table). In addition a graph is created and shown on the fly. This graph is not saved.
+   gridpt:    number of grid-points to be used for the calculation
+   linspect:  line-spectrum list (frequency, intensity) 
+   gamma:     broadening constant for the Lorentzians. It is the same for all peaks
    
-   All arguments are obligatory."""
+   All parameters are obligatory."""
    out = open(spectfile, "w")
    minfreq=linspect[0][np.argmin(linspect[0])] # min-freq   of fluorescence
    maxfreq=linspect[0][np.argmax(linspect[0])] # max freq
@@ -1008,19 +990,420 @@ def outspect(spectfile, gridpt, linspect, gamma):
    maxfreq+=1000 
    omega=np.linspace(minfreq,maxfreq,gridpt)
    spect=np.zeros(len(omega))
-   #grid=np.zeros(len(omega)) #data-points
-   #print grid
    for i in range(len(omega)):
       intens=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)
 	    for j in range(len(linspect[0])) )
       out.write(u" '{0}'  '{1}'\n".format(omega[i] ,intens))
       spect[i]=intens
    plt.plot(omega, spect)
+   #add second plot!!
    plt.title('Broadened spectrum of Ir-PS')
    plt.xlabel('Frequency [$cm^{-1}$]')
    plt.ylabel('Intensity (arb. units)')
    plt.show()
    out.close()
+
+def fileoutspect(spectfile, gridpt, gamma):
+   """This function calculates the broadened spectrum given the line spectrum, frequency-rage 
+      and output-file whose name is first argument. 
+   As basis-function a Lorentzian is assumed with a common width.
+   
+   **PARAMETERS:**
+   spectfile:  file, the result is written in (ascii-table). 
+               In addition a graph is created and shown on the fly. This graph is not saved.
+   gridpt:     number of grid-points to be used for the calculation
+   gamma:      broadening constant for the Lorentzians. It is the same for all peaks
+   
+   All arguments are obligatory."""
+   out = open(spectfile, "w")
+   with open('/tmp/sortlinspect') as linsp:
+       maxfreq=list(linsp)[-1]
+       minfreq=list(linsp)[1]
+   print('maximal and minimal frequencies:\n', maxfreq, minfreq)
+   minfreq-=1000 #the range should be greater than the transition-frequencies
+   maxfreq+=1000 
+   omega=np.linspace(minfreq,maxfreq,gridpt)
+   spect=np.zeros(len(omega))
+   linspect=open('/tmp/sortlinspect', "r")
+   for i in range(len(omega)):
+      spect[i]+=sum(omega ) #how to create this in a good way?
+      out.write(u" '{0}'  '{1}'\n".format(omega[i] ,spect[i]))
+   linspect.close()
+   plt.plot(omega, spect)
+   plt.title('Broadened spectrum of Ir-PS')
+   plt.xlabel('Frequency [$cm^{-1}$]')
+   plt.ylabel('Intensity (arb. units)')
+   plt.show()
+   out.close()
+   os.remove('/tmp/sortlinspect') #delete /tmp/linspect
+
+def sortfile():
+   #from http://code.activestate.com/recipes/576755-sorting-big-files-the-python-26-way/
+   from tempfile import gettempdir
+   from itertools import islice, cycle
+   from collections import namedtuple
+   import heapq
+   
+   Keyed = namedtuple("Keyed", ["key", "obj"])
+
+   def merge(key=None, *iterables):
+      # based on code posted by Scott David Daniels in c.l.p.
+      # http://groups.google.com/group/comp.lang.python/msg/484f01f1ea3c832d
+      if key is None:
+	    for element in heapq.merge(*iterables):
+		  yield element
+      else:
+	 keyed_iterables = [(Keyed(key(obj), obj) for obj in iterable)
+			for iterable in iterables]
+	 for element in heapq.merge(*keyed_iterables):
+	    yield element.obj
+
+   key=None
+   buffer_size=32000
+   tempdirs = []
+   tempdirs.append(gettempdir()) 
+   chunks = []
+   try:
+      with open('/tmp/linspect','rb',64*1024) as input_file:
+	 input_iterator = iter(input_file)
+	 for tempdir in cycle(tempdirs):
+	    current_chunk = list(islice(input_iterator,buffer_size))
+	    if not current_chunk:
+  	       break
+	    current_chunk.sort(key=key)
+	    output_chunk = open(os.path.join(tempdir,'%06i'%len(chunks)),'w+b',64*1024)
+	    chunks.append(output_chunk)
+	    output_chunk.writelines(current_chunk)
+	    output_chunk.flush()
+	    output_chunk.seek(0)
+      with open('/tmp/sortlinspect','wb',64*1024) as output_file:
+	 output_file.writelines(merge(key, *chunks))
+   finally:
+      for chunk in chunks:
+	 try:
+	    chunk.close()
+	    os.remove(chunk.name)
+	 except Exception:
+	    pass
+      os.remove('/tmp/linspect')
+
+def fileFCf(J, K, f, Energy, N):
+   """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
+   
+   *PARAMETERS:*
+   J:      Duschisky-matrix
+   K:      Displacement-Vector
+   f:      frequency: two-dim array (freq_initial, freq_final)
+   Energy: Energy-difference of minima
+   N.      Max. number of excitation quanta state considered
+     
+   All parameters are obligatory.
+
+   *RETURNS:*
+   linespectrum 
+   """
+   def CalcI00(J, K, Gamma, Gammap, E):
+      """This function calculates the overlap-integral for zero vibrations """
+      invJ=np.linalg.inv(J)
+      pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
+      TMP=J.dot(invJ.dot(Gammap).dot(J)+Gamma)
+      pref/=np.linalg.det(TMP) #here: RuntimeWarning: invalid value encountered in double_scalars
+
+      pref=np.sqrt(pref)
+      TMP=invJ.dot(Gammap).dot(J)+Gamma
+      TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(invJ)-np.eye(len(J))
+      exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))
+
+      Tree=bt.Tree(2*len(K))
+      Tree.fill(0)
+      Zero=np.zeros(2*len(K))
+      Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
+      #I_00 transition-probability [[Btree.py#extract]]
+      print Tree.extract()
+     # with open("/tmp/linspect", "a") as linspect:
+	# for lines in Tree.extract():
+	 #   linspect.write(repr(lines[0])+'  '+repr(lines[1]))
+      return Tree
+   
+   def iterate(L1, L2, Energy, i, f, J, K):
+      """ Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2
+   
+      *PARAMETERS:*
+      L1:     binary tree where i-2 quanta are excited (structure: [[Btree.py]]
+      L2:     binary tree where i-1 quanta are excited
+      Energy: Energy-difference between the states (minimal energy)
+      i:      number of excitation-quanta
+      f:      (2xN) frequencies of both states
+      J:	   Duschisky-rotation matrix
+      K:	   Displacement-vector
+
+      *RETURNS:*
+      L2:     input-parameter (needed for next iteration)
+      L3:     new binary tree 
+      """
+   
+      #quantities for the iterative spectrum-calculation
+      Gamma=np.diag(f[0])              	# in atomic units. It is equivalent to 4pi^2/h f_i
+      Gammap=np.diag(f[1])             	# for final state
+      sqGamma=np.diag(np.sqrt(f[0]))   
+      sqGammap=np.diag(np.sqrt(f[1]))  
+      unity=np.eye(len(Gamma))
+      invJ=np.linalg.inv(J)
+   
+      C=np.linalg.inv(invJ.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
+      A=np.dot(J,np.dot(C,invJ)) 
+      A=2*np.dot(Gammap,np.dot(J,A))-unity
+      b=unity-J.dot(C).dot(invJ).dot(Gammap)
+      b=2*sqGammap.dot(unity-b).dot(K)
+      E=4*sqGamma.dot(C).dot(invJ).dot(sqGammap)
+      d=-2*sqGamma.dot(C).dot(invJ).dot(Gammap).dot(K)
+      C=2*Gamma.dot(C)-unity 		#this is 'real' C-matrix
+   
+      #initialize new tree
+      alpha=2*len(b)
+      L3=bt.Tree(i)    	       		# initialize root-node
+      L3.fill(alpha)         		# initialize tree
+      States=states(alpha, i) 		# States are all possible
+
+      def freq(E, Gamma, Gammap):
+         """Calculates the frequency of respective transition including vibrational frequency
+
+	 *PARAMETERS:*
+	 E:	 energy-difference of states
+	 Gamma:	 vector of vibrational frequencies in inital state (in atomic units)
+	 Gammap: vector of vibrational frequencies in final state (in atomic units)
+
+	 *RETURNS;*
+	 frequency of respective transition
+	 """
+	 return (E+sum(Gammap-Gamma))*Hartree2cm_1 
+   
+      def FirstNonzero(n): 
+	 """Find first non-zero elements in first and second half of array n """
+	 ni=n[len(n)//2:] #interger division (python3-compatible)
+	 nf=n[:len(n)//2]
+	 m=len(ni)+1 #this means there is no excitation in this state
+	 mp=len(nf)+1
+	 for j in range(len(ni)):
+	    if ni[j]>0:
+	       m=j
+	       break
+	 for j in range(len(nf)):
+	    if nf[j]>0:
+	       mp=j
+	       break
+	 return m, mp
+
+      for n in States: #for each possible state, described by n(vector)
+	 m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state
+	 # if the 'first' excited state is in initial state: need first iteration formula
+	 I_nn=0
+	 if m<=mp:
+	    n_m=n[m]
+	    ntemp=deepcopy(n)
+	    ntemp[m]-=1 #n[m] is at least 1
+	    Ps=L2.getState(ntemp)[0]
+	    if not math.isnan(Ps) and abs(Ps)>1e-8:
+	       I_nn=b[m]*Ps					# first term 
+	    if ntemp[m]>0:
+	       ntemp[m]-=1
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps) and abs(Ps)>1e-8:
+		  I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term
+	    for i in range(m+1, len(n)/2):
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[m]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*Ps	# second term
+
+	    for i in range(mp+len(n)//2, len(n)): 			# sum over respective final states
+	       if mp>len(n)//2:					# that means: there are no excited vibrations
+		  break
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[m]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(E[i-len(n)//2][m])*Ps		# second term
+	 #else: need the other iteration-formula
+	 else: 
+	    n_m=n[mp]
+	    ntemp=deepcopy(n)
+	    ntemp[mp]-=1
+	    Ps=L2.getState(ntemp)[0]
+	    if not math.isnan(Ps) and abs(Ps)>1e-8:
+	       I_nn=d[mp]*Ps					# first term 
+	    if ntemp[mp]>0:
+	       ntemp[mp]-=1
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps) and abs(Ps)>1e-8:
+		  I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps          	# second term
+	    for i in range(mp+1, len(n)):
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[mp]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+    # second term
+			      C[i-len(n)//2][mp])*Ps	
+	    for i in range(m, len(n)): 				#sum over respective final states
+	       if m>len(n)//2:					# that means: there are no excited vibrations
+		  break
+   	       if n[i]>0:
+   		  ntemp=deepcopy(n)
+   		  ntemp[mp]-=1
+   		  ntemp[i]-=1
+   		  Ps=L1.getState(ntemp)[0]
+   		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+   		     I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term
+     	 I_nn/=np.sqrt(2*n_m) # RuntimeWarning: invalid value encountered in double_scalars
+
+	 #threshold for insertion: saves memory, since int insead of float is used
+	 if I_nn>1e-8:
+	    try:
+	       L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
+	    except MemoryError: 
+	       print('memory-error by inserting data. Finishing calculation.')
+	       linspect=open('/tmp/linspect', "a")
+	       linspect.writelines("%s\n" % item  for item in L2.extract())
+	       linspect.close()
+	       return 0,0
+      return L2, L3
+
+   def states(alpha, n): 
+      """This function creates all possible states having a total number of n excitations in alpha different states
+   
+      *PARAMETERS:*
+      alpha: number of degrees of freedom
+   
+      *RETURNS:*
+      """
+
+      def unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'states'
+	 """
+	 These functions are part of python-package: 'combinatorics' 
+	 (download from https://pypi.python.org/pypi/Combinatorics)
+	 unlabeled_balls_in_labeled_boxes(balls, box_sizes): This function 
+	 returns a generator that produces all distinct distributions of indistinguishable balls
+	 among labeled boxes with specified box sizes (capacities). This is 
+	 a generalization of the most common formulation of the problem, where each box is
+	 sufficiently large to accommodate all of the balls, and is an important 
+	 example of a class of combinatorics problems called 'weak composition' problems.
+      
+       	 OVERVIEW
+      
+       	 This function returns a generator that produces all distinct distributions of
+	 indistinguishable balls among labeled boxes with specified box sizes
+	 (capacities).  This is a generalization of the most common formulation of the
+	 problem, where each box is sufficiently large to accommodate all of the
+	 balls, and is an important example of a class of combinatorics problems
+	 called 'weak composition' problems.
+   
+   
+	 CONSTRUCTOR INPUTS
+      
+       	 n: the number of balls
+	 
+	 box_sizes: This argument is a list of length 1 or greater.  The length of
+	 the list corresponds to the number of boxes.  `box_sizes[i]` is a positive
+	 integer that specifies the maximum capacity of the ith box.  If
+	 `box_sizes[i]` equals `n` (or greater), the ith box can accommodate all `n`
+	 balls and thus effectively has unlimited capacity.
+   
+   
+	 ACKNOWLEDGMENT
+   
+	 I'd like to thank Chris Rebert for helping me to convert my prototype
+	 class-based code into a generator function.
+	 """
+	 def _unlabeled_balls_in_labeled_boxes(balls, box_sizes): #needed for 'unlabeled_balls_in_labeled_boxes' needed for 'states'
+	    """
+	    This recursive generator function was designed to be returned by
+	    `unlabeled_balls_in_labeled_boxes`.
+	    """
+      
+	    # If there are no balls, all boxes must be empty:
+	    if not balls:
+	       yield len(box_sizes) * (0,)
+	 
+	    elif len(box_sizes) == 1:
+      
+	       # If the single available box has sufficient capacity to store the balls,
+	       # there is only one possible distribution, and we return it to the caller
+	       # via `yield`.  Otherwise, the flow of control will pass to the end of the
+	       # function, triggering a `StopIteration` exception.
+	       if box_sizes[0] >= balls:
+   		  yield (balls,)
+      
+	    else:
+	       # Iterate over the number of balls in the first box (from the maximum
+	       # possible down to zero), recursively invoking the generator to distribute
+	       # the remaining balls among the remaining boxes.
+	       for balls_in_first_box in xrange( min(balls, box_sizes[0]), -1, -1 ):
+		  balls_in_other_boxes= balls - balls_in_first_box
+		  for distribution_other in _unlabeled_balls_in_labeled_boxes(
+		  balls_in_other_boxes, box_sizes[1:]):
+		     yield (balls_in_first_box,) + distribution_other
+	    # end three alternative blocks
+   
+	 if not isinstance(balls, int):
+	       raise TypeError("balls must be a non-negative integer.")
+	 if balls < 0:
+	    raise ValueError("balls must be a non-negative integer.")
+      
+       	 if not isinstance(box_sizes,list):
+	    raise ValueError("box_sizes must be a non-empty list.")
+      
+       	 capacity= 0
+	 for size in box_sizes:
+	    if not isinstance(size, int):
+	       raise TypeError("box_sizes must contain only positive integers.")
+	    if size < 1:
+	       raise ValueError("box_sizes must contain only positive integers.")
+	    capacity+= size
+      
+       	 if capacity < balls:
+	    raise ValueError("The total capacity of the boxes is less than the "
+	    "number of balls to be distributed.")
+   
+	 return _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
+	 # end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
+   
+      #States=np.zeros((math.factorial(n+alpha-1)/(math.factorial(n)*math.factorial(alpha-1)),alpha))
+      States2=[]
+      a=np.ones(alpha).tolist()
+      for i in range(len(a)):
+	 a[i]=n*int(a[i]) #create the needed list
+      i=0
+      for distributions in unlabeled_balls_in_labeled_boxes(n,a):
+	 #States[i]=np.matrix(distributions)
+	 try:
+	    States2.append(np.array(distributions, dtype=np.int8)) #save memory!
+	 except MemoryError: 
+	    #if the memory is not enough: don't add further states and use what is availibleA
+	    print('Memory is full for state',n,'having only', len(States2),'objects in it. Use these states only.')
+	    break #in principle: do more stuff here!
+	 i+=1
+      return States2
+
+   Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
+   Gammap=np.diag(f[1]) # for final state
+   L2=CalcI00(J, K, Gamma, Gammap, Energy)
+   #both trees can be expected to coincide for first state. 
+   L1=L2 
+   for i in range(1,N+1):
+      L1, L2=iterate(L1, L2, Energy, i, f, J,K)
+      #only by exception: MemoryError
+      if L1==0 and L2==0:
+	 break #finish calculation
+#      with open("/tmp/linspect", "a") as linspect:
+#	 for lines in L2.extract():
+#	    myfile.write(lines)
 
 version=2.7
 # End of functions_smsc.py
