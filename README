@@ -18,12 +18,19 @@ matplotlib
 the latter can be, if not availible, excluded easily by commenting/removing the respective lines in the function 'calcspect'. Than no autamated plot will be possible but the data can be stored in a file for further use (see sect. 'call').
 
 ==CALL==
-the programm is called by './smallscript.py argument1 argument2 (argument3)'.
-The parameters are:
+the programm is called by './smallscript.py [parameters] argument1 argument2'.
+The parameters marked by respective flags are:
+-h         call help-function (does not require any other parameters/arguments)
+-o         output-file for the line-spectrum (if not given, it is not saved)
+-l         level of logging (can be 'debug', 'info', 'error')
+-t         temperature of the system (default: 300K)
+-e         binding energy of lowest triplet state (default: 0) 
 argument1: initial states log-file
 argument2: log-file of final state
-argument3: (this is not required) file where the broadened spectrum is written in. If this is not given, it is discarted (only plotted by matplotlib)
 
+alternatively to the call with all parameters, they can be also written into a file (e. g, 'input'). Afterwards it can be called via
+>$while read line; do echo -e `eval smallscript.py "$line"`; done <input 
+from the shell. This avoids typing the arguments several times again
 
 ==DOCUMENTATION==
 For documentation of the code/functions, please use the html-files in folder 'doc'.
