@@ -31,11 +31,11 @@ def sort(f):
    B=A[index]
    where B will be the sorted array.
    For not absolute values see resort()."""
-   index=np.zeros( len(f), dtype=int ) 
+   index=np.zeros(len(f), dtype=int)
    tmp=deepcopy(f) #for avoiding side effects
    for i in range(len(f)):
       index[i]=np.argmin(np.abs(tmp)) # there can be frequencies < 0 as well...
-      tmp[index[i]]=3e+300 # this can be considered as smaller than all elements...
+      tmp[index[i]]=5e+300 # this can be considered as smaller than all elements...
    return index
 
 def gs(A):
@@ -98,7 +98,6 @@ def replace(files, freq, L):
 		     'Frequencies --'+'    '+repr(freq[s]), line))
 	    s+=3
 	 elif re.search(r'[ ]+\d+[ ]+\d+[ -]+\d.\d\d[ -]+\d.\d\d+[ \d.-]+', line) is not None:
-	    logging.debug('number of modes left:'+ repr(len(L[t][u:].T)))
 	    if len(L[t][u:].T)> 2: # there are at least three more frequencies
 	       out.write(re.sub(r'[\d .-]+', '    '+repr(t/3)+'    '+repr(s)+'   '+
 		  '   '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
@@ -627,7 +626,7 @@ def calcspect(HR, freq, E, E0, N, M, T):
 	       math.sqrt(faktNM/(math.factorial(x)*math.factorial(x)))
       return FC
    
-   def unifSpect(intens, freqs):
+   def unifSpect(intens, freqs, E, FC00):
       """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
       and assuming coinciding frequencies for initial and final state
 
@@ -640,42 +639,41 @@ def calcspect(HR, freq, E, E0, N, M, T):
       """
       logging.debug('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
       J=len(intens[0])
-      spect=np.zeros((2,len(intens)*len(intens[0])))
+      spect=np.zeros((2,len(intens)*len(intens[0])+1))
+      spect[1][0]=FC00 #0->0 transition
+      spect[0][0]=E
+      #print "intensities"
+      #print '0', spect[1][0], spect[0][0]
       for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
 	 for j in range(J):
-	    spect[1][i*J+j]=intens[i][j]
-	    spect[0][i*J+j]=freqs[i][j]
+	    spect[1][i*J+j+1]=intens[i][j]
+	    spect[0][i*J+j+1]=freqs[i][j]
+	    #print i*J+j+1, spect[1][i*J+j+1], spect[0][i*J+j+1]
       return spect
    
    n=len(HR) #=len(freq)
-   FC=np.ones((N*n,M*n)) 
-   uency=np.zeros((N*n,M*n)) #freqUENCY
+   FC=np.zeros((n,(M+1)*(N+1)-1)) 
+   uency=np.zeros((n,(M+1)*(N+1)-1)) #freqUENCY
    #calculate 0->0 transition
    tmp=1
-   #for i in range(len(HR)): #this is actually not needed, right?
-      #tmp*=FCeqf(HR[i], 0,0)
+   for i in range(len(HR)): #this is actually not needed, right?
+      tmp*=FCeqf(HR[i], 0,0)
    #scale whole spectrum
-   FC[0][0]=tmp*tmp*100
-   uency[0][0]=E*Hartree2cm_1 #zero-zero transition
-   print "?   ?        0    0    ",E*Hartree2cm_1,"  ", FC[0][0]
+   FC00=tmp*tmp*1e4
+   uency00=E*Hartree2cm_1 #zero-zero transition
+   print "?   ?        0    0    ",E*Hartree2cm_1,"  ", FC00
    for a in range(n):
-      for i in range(1,M+1):
-	 temp=FCeqf(HR[a], i, 0)/FCeqf(HR[a],0,0)
-       	 for j in range(1,N+1):
-	    tmp=FCeqf(HR[a], i, j)/FCeqf(HR[a],0,0)
-	    FC[a*M+i-1][a*N+j-1]=tmp*tmp*FC[0][0]*np.exp(-(E0+freq[a]*i)/T)
-	    uency[a*M+i-1][a*N+j-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	    print a,"  ",a ,'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,"  ",FC[a*M+i-1][a*N+j-1]
-	    for b in range(n):
-	       if a==b:
-		  continue #it is handeled above alredy
-	       tmp=temp*FCeqf(HR[b], 0, j)/FCeqf(HR[b],0,0)
-	       FC[a*M+i-1][b*N+j-1]=tmp*tmp*FC[0][0]*np.exp(-(E0+freq[a]*i)/T)
-	       uency[a*M+i-1][b*N+j-1]=(E+freq[a]*i-freq[b]*j)*Hartree2cm_1
-     	       print a,"  ",b ,'     ', i ,'  ',j,'  ', (E+freq[a]*i-freq[b]*j)*Hartree2cm_1,\
-			   "  ", FC[a*M+i-1][b*N+j-1]
-   FC[0][0]*np.exp(-E0/T)
-   return unifSpect(FC, uency)
+      temp=FCeqf(HR[a],0,0)
+      for j in range(N+1):
+	 for i in range(M+1):
+	    if i==0 and j==0: 
+	       continue #skip 0-0 transitions
+	    tmp=FCeqf(HR[a], i, j)/temp
+	    FC[a][j*(M+1)+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
+	    uency[a][j*(M+1)+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
+	    print a,"  ",a ,'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,"  ",FC[a][j*M+i-1]
+   FC00*=np.exp(-E0/T)
+   return unifSpect(FC, uency,E*Hartree2cm_1, FC00)
 
 def FCf(J, K, f, Energy, N):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
@@ -996,7 +994,7 @@ def FCf(J, K, f, Energy, N):
       linspect.append(L2.extract)
    return linspect #2-dimensional array
 
-def outspect(gridpt, linspect, gamma,spectfile='/dev/none'):
+def outspect(gridpt, linspect, gamma, spectfile):
    """This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
    As basis-function a Lorentzian is assumed with a common width.
    
@@ -1008,20 +1006,32 @@ def outspect(gridpt, linspect, gamma,spectfile='/dev/none'):
    
    All parameters are obligatory."""
    out = open(spectfile, "w")
-   minfreq=linspect[0][np.argmin(linspect[0])] # min-freq   of fluorescence
-   maxfreq=linspect[0][np.argmax(linspect[0])] # max freq
+   #sort spectrum with respect to size of elements
+   index=sort(linspect[1])
+   linspect[1]=linspect[1][index]
+   linspect[0]=linspect[0][index]
+   #find transition with minimum intensity to be respected
+   minint=0
+   #for i in range(len(linspect[1])):
+      #if linspect[1][i]>=0.001*linspect[1][-1]:
+	 #minint=i
+	 #break
+   print('minimal and maximal intensities:\n', linspect[1][minint], linspect[1][-1])
+   minfreq=linspect[0][np.argmin(linspect[0][minint:].T)] # min-freq   of fluorescence
+   maxfreq=linspect[0][np.argmax(linspect[0][minint:].T)] # max freq
    print('maximal and minimal frequencies:\n', maxfreq, minfreq)
-   minfreq-=1000 #the range should be greater than the transition-frequencies
-   maxfreq+=1000 
+   minfreq-=300 #the range should be greater than the transition-frequencies
+   maxfreq+=300 
    omega=np.linspace(minfreq,maxfreq,gridpt)
    spect=np.zeros(len(omega))
-   for i in range(len(omega)):
+   #only those with high-enough intensities are respected
+   for i in range(len(omega)): 
       intens=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)
-	    for j in range(len(linspect[0])) )
+	    for j in range(minint,len(linspect[1])))
       out.write(u" '{0}'  '{1}'\n".format(omega[i] ,intens))
       spect[i]=intens
    plt.plot(omega, spect)
-   #add second plot!!
+   #plt.axis([2000,22000,0,5e-7])
    plt.title('Broadened spectrum of Ir-PS')
    plt.xlabel('Frequency [$cm^{-1}$]')
    plt.ylabel('Intensity (arb. units)')
