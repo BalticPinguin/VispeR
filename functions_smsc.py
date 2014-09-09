@@ -615,6 +615,8 @@ def calcspect(HR, freq, E, E0, N, M, T):
 
       PARAMETERS:
       Deltag: HR-factor of respective state
+      N:      excitation number of initial state
+      M:      excitation number of final state
 
       RETURNS:
       """
@@ -622,8 +624,8 @@ def calcspect(HR, freq, E, E0, N, M, T):
       faktNM=math.factorial(M)*math.factorial(N)
       FC=0
       for x in range(int(min(N,M))+1):
-	 FC+=exg*math.pow(-1,N-x)*math.pow(np.abs(Deltag),(M+N-2*x)//2)/(math.factorial(M-x)*math.factorial(N-x))*\
-	       math.sqrt(faktNM/(math.factorial(x)*math.factorial(x)))
+	 FC+=exg*math.pow(-1,N-x)*math.pow(np.abs(Deltag),(M+N)*0.5-x)/(math.factorial(M-x)*math.factorial(N-x))*\
+	       math.sqrt(faktNM)/math.factorial(x)
       return FC
    
    def unifSpect(intens, freqs, E, FC00):
@@ -661,17 +663,22 @@ def calcspect(HR, freq, E, E0, N, M, T):
    #scale whole spectrum
    FC00=tmp*tmp*1e4
    uency00=E*Hartree2cm_1 #zero-zero transition
-   print "?   ?        0    0    ",E*Hartree2cm_1,"  ", FC00
+   print "?     000000        0    0    ",E*Hartree2cm_1,"  ", FC00
    for a in range(n):
       temp=FCeqf(HR[a],0,0)
       for j in range(N+1):
 	 for i in range(M+1):
 	    if i==0 and j==0: 
-	       continue #skip 0-0 transitions
+	       #skip 0-0 transitions
+	       continue 
+	    if j==1 and i==0:
+	       print FCeqf(HR[a], i, j)/temp
+	       print np.exp(-(E0+freq[a]*i)/T)
 	    tmp=FCeqf(HR[a], i, j)/temp
 	    FC[a][j*(M+1)+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
 	    uency[a][j*(M+1)+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	    print a,"  ",a ,'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,"  ",FC[a][j*M+i-1]
+	    print a,HR[a],"  ",'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,\
+		  "  ",FC[a][j*(M+1)+i-1], j*(M+1)+i-1
    FC00*=np.exp(-E0/T)
    return unifSpect(FC, uency,E*Hartree2cm_1, FC00)
 
@@ -1007,16 +1014,16 @@ def outspect(gridpt, linspect, gamma, spectfile):
    All parameters are obligatory."""
    out = open(spectfile, "w")
    #sort spectrum with respect to size of elements
-   index=sort(linspect[1])
-   linspect[1]=linspect[1][index]
-   linspect[0]=linspect[0][index]
+   #index=sort(linspect[1])
+   #linspect[1]=linspect[1][index]
+   #linspect[0]=linspect[0][index]
    #find transition with minimum intensity to be respected
    minint=0
    #for i in range(len(linspect[1])):
       #if linspect[1][i]>=0.001*linspect[1][-1]:
 	 #minint=i
 	 #break
-   print('minimal and maximal intensities:\n', linspect[1][minint], linspect[1][-1])
+   #print('minimal and maximal intensities:\n', linspect[1][minint], linspect[1][-1])
    minfreq=linspect[0][np.argmin(linspect[0][minint:].T)] # min-freq   of fluorescence
    maxfreq=linspect[0][np.argmax(linspect[0][minint:].T)] # max freq
    print('maximal and minimal frequencies:\n', maxfreq, minfreq)
@@ -1027,7 +1034,7 @@ def outspect(gridpt, linspect, gamma, spectfile):
    #only those with high-enough intensities are respected
    for i in range(len(omega)): 
       intens=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)
-	    for j in range(minint,len(linspect[1])))
+	    for j in range(len(linspect[1])))
       out.write(u" '{0}'  '{1}'\n".format(omega[i] ,intens))
       spect[i]=intens
    plt.plot(omega, spect)
