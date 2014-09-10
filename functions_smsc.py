@@ -588,27 +588,29 @@ def HuangR(K, f): #what is with different frequencies???
    print 'HR-fact           freq'
    for j in range(len(unif)):
       #select all 'big' HR-factors 
-      if sortuni[-j]>0.2: #can be changed to 'while' ore ommit sorting!?
+      if sortuni[-j]>1.0: #can be changed to 'while' ore ommit sorting!?
 	 uniHR.append(sortuni[-j])
 	 uniF.append(funi[-j])
 	 print  sortuni [-j],'  ',funi[-j]*Hartree2cm_1
    return uniHR, uniF
 
-def calcspect(HR, freq, E, E0, N, M, T):
+def calcspect(HR, freq, E, E0, N, M, T, approx):
    """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
-   HR:   Huang-Rhys factors
-   n:    number of modes that are considered here (with biggest HR)
-   freq: frequencies (have to be in the same order as HR
-   E:    energy difference of energy surfaces
-   N,M:  are the numbers of vibrational quanta can be in the modes
+   HR:     Huang-Rhys factors
+   n:      number of modes that are considered here (with biggest HR)
+   freq:   frequencies (have to be in the same order as HR
+   E:      energy difference of energy surfaces
+   N,M:    are the numbers of vibrational quanta can be in the modes
+   approx: OPA/TPA
    All arguments are neccesary.
 
    **RETURNS:**
    nothing (output into /tmp/linspect)
    """
-
+   N+=1
+   M+=1
    def FCeqf( Deltag, M, N):
       """Calculate Franck-Condon factors under assumption of equal frequencies 
       for only one vibrational mode
@@ -644,43 +646,80 @@ def calcspect(HR, freq, E, E0, N, M, T):
       spect=np.zeros((2,len(intens)*len(intens[0])+1))
       spect[1][0]=FC00 #0->0 transition
       spect[0][0]=E
-      #print "intensities"
-      #print '0', spect[1][0], spect[0][0]
       for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
 	 for j in range(J):
 	    spect[1][i*J+j+1]=intens[i][j]
 	    spect[0][i*J+j+1]=freqs[i][j]
-	    #print i*J+j+1, spect[1][i*J+j+1], spect[0][i*J+j+1]
       return spect
-   
+
    n=len(HR) #=len(freq)
-   FC=np.zeros((n,(M+1)*(N+1)-1)) 
-   uency=np.zeros((n,(M+1)*(N+1)-1)) #freqUENCY
+   if approx=="OPA": 
+      FC=np.zeros((n,M*N-1)) 
+      uency=np.zeros((n,M*N-1)) #freqUENCY
+   elif approx=="TPA":
+      FC=np.zeros((n,M*N*(N*M*(n-1)+1)-n)) 
+      uency=np.zeros((n,M*N*(N*M*(n-1)+1)-n)) 
    #calculate 0->0 transition
    tmp=1
-   for i in range(len(HR)): #this is actually not needed, right?
-      tmp*=FCeqf(HR[i], 0,0)
    #scale whole spectrum
-   FC00=tmp*tmp*1e4
+   FC00=tmp*tmp*1e2
    uency00=E*Hartree2cm_1 #zero-zero transition
    print "?     000000        0    0    ",E*Hartree2cm_1,"  ", FC00
-   for a in range(n):
-      temp=FCeqf(HR[a],0,0)
-      for j in range(N+1):
-	 for i in range(M+1):
-	    if i==0 and j==0: 
-	       #skip 0-0 transitions
-	       continue 
-	    if j==1 and i==0:
-	       print FCeqf(HR[a], i, j)/temp
-	       print np.exp(-(E0+freq[a]*i)/T)
-	    tmp=FCeqf(HR[a], i, j)/temp
-	    FC[a][j*(M+1)+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
-	    uency[a][j*(M+1)+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	    print a,HR[a],"  ",'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,\
-		  "  ",FC[a][j*(M+1)+i-1], j*(M+1)+i-1
+   if approx=="OPA":
+      for a in range(n):
+	 temp=FCeqf(HR[a],0,0)
+	 for j in range(N):
+	    for i in range(M):
+	       if i==0 and j==0: 
+		  #skip 0-0 transitions
+		  continue 
+	       tmp=FCeqf(HR[a], i, j)/temp
+	       FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
+	       uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
+	       print a,HR[a],"  ",'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,\
+		  "  ",FC[a][j*M+i-1], j*M+i-1
+   elif approx=="TPA":
+      for b in range(n):
+	 tempb=FCeqf(HR[b],0,0)
+	    for a in range(n):
+	    if a>b:
+	       tempa=FCeqf(HR[a],0,0)
+	       for i in range(N):
+		  for j in range(M):
+		     if j==0 and i==0:
+			continue
+		     for k in range(M):
+			for l in range(N):
+			   tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
+		       	   FC[b][(a-1)*(((i*M+j)*M+k)*N+l)]=tmp*tmp*FC00**np.exp(-(E0+freq[a]*i)/T)
+	     		   uency[b][(a-1)*(((i*M+j)*M+k)*N+l)]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
+			   print b,(a-1)*(((i*M+j)*M+k)*N+l)
+	    elif a<b:
+	       tempa=FCeqf(HR[a],0,0)
+	       for i in range(N):
+		  for j in range(M):
+		     if j==0 and i==0:
+			continue
+		     for k in range(M):
+			for l in range(N):
+			   tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
+		       	   FC[b][(a+1)*(((i*M+j)*M+k)*N+l)]=tmp*tmp*FC00**np.exp(-(E0+freq[a]*i)/T)
+	     		   uency[b][(a+1)*(((i*M+j)*M+k)*N+l)]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
+			   print b,(a+1)*(((i*M+j)*M+k)*N+l)
+	    else:
+	       for i in range(N):
+		  for j in range(M):
+		     if j==0 and i==0:
+			continue
+		     tmp=FCeqf(HR[a], i, j)/tempb
+		     FC[a][i*M+j-1]=tmp*tmp*FC00**np.exp(-(E0+freq[a]*i)/T)
+		     uency[a][i*M+j-1]=(E+freq[a]*i-freq[b]*j)*Hartree2cm_1
+		     print a,i*M+j-1
+   else:
+      logging.error('particle-approximation unknown! Please use OPA or TPA!')
+      assert 1==2, 'particle-approximation unknown! Please use OPA or TPA!'
    FC00*=np.exp(-E0/T)
-   return unifSpect(FC, uency,E*Hartree2cm_1, FC00)
+   return unifSpect(FC, uency, E*Hartree2cm_1, FC00)
 
 def FCf(J, K, f, Energy, N):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
@@ -1027,8 +1066,8 @@ def outspect(gridpt, linspect, gamma, spectfile):
    minfreq=linspect[0][np.argmin(linspect[0][minint:].T)] # min-freq   of fluorescence
    maxfreq=linspect[0][np.argmax(linspect[0][minint:].T)] # max freq
    print('maximal and minimal frequencies:\n', maxfreq, minfreq)
-   minfreq-=300 #the range should be greater than the transition-frequencies
-   maxfreq+=300 
+   minfreq-=10 #the range should be greater than the transition-frequencies
+   maxfreq+=10 
    omega=np.linspace(minfreq,maxfreq,gridpt)
    spect=np.zeros(len(omega))
    #only those with high-enough intensities are respected
@@ -1038,7 +1077,6 @@ def outspect(gridpt, linspect, gamma, spectfile):
       out.write(u" '{0}'  '{1}'\n".format(omega[i] ,intens))
       spect[i]=intens
    plt.plot(omega, spect)
-   #plt.axis([2000,22000,0,5e-7])
    plt.title('Broadened spectrum of Ir-PS')
    plt.xlabel('Frequency [$cm^{-1}$]')
    plt.ylabel('Intensity (arb. units)')
