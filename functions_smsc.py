@@ -22,15 +22,30 @@ def quantity(dim):
    return F, CartCoord, X, P, Energy
 
 def sort(f):
-   """This function is a self-writen sort-function for floats-arrays 
-   (increasing arguments by absolute value). Its input is the array whose elements 
-   should not exceed 3e300 (otherwise the sorting will fails) and returns the number 
-   of indices sorted by the size of respective elements. Hence, sorting an array A
-   by the size of its elemens (largest first) can be done by 
+   """
+   This function sorts float-arrays by absolute value (lowest argument first arguments)
+
+   **PARAMETERS:**
+   f:  array to be sorted
+
+   **RETURNS:**
+   order of indices of f
+
+   **NOTE:**
+   the elements of f should not exceed 3e300 (otherwise the sorting will fail) 
+   of indices sorted by the size of respective elements.
+   The sorting by the size of elemens in A (largest first) can be done by 
+
    index=sort(A) 
    B=A[index]
+
    where B will be the sorted array.
-   For not absolute values see resort()."""
+   To reverse the order, use
+
+   B=A[-index]
+
+   instead.
+   """
    index=np.zeros(len(f), dtype=int)
    tmp=deepcopy(f) #for avoiding side effects
    for i in range(len(f)):
@@ -585,16 +600,16 @@ def HuangR(K, f): #what is with different frequencies???
 	    In the following their absolute value is used.')
    uniHR=[]
    uniF=[]
-   print 'HR-fact           freq'
+   #print 'HR-fact           freq'
    for j in range(len(unif)):
       #select all 'big' HR-factors 
-      if sortuni[-j]>1.0: #can be changed to 'while' ore ommit sorting!?
+      if sortuni[-j]>0.2: #can be changed to 'while' ore ommit sorting!?
 	 uniHR.append(sortuni[-j])
 	 uniF.append(funi[-j])
-	 print  sortuni [-j],'  ',funi[-j]*Hartree2cm_1
+	 #print  sortuni [-j],'  ',funi[-j]*Hartree2cm_1
    return uniHR, uniF
 
-def calcspect(HR, freq, E, E0, N, M, T, approx):
+def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
    """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
@@ -653,73 +668,65 @@ def calcspect(HR, freq, E, E0, N, M, T, approx):
       return spect
 
    n=len(HR) #=len(freq)
-   if approx=="OPA": 
-      FC=np.zeros((n,M*N-1)) 
-      uency=np.zeros((n,M*N-1)) #freqUENCY
-   elif approx=="TPA":
-      FC=np.zeros((n,M*N*(N*M*(n-1)+1)-n)) 
-      uency=np.zeros((n,M*N*(N*M*(n-1)+1)-n)) 
+   FC=np.zeros((n,M*N-1)) 
+   uency=np.zeros((n,M*N-1)) #freqUENCY
+   if approx=="TPA":
+      FC2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
+      uency2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
    #calculate 0->0 transition
    tmp=1
    #scale whole spectrum
    FC00=tmp*tmp*1e2
    uency00=E*Hartree2cm_1 #zero-zero transition
-   print "?     000000        0    0    ",E*Hartree2cm_1,"  ", FC00
-   if approx=="OPA":
+   #this is OPA and valid in every case
+   for a in range(n):
+      temp=FCeqf(HR[a],0,0)
+      for j in range(N):
+	 for i in range(M):
+	    if i==0 and j==0: 
+	       ##skip 0-0 transitions
+	       continue 
+	    tmp=FCeqf(HR[a], i, j)/temp
+	    FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
+	    uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
+	    #print a,HR[a],"  ",'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,\
+	      #"  ",FC[a][j*M+i-1], j*M+i-1
+   if approx=="TPA":
+      ind=0
       for a in range(n):
-	 temp=FCeqf(HR[a],0,0)
-	 for j in range(N):
-	    for i in range(M):
-	       if i==0 and j==0: 
-		  #skip 0-0 transitions
-		  continue 
-	       tmp=FCeqf(HR[a], i, j)/temp
-	       FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
-	       uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	       print a,HR[a],"  ",'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,\
-		  "  ",FC[a][j*M+i-1], j*M+i-1
-   elif approx=="TPA":
-      for b in range(n):
-	 tempb=FCeqf(HR[b],0,0)
-	    for a in range(n):
-	    if a>b:
-	       tempa=FCeqf(HR[a],0,0)
-	       for i in range(N):
-		  for j in range(M):
-		     if j==0 and i==0:
-			continue
-		     for k in range(M):
-			for l in range(N):
-			   tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
-		       	   FC[b][(a-1)*(((i*M+j)*M+k)*N+l)]=tmp*tmp*FC00**np.exp(-(E0+freq[a]*i)/T)
-	     		   uency[b][(a-1)*(((i*M+j)*M+k)*N+l)]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
-			   print b,(a-1)*(((i*M+j)*M+k)*N+l)
-	    elif a<b:
-	       tempa=FCeqf(HR[a],0,0)
-	       for i in range(N):
-		  for j in range(M):
-		     if j==0 and i==0:
-			continue
-		     for k in range(M):
-			for l in range(N):
-			   tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
-		       	   FC[b][(a+1)*(((i*M+j)*M+k)*N+l)]=tmp*tmp*FC00**np.exp(-(E0+freq[a]*i)/T)
-	     		   uency[b][(a+1)*(((i*M+j)*M+k)*N+l)]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
-			   print b,(a+1)*(((i*M+j)*M+k)*N+l)
-	    else:
-	       for i in range(N):
-		  for j in range(M):
-		     if j==0 and i==0:
-			continue
-		     tmp=FCeqf(HR[a], i, j)/tempb
-		     FC[a][i*M+j-1]=tmp*tmp*FC00**np.exp(-(E0+freq[a]*i)/T)
-		     uency[a][i*M+j-1]=(E+freq[a]*i-freq[b]*j)*Hartree2cm_1
-		     print a,i*M+j-1
-   else:
-      logging.error('particle-approximation unknown! Please use OPA or TPA!')
-      assert 1==2, 'particle-approximation unknown! Please use OPA or TPA!'
+	 tempa=FCeqf(HR[a],0,0)
+	 #the case b=a is considered above already
+	 for b in range(a+1,n):
+	    tempb=FCeqf(HR[b],0,0)
+	    for i in range(N):
+	       if i==0:
+ 		  krange=range(1,M)
+	       else:
+		  krange=range(M)
+	       for j in range(M):
+		  if j==0 :
+		     lrange=range(1,N)
+		  else:
+		     lrange=range(N)
+		  for k in krange:
+		     for l in lrange:
+			tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
+			FC2[0][ind]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)*np.exp(-(E0+freq[b]*l)/T)
+			uency2[0][ind]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
+			ind+=1
    FC00*=np.exp(-E0/T)
-   return unifSpect(FC, uency, E*Hartree2cm_1, FC00)
+   spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
+   if approx=="TPA":
+      spect2=unifSpect(FC2, uency2, E*Hartree2cm_1, 0)
+      result=np.zeros(( 2, len(spect[0])+len(spect2[0]) ))
+      print np.shape(result), np.shape(spect), np.shape(spect2)
+      for i in range(2):
+	 for j in range(len(spect[0])):
+	    result[i][j]=spect[i][j]
+	 for j in range(len(spect2[0])):
+	    result[i][len(spect[0])+j]=spect2[i][j]
+      return result
+   return spect
 
 def FCf(J, K, f, Energy, N):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
@@ -1053,18 +1060,18 @@ def outspect(gridpt, linspect, gamma, spectfile):
    All parameters are obligatory."""
    out = open(spectfile, "w")
    #sort spectrum with respect to size of elements
-   #index=sort(linspect[1])
-   #linspect[1]=linspect[1][index]
-   #linspect[0]=linspect[0][index]
+   index=sort(linspect[1])
+   linspect[1]=linspect[1][index]
+   linspect[0]=linspect[0][index]
    #find transition with minimum intensity to be respected
    minint=0
-   #for i in range(len(linspect[1])):
-      #if linspect[1][i]>=0.001*linspect[1][-1]:
-	 #minint=i
-	 #break
-   #print('minimal and maximal intensities:\n', linspect[1][minint], linspect[1][-1])
-   minfreq=linspect[0][np.argmin(linspect[0][minint:].T)] # min-freq   of fluorescence
-   maxfreq=linspect[0][np.argmax(linspect[0][minint:].T)] # max freq
+   for i in range(len(linspect[1])):
+      if linspect[1][i]>=0.001*linspect[1][-1]:
+	 minint=i
+	 break
+   print('minimal and maximal intensities:\n', linspect[1][minint], linspect[1][-1])
+   minfreq=linspect[0][np.argmin(linspect[0][minint:])] # min-freq   of fluorescence
+   maxfreq=linspect[0][np.argmax(linspect[0][minint:])] # max freq
    print('maximal and minimal frequencies:\n', maxfreq, minfreq)
    minfreq-=10 #the range should be greater than the transition-frequencies
    maxfreq+=10 
@@ -1072,16 +1079,15 @@ def outspect(gridpt, linspect, gamma, spectfile):
    spect=np.zeros(len(omega))
    #only those with high-enough intensities are respected
    for i in range(len(omega)): 
-      intens=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)
-	    for j in range(len(linspect[1])))
-      out.write(u" '{0}'  '{1}'\n".format(omega[i] ,intens))
-      spect[i]=intens
-   plt.plot(omega, spect)
-   plt.title('Broadened spectrum of Ir-PS')
-   plt.xlabel('Frequency [$cm^{-1}$]')
-   plt.ylabel('Intensity (arb. units)')
-   plt.show()
-   out.close()
+      spect[i]=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)
+	    for j in range(minint,len(linspect[1])))
+      out.write(u" '{0}'  '{1}'\n".format(omega[i] ,spect[i]))
+   #plt.plot(omega, spect)
+   #plt.title('Broadened spectrum of Ir-PS')
+   #plt.xlabel('Frequency [$cm^{-1}$]')
+   #plt.ylabel('Intensity (arb. units)')
+   #plt.show()
+   #out.close()
 
 version=2.8
 # End of functions_smsc.py
