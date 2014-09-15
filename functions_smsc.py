@@ -4,8 +4,6 @@ import numpy as np, re, mmap, os, sys, math, logging, matplotlib.pyplot as plt
 from copy import deepcopy # for function sort(). Probably find a better function!!
 #for python-3 compatibility
 from io import open 
-#include [[Btree.py]]
-import Btree as bt #class of binary tree
 
 # Below are the conversion factors and fundamental constant
 AMU2au=1822.88839                                          

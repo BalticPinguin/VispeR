@@ -1,0 +1,223 @@
+##for smallscript:
+#==calculate Duschinsky-Rotated Spectrum taking OPA into account==
+#linespect=of.FCf(J,K,f,Energy[1]-Energy[0],5) #not working jet
+#of.outspect(spectfile, 3000, linspect, 80)
+Threshold=3e-10
+
+class OPA:
+   """the class Tree is a binary tree having a certain structure depending on 'alpha' 
+   For better structurisation, it has 2 different data-types:
+
+   1. node: has two child-trees attached ('left' and *right*)
+   2. leaf: has one child-tree ('left') and one data-point
+
+   in addition, for the 0-th order tree there is a type _ having only one data-point attached.
+   """
+   #all possible attributes; it saves memory especially for huge trees,
+   #see http://tech.oyster.com/save-ram-with-python-slots/
+   __slots__=['mat'] 
+
+   def __init__(self,alpha,L): #should it be __new__?
+      """ initializes the class"""
+      self.mat=np.zeros((alpha,L)) #change elements to some float32 or so...
+   
+   def getState(self, N): 
+      ni=N[len(N)//2:]
+      nf=N[:len(N)//2]
+      if any(ni>0):
+	 exc=np.max(ni)
+	 index=np.argmax(ni)
+	 return self.mat[index][exc]
+      else:
+	 index=np.argmax(nf)
+	 return self.mat[index][0]
+
+   def extract(self): #extract all elements 
+      intens=[]
+      freq=[]
+      for index in range(alpha):
+	 for exc in range(L):
+	    if self.mat[index][exc]>Theshold:
+   	       result.append(self.mat[index][exc])
+   	       freq.append(self.mat[index][exc])
+      return intens, freq
+
+def FCfOPA(J, K, f, Energy, N):
+   """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
+   
+   *PARAMETERS:*
+   J:      Duschisky-matrix
+   K:      Displacement-Vector
+   f:      frequency: two-dim array (freq_initial, freq_final)
+   Energy: Energy-difference of minima
+   N.      Max. number of excitation quanta state considered
+     
+   All arguments are obligatory.
+
+   *RETURNS:*
+   linespectrum 
+   """
+   def CalcI00(J, K, Gamma, Gammap, E):
+      """This function calculates the overlap-integral for zero vibrations """
+      #pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
+      #TMP=J.dot(J.T.dot(Gammap).dot(J)+Gamma)
+      #pref/=np.linalg.det(TMP)
+
+      #error!!!! This has to be positive but is not always!!
+      #pref=np.sqrt(pref)
+      #TMP=J.T.dot(Gammap).dot(J)+Gamma
+      #TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(J.T)-np.eye(len(J))
+      #exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))
+
+      OPA=bt.OPA(len(K),0)
+      Zero=np.zeros(2*len(K))
+      OPA.insert(Zero, 100) #sum(sum()) due to matrix
+      for alpha in range(len(K)):
+	 #I_00 transition-probability [[Btree.py#extract]]
+	 linspect.append(OPA.extract()) 
+      return OPA
+
+   def iterate(L1, L2, Energy, i, f, J, K):
+      """ Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2
+   
+      *PARAMETERS:*
+      L1:     binary tree where i-2 quanta are excited (structure: [[Btree.py]]
+      L2:     binary tree where i-1 quanta are excited
+      Energy: Energy-difference between the states (minimal energy)
+      i:      number of excitation-quanta
+      f:      (2xN) frequencies of both states
+      J:	   Duschisky-rotation matrix
+      K:	   Displacement-vector
+
+      *RETURNS:*
+      L2:     input-parameter (needed for next iteration)
+      L3:     new binary tree 
+      """
+   
+      #quantities for the iterative spectrum-calculation
+      Gamma=np.diag(f[0])              	# in atomic units. It is equivalent to 4pi^2/h f_i
+      Gammap=np.diag(f[1])             	# for final state
+      sqGamma=np.diag(np.sqrt(f[0]))   
+      sqGammap=np.diag(np.sqrt(f[1]))  
+      unity=np.eye(len(Gamma))
+   
+      C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
+      A=np.dot(J,np.dot(C,J.T)) 
+      A=2*np.dot(Gammap,np.dot(J,A))-unity
+      b=unity-J.dot(C).dot(J.T).dot(Gammap)
+      b=2*sqGammap.dot(unity-b).dot(K)
+      E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
+      d=-2*sqGamma.dot(C).dot(J.T).dot(Gammap).dot(K)
+      C=2*Gamma.dot(C)-unity 		#this is 'real' C-matrix
+   
+      #initialize new tree
+      alpha=len(b)
+      L3=bt.OPA(i)    	       		# initialize root-node
+      States=states(alpha, i) 		# States are all possible
+
+      def freq(E, Gamma, Gammap):
+         """Calculates the frequency of respective transition including vibrational frequency
+
+	 *PARAMETERS:*
+	 E:	 energy-difference of states
+	 Gamma:	 vector of vibrational frequencies in inital state (in atomic units)
+	 Gammap: vector of vibrational frequencies in final state (in atomic units)
+
+	 *RETURNS;*
+	 frequency of respective transition
+	 """
+	 return (E+sum(Gammap-Gamma))*Hartree2cm_1 
+   
+
+      for n in States: #for each possible state, described by n(vector)
+	 m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state
+	 # if the 'first' excited state is in initial state: need first iteration formula
+	 I_nn=0
+	 if m<=mp:
+	    n_m=n[m]
+	    ntemp=deepcopy(n)
+	    ntemp[m]-=1 #n[m] is at least 1
+	    Ps=L2.getState(ntemp)[0]
+	    if not math.isnan(Ps) and abs(Ps)>1e-8:
+	       I_nn=b[m]*Ps					# first term 
+	    if ntemp[m]>0:
+	       ntemp[m]-=1
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps) and abs(Ps)>1e-8:
+		  I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term
+	    for i in range(m+1, len(n)/2):
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[m]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*Ps	# second term
+
+	    for i in range(mp+len(n)//2, len(n)): 			# sum over respective final states
+	       if mp>len(n)//2:					# that means: there are no excited vibrations
+		  break
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[m]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(E[i-len(n)//2][m])*Ps		# second term
+	 #else: need the other iteration-formula
+	 else: 
+	    n_m=n[mp]
+	    ntemp=deepcopy(n)
+	    ntemp[mp]-=1
+	    Ps=L2.getState(ntemp)[0]
+	    if not math.isnan(Ps) and abs(Ps)>1e-8:
+	       I_nn=d[mp]*Ps					# first term 
+	    if ntemp[mp]>0:
+	       ntemp[mp]-=1
+	       Ps=L1.getState(ntemp)[0]
+	       if not math.isnan(Ps) and abs(Ps)>1e-8:
+		  I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps          	# second term
+	    for i in range(mp+1, len(n)):
+	       if n[i]>0:
+		  ntemp=deepcopy(n)
+		  ntemp[mp]-=1
+		  ntemp[i]-=1
+		  Ps=L1.getState(ntemp)[0]
+		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+		     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+    # second term
+			      C[i-len(n)//2][mp])*Ps	
+	    for i in range(m, len(n)): 				#sum over respective final states
+	       if m>len(n)//2:					# that means: there are no excited vibrations
+		  break
+   	       if n[i]>0:
+   		  ntemp=deepcopy(n)
+   		  ntemp[mp]-=1
+   		  ntemp[i]-=1
+   		  Ps=L1.getState(ntemp)[0]
+   		  if not math.isnan(Ps) and abs(Ps)>1e-8:
+   		     I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term
+     	 I_nn/=np.sqrt(2*n_m)
+	 #threshold for insertion: saves memory, since int insead of float is used
+	 if I_nn>1e-8:
+	    try:
+	       L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
+	    except MemoryError: 
+	       print('memory-error by inserting data. Finishing calculation.')
+	       linspect=open('/tmp/linspect', "a")
+	       linspect.writelines("%s\n" % item  for item in L2.extract())
+	       linspect.close()
+	       return 0,0
+      return L2, L3
+
+
+   Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
+   Gammap=np.diag(f[1]) # for final state
+
+   linspect=[] #intensities
+   L2=CalcI00(J, K, Gamma, Gammap, Energy)
+   L1=L2 
+   for i in range(1,N+1):
+      L1, L2=iterate(L1, L2, Energy, i, f, J,K)
+      linspect.append(L2.extract())
+   return linspect #2-dimensional array
+
