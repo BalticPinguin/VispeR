@@ -1,0 +1,12 @@
+This file contains information about the scripts related to smallscript:
+
+==broadening.py==
+This script calculates the broadenend spectrum using a given line-spectrum. There are several options availible like specifying a grid or just its range, the broadening paraemeter and so on. 
+As functions, gaussian and lorentzian shapes are available
+
+==ConEn.py==
+This script can be used to extract the binding energies during g09-optimisation. 
+
+==Duschinsky_unrestricted.py and Btree.py==
+The functions and classes belong to a method to calculate the FC factors by taking into account the Duschinsky rotation. 
+Since this leads to memory blow-ups for those molecules considered here, THE FUNCTIONS ARE NOT TESTED.

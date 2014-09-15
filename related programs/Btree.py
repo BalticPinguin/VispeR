@@ -9,20 +9,20 @@ class Tree:
    and (n+apha-1)!/(n!(alpha-1)!) data-points.
    For better structurisation, it has  4 different data-types:
 
-   1. node: has two child-trees attached ('left' and *right*)
-   2. leaf: has one child-tree ('left') and one data-point
-   2. reaf: has one child-tree ('right') and one data-point
-   2. lleaf: has two data-points attached
+   1. n: has two child-trees attached ('left' and *right*)
+   2. l: has one child-tree ('left') and one data-point
+   2. r: has one child-tree ('right') and one data-point
+   2. u: has two data-points attached
 
    in addition, for the 0-th order tree there is a type _ having only one data-point attached.
    """
-   #all possible attributes; it saves memory especially for huge trees,
+   #all possible attributes; it saves memory especially for huge trees, (saves about 1/3)
    #see http://tech.oyster.com/save-ram-with-python-slots/
-   __slots__=['data', 'data2', 'left','right','alpha'] 
+   __slots__=['data', 'data2', 'left','right','alpha'] #why is 'type' not neccesary?
 
-   def __init__(self,alph): #should it be __new__?
+   def __init__(self,alph):
       """ initializes the tree root of a (sub-) tree"""
-      #self.alpha is not the same for different nodes in the tree.
+      #self.alpha is not the same for different ns in the tree.
       # For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational modes
       self.alpha=alph
 
@@ -34,81 +34,89 @@ class Tree:
 	 self.data2=0 #this is extra-tree
 	 self.type='_'
       elif n==1 and self.alpha==1:
-	 self.data=int([0, 0])
-	 self.data2=int([0, 0])
-	 self.type='lleaf'
+	 self.data=np.array([0, 0],dtype=np.int8) #saves memory
+	 self.data2=np.array([0, 0],dtype=np.int8)
+	 self.type='u'
       elif self.alpha==1:
-  	 self.data=int([0, 0])
+  	 self.data=np.array([0, 0],dtype=np.int8)
   	 self.right=Tree(self.alpha)
   	 self.right.fill(n-1)
-	 self.type='reaf'
+	 self.type='r'
       elif n==1:
-  	 self.data=int([0, 0])
+  	 self.data=np.array([0, 0],dtype=np.int8)
   	 self.left=Tree(self.alpha-1)
   	 self.left.fill(1)
-	 self.type='leaf'
+	 self.type='l'
       else:
   	 self.right=Tree(self.alpha)
   	 self.right.fill(n-1)
 	 self.left=Tree(self.alpha-1)
 	 self.left.fill(n)
-	 self.type='node'
+	 self.type='n'
 
-   def insert(self, N, FC): #data=[........] alpha-dim array...
+   def insert(self, N, FC):
       """ function that inserts some data into a specific placed denoted by the 2*alpha-dimensional array
-      (note: 2*alpha-1 is 'self.alpha' of the main node)
-      **Argumens**
-      1. A 2*alpha-dimensional array 'attention: The size is never checked. 
+      (note: 2*alpha-1 is 'self.alpha' of the main n)
+
+      **PARAMETERS:** 
+      N:  A 2*alpha-dimensional array 'attention: The size is never checked.  
+      FC  The data to be filled into the respective n (2x1)-array
+
+      **RETURNS:**
+      nothing
+
+      **NOTE:**
       Wrong-sized arrays will can lead to unexpected beaviour.
       Additionally the sum over all elemens has to coincide with 'n' used for 
       the function 'fill()'. This is not checked as well and will NOT lead 
-      to asserts but will fill the element into wrong nodes'
-      2. The data to be filled into the respective node
+      to asserts but will fill the element into wrong ns'
       """
       n=M=0
       test=1
       m=np.sum(N[i] for i in range(len(N)))
-      for i in range(self.alpha+1): #self.alpha==alpha since this is root-node
+      for i in range(self.alpha+1): #self.alpha==alpha since this is root-n
 	 if test==0:
 	    break
 	 M+=N[i]
-	 if self.type=='node':
+	 if self.type=='n':
 	    for j in range(0,int(N[i])):
 	       self=self.right
 	       n+=1
-	       if self.type=='leaf': #exception for 'diagonal' elements
+	       if self.type=='l': 
 		  if M==m:
-		     self.data=FC
+		     #additional decreas of memory by factor 2
+		     # float16 no more feasible due to iteration and strong rounding effects
+		     self.data=np.array(FC, dtype=np.float32) 
 		     test=0
 		     break
 	    self=self.left
-	 elif self.type=='reaf': #allways has success
+	 elif self.type=='r': 
 	    for j in range(0,int(N[i])):
 	       self=self.right
 	       n+=1
-	       if self.type == 'lleaf': #important for last elements
+	       if self.type == 'u': #important for last elements
 		  break #inner for-loop
-	    if M!=m and self.type=='lleaf':
-  	       self.data2=FC
+	    if M!=m and self.type=='u':
+  	       self.data2=np.array(FC, dtype=np.float32)
 	    else:
-	       self.data=FC
+	       self.data=np.array(FC, dtype=np.float32)
 	    break
-	 elif self.type=='leaf':
+	 elif self.type=='l':
 	    if M==m:
-	       self.data=FC
+	       self.data=np.array(FC, dtype=np.float32)
 	       break
 	    else:
 	       self=self.left
-	 else: #self.type=='lleaf' or 0-th tree
+	 else: #self.type=='u' or 0-th tree
 	    if N[i]>0:
-	       self.data=FC
+	       self.data=np.array(FC, dtype=np.float32)
 	    else:
-	       self.data2=FC
+	       self.data2=np.array(FC, dtype=np.float32)
 	    break
 
    def extract(self): #extract all elements 
       """
-      ===extract===
+      **extract**
       This function is for ordered extraction of all elements in the tree and additionally can be used 
       instead of print (by 'print instance.extract()').
       the returned statement is a vector containing all values created by the inner function
@@ -120,18 +128,18 @@ class Tree:
 
       def extra(self,result):
    	 """creates the vector to be returned in a recursive way """
-	 if self.type=='node':
+	 if self.type=='n':
 	    extra(self.right,result)
 	    extra(self.left,result)
-	 elif self.type=='leaf':
+	 elif self.type=='l':
 	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
    	       result.append(self.data)
 	    extra(self.left,result)
-	 elif self.type=='reaf':
+	 elif self.type=='r':
 	    extra(self.right,result)
 	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
    	       result.append(self.data)
-	 elif self.type=='lleaf':
+	 elif self.type=='u':
 	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
 	       result.append(self.data)
 	    if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
@@ -158,34 +166,34 @@ class Tree:
 	 return 0 ##from iteration it will happen
       n=M=0
       m=np.sum(N[i] for i in range(len(N)))
-      for i in range(self.alpha+1): #self.alpha==alpha since this is root-node
+      for i in range(self.alpha+1): #self.alpha==alpha since this is root-n
 	 M+=N[i]
-	 if self.type=='node':
+	 if self.type=='n':
 	    for j in range(0,int(N[i])):
 	       self=self.right
 	       n+=1
-	       if self.type=='leaf': #exception for 'diagonal' elements
+	       if self.type=='l': #exception for 'diagonal' elements
 		  if M==m:
 		     print  self.data
 		     return self.data
 	    self=self.left
-	 elif self.type=='reaf': #allways has success
+	 elif self.type=='r': #allways has success
 	    for j in range(0,int(N[i])):
 	       self=self.right
 	       n+=1
-	       if self.type == 'lleaf': #important for last elements
+	       if self.type == 'u': #important for last elements
 		  break #inner for-loop
-	    if M!=m and self.type=='lleaf':
+	    if M!=m and self.type=='u':
   	       return self.data2
 	    else:
 	       return self.data
 	    break
-	 elif self.type=='leaf':
+	 elif self.type=='l':
 	    if M==m:
 	       return self.data
 	    else:
 	       self=self.left
-	 else: #self.type=='lleaf':
+	 else: #self.type=='u':
 	    if N[i]>0:
 	       return self.data
 	    else:
@@ -196,45 +204,14 @@ class Tree:
       It is needed for temporary needs and debugging only since the size can be calculated
       by the input-argumens of '__init__' and 'fill'.
       """
-      if self.type=='lleaf':
+      if self.type=='u':
 	 return 2
-      if self.type=='reaf':
+      if self.type=='r':
 	 return self.right.size() + 1
-      if self.type=='leaf':
+      if self.type=='l':
 	 return self.left.size() + 1
-      if self.type=='node':
+      if self.type=='n':
 	 return self.left.size() + self.right.size()
-
-   def compress(float32):
-      """Code from davidejones (http://davidejones.com/blog/1413-python-precision-floating-point/)
-      does this help reducing the memory-requirement of my function?
-      """ 
-      F16_EXPONENT_BITS = 0x1F
-      F16_EXPONENT_SHIFT = 10
-      F16_EXPONENT_BIAS = 15
-      F16_MANTISSA_BITS = 0x3ff
-      F16_MANTISSA_SHIFT =  (23 - F16_EXPONENT_SHIFT)
-      F16_MAX_EXPONENT =  (F16_EXPONENT_BITS << F16_EXPONENT_SHIFT)
-      a = struct.pack('>f',float32)
-      b = binascii.hexlify(a)
-      f32 = int(b,16)
-      f16 = 0
-      sign = (f32 >> 16) & 0x8000
-      exponent = ((f32 >> 23) & 0xff) - 127
-      mantissa = f32 & 0x007fffff
-      if exponent == 128:
-	 f16 = sign | F16_MAX_EXPONENT
-      if mantissa:
-	 f16 |= (mantissa & F16_MANTISSA_BITS)
-      elif exponent > 15:
-	 f16 = sign | F16_MAX_EXPONENT
-      elif exponent > -15:
-	 exponent += F16_EXPONENT_BIAS
-	 mantissa >>= F16_MANTISSA_SHIFT
-	 f16 = sign | exponent << F16_EXPONENT_SHIFT | mantissa
-      else:
-	 f16 = sign
-      return f16
 
 version=1.3
 # End of Btree.py
