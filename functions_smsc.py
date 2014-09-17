@@ -477,10 +477,8 @@ def Duschinsky(L, mass, dim, x):
    np.set_printoptions(precision=5, linewidth=138)
 
    logging.info('Duschinsky rotation matrix, '+\
-	 repr(np.linalg.norm(J[1]-np.eye(dim-6))/(dim-6))+ '  :\n'+ repr(J)+\
-	 '  :\n'+ repr(J[:4].T[11:25])+\
-	 '\nDuschinsky displacement vector:\n'+ repr(K))
-   return J, K #J[0] is unity (if not everything goes wrong), second is of interenst...
+	 '  :\n'+ repr(J)+'  :\n'+ repr(J[:4].T[11:25])+'\nDuschinsky displacement vector:\n'+ repr(K))
+   return J, K 
 
 def HuangR(K, f): #what is with different frequencies???
    """ Function that calculates the Huang-Rhys factors for all vibrational states
@@ -650,7 +648,6 @@ def outspect(gridpt, linspect, gamma, spectfile):
    gamma:     broadening constant for the Lorentzians. It is the same for all peaks
    
    All parameters are obligatory."""
-   out = open(spectfile, "w")
    #sort spectrum with respect to size of elements
    index=sort(linspect[1])
    linspect[1]=linspect[1][index]
@@ -658,7 +655,7 @@ def outspect(gridpt, linspect, gamma, spectfile):
    #find transition with minimum intensity to be respected
    minint=0
    for i in range(len(linspect[1])):
-      if linspect[1][i]>=0.001*linspect[1][-1]:
+      if linspect[1][i]>=0.01*linspect[1][-1]:
 	 minint=i
 	 break
    print 'neglect',minint,'transitions, use only ', len(linspect[1])-minint,' instead.'
@@ -666,16 +663,37 @@ def outspect(gridpt, linspect, gamma, spectfile):
    minfreq=np.min(linspect[0][minint:]) # min-freq of fluorescence
    maxfreq=np.max(linspect[0][minint:]) # min-freq of fluorescence
    print('maximal and minimal frequencies:\n', maxfreq, minfreq)
-   #the range should be greater than the transition-frequencies
-   minfreq-=20+gamma
-   maxfreq+=20+gamma
+   minfreq-=5*gamma
+   maxfreq+=5*gamma
    omega=np.linspace(minfreq,maxfreq,gridpt)
    spect=np.zeros(len(omega))
-   #only those with high-enough intensities are respected
+
+   #truncate arrays and sort by index for further efficient processes
+   freq=linspect[0][minint:]
+   intens=linspect[1][minint:]
+   index=sort(freq) #sort by freq
+   freq=freq[index]
+   intens=intens[index]
+   mini=0
+   for i in range(1,len(freq)):
+      if freq[i]>=5*gamma+freq[0]:
+	 maxi=i
+	 break
+   out = open(spectfile, "w")
    for i in range(len(omega)): 
-      spect[i]=sum(linspect[1][j]/np.pi*gamma/((omega[i]-linspect[0][j])*(omega[i]-linspect[0][j])+ gamma*gamma)
-	    for j in range(minint,len(linspect[1])))
+      for j in range(maxi,len(freq)):
+	 if freq[j]>=5*gamma+omega[i]:
+	    maxi=j
+	    break
+      for j in range(max(0,mini),maxi):
+	 if freq[j]>=omega[i]-5*gamma:
+	    mini=j-1
+	    break
+      spect[i]=sum(intens[j]/np.pi*gamma/((omega[i]-freq[j])*(omega[i]-freq[j])+gamma*gamma)
+		  for j in range(mini, maxi))
+      #rearrange range to be taken into account...
       out.write(u" '{0}'  '{1}'\n".format(omega[i] ,spect[i]))
+   out.close()
    #plt.plot(omega, spect)
    #plt.title('Broadened spectrum of Ir-PS')
    #plt.xlabel('Frequency [$cm^{-1}$]')
