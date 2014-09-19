@@ -60,12 +60,12 @@ def FCf(J, K, f, Energy, N):
    
       C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
       A=np.dot(J,np.dot(C,J.T)) 
-      A=2*np.dot(Gammap,np.dot(J,A))-unity
-      b=unity-J.dot(C).dot(J.T).dot(Gammap)
-      b=2*sqGammap.dot(unity-b).dot(K)
-      E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
+      A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
+      E=J.dot(C).dot(J.T).dot(Gammap) #this is temporary only
+      b=2*sqGammap.dot(unity-E).dot(K)
       d=-2*sqGamma.dot(C).dot(J.T).dot(Gammap).dot(K)
-      C=2*Gamma.dot(C)-unity 		#this is 'real' C-matrix
+      E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
+      C=2*sqGamma.dot(C).dot(sqGamma)-unity 		#this is 'real' C-matrix
    
       #initialize new tree
       alpha=2*len(b)

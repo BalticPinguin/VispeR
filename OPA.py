@@ -175,12 +175,13 @@ def FCfOPA(J, K, f, Energy, N, T,E0):
 
    def makeLine(intens,E0, T, index, ex, Gamma, Gammap,E, n):
       F=np.zeros(( len(index),2 ))
-      print "frequency, intensity, mode,  excitation-number"
+      print "frequency, intensity "
+      print E*Hartree2cm_1, 10 #0-> 0-transition
       for i in range(len(index)): 
 	 F[i][1]=(Gamma[index[i]][index[i]]*(ex[i]+0.5)-
    		   Gammap[index[i]][index[i]]*(n-ex[i]+0.5)+E)*Hartree2cm_1
 	 F[i][0]=intens[i]*np.exp((-Gamma[index[i]][index[i]]*ex[i]-E0)/T)
-	 print F[i][1], F[i][0], index[i], ex[i]
+	 print F[i][1], F[i][0], index[i]
       return np.array(F)
 
    Gamma=np.diag(f[0])

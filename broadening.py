@@ -42,11 +42,12 @@ def handel_input(opts, args):
    gridfile=None
    linspectrum=None
    gamma=1 #by default: only slight broadening
-   gridpt=6000
+   gridpt=61009
    omega=None
    minfreq=0
    maxfreq=0
    shape='g'
+   E00=0
 
    if opts in ['-h', '--help']:
       usage()
@@ -67,6 +68,8 @@ def handel_input(opts, args):
 	 minfreq=float(s)
       elif opt in ['-M','--maxfreq']:
 	 maxfreq=float(s)
+      elif opt in ['-E','--energy']:
+	 E00=float(s)
       elif opt in ['-s','--shape']:
 	 if s in ['gaussian', 'g' ,'gauss', 'Gauss', 'Gaussian']:
 	    shape='g'
@@ -74,24 +77,10 @@ def handel_input(opts, args):
 	    shape='l'
 	 else:
 	    print 'shape unknown. Please gaussian or lorentzian instead!'
-   if spectfile!=None: 
-      out = open(spectfile, "w")
-   else: #if no input is defined: senseless
-      usage()
-      sys.exit(2)
-   if linspectrum!=None:
-      #read file in format of linspect
-      freq=[]
-      intens=[]
-      with open(linspectrum) as f:
-	 lis=[line.split() for line in f]  # create a list of lists
-	 for i,x in enumerate(lis):        #print the list items 
-	    freq.append(float(x[0]))
-	    intens.append(float(x[1]))
-      linspect=np.zeros((2,len(freq)))
-      linspect[0]=np.matrix(freq)
-      linspect[1]=np.matrix(intens)
-   else: #if no input is defined: senseless
+   #else: #if no input is defined: senseless
+   #   usage()
+   #   sys.exit(2)
+   if linspectrum==None:
       usage()
       sys.exit(2)
    if gridfile!=None:
@@ -106,7 +95,29 @@ def handel_input(opts, args):
       for i in range(len(grid)):
 	 omega[i]=grid[i]
       print np.shape(omega)
-   return linspect, omega, out, gamma, gridpt, minfreq, maxfreq, shape
+   return linspectrum, omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, E00
+
+def OPA2TPA(OPAfreq,freq00, OPAintens,intens00, mode):
+   length=len(OPAfreq)
+   TPAfreq=np.zeros((length+1)*(length+2)//2+length+1) #this is overestimation of size...
+   TPAintens=np.zeros((length+1)*(length+2)//2+length+1)
+   TPAintens[0]=intens00 #this is OPA-part
+   TPAfreq[0]=freq00
+   print intens00, freq00 
+   ind=1
+   for i in range(length):
+      TPAintens[ind]=OPAintens[i] #this is OPA-part
+      TPAfreq[ind]=OPAfreq[i]
+      print TPAintens[ind], TPAfreq[ind]
+      ind+=1
+      for j in range(i+1,length):
+	 if mode[i]==mode[j]: #both have same mode...
+	    continue
+	 TPAintens[ind]=OPAintens[i]*OPAintens[j]/intens00
+	 TPAfreq[ind]=OPAfreq[i]+OPAfreq[j]-freq00
+	 print TPAintens[ind], TPAfreq[ind]
+	 ind+=1
+   return TPAfreq, TPAintens
 
 def outspect(argv):
    """This function calculates the broadened spectrum given the line spectrum, 
@@ -124,16 +135,34 @@ def outspect(argv):
    if argv is None:
       argv = sys.argv[1:]
    try:
-      opts, args=getopt.getopt(argv, 'h:o:g:i:p:m:M:f:s:', 
-           ["help","out=", "gamma=", "input=", "gridpt=", "minfreq", "maxfreq", "gridfile","shape"])
+      opts, args=getopt.getopt(argv, 'h:o:g:i:p:m:M:f:s:E:', 
+           ["help","out=", "gamma=", "input=", "gridpt=", "minfreq=", "maxfreq=", "gridfile=","shape=","energy="])
    except getopt.GetoptError as err:
       print(err)
       usage()
       sys.exit(2)
-   linspect, omega, out, gamma,gridpt,minfreq,maxfreq,shape=handel_input(opts, args)
+   linspectrum, omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, E00=handel_input(opts, args)
+      
+   #read file in format of linspect
+   freq=[]
+   intens=[]
+   mode=[]
+   
+   with open(linspectrum) as f:
+      lis=[line.split() for line in f]  # create a list of lists
+      for i,x in enumerate(lis):        #print the list items 
+         freq.append(float(x[0]))
+         intens.append(float(x[1]))
+	 mode.append(float(x[2]))
+   linspect=np.zeros((3,len(freq)))
+   linspect[0]=np.matrix(freq)
+   linspect[1]=np.matrix(intens)
+   linspect[2]=np.matrix(mode)
+
    #sort spectrum with respect to size of elements
    index=sort(linspect[1])
    linspect[1]=linspect[1][index]
+   linspect[2]=linspect[2][index]
    linspect[0]=linspect[0][index]
    #find transition with minimum intensity to be respected
    minint=0
@@ -143,12 +172,29 @@ def outspect(argv):
 	 break
    print 'neglect',minint,'transitions, use only', len(linspect[1])-minint, "instead."
    print('minimal and maximal intensities:\n', linspect[1][minint], linspect[1][-1])
-   #the range should be greater than the transition-frequencies
+
+   TPAfreq=linspect[0][minint:]
+   TPAintens=linspect[1][minint:]
+   ##make TPA from OPA:
+   #TPAfreq, TPAintens=OPA2TPA(linspect[0][minint:], 18311.8877, linspect[1][minint:], 100, linspect[2][minint:])
+   #index=sort(TPAintens)
+   #TPAintens=TPAintens[index] #resort by intensity
+   #TPAfreq=TPAfreq[index]
+
+   #find transition with minimum intensity to be respected
+   minint=0
+   for i in range(len(TPAintens)):
+      if TPAintens[i]>=0.0001*TPAintens[-1]:
+	 minint=i
+	 break
+   print 'for TPA: again neglect',minint,'transitions, use only', len(TPAintens)-minint, "instead."
+
+   #the range of frequency ( should be greater than the transition-frequencies)
    if omega==None:
       if minfreq==0:
-	 minfreq=np.min(linspect[0][minint:])-20-gamma
+	 minfreq=np.min(TPAfreq[minint:])-20-gamma
       if maxfreq==0:
-	 maxfreq=np.max(linspect[0][minint:]) +20+gamma
+	 maxfreq=np.max(TPAfreq[minint:]) +20+gamma
    else:
       minfreq=omega[0]
       maxfreq=omega[-1]
@@ -159,52 +205,49 @@ def outspect(argv):
       omega=np.linspace(minfreq,maxfreq,gridpt)
       print "omega is linspaced"
    spect=np.zeros(len(omega))
-   sigma=gamma*2/2.355
+   sigma=gamma*2/2.355 #if gaussian used: same FWHM
 
-   freq=linspect[0][minint:]
-   intens=linspect[1][minint:]
-   index=sort(freq) #sort by freq
-   freq=freq[index]
-   intens=intens[index]
+   index=sort(TPAfreq) #sort by freq
+   freq=TPAfreq[index]
+   intens=TPAintens[index]
    mini=0
    for i in range(1,len(freq)):
-      if freq[i]>=8*gamma+freq[0]:
+      if freq[i]>=5*gamma+freq[0]:
 	 maxi=i
 	 break
+   out = open(spectfile, "w")
    if shape=='g':
       for i in range(len(omega)): 
-       	 #rearrange range to be taken into account...
-	 for j in range(maxi,len(freq)):
-	    if freq[j]>=4*gamma+omega[i]:
-	       maxi=j
-	       break
+     	 for j in range(maxi,len(freq)):
+   	    if freq[j]>=5*gamma+omega[i]:
+   	       maxi=j
+   	       break
 	 for j in range(max(0,mini),maxi):
-	    if freq[j]>=4*gamma-omega[i]:
-	       mini=j-1
-	       break
+   	    if freq[j]>=omega[i]-5*gamma:
+   	       mini=j-1
+   	       break
 	 spect[i]=sum(intens[j]/(np.sqrt(2*np.pi)*sigma)*\
 		  np.exp(-(omega[i]-freq[j])*(omega[i]-freq[j])/(2*sigma*sigma))
 		  for j in range(mini, maxi))
-
 	 out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
    else:  #shape=='l':
       for i in range(len(omega)): 
-       	 #rearrange range to be taken into account...
 	 for j in range(maxi,len(freq)):
-	    if freq[j]>=4*gamma+omega[i]:
-	       maxi=j
-	       break
-	 for j in range(max(0,mini),maxi):
-	    if freq[j]>=4*gamma-omega[i]:
-	       mini=j-1
-	       break
+   	    if freq[j]>=5*gamma+omega[i]:
+   	       maxi=j
+   	       break
+     	 for j in range(max(0,mini),maxi):
+   	    if freq[j]>=omega[i]-5*gamma:
+   	       mini=j-1
+   	       break
 	 spect[i]=sum(intens[j]/np.pi*gamma/((omega[i]-freq[j])*(omega[i]-freq[j])+gamma*gamma)
 		  for j in range(mini, maxi))
-
 	 out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+
+   out.close()
 
 if __name__ == "__main__":
    outspect(sys.argv[1:])
 
 version=0.0
-# End of broadeninge.py
+# End of broadening.py
