@@ -376,7 +376,8 @@ def GetL(dim, mass, F, D):
    for i in range(len(F)):
       #ftemp,Ltemp=np.linalg.eig(np.dot(np.dot(D[i].T,F[i]),D[i]))
       ftemp,Ltemp=np.linalg.eig(F[i])
-      assert np.any(ftemp<0) or np.imag(ftemp)!=0, 'Frequencies smaller than 0 occured. Please check the input-file!!'
+      assert np.any(ftemp< 0) or np.any(np.imag(ftemp)!=0),\
+	       'Frequencies smaller than 0 occured. Please check the input-file!!'
       index=sort(np.real(ftemp)) # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       L[i]=np.real(Ltemp[index]).T[:].T[6:].T
@@ -498,7 +499,7 @@ def HuangR(K, f): #what is with different frequencies???
    #unif=np.zeros(len(K))
    logging.info('Delta Q:'+repr( K))
    unif=K*K*f[1]/(2)
-   index=sort(unif)
+   index=np.argsort(unif, kind='heapsort')
    sortuni=unif[index]
    funi=f[1][index]
    if any(unif)<0:
@@ -577,14 +578,14 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
    FC=np.zeros((n,M*N-1)) 
    uency=np.zeros((n,M*N-1)) #freqUENCY
    if approx=="TPA":
-      FC2=np.ones((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
-      uency2=np.ones((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
+      FC2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
+      uency2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
    #calculate 0->0 transition
    tmp=1
    #scale whole spectrum
    FC00=tmp*tmp*1e2
    uency00=E*Hartree2cm_1 #zero-zero transition
-   print "  frequency     intensity  "
+   print "frequency     intensity  "
    print E*Hartree2cm_1, FC00
    #this is OPA and valid in every case
    for a in range(n):
@@ -597,7 +598,7 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
 	    tmp=FCeqf(HR[a], i, j)/temp
 	    FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
 	    uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	    print uency[a][j*M+i-1], FC[a][j*M+i-1]
+	    print uency[a][j*M+i-1], FC[a][j*M+i-1], a
 	    #print HR[a],'     ', i,'  ',j,'  ', (E+freq[a]*(i-j))*Hartree2cm_1,\
 	      #"  ",FC[a][j*M+i-1]
    if approx=="TPA":
@@ -620,9 +621,9 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
 		  for k in krange:
 		     for l in lrange:
 			tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
-			FC2[0][ind]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)*np.exp(-(E0+freq[b]*l)/T)
+			FC2[0][ind]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i+freq[b]*l)/T)
 			uency2[0][ind]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
-			print uency2[0][ind], FC2[0][ind]
+			print uency2[0][ind], FC2[0][ind], a*n+b
 			ind+=1
    FC00*=np.exp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
@@ -630,10 +631,8 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
       spect2=unifSpect(FC2, uency2, E*Hartree2cm_1, 0)
       result=np.zeros(( 2, len(spect[0])+len(spect2[0]) ))
       for i in range(2):
-	 for j in range(len(spect[0])):
-	    result[i][j]=spect[i][j]
-	 for j in range(len(spect2[0])):
-	    result[i][len(spect[0])+j]=spect2[i][j]
+	 result[i][:len(spect[0])]=spect[i]
+	 result[i][len(spect[0]):]=spect2[i]
       return result
    return spect
 
@@ -649,7 +648,7 @@ def outspect(gridpt, linspect, gamma, spectfile):
    
    All parameters are obligatory."""
    #sort spectrum with respect to size of elements
-   index=sort(linspect[1])
+   index=np.argsort(linspect[1],kind='heapsort')
    linspect[1]=linspect[1][index]
    linspect[0]=linspect[0][index]
    #find transition with minimum intensity to be respected
@@ -671,10 +670,11 @@ def outspect(gridpt, linspect, gamma, spectfile):
    #truncate arrays and sort by index for further efficient processes
    freq=linspect[0][minint:]
    intens=linspect[1][minint:]
-   index=sort(freq) #sort by freq
+   index=np.argsort(freq, kind='heapsort') #sort by freq
    freq=freq[index]
    intens=intens[index]
    mini=0
+   print freq
    for i in range(1,len(freq)):
       if freq[i]>=5*gamma+freq[0]:
 	 maxi=i

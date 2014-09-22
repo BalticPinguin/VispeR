@@ -44,7 +44,7 @@ class OPA:
    	       ind.append(index)
    	       excs.append(exc)
 	       #print "diff", self.mat[index][exc],self.mat[index][-exc] #this should, in principle, coincide --> does!
-      return intens, ind, excs
+      return intens, ind, excs #I need squares as intensities
 
 def FCfOPA(J, K, f, Energy, N, T,E0):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
@@ -84,8 +84,8 @@ def FCfOPA(J, K, f, Energy, N, T,E0):
       Energy: Energy-difference between the states (minimal energy)
       i:      number of excitation-quanta
       f:      (2xN) frequencies of both states
-      J:	   Duschisky-rotation matrix
-      K:	   Displacement-vector
+      J:      Duschisky-rotation matrix
+      K:      Displacement-vector
 
       *RETURNS:*
       L2:     input-parameter (needed for next iteration)
@@ -119,10 +119,10 @@ def FCfOPA(J, K, f, Energy, N, T,E0):
       unity=np.eye(len(Gamma))
    
       C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
-      A=np.dot(J,np.dot(C,J.T)) 
+      A=J.dot(np.dot(C,J.T)) 
       A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
-      E=J.dot(C).dot(J.T).dot(Gammap) #this is temporary only
-      b=2*sqGammap.dot(unity-E).dot(K)
+      TMP=J.dot(C).dot(J.T).dot(Gammap)
+      b=2*sqGammap.dot(unity-TMP).dot(K)
       d=-2*sqGamma.dot(C).dot(J.T).dot(Gammap).dot(K)
       E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
       C=2*sqGamma.dot(C).dot(sqGamma)-unity 		#this is 'real' C-matrix
@@ -176,11 +176,10 @@ def FCfOPA(J, K, f, Energy, N, T,E0):
    def makeLine(intens,E0, T, index, ex, Gamma, Gammap,E, n):
       F=np.zeros(( len(index),2 ))
       print "frequency, intensity "
-      print E*Hartree2cm_1, 10 #0-> 0-transition
       for i in range(len(index)): 
-	 F[i][1]=(Gamma[index[i]][index[i]]*(ex[i]+0.5)-
-   		   Gammap[index[i]][index[i]]*(n-ex[i]+0.5)+E)*Hartree2cm_1
-	 F[i][0]=intens[i]*np.exp((-Gamma[index[i]][index[i]]*ex[i]-E0)/T)
+	 F[i][1]=(Gammap[index[i]][index[i]]*(ex[i]+0.5)-
+   		   Gamma[index[i]][index[i]]*(n-ex[i]+0.5)+E)*Hartree2cm_1
+	 F[i][0]=intens[i]*intens[i]*np.exp((-Gamma[index[i]][index[i]]*ex[i]+E0)/T)
 	 print F[i][1], F[i][0], index[i]
       return np.array(F)
 

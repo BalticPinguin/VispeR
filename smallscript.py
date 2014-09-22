@@ -1,7 +1,6 @@
 #!/usr/bin/python
 #include [[functions_smsc.py]]
 import functions_smsc as of 
-#import para_smsc as te
 import logging ,sys, getopt, OPA
 Hartree2cm_1=219474.63 
 
@@ -93,8 +92,8 @@ def main(argv=None):
       P[i]=of.GetProjector(X[i], dim, mass, CartCoord[i])
       logging.debug('Projector onto internal coordinate subspace\n'+ repr(P[i]))
    logging.info('difference of minimum energy between states:  '+ repr(Energy[1]-Energy[0]))
-   Gauf=of.gaussianfreq(ContntInfo, dim) #read frequencies calculated by g09 from file
-   Gauf/=Hartree2cm_1  #convert to atomic units
+   #Gauf=of.gaussianfreq(ContntInfo, dim) #read frequencies calculated by g09 from file
+   #Gauf/=Hartree2cm_1  #convert to atomic units
    #F, P, CartCoord=of.TrafoCoord(F, P, CartCoord, dim)
    logging.info('Cartesion coordinates of final system:\n'+repr(CartCoord[0].T)+'\n'+ repr(CartCoord[1].T))
    logging.info('forces:\n'+repr(F[0])+'final state:\n'+repr(F[0]))
@@ -102,6 +101,7 @@ def main(argv=None):
    #=== Calculate Frequencies and normal modes ===
    L, f, Lsorted=of.GetL(dim, mass,F, P)
    #L2=of.extractL(ContntInfo, dim)
+   #of.replace(inputs[0], f[1], Lsorted[1])
    
    ##=== Spectrum calculation ===
    #J, K=of.Duschinsky(L2, mass, dim, CartCoord) #use gaussians normal modes
@@ -110,15 +110,14 @@ def main(argv=None):
    print '0-0-transition:', (Energy[0]-Energy[1])*Hartree2cm_1
 
    ##==calculate HR-Spectrum==
-   #HR, funi= of.HuangR(K, f)
+   HR, funi= of.HuangR(K, f)
    #linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], E0, 5, 5, T, "TPA")
-   #linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], E0, 5, 5, T)
+   linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], E0, 5, 5, T)
    #of.outspect(61009, linspect, 3, spectfile)
-   #of.replace(inputs[0], f[1], Lsorted[1])
 
    #==calculate Duschinsky-Rotated Spectrum taking OPA into account==
-   linspect=OPA.FCfOPA(J,K,f,Energy[0]-Energy[1],5, T, E0)
-   of.outspect(61009, linspect, 3, spectfile)
+   #linspect=OPA.FCfOPA(J,K,f,Energy[0]-Energy[1],4, T, E0)
+   #of.outspect(61009, linspect, 3, spectfile)
    
 if __name__ == "__main__":
    main(sys.argv[1:])
