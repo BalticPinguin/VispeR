@@ -1,124 +1,148 @@
 #!/usr/bin/python
 #include [[functions_smsc.py]]
 import functions_smsc as of 
-import logging ,sys, getopt, OPA
-Hartree2cm_1=219474.63 
+import OPA 
+import broadening as br
+import sys, os, logging, re, mmap, numpy as np
 
 def usage():
-   print("usage: smallscipt.py[-o spectfile | -l logging | -t Temp | -e Energy]  arg1 arg2 ")
-   print("spectfile: (not nonobligatory) filename for spectrum-information")
-   print("logging:   (default: error) debug-mode")
-   print("Temp:      (default: 300K) at the moment not used")
-   print("arg1:      initial-state file")
-   print("arg2:      final-state file\n")
-   print("or just call with '-h' to see this help")
+   print "usage: smallscript <input-file>"
 
-def invokeLogging(mode="ERROR"):
-   if mode in ['debug','DEBUG','Debug']:
+def invokeLogging(mode="important"):
+   logging.basicConfig(format='%(message)s')
+   if mode in ['all', 'ALL', 'All']:
       logging.basicConfig(filename='calculation.log',level=logging.DEBUG)
-   elif mode in ['info','INFO','Info']:
+   elif mode in ['detailed', 'DETAILED', 'Detailed']:
       logging.basicConfig(filename='calculation.log',level=logging.INFO)
-   elif mode in ['error', 'ERROR','Error']:
+   elif mode in ['medium', 'MEDIUM','Medium']:
+      logging.basicConfig(filename='calculation.log',level=logging.WARNING)
+   elif mode in ['important', 'IMPORTANT','Important']:
       logging.basicConfig(filename='calculation.log',level=logging.ERROR)
+   elif mode in ['short', 'SHORT','Short']:
+      logging.basicConfig(filename='calculation.log',level=logging.CRITICAL)
    else:
       logging.basicConfig(filename='calculation.log',level=logging.ERROR)
       logging.error("logging-mode not recognized. Using 'error' instead")
    logging.info('Initializing the log-file')
 
 def main(argv=None):
-   """ script for the spectrum-calculation using two log-files from (see usage)
-   g09 frequency calculations (input-argument 1 (initial state) and 2(final state))
-
-   The program requires the non-standard libraries
-   numpy
-   matplotlib (this can be excluded easily, see README)
-   """
-
-   #===handling of input-arguments:===
-   #Input(sys.argv[2]) #just ignore further argements!
-   spectfile='/dev/null' # by default: discart broadened spectrum
-   E0=0
-   T=300
-   if argv is None:
-      argv = sys.argv[1:]
+   assert len(argv)==1, 'exactly one argument required.'
    try:
-      opts, args=getopt.getopt(argv, 'h:o:l:t:e:', ["help", "logging=" ,"out=", "Temperature=", "Energy="])
-   except getopt.GetoptError as err:
-      print(err)
+      infile=open(argv[0], "r")
+      f=mmap.mmap(infile.fileno(), 0, prot=mmap.PROT_READ)
+      infile.close()
+   except IOError:
+      print "file", inputf, "not found."
       usage()
-      sys.exit(2)
-   if opts in ['-h', '--help']:
-      usage()
-      sys.exit()
-   if len(args)==2:
-      inputs=args
-   else:
-      print "log-files",args," are miss-typed or don't exist.\n"
-      print opts
-      usage()
-      sys.exit(2)
-   for opt,s in opts:
-      if opt in ['-o', '--out']:
-	 spectfile=s
-      elif opt in ['-l', '--logging']:
-	 invokeLogging(s)
-      elif opt in ['-t','--Temperature']:
-	 T=float(s)
-      elif opt in ['-e','--Energy']:
-	 E0=float(s) #test, whether s is an int
-   if ['-l', '--logging'] not in opts:
-      invokeLogging()
+      return 2
+   opts=[]
+   todo=0
+   if (re.search(r"HR-fact",f, re.I) is not None) is True:
+      todo+=1
+   opts.append(re.findall(r"(?<=HR-fact)[\w\d.,=() -]",f,re.I))
+   if (re.search(r"FC-spect",f, re.I) is not None) is True:
+      if (re.search(r"HR-file: ",f, re.I) is not None) is True:
+	 #calculation of HR-facts not neccecary
+	 todo=2
+      else: #if 
+	 todo=3
+   opts.append(re.findall(r"(?<=FC-spect)[\w\d.=,() -]+",f,re.I))
+   if (re.search(r"Duschinsky-spect",f, re.I) is not None) is True:
+      if todo==0:
+	 todo=5
+      else:
+	 todo+=4
+   opts.append(re.findall(r"(?<=Duschinsky-spect)[\w\d=.(), -]",f,re.I))
+   if (re.search(r"Broadening",f, re.I) is not None) is True:
+      todo+=8
+   opts.append(re.findall(r"(?<=Broadening\()[\w\d.,()= -](?==\))",f,re.I))
+   if todo>=16 or todo==0 or todo in [4,6,9,13]:
+      print "options for calculation don't make sense. Please check the input-file!"
+      return 0
+   print opts
+
+   ############delete () from opts
+   if np.mod(todo,2)==1: 
+      #calculation up to HR-facts needed (FC- or Duschinsky spect)
+      if opts[0]!=[]:
+	 opt=opts[0][0]
+      elif opts[1]!=[]:
+	 opt=opts[1][0]
+      elif opts[2]!=[]:
+	 opt=opts[2][0]
+      else:
+	  print 'why am I here?'
+	  return 2
+      #invoke logging: take options of HR-fact, if exists, else: from FC-spect, else: from Duschinsky-spect
+      loglevel=re.findall(r"(?<=level=)[\w]",opt, re.I)
+      if loglevel==[]:
+	 invokeLogging()
+      else:
+	 invokeLogging(loglevel)
+      initial=re.findall(r"(?<=initial: )[\w.]+",f, re.I)
+      final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
+      assert len(initial)>0, 'no initial state found!'
+      assert len(final)>0, 'no final state found!'
+      for i in range(len(initial)):
+	 assert os.path.isfile(initial[i]) and os.access(initial[i], os.R_OK),\
+	       initial[i]+' is not a valid file name or not readable.'
+      for i in range(len(final)):
+	 assert os.path.isfile(final[i]) and os.access(final[i], os.R_OK),\
+	       final[i]+' is not a valid file name or not readable.'
+      for i in range(len(initial)):
+	 #read coordinates, force constant, binding energies from log-files and calculate needed quantities
+	 dim, Coord, mass, B, A, E=of.ReadLog(initial[i])
+	 if i is 0:# do only in first run
+	    F, CartCoord, X, P, Energy=of.quantity(dim, len(initial)+len(final)) #creates respective quantities (empty)
+	    logging.debug("Dimensions: "+ repr(dim)+ '\n Masses: '+ repr(mass**2))
+	 X[i],F[i],Energy[i]=B, A, E
+	 CartCoord[i]=Coord
+	 P[i]=of.GetProjector(X[i], dim, mass, CartCoord[i])
+	 logging.info('Projector onto internal coordinate subspace\n'+ repr(P[i]))
+      for i in range(len(final)):
+	 dim, Coord, mass, B, A, E=of.ReadLog(final[i]) 
+	 X[i],F[i],Energy[i]=B, A, E
+	 CartCoord[i]=Coord
+	 P[i]=of.GetProjector(X[i], dim, mass, CartCoord[i])
+	 logging.info('Projector onto internal coordinate subspace\n'+ repr(P[i]))
+      for i in range(len(initial)):
+	 for j in range(len(final)):
+	    logging.warning('difference of minimum energy between states: '+ repr(Energy[j+len(initial)]-Energy[i]))
+      for i in range(len(initial)):
+	 logging.debug('Cartesion coordinates of initial state '+repr(i)+':\n'+repr(CartCoord[i].T)+'\n')
+      for j in range(len(initial),len(final)+len(initial)):
+	 logging.debug('Cartesion coordinates of final state '+repr(j)+':\n'+repr(CartCoord[j].T)+'\n')
+      logging.info('forces:')
+      for i in range(len(initial)):
+	 logging.info(repr(i)+'. initial state: \n'+repr(F[i]))
+      for j in range(len(initial), len(final)+len(initial) ):
+	 logging.info(repr(j-len(initial))+'. final state: \n'+repr(F[j]))
+   
+      #Calculate Frequencies and normal modes
+      L, f, Lsorted=of.GetL(dim, mass,F, P)
+      J, K=of.Duschinsky(Lsorted, mass, dim, CartCoord)
+      #calculate HR-spect
+      HR, funi= of.HuangR(K, f)
+      if (re.search(r"makeLog", opt, re.I) is not None) is True:  
+	 for i in range(len(initial)): #### this needs to be enhanced
+	    of.replace(initial[i], f[i], Lsorted[i])
+
+   if np.mod(todo,4)>=2:
+      ###calculate FC-spect
+      opt=opts[1]
+      if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8:
+	 todo+=8
+
+   if np.mod(todo,8)>=4:
+      ###calculate Duschinsky-sppect
+      opt=opts[2]
+      if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8: 
+	 todo+=8
+   if np.mod(todo,16)>=8:
+      ###calculate Broadening
+      opt=opts[3]
+
    T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
-
-   logging.debug('indut-data: (number of files, names) '+repr(len(inputs))+' '+repr(inputs))
-   logging.info('START of calculations. initial-state file: '+\
-	 repr(inputs[0])+', final-state file: '+repr(inputs[1])+\
-	 '. The spectrum will be printed into '+repr(spectfile)+'.')
-   
-   # ==look for the investigated molecule and where opt/freq was researched ==
-   ContntInfo=of.Contentcheck(inputs) # function: makes tests referring integrity, gathers general information
-   if len(ContntInfo)!=2:
-      logging.error('one of the files has invalid data.')
-   assert len(ContntInfo)==2, 'one of the files has invalid data.'
-   logging.debug("Content info:\n"+ repr(ContntInfo))
-   for i in range(2): 
-      #read coordinates, force constant, binding energies from log-files and calculate needed quantities
-      dim, Coord, mass, B, A, E=of.ReadLog(ContntInfo[i][0])
-      if i is 0:# do only in first run
-	 F, CartCoord, X, P, Energy=of.quantity(dim) #create respective quantities (empty)
-      logging.debug("Dimensions: "+ repr(dim)+ '\n Masses: '+ repr(mass**2))
-      X[i],F[i],Energy[i]=B, A, E
-      CartCoord[i]=Coord
-      P[i]=of.GetProjector(X[i], dim, mass, CartCoord[i])
-      logging.debug('Projector onto internal coordinate subspace\n'+ repr(P[i]))
-   logging.info('difference of minimum energy between states:  '+ repr(Energy[1]-Energy[0]))
-   #Gauf=of.gaussianfreq(ContntInfo, dim) #read frequencies calculated by g09 from file
-   #Gauf/=Hartree2cm_1  #convert to atomic units
-   #F, P, CartCoord=of.TrafoCoord(F, P, CartCoord, dim)
-   logging.info('Cartesion coordinates of final system:\n'+repr(CartCoord[0].T)+'\n'+ repr(CartCoord[1].T))
-   logging.info('forces:\n'+repr(F[0])+'final state:\n'+repr(F[0]))
-   
-   #=== Calculate Frequencies and normal modes ===
-   L, f, Lsorted=of.GetL(dim, mass,F, P)
-   #L2=of.extractL(ContntInfo, dim)
-   #of.replace(inputs[0], f[1], Lsorted[1])
-   
-   ##=== Spectrum calculation ===
-   #J, K=of.Duschinsky(L2, mass, dim, CartCoord) #use gaussians normal modes
-   J, K=of.Duschinsky(Lsorted, mass, dim, CartCoord) #use own quantities
-   print 'Energies:', Energy[0], Energy[1]
-   print '0-0-transition:', (Energy[0]-Energy[1])*Hartree2cm_1
-
-   ##==calculate HR-Spectrum==
-   HR, funi= of.HuangR(K, f)
-   #linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], E0, 5, 5, T, "TPA")
-   linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], E0, 5, 5, T)
-   #of.outspect(61009, linspect, 3, spectfile)
-
-   #==calculate Duschinsky-Rotated Spectrum taking OPA into account==
-   #linspect=OPA.FCfOPA(J,K,f,Energy[0]-Energy[1],4, T, E0)
-   #of.outspect(61009, linspect, 3, spectfile)
    
 if __name__ == "__main__":
    main(sys.argv[1:])
-   
