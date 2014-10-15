@@ -1,0 +1,58 @@
+The smallscript is used as follows:
+
+==CALL ==
+if the script is located in the current folder
+ ./smallscript.py <input>
+if the script is located in a executable folder
+ smallscript.py <input>
+
+where <input> is a custom file specifying all calculations to be done (see sect. input)
+
+==INPUT==
+The smallscript can do four different tasks:
+1: Calculate Huang-Rhys factors using G09-log files by 			'HR-fact()'
+2: Calculate spectra in FC-picture using G09-log files or HR-factors by 'FC-spect()'
+3: Calculate Duschinsky-rotated spectra using G09-log files by 		'Duschinsky-spect()'
+4: Calculate broadened spectra from line-spectra by 			'Broadening()'
+
+where the G09-files need to include geometry and force-constant matrix for different electronic states.
+
+Further, the sources are specified as:
+'initial: ' 	specifies G09-log files for initial electronic states geometries (multiple files separated by ',')
+'final: '	specifies G09-log files for final electronic states geomitries
+'HR-file: '	specifies file containing HR-factors (1. column) and frequencies (second column)
+'line-spect: '	specifies file containing line-spectrum (intensity  frequency  [mode-number])
+
+The order of the arguments is not important; further they are read case-insensitive.
+If HR-fact() and FC-spect() are both specified in the same file, the newly calculated HR-factors are taken, even if HR-file is specified.
+
+===OPTIONS===
+1: HR-fact()
+makeLog		to create file in style of G09-log files
+print=<level>	specifies, how detailed the output should be printed
+		where level is: all, detailed, medium, important, short ; 
+2: FC-spect()
+print=<level>	specifies, how detailed the output should be printed
+		where level is: all, detailed, medium, important, short ; 
+broaden()	to calculate the broadened spectrum as well
+particles: 1, 2 OPA/TPA (if not specified: calculate OPA
+T=<number in K>  specifies temperature of system (default: 300K
+
+3: Duschinsky-spect()
+print=<level>	specifies, how detailed the output should be printed
+		where level is: all, detailed, medium, important, short ; 
+broaden()	to calculate the broadened spectrum as well
+
+4: Broadening() /broaden()
+T=		Temperature of equilibrated system
+gamma=		broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM)
+
+===SYNTAX OF FILES===
+HR-file:
+needs: Delta E=  <in cm^-1>
+       HR-fact           freq  <following: list of respective quantities>
+
+further the file may contain arbitrary additional information; hence the output-files of other smallscript-calculations can be used.
+
+line-spect:
+

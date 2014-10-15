@@ -9,20 +9,22 @@ def usage():
    print "usage: smallscript <input-file>"
 
 def invokeLogging(mode="important"):
-   logging.basicConfig(format='%(message)s')
    if mode in ['all', 'ALL', 'All']:
-      logging.basicConfig(filename='calculation.log',level=logging.DEBUG)
+      logging.basicConfig(filename='calculation.log',level=logging.DEBUG, format='%(message)s')
+      logging.debug('use log-level all')
    elif mode in ['detailed', 'DETAILED', 'Detailed']:
-      logging.basicConfig(filename='calculation.log',level=logging.INFO)
+      logging.basicConfig(filename='calculation.log',level=logging.INFO, format='%(message)s')
+      logging.info('use log-level detailed')
    elif mode in ['medium', 'MEDIUM','Medium']:
-      logging.basicConfig(filename='calculation.log',level=logging.WARNING)
+      logging.basicConfig(filename='calculation.log',level=logging.WARNING, format='%(message)s')
+      logging.warning('use log-level medium')
    elif mode in ['important', 'IMPORTANT','Important']:
-      logging.basicConfig(filename='calculation.log',level=logging.ERROR)
+      logging.basicConfig(filename='calculation.log',level=logging.ERROR, format='%(message)s')
    elif mode in ['short', 'SHORT','Short']:
-      logging.basicConfig(filename='calculation.log',level=logging.CRITICAL)
+      logging.basicConfig(filename='calculation.log',level=logging.CRITICAL, format='%(message)s')
    else:
-      logging.basicConfig(filename='calculation.log',level=logging.ERROR)
-      logging.error("logging-mode not recognized. Using 'error' instead")
+      logging.basicConfig(filename='calculation.log',level=logging.ERROR, format='%(message)s')
+      logging.error("logging-mode not recognized. Using 'important' instead")
    logging.info('Initializing the log-file')
 
 def main(argv=None):
@@ -39,29 +41,27 @@ def main(argv=None):
    todo=0
    if (re.search(r"HR-fact",f, re.I) is not None) is True:
       todo+=1
-   opts.append(re.findall(r"(?<=HR-fact)[\w\d.,=() -]",f,re.I))
+   opts.append(re.findall(r"(?<=HR-fact)[\w.,\(\) \=:\-]+", f, re.I))
    if (re.search(r"FC-spect",f, re.I) is not None) is True:
       if (re.search(r"HR-file: ",f, re.I) is not None) is True:
 	 #calculation of HR-facts not neccecary
 	 todo=2
       else: #if 
 	 todo=3
-   opts.append(re.findall(r"(?<=FC-spect)[\w\d.=,() -]+",f,re.I))
+   opts.append(re.findall(r"(?<=FC-spect)[\w\d.\=,\(\): -]+",f,re.I))
    if (re.search(r"Duschinsky-spect",f, re.I) is not None) is True:
       if todo==0:
 	 todo=5
       else:
 	 todo+=4
-   opts.append(re.findall(r"(?<=Duschinsky-spect)[\w\d=.(), -]",f,re.I))
+   opts.append(re.findall(r"(?<=Duschinsky-spect)[\w:\d\=.\(\), -]+",f,re.I))
    if (re.search(r"Broadening",f, re.I) is not None) is True:
       todo+=8
-   opts.append(re.findall(r"(?<=Broadening\()[\w\d.,()= -](?==\))",f,re.I))
+   opts.append(re.findall(r"(?<=Broadening\()[\w\d.,:\(\)\= -](?==\))",f,re.I))
    if todo>=16 or todo==0 or todo in [4,6,9,13]:
       print "options for calculation don't make sense. Please check the input-file!"
       return 0
-   print opts
 
-   ############delete () from opts
    if np.mod(todo,2)==1: 
       #calculation up to HR-facts needed (FC- or Duschinsky spect)
       if opts[0]!=[]:
@@ -71,78 +71,71 @@ def main(argv=None):
       elif opts[2]!=[]:
 	 opt=opts[2][0]
       else:
-	  print 'why am I here?'
+	  print 'You want nothing to be calculated? Here it is:\n'
 	  return 2
       #invoke logging: take options of HR-fact, if exists, else: from FC-spect, else: from Duschinsky-spect
-      loglevel=re.findall(r"(?<=level=)[\w]",opt, re.I)
+      loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
 	 invokeLogging()
       else:
-	 invokeLogging(loglevel)
+	 invokeLogging(loglevel[0])
       initial=re.findall(r"(?<=initial: )[\w.]+",f, re.I)
       final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
-      assert len(initial)>0, 'no initial state found!'
-      assert len(final)>0, 'no final state found!'
-      for i in range(len(initial)):
-	 assert os.path.isfile(initial[i]) and os.access(initial[i], os.R_OK),\
-	       initial[i]+' is not a valid file name or not readable.'
-      for i in range(len(final)):
-	 assert os.path.isfile(final[i]) and os.access(final[i], os.R_OK),\
-	       final[i]+' is not a valid file name or not readable.'
-      for i in range(len(initial)):
-	 #read coordinates, force constant, binding energies from log-files and calculate needed quantities
-	 dim, Coord, mass, B, A, E=of.ReadLog(initial[i])
-	 if i is 0:# do only in first run
-	    F, CartCoord, X, P, Energy=of.quantity(dim, len(initial)+len(final)) #creates respective quantities (empty)
-	    logging.debug("Dimensions: "+ repr(dim)+ '\n Masses: '+ repr(mass**2))
-	 X[i],F[i],Energy[i]=B, A, E
-	 CartCoord[i]=Coord
-	 P[i]=of.GetProjector(X[i], dim, mass, CartCoord[i])
-	 logging.info('Projector onto internal coordinate subspace\n'+ repr(P[i]))
-      for i in range(len(final)):
-	 dim, Coord, mass, B, A, E=of.ReadLog(final[i]) 
-	 X[i],F[i],Energy[i]=B, A, E
-	 CartCoord[i]=Coord
-	 P[i]=of.GetProjector(X[i], dim, mass, CartCoord[i])
-	 logging.info('Projector onto internal coordinate subspace\n'+ repr(P[i]))
-      for i in range(len(initial)):
-	 for j in range(len(final)):
-	    logging.warning('difference of minimum energy between states: '+ repr(Energy[j+len(initial)]-Energy[i]))
-      for i in range(len(initial)):
-	 logging.debug('Cartesion coordinates of initial state '+repr(i)+':\n'+repr(CartCoord[i].T)+'\n')
-      for j in range(len(initial),len(final)+len(initial)):
-	 logging.debug('Cartesion coordinates of final state '+repr(j)+':\n'+repr(CartCoord[j].T)+'\n')
-      logging.info('forces:')
-      for i in range(len(initial)):
-	 logging.info(repr(i)+'. initial state: \n'+repr(F[i]))
-      for j in range(len(initial), len(final)+len(initial) ):
-	 logging.info(repr(j-len(initial))+'. final state: \n'+repr(F[j]))
-   
-      #Calculate Frequencies and normal modes
-      L, f, Lsorted=of.GetL(dim, mass,F, P)
-      J, K=of.Duschinsky(Lsorted, mass, dim, CartCoord)
-      #calculate HR-spect
-      HR, funi= of.HuangR(K, f)
-      if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-	 for i in range(len(initial)): #### this needs to be enhanced
-	    of.replace(initial[i], f[i], Lsorted[i])
+      HR, funi, Energy=of.CalculationHR(initial, final, opt)
 
    if np.mod(todo,4)>=2:
-      ###calculate FC-spect
-      opt=opts[1]
-      if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8:
+      #calculate FC-spect
+      opt=opts[1][0]
+      loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
+      if loglevel==[]:
+	 invokeLogging()
+      else:
+	 invokeLogging(loglevel[0])
+      if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
 	 todo+=8
-
+      try: 
+	 #test, whether HR-facts were calculated above
+	 HR
+      except NameError:
+	 HRfile=re.findall(r"(?<=HR-file: )[\w.,\/\-]+",f, re.I)
+	 assert len(HRfile)==1, 'There must be exactly one file specified containing HR-facts.'
+	 HR, funi, E=of.ReadHR(HRfile[0])
+	 Energy=np.zeros(2)
+	 Energy[0]=E
+	 Energy[1]=0
+      if (re.search(r"makeLog", opt, re.I) is not None) is True:  
+	 for i in range(len(initial)): #### this needs to be enhanced
+   	    replace(initial[i], f[i], Lsorted[i])
+      T=re.findall(r"(?<=T=)[ \=\s\d\.]+", opt, re.M)
+      if len(T)==0:
+	 T=300
+      T=float(T[0])
+      T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
+      part=re.findall(r"(particles:)[\s\d]*", opt, re.I)
+      #############################################make this availible for multiple files!!
+      if part==1:
+	 linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], 0, 5, 5, T, "OPA")
+      elif part==2:
+	 linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], 0, 5, 5, T, "TPA")
+      else:
+	 linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], 0, 5, 5, T)
    if np.mod(todo,8)>=4:
-      ###calculate Duschinsky-sppect
-      opt=opts[2]
+      #calculate Duschinsky-spect
+      opt=opts[2][0]
       if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8: 
 	 todo+=8
+      try: #test, whether HR-facts were calculated above
+	 HR
+      except NameError:
+	 logging.critical('fatal error: No calculation of first part. But it is required')
+	 return 2
+   #linspect=OPA.FCfOPA(J,K,f,Energy[0]-Energy[1],4, T, E0)
    if np.mod(todo,16)>=8:
       ###calculate Broadening
-      opt=opts[3]
+      opt=opts[3][0] #or from opts[1], opts[2]!!!
+   #T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
+   #of.outspect(61009, linspect, 3, spectfile)
 
-   T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
    
 if __name__ == "__main__":
    main(sys.argv[1:])
