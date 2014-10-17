@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import numpy as np, math
+import numpy as np, math, logging
 from copy import deepcopy
 
 Hartree2cm_1=219474.63 
@@ -43,6 +43,7 @@ class OPA:
    	       intens.append(self.mat[index][exc])
    	       ind.append(index)
    	       excs.append(exc)
+
 	       #print "diff", self.mat[index][exc],self.mat[index][-exc] #this should, in principle, coincide --> does!
       return intens, ind, excs #I need squares as intensities
 
@@ -175,18 +176,19 @@ def FCfOPA(J, K, f, Energy, N, T,E0):
 
    def makeLine(intens,E0, T, index, ex, Gamma, Gammap,E, n):
       F=np.zeros(( len(index),2 ))
-      print "frequency, intensity "
       for i in range(len(index)): 
 	 F[i][1]=(Gammap[index[i]][index[i]]*(ex[i]+0.5)-
    		   Gamma[index[i]][index[i]]*(n-ex[i]+0.5)+E)*Hartree2cm_1
 	 F[i][0]=intens[i]*intens[i]*np.exp((-Gamma[index[i]][index[i]]*ex[i]+E0)/T)
-	 print F[i][1], F[i][0], index[i]
+	 logging.critical(repr(F[i][1])+"  "+repr(F[i][0])+"  "+repr(index[i]))
       return np.array(F)
-
+   
+   np.shape(f)
    Gamma=np.diag(f[0])
    Gammap=np.diag(f[1]) # for final state
 
    linspect=[]
+   logging.critical("frequency,           intensity ,      mode")
    L2=CalcI00(len(K), Energy)
    #this is already extracted to linspect (using side-effects)
    L1=L2 

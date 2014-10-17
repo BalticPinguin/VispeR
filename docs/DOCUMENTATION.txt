@@ -42,10 +42,18 @@ T=<number in K>  specifies temperature of system (default: 300K
 print=<level>	specifies, how detailed the output should be printed
 		where level is: all, detailed, medium, important, short ; 
 broaden()	to calculate the broadened spectrum as well
+T=<number in K>  specifies temperature of system (default: 300K
 
 4: Broadening() /broaden()
 T=		Temperature of equilibrated system
 gamma=		broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM)
+grid=		specify grid: either a file (containing list of gridpoints) or three numbers separated by ','
+ 		specifying number of points (default: 5000), minimum energy, maximum energy
+		or one number: number of points (minimum and maximum will be taken from default
+linspect=	specifies file with a line-spectrum already calculated
+spectfile=	specifies file where the spectrum should be saved. 
+shape=		shape of broadening: gaussian (g) or lorentzian (l)
+to <n>PA	adds the calculation of n-particle approximation out of given OPA spectrum (n=2,3)
 
 ===SYNTAX OF FILES===
 HR-file:
@@ -56,3 +64,7 @@ further the file may contain arbitrary additional information; hence the output-
 
 line-spect:
 
+==PLANED ==
+accept some parameters (like T) as global ones -> if specified, local parameters are not taken into account
+add particle-possibilities for other states as well... /only OPA-> nPA ; Duschinsky with different nPA ...
+planned parameters for broadening: file to write in 

@@ -181,7 +181,7 @@ def CalculationHR(initial, final, opt):
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
       for i in range(len(initial)): #### this needs to be enhanced
 	 replace(initial[i], f[i], Lsorted[i])
-   return HR, funi, Energy
+   return HR, funi, Energy, J, K, f
 
 def Duschinsky(L, mass, dim, x):
    """
@@ -397,71 +397,6 @@ def HuangR(K, f): #what is with different frequencies???
       uniFall.append(uniF)
    return uniHRall, uniFall
 
-def outspect(gridpt, linspect, gamma, spectfile):
-   """This function calculates the broadened spectrum given the line spectrum, frequency-rage and output-file whose name is first argument. 
-   As basis-function a Lorentzian is assumed with a common width.
-   
-   **PARAMETERS:**
-   spectfile: file, the result is written in (ascii-table). In addition a graph is created and shown on the fly. This graph is not saved.
-   gridpt:    number of grid-points to be used for the calculation
-   linspect:  line-spectrum list (frequency, intensity) 
-   gamma:     broadening constant for the Lorentzians. It is the same for all peaks
-   
-   All parameters are obligatory."""
-   #sort spectrum with respect to size of elements
-   index=np.argsort(linspect[1],kind='heapsort')
-   linspect[1]=linspect[1][index]
-   linspect[0]=linspect[0][index]
-   #find transition with minimum intensity to be respected
-   minint=0
-   for i in range(len(linspect[1])):
-      if linspect[1][i]>=0.01*linspect[1][-1]:
-	 minint=i
-	 break
-   print 'neglect',minint,'transitions, use only ', len(linspect[1])-minint,' instead.'
-   print('minimal and maximal intensities:\n', linspect[1][minint], linspect[1][-1])
-   minfreq=np.min(linspect[0][minint:]) # min-freq of fluorescence
-   maxfreq=np.max(linspect[0][minint:]) # min-freq of fluorescence
-   print('maximal and minimal frequencies:\n', maxfreq, minfreq)
-   minfreq-=5*gamma
-   maxfreq+=5*gamma
-   omega=np.linspace(minfreq,maxfreq,gridpt)
-   spect=np.zeros(len(omega))
-
-   #truncate arrays and sort by index for further efficient processes
-   freq=linspect[0][minint:]
-   intens=linspect[1][minint:]
-   index=np.argsort(freq, kind='heapsort') #sort by freq
-   freq=freq[index]
-   intens=intens[index]
-   mini=0
-   print freq
-   for i in range(1,len(freq)):
-      if freq[i]>=5*gamma+freq[0]:
-	 maxi=i
-	 break
-   out = open(spectfile, "w")
-   for i in range(len(omega)): 
-      for j in range(maxi,len(freq)):
-	 if freq[j]>=5*gamma+omega[i]:
-	    maxi=j
-	    break
-      for j in range(max(0,mini),maxi):
-	 if freq[j]>=omega[i]-5*gamma:
-	    mini=j-1
-	    break
-      spect[i]=sum(intens[j]/np.pi*gamma/((omega[i]-freq[j])*(omega[i]-freq[j])+gamma*gamma)
-		  for j in range(mini, maxi))
-      #rearrange range to be taken into account...
-      out.write(u" '{0}'  '{1}'\n".format(omega[i] ,spect[i]))
-   out.close()
-   plt.plot(omega, spect)
-   plt.title('Broadened spectrum of Ir-PS')
-   plt.xlabel('Frequency [$cm^{-1}$]')
-   plt.ylabel('Intensity (arb. units)')
-   plt.show()
-   out.close()
-
 def quantity(dim, num_of_files):
    F=np.zeros((num_of_files, dim, dim)) 
    CartCoord=np.zeros((num_of_files, 3, dim/3))
@@ -649,104 +584,5 @@ def replace(files, freq, L):
 	    out.write(re.sub('replace nothing','by nothing', line)) #just write line as it is
       out.close()
 
-version=0.1
+version=0.2
 # End of functions_smsc.py
-
-def TrafoCoord(F, P, Coord, dim):
-   #assuming two files !! (more are impossible here...)
-   Y=np.zeros((dim,dim)) 
-   one=np.eye(dim)
-   S=np.zeros((3,3))
-   for i in range(3):
-      for j in range(3):
-	 S[i][j]=np.dot(Coord[0][i],Coord[1][j])
-      S[i]/=np.linalg.norm(S[i])
-   print 'Overlapmatrix of coordinates:\n', S
-   for i in range(3):
-      for j in range(3):
-	 S[i][j]=round(S[i][j])
-   print 'rounded overlapmatrix:\n', S
-   Coord[1]=np.dot(S,Coord[1])
-   for j in range(dim/3):
-      Y[3*j:3*j+3].T[3*j:3*j+3]=S
-   # Returning the read values
-   logging.debug( 'new Coords\n'+ repr(S)+'\n'+repr(Y))
-   F[1]=np.dot(np.dot(Y.T,F[1]),Y)
-   #print P[1]
-   #the following seems to have problems!!
-   P[1]=one-np.dot(np.dot(Y.T,one-P[1]),Y) #for second file: D -> YD (Y.T: redirect of axes)
-   #print P[1]
-   return F, P, Coord
-   #F, P, CartCoord=of.TrafoCoord(F, P, CartCoord, dim)
-
-def extractL(ContntInfo, dim):
-   for i in range(len(ContntInfo)): 
-      files=open(ContntInfo[i][0], "r") #open file and map it for better working
-      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
-      files.close
-      f1=re.findall(r" Atom  AN [\n\d XYZ.-]+", mapedlog, re.M)
-      mapedlog.close() 
-      Ltemp=[re.findall(r"[- ]\d.\d\d", f1[j]) for j in range(len(f1))]
-      assert len(Ltemp)>=0, 'PROGRAMM ERROR: file'+repr(ContntInfo[i][0])+ \
-	       ' does not contain frequency informations.\
-	       This should have been avoided above already.'
-      if i==0:
-	 L2=np.zeros((len(ContntInfo),dim,dim-6)) # similar to L
-      for k in range(len(Ltemp)): # 
-	 for j in range(len(Ltemp[k])): 
-	    L2[i][j%3+(j/9)*3][(j/3)%3+3*k]=Ltemp[k][j]
-      for k in range(len(L2[i][0])): #renormalization
-	 L2[i][:].T[k]/=np.sqrt(np.sum( L2[i][:].T[k]*L2[i][:].T[k]))
-   return L2
-   #L2=of.extractL(ContntInfo, dim) 
-
-def gaussianfreq(ContntInfo, dim):
-   """Extraction of the frequencies from g09-log file"""
-   ##read frequencies calculated by g09 from file
-   #Gauf=of.gaussianfreq(ContntInfo, dim) 
-   #Gauf/=Hartree2cm_1  #convert to atomic units
-   f=np.zeros((len(ContntInfo), dim-6))
-   for i in range(len(ContntInfo)): 
-      files=open(ContntInfo[i][0], "r") #open file and map it for better working
-      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
-      files.close
-      f1=re.findall(r" Frequencies -- [\d .-]+", mapedlog, re.M)# 
-      f2=[re.findall(r"[- ]\d+.\d+", f1[j]) for j in range(len(f1))]
-      s=0
-      for j in range(len(f2)):
-	 f[i][s:s+len(f2[j])]=f2[j]
-	 s+=len(f2[j])
-   return f
-
-def sort(f):
-   """
-   This function sorts float-arrays by absolute value (lowest argument first arguments)
-
-   **PARAMETERS:**
-   f:  array to be sorted
-
-   **RETURNS:**
-   order of indices of f
-
-   **NOTE:**
-   the elements of f should not exceed 3e300 (otherwise the sorting will fail) 
-   of indices sorted by the size of respective elements.
-   The sorting by the size of elemens in A (largest first) can be done by 
-
-   index=sort(A) 
-   B=A[index]
-
-   where B will be the sorted array.
-   To reverse the order, use
-
-   B=A[-index]
-
-   instead.
-   """
-   index=np.zeros(len(f), dtype=int)
-   tmp=deepcopy(f) #for avoiding side effects
-   for i in range(len(f)):
-      index[i]=np.argmin(np.abs(tmp)) # there can be frequencies < 0 as well...
-      tmp[index[i]]=5e+300 # this can be considered as smaller than all elements...
-   return index
-
