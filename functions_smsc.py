@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, re, mmap, os, sys, math, logging, matplotlib.pyplot as plt
-from copy import deepcopy # for function sort(). Probably find a better function!!
+import numpy as np, re, mmap, os.path, logging, math
 #for python-3 compatibility
 from io import open 
 
@@ -60,11 +59,13 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
       """
       logging.debug('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
       J=len(intens[0])
-      spect=np.zeros((2,len(intens)*len(intens[0])+1))
+      spect=np.zeros((3,len(intens)*len(intens[0])+1))
       spect[1][0]=FC00 #0->0 transition
       spect[0][0]=E
+      spect[2][0]=0
       for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
 	 for j in range(J):
+	    spect[2][i*J+j+1]=i
 	    spect[1][i*J+j+1]=intens[i][j]
 	    spect[0][i*J+j+1]=freqs[i][j]
       return spect
@@ -81,11 +82,14 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
    FC00=tmp*tmp*1e2
    uency00=E*Hartree2cm_1 #zero-zero transition
    if approx=="OPA":
-      logging.critical("Line-spectrum in Onp-Particle approximation:")
+      logging.critical("Line-spectrum in One-Particle approximation:")
    elif approx=="TPA":
       logging.critical("Line-spectrum in Two-Particle approximation:")
-   logging.critical( "frequency     intensity  ")
-   logging.critical(repr(E*Hartree2cm_1)+" "+repr(FC00))
+   log=open("calculation.log", "a")
+   log.write(u"frequency     intensity  ")
+   log.write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
+   #logging.critical( "frequency     intensity  ")
+   #logging.critical(repr(E*Hartree2cm_1)+" "+repr(FC00))
    #this is OPA and valid in any case
    for a in range(n):
       temp=FCeqf(HR[a],0,0)
@@ -97,7 +101,8 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
 	    tmp=FCeqf(HR[a], i, j)/temp
 	    FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
 	    uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	    logging.critical(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a))
+	    log.write(u" {0}\n".format(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a)))
+	    #logging.critical(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a))
    if approx=="TPA":
       ind=0
       for a in range(n):
@@ -120,8 +125,10 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
 			tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
 			FC2[0][ind]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i+freq[b]*l)/T)
 			uency2[0][ind]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
-			logging.critical(repr(uency2[0][ind])+"  "+repr(FC2[0][ind])+"  "+repr(a*n+b))
+			log.write(u" {0}\n".format(repr(uency2[0][ind])+"  "+repr(FC2[0][ind])+"  "+repr(a*n+b)))
+			#logging.critical(repr(uency2[0][ind])+"  "+repr(FC2[0][ind])+"  "+repr(a*n+b))
 			ind+=1
+   log.close()
    FC00*=np.exp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    if approx=="TPA":
@@ -294,7 +301,7 @@ def GetL(dim, mass, F, D):
       if np.any(ftemp<0):
 	 logging.error('Frequencies smaller than 0 occured. The absolute values are used in the following.')
 	 ftemp=np.abs(ftemp)
-      index=sort(np.real(ftemp)) # ascending sorting f
+      index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       L[i]=np.real(Ltemp[index]).T[:].T[6:].T
       logging.debug("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
@@ -386,15 +393,20 @@ def HuangR(K, f): #what is with different frequencies???
 	 funi[i]=np.abs(funi[i])
       uniHR=[]
       uniF=[]
-      logging.critical('HR-fact           freq')
+
+      log=open("calculation.log", "a")
+      log.write(u'HR-fact           freq')
+      #logging.critical('HR-fact           freq')
       for j in range(len(sortuni[i])):
 	 #select all 'big' HR-factors 
 	 if sortuni[i][-j]>0.02: 
 	    uniHR.append(sortuni[i][-j])
 	    uniF.append(funi[i][-j])
-	    logging.critical(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1))
+	    log.write(u"{0}".format(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1)))
+	    #logging.critical(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1))
       uniHRall.append(uniHR)
       uniFall.append(uniF)
+   log.close
    return uniHRall, uniFall
 
 def quantity(dim, num_of_files):
@@ -483,7 +495,7 @@ def ReadLog(fileN):
 	    moi[j][k]=np.sum(mass*mass*(Coord[j]*Coord[k]))
    logging.debug("Moments of intertia as read from log file\n"+repr(moi))
    diagI,X=np.linalg.eig(moi) # this can be shortened of course!
-   index=sort(diagI)
+   index=np.argsort(diagI, kind="heapsort")
    #X=np.matrix(X[index]) #sorting by eigenvalues
    X=np.matrix(X) #sorting by eigenvalues
    diagI=diagI[index]
@@ -584,5 +596,5 @@ def replace(files, freq, L):
 	    out.write(re.sub('replace nothing','by nothing', line)) #just write line as it is
       out.close()
 
-version=0.2
+version=1.1
 # End of functions_smsc.py

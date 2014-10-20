@@ -1,8 +1,11 @@
 #!/usr/bin/python
 #include [[functions_smsc.py]]
 import functions_smsc as of 
+#include [[OPA.py]]
 import OPA 
+#include [[broaden.py]]
 import broaden as br
+#include further dicts
 import sys, os, logging, re, mmap, numpy as np
 
 def usage():
@@ -25,7 +28,6 @@ def invokeLogging(mode="important"):
    else:
       logging.basicConfig(filename='calculation.log',level=logging.ERROR, format='%(message)s')
       logging.error("logging-mode not recognized. Using 'important' instead")
-   logging.info('Initializing the log-file')
 
 def main(argv=None):
    assert len(argv)==1, 'exactly one argument required.'
@@ -45,7 +47,7 @@ def main(argv=None):
    if (re.search(r"FC-spect",f, re.I) is not None) is True:
       if (re.search(r"HR-file: ",f, re.I) is not None) is True:
 	 #calculation of HR-facts not neccecary
-	 todo=2
+	 todo+=2
       else: #if 
 	 todo=3
    opts.append(re.findall(r"(?<=FC-spect)[\w\d\.\=,\(\): -]+",f,re.I))
@@ -91,8 +93,6 @@ def main(argv=None):
 	 invokeLogging()
       else:
 	 invokeLogging(loglevel[0])
-      if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
-	 todo+=8
       try: 
 	 #test, whether HR-facts were calculated above
 	 HR
@@ -108,16 +108,24 @@ def main(argv=None):
 	 T=300
       else:
 	 T=float(T[0])
-      logging.info("temperature of system:"+repr(T))
+      logging.info("temperature of system: "+repr(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       part=re.findall(r"(particles:)[\s\d]*", opt, re.I)
-      #############################################make this availible for multiple files!!
       if part==1:
-	 linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], 0, 5, 5, T, "OPA")
+	 for i in range(len(initial)):
+	    linspect=of.calcspect(HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "OPA")
       elif part==2:
-	 linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], 0, 5, 5, T, "TPA")
+	 for i in range(len(initial)):
+	    linspect=of.calcspect(HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "TPA")
       else:
-	 linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], 0, 5, 5, T)
+	 for i in range(len(initial)):
+	    linspect=of.calcspect(HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T)
+      if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
+	 if opts[2]!=[]:
+	    ## i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated
+	    secondlinspect=linspect
+	 if np.mod(todo,16)<8:
+	    todo+=8
 
    if np.mod(todo,8)>=4:
       #calculate Duschinsky-spect
@@ -128,7 +136,8 @@ def main(argv=None):
       else:
 	 invokeLogging(loglevel[0])
       if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8: 
-	 todo+=8
+	 if np.mod(todo,16)<8:
+	    todo+=8
       try: #test, whether HR-facts were calculated above
 	 J
       except NameError:
@@ -146,16 +155,12 @@ def main(argv=None):
 
    if np.mod(todo,16)>=8:
       #calculate Broadening
-      if opts[3]!=[]:
-	 opt=opts[3][0]
-      elif opts[2]!=[]:
-	 opt=opts[2][0]
-	 ############## take only sub-part of opt (where broaden) is specified...
-	 ############## if not specified at all: take part of opts[1]
-      elif opts[1]!=[]:
-	 opt=opts[1][0]
-	 ############## take only sub-part of opt (where broaden) is specified...
-	 ############## if not specified at all: error!
+      if (re.search(r"(?<=broaden)[\w\.\-\= ,()]", opts[1][0], re.M) is not None) is True:
+	 opt=re.findall(r"(?<=broaden)[\w\.\-\= ,()]", opts[1][0], re.M)[0]
+      elif (re.search(r"(?<=broaden)[\w\.\-\= ,()]", opts[2][0], re.M) is not None) is True:
+	 opt=re.findall(r"(?<=broaden)[\w\.\-\= ,()]", opts[2][0], re.M)[0]
+      elif (re.search(r"(?<=broaden)[\w\.\-\= ,()]", opts[1][0], re.M) is not None) is True:
+	 opt=re.findall(r"(?<=broaden)[\w\.\-\= ,()]", opts[1][0], re.M)[0]
       else:
 	  print 'You want nothing to be calculated? Here it is:\n nothing'
 	  return 2
@@ -172,12 +177,13 @@ def main(argv=None):
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
 
       try:
-	 linspect ### does it have correct structure?
+	 linspect 
       except NameError:
 	 linespectrum=re.findall(r"(?<=linspect: )[\w\.]+", f, re.I)
 	 if linespectrum==[]:
 	    linespectrum=re.findall(r"(?<=linespect:)[ \w\.]+", f, re.I)
-	 assert len(linespectrum)==1, "if no spectrum calculation was done before, please specify a file containing line-spectrum."
+	 assert len(linespectrum)==1, "if no spectrum calculation was done before"+\
+				 ", please specify a file containing line-spectrum."
 	 freq=[]
 	 intens=[]
 	 mode=[]
@@ -194,8 +200,19 @@ def main(argv=None):
 	 linspect[2]=np.matrix(mode)
       ################## change this to make it work with multiple files!!
       br.outspect(T, opt, linspect)
-      ### if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
+      ###if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
 	 #br.outspect(T, opt, linspect, Energy-difference)
+      try:
+	 # if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...
+	 secondlinspect
+	 opt=opts[2][0]
+	 br.outspect(T, opt, linspect)
+      except NameError:
+	 opt=opts[0] #do something arbitrary
+
+   logging.error("end of calculation reached. Normal exit.")
    
 if __name__ == "__main__":
    main(sys.argv[1:])
+
+version=1.1

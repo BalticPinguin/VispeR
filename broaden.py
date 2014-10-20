@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # filename: broadening.py
-import numpy as np, sys, re, logging
-from copy import deepcopy # for function sort(). Probably find a better function!!
+import numpy as np, re, logging
 # Below are the conversion factors and fundamental constant
 
 def handel_input(opt):
@@ -119,7 +118,6 @@ def outspect(T, opt, linspect, E=0):
 
    #sort spectrum with respect to size of elements
    index=np.argsort(linspect[1],kind='heapsort')
-   #index=sort(linspect[1])
    linspect[1]=linspect[1][index]
    linspect[2]=linspect[2][index]
    linspect[0]=linspect[0][index]
@@ -202,7 +200,9 @@ def outspect(T, opt, linspect, E=0):
    if spectfile==None:
       spectfile="/dev/null" #discart spectrum
    out = open(spectfile, "w")
-   logging.critical("broadened spectrum:\n frequency      intensity")
+   log = open("calculation.log", "a")
+   log.write("broadened spectrum:\n frequency      intensity\n")
+   #logging.critical("broadened spectrum:\n frequency      intensity")
    if shape=='g':
       for i in range(len(omega)): 
      	 for j in range(maxi,len(freq)):
@@ -217,7 +217,8 @@ def outspect(T, opt, linspect, E=0):
 		  np.exp(-(omega[i]-freq[j])*(omega[i]-freq[j])/(2*sigma*sigma))
 		  for j in range(mini, maxi))
 	 out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
-	 logging.critical(u" {0}  {1}".format(omega[i] ,spect[i]))
+	 log.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+	 #logging.critical(u" {0}  {1}".format(omega[i] ,spect[i]))
    else:  #shape=='l':
       for i in range(len(omega)): 
 	 for j in range(maxi,len(freq)):
@@ -231,8 +232,10 @@ def outspect(T, opt, linspect, E=0):
 	 spect[i]=sum(intens[j]/np.pi*gamma/((omega[i]-freq[j])*(omega[i]-freq[j])+gamma*gamma)
 		  for j in range(mini, maxi))
 	 out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
-	 logging.critical(u" {0}  {1}".format(omega[i] ,spect[i]))
+	 log.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+	 #logging.critical(u" {0}  {1}".format(omega[i] ,spect[i]))
+   log.close()
    out.close()
 
-version=1.0
+version=1.1
 # End of broadening.py

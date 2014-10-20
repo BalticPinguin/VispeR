@@ -1,0 +1,5 @@
+The smallscript is a python-programme to calculate the vibronic spectra using G09-log files.
+There are several options (as the picture to calculate it) and further parameters as temperature to set and so on.
+For details about the syntax see docs/DOCUMENTATION.txt.
+
+for installation of smallscript: run 'python setup.py install'

@@ -20,9 +20,7 @@
       <p>include <a href="functions_smsc.html">functions_smsc.py</a></p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">functions_smsc</span> <span class="kn">as</span> <span class="nn">of</span> 
-<span class="kn">import</span> <span class="nn">logging</span> <span class="o">,</span><span class="nn">sys</span><span class="o">,</span> <span class="nn">getopt</span><span class="o">,</span> <span class="nn">OPA</span>
-<span class="n">Hartree2cm_1</span><span class="o">=</span><span class="mf">219474.63</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">functions_smsc</span> <span class="kn">as</span> <span class="nn">of</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -31,17 +29,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
-      
+      <p>include <a href="OPA.html">OPA.py</a></p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">usage</span><span class="p">():</span>
-   <span class="k">print</span><span class="p">(</span><span class="s">&quot;usage: smallscipt.py[-o spectfile | -l logging | -t Temp | -e Energy]  arg1 arg2 &quot;</span><span class="p">)</span>
-   <span class="k">print</span><span class="p">(</span><span class="s">&quot;spectfile: (not nonobligatory) filename for spectrum-information&quot;</span><span class="p">)</span>
-   <span class="k">print</span><span class="p">(</span><span class="s">&quot;logging:   (default: error) debug-mode&quot;</span><span class="p">)</span>
-   <span class="k">print</span><span class="p">(</span><span class="s">&quot;Temp:      (default: 300K) at the moment not used&quot;</span><span class="p">)</span>
-   <span class="k">print</span><span class="p">(</span><span class="s">&quot;arg1:      initial-state file&quot;</span><span class="p">)</span>
-   <span class="k">print</span><span class="p">(</span><span class="s">&quot;arg2:      final-state file</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-   <span class="k">print</span><span class="p">(</span><span class="s">&quot;or just call with &#39;-h&#39; to see this help&quot;</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">OPA</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -50,20 +41,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
       </div>
-      
+      <p>include <a href="broaden.html">broaden.py</a></p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">invokeLogging</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s">&quot;ERROR&quot;</span><span class="p">):</span>
-   <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;debug&#39;</span><span class="p">,</span><span class="s">&#39;DEBUG&#39;</span><span class="p">,</span><span class="s">&#39;Debug&#39;</span><span class="p">]:</span>
-      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
-   <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;info&#39;</span><span class="p">,</span><span class="s">&#39;INFO&#39;</span><span class="p">,</span><span class="s">&#39;Info&#39;</span><span class="p">]:</span>
-      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-   <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="s">&#39;ERROR&#39;</span><span class="p">,</span><span class="s">&#39;Error&#39;</span><span class="p">]:</span>
-      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-   <span class="k">else</span><span class="p">:</span>
-      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-      <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;logging-mode not recognized. Using &#39;error&#39; instead&quot;</span><span class="p">)</span>
-   <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Initializing the log-file&#39;</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">broaden</span> <span class="kn">as</span> <span class="nn">br</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -72,10 +53,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
-      <p>script for the spectrum-calculation using two log-files from (see usage)</p>
+      <p>include further dicts</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">logging</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -84,13 +65,11 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-4'>#</a>
       </div>
-      <p>09 frequency calculations (input-argument 1 (initial state) and 2(final state))</p>
-<p>he program requires the non-standard libraries
-umpy
-atplotlib (this can be excluded easily, see README)</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">usage</span><span class="p">():</span>
+   <span class="k">print</span> <span class="s">&quot;usage: smallscript &lt;input-file&gt;&quot;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -99,48 +78,26 @@ atplotlib (this can be excluded easily, see README)</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
-      <p>===handling of input-arguments:===
-Input(sys.argv[2]) #just ignore further argements!</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">spectfile</span><span class="o">=</span><span class="s">&#39;/dev/null&#39;</span> <span class="c"># by default: discart broadened spectrum</span>
-   <span class="n">E0</span><span class="o">=</span><span class="mi">0</span>
-   <span class="n">T</span><span class="o">=</span><span class="mi">300</span>
-   <span class="k">if</span> <span class="n">argv</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-      <span class="n">argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-   <span class="k">try</span><span class="p">:</span>
-      <span class="n">opts</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="s">&#39;h:o:l:t:e:&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;help&quot;</span><span class="p">,</span> <span class="s">&quot;logging=&quot;</span> <span class="p">,</span><span class="s">&quot;out=&quot;</span><span class="p">,</span> <span class="s">&quot;Temperature=&quot;</span><span class="p">,</span> <span class="s">&quot;Energy=&quot;</span><span class="p">])</span>
-   <span class="k">except</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-      <span class="k">print</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
-      <span class="n">usage</span><span class="p">()</span>
-      <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-   <span class="k">if</span> <span class="n">opts</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;-h&#39;</span><span class="p">,</span> <span class="s">&#39;--help&#39;</span><span class="p">]:</span>
-      <span class="n">usage</span><span class="p">()</span>
-      <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
-   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
-      <span class="n">inputs</span><span class="o">=</span><span class="n">args</span>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">invokeLogging</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s">&quot;important&quot;</span><span class="p">):</span>
+   <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;all&#39;</span><span class="p">,</span> <span class="s">&#39;ALL&#39;</span><span class="p">,</span> <span class="s">&#39;All&#39;</span><span class="p">]:</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;use log-level all&#39;</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;detailed&#39;</span><span class="p">,</span> <span class="s">&#39;DETAILED&#39;</span><span class="p">,</span> <span class="s">&#39;Detailed&#39;</span><span class="p">]:</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;use log-level detailed&#39;</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;medium&#39;</span><span class="p">,</span> <span class="s">&#39;MEDIUM&#39;</span><span class="p">,</span><span class="s">&#39;Medium&#39;</span><span class="p">]:</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s">&#39;use log-level medium&#39;</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;important&#39;</span><span class="p">,</span> <span class="s">&#39;IMPORTANT&#39;</span><span class="p">,</span><span class="s">&#39;Important&#39;</span><span class="p">]:</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;short&#39;</span><span class="p">,</span> <span class="s">&#39;SHORT&#39;</span><span class="p">,</span><span class="s">&#39;Short&#39;</span><span class="p">]:</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
    <span class="k">else</span><span class="p">:</span>
-      <span class="k">print</span> <span class="s">&quot;log-files&quot;</span><span class="p">,</span><span class="n">args</span><span class="p">,</span><span class="s">&quot; are miss-typed or don&#39;t exist.</span><span class="se">\n</span><span class="s">&quot;</span>
-      <span class="k">print</span> <span class="n">opts</span>
-      <span class="n">usage</span><span class="p">()</span>
-      <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-   <span class="k">for</span> <span class="n">opt</span><span class="p">,</span><span class="n">s</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
-      <span class="k">if</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;-o&#39;</span><span class="p">,</span> <span class="s">&#39;--out&#39;</span><span class="p">]:</span>
-	 <span class="n">spectfile</span><span class="o">=</span><span class="n">s</span>
-      <span class="k">elif</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;-l&#39;</span><span class="p">,</span> <span class="s">&#39;--logging&#39;</span><span class="p">]:</span>
-	 <span class="n">invokeLogging</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-      <span class="k">elif</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;-t&#39;</span><span class="p">,</span><span class="s">&#39;--Temperature&#39;</span><span class="p">]:</span>
-	 <span class="n">T</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-      <span class="k">elif</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;-e&#39;</span><span class="p">,</span><span class="s">&#39;--Energy&#39;</span><span class="p">]:</span>
-	 <span class="n">E0</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="c">#test, whether s is an int</span>
-   <span class="k">if</span> <span class="p">[</span><span class="s">&#39;-l&#39;</span><span class="p">,</span> <span class="s">&#39;--logging&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
-      <span class="n">invokeLogging</span><span class="p">()</span>
-   <span class="n">T</span><span class="o">*=</span><span class="mf">8.6173324e-5</span><span class="o">/</span><span class="mf">27.21138386</span> <span class="c"># multiplied by k_B in hartree/K</span>
-
-   <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;indut-data: (number of files, names) &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">))</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">inputs</span><span class="p">))</span>
-   <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;START of calculations. initial-state file: &#39;</span><span class="o">+</span>\
-	 <span class="nb">repr</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;, final-state file: &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span>\
-	 <span class="s">&#39;. The spectrum will be printed into &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">spectfile</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;.&#39;</span><span class="p">)</span></pre></div>
+      <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s">&#39;calculation.log&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%(message)s</span><span class="s">&#39;</span><span class="p">)</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;logging-mode not recognized. Using &#39;important&#39; instead&quot;</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -149,15 +106,26 @@ Input(sys.argv[2]) #just ignore further argements!</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-6'>#</a>
       </div>
-      <h2><span id="look-for-the-investigated-molecule-and-where-opt/freq-was-researched" href="look-for-the-investigated-molecule-and-where-opt/freq-was-researched">look for the investigated molecule and where opt/freq was researched </span></h2>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">ContntInfo</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">Contentcheck</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span> <span class="c"># function: makes tests referring integrity, gathers general information</span>
-   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ContntInfo</span><span class="p">)</span><span class="o">!=</span><span class="mi">2</span><span class="p">:</span>
-      <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;one of the files has invalid data.&#39;</span><span class="p">)</span>
-   <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ContntInfo</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">,</span> <span class="s">&#39;one of the files has invalid data.&#39;</span>
-   <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Content info:</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">ContntInfo</span><span class="p">))</span>
-   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+   <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;exactly one argument required.&#39;</span>
+   <span class="k">try</span><span class="p">:</span>
+      <span class="n">infile</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">f</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">infile</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">infile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+   <span class="k">except</span> <span class="ne">IOError</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s">&quot;file&quot;</span><span class="p">,</span> <span class="n">inputf</span><span class="p">,</span> <span class="s">&quot;not found.&quot;</span>
+      <span class="n">usage</span><span class="p">()</span>
+      <span class="k">return</span> <span class="mi">2</span>
+   <span class="n">opts</span><span class="o">=</span><span class="p">[]</span>
+   <span class="n">todo</span><span class="o">=</span><span class="mi">0</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;HR-fact&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+      <span class="n">todo</span><span class="o">+=</span><span class="mi">1</span>
+   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=HR-fact)[\w.,\(\) \=:\-]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;FC-spect&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;HR-file: &quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -166,18 +134,27 @@ Input(sys.argv[2]) #just ignore further argements!</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-7'>#</a>
       </div>
-      <p>read coordinates, force constant, binding energies from log-files and calculate needed quantities</p>
+      <p>calculation of HR-facts not neccecary</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">ReadLog</span><span class="p">(</span><span class="n">ContntInfo</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
-      <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span><span class="c"># do only in first run</span>
-	 <span class="n">F</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Energy</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">quantity</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="c">#create respective quantities (empty)</span>
-      <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Dimensions: &quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span><span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s"> Masses: &#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">mass</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
-      <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">Energy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">E</span>
-      <span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">Coord</span>
-      <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">GetProjector</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dim</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-      <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Projector onto internal coordinate subspace</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-   <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;difference of minimum energy between states:  &#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></pre></div>
+      <div class="highlight"><pre>	 <span class="n">todo</span><span class="o">+=</span><span class="mi">2</span>
+      <span class="k">else</span><span class="p">:</span> <span class="c">#if </span>
+	 <span class="n">todo</span><span class="o">=</span><span class="mi">3</span>
+   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=FC-spect)[\w\d\.\=,\(\): -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;Duschinsky-spect&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">todo</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+	 <span class="n">todo</span><span class="o">=</span><span class="mi">5</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="n">todo</span><span class="o">+=</span><span class="mi">4</span>
+   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=Duschinsky-spect)[\w:\d\=.\(\), -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
+   <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;Broadening&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+      <span class="n">todo</span><span class="o">+=</span><span class="mi">8</span>
+   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=Broadening)[\w\d\.,:\(\)\= -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
+   <span class="k">if</span> <span class="n">todo</span><span class="o">&gt;=</span><span class="mi">16</span> <span class="ow">or</span> <span class="n">todo</span><span class="o">==</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">todo</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">13</span><span class="p">]:</span>
+      <span class="k">print</span> <span class="s">&quot;options for calculation don&#39;t make sense. Please check the input-file!&quot;</span>
+      <span class="k">return</span> <span class="mi">0</span>
+
+   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -186,13 +163,18 @@ Input(sys.argv[2]) #just ignore further argements!</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-8'>#</a>
       </div>
-      <p>Gauf=of.gaussianfreq(ContntInfo, dim) #read frequencies calculated by g09 from file
-Gauf/=Hartree2cm_1  #convert to atomic units
-F, P, CartCoord=of.TrafoCoord(F, P, CartCoord, dim)</p>
+      <p>calculation up to HR-facts needed (FC- or Duschinsky spect)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Cartesion coordinates of final system:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
-   <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;forces:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;final state:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></pre></div>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">opts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="p">[]:</span>
+	 <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">elif</span> <span class="n">opts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="p">[]:</span>
+	 <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">elif</span> <span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">!=</span><span class="p">[]:</span>
+	 <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+	  <span class="k">print</span> <span class="s">&#39;You want nothing to be calculated? Here it is:</span><span class="se">\n</span><span class="s">&#39;</span>
+	  <span class="k">return</span> <span class="mi">2</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -201,10 +183,19 @@ F, P, CartCoord=of.TrafoCoord(F, P, CartCoord, dim)</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-9'>#</a>
       </div>
-      <h3><span id="calculate-frequencies-and-normal-modes" href="calculate-frequencies-and-normal-modes"> Calculate Frequencies and normal modes </span></h3>
+      <p>invoke logging: take options of HR-fact, if exists, else: from FC-spect, else: from Duschinsky-spect</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">L</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Lsorted</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">GetL</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span><span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>      <span class="n">loglevel</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=print\=)[\w]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">loglevel</span><span class="o">==</span><span class="p">[]:</span>
+	 <span class="n">invokeLogging</span><span class="p">()</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="n">invokeLogging</span><span class="p">(</span><span class="n">loglevel</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">initial</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=initial: )[\w.]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="n">final</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=final: )[\w.]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">CalculationHR</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">opt</span><span class="p">)</span>
+
+   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">2</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -213,11 +204,16 @@ F, P, CartCoord=of.TrafoCoord(F, P, CartCoord, dim)</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-10'>#</a>
       </div>
-      <p>L2=of.extractL(ContntInfo, dim)
-of.replace(inputs[0], f[1], Lsorted[1])</p>
+      <p>calculate FC-spect</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre>      <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">loglevel</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=print\=)[\w]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">loglevel</span><span class="o">==</span><span class="p">[]:</span>
+	 <span class="n">invokeLogging</span><span class="p">()</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="n">invokeLogging</span><span class="p">(</span><span class="n">loglevel</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="k">try</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -226,13 +222,36 @@ of.replace(inputs[0], f[1], Lsorted[1])</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-11'>#</a>
       </div>
-      <h1>=== Spectrum calculation ===</h1>
-<p>J, K=of.Duschinsky(L2, mass, dim, CartCoord) #use gaussians normal modes</p>
+      <p>test, whether HR-facts were calculated above</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">Duschinsky</span><span class="p">(</span><span class="n">Lsorted</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">)</span> <span class="c">#use own quantities</span>
-   <span class="k">print</span> <span class="s">&#39;Energies:&#39;</span><span class="p">,</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-   <span class="k">print</span> <span class="s">&#39;0-0-transition:&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">Hartree2cm_1</span></pre></div>
+      <div class="highlight"><pre>	 <span class="n">HR</span>
+      <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+	 <span class="n">HRfile</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=HR-file: )[\w.,\/\-]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+	 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">HRfile</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;There must be exactly one file specified containing HR-facts.&#39;</span>
+	 <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">ReadHR</span><span class="p">(</span><span class="n">HRfile</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	 <span class="n">Energy</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+	 <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">E</span>
+	 <span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">T</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=T=)[ \=\s\d\.]+&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">T</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+	 <span class="n">T</span><span class="o">=</span><span class="mi">300</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="n">T</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;temperature of system: &quot;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
+      <span class="n">T</span><span class="o">*=</span><span class="mf">8.6173324e-5</span><span class="o">/</span><span class="mf">27.21138386</span> <span class="c"># multiplied by k_B in hartree/K</span>
+      <span class="n">part</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(particles:)[\s\d]*&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">part</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
+	    <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="s">&quot;OPA&quot;</span><span class="p">)</span>
+      <span class="k">elif</span> <span class="n">part</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
+	    <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="s">&quot;TPA&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
+	    <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+      <span class="k">if</span> <span class="p">((</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;broaden&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">todo</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">:</span>
+	 <span class="k">if</span> <span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">!=</span><span class="p">[]:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -241,10 +260,14 @@ of.replace(inputs[0], f[1], Lsorted[1])</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-12'>#</a>
       </div>
-      <h1>==calculate HR-Spectrum==</h1>
+      <h1>i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated</h1>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="o">=</span> <span class="n">of</span><span class="o">.</span><span class="n">HuangR</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>	    <span class="n">secondlinspect</span><span class="o">=</span><span class="n">linspect</span>
+	 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">:</span>
+	    <span class="n">todo</span><span class="o">+=</span><span class="mi">8</span>
+
+   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">8</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">4</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -253,10 +276,34 @@ of.replace(inputs[0], f[1], Lsorted[1])</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-13'>#</a>
       </div>
-      <p>linspect=of.calcspect(HR, funi, Energy[0]-Energy[1], E0, 5, 5, T, "TPA")</p>
+      <p>calculate Duschinsky-spect</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">E0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>      <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">loglevel</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=print\=)[\w]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">loglevel</span><span class="o">==</span><span class="p">[]:</span>
+	 <span class="n">invokeLogging</span><span class="p">()</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="n">invokeLogging</span><span class="p">(</span><span class="n">loglevel</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;broaden&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span> <span class="ow">and</span> <span class="n">todo</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">:</span> 
+	 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">:</span>
+	    <span class="n">todo</span><span class="o">+=</span><span class="mi">8</span>
+      <span class="k">try</span><span class="p">:</span> <span class="c">#test, whether HR-facts were calculated above</span>
+	 <span class="n">J</span>
+      <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+	 <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s">&#39;fatal error: No calculation of first part. But it is required&#39;</span><span class="p">)</span>
+	 <span class="k">return</span> <span class="mi">2</span>
+      <span class="n">T</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=T=)[ \=\s\d\.]+&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">T</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+	 <span class="n">T</span><span class="o">=</span><span class="mi">300</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="n">T</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;temperature of system:&quot;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
+      <span class="n">T</span><span class="o">*=</span><span class="mf">8.6173324e-5</span><span class="o">/</span><span class="mf">27.21138386</span> <span class="c"># multiplied by k_B in hartree/K</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span> <span class="c">#calculate separate line-spects for different states</span>
+	 <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">FCfOPA</span><span class="p">(</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">,</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">8</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -265,10 +312,42 @@ of.replace(inputs[0], f[1], Lsorted[1])</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-14'>#</a>
       </div>
-      <p>of.outspect(61009, linspect, 3, spectfile)</p>
+      <p>calculate Broadening</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;(?&lt;=broaden)[\w\.\-\= ,()]&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+	 <span class="n">opt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=broaden)[\w\.\-\= ,()]&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">elif</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;(?&lt;=broaden)[\w\.\-\= ,()]&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+	 <span class="n">opt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=broaden)[\w\.\-\= ,()]&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">elif</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;(?&lt;=broaden)[\w\.\-\= ,()]&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+	 <span class="n">opt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=broaden)[\w\.\-\= ,()]&quot;</span><span class="p">,</span> <span class="n">opts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+	  <span class="k">print</span> <span class="s">&#39;You want nothing to be calculated? Here it is:</span><span class="se">\n</span><span class="s"> nothing&#39;</span>
+	  <span class="k">return</span> <span class="mi">2</span>
+      <span class="n">loglevel</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=print\=)[\w]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">loglevel</span><span class="o">==</span><span class="p">[]:</span>
+	 <span class="n">invokeLogging</span><span class="p">()</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="n">invokeLogging</span><span class="p">(</span><span class="n">loglevel</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">T</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=T=)[ \=\s\d\.]+&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">T</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+	 <span class="n">T</span><span class="o">=</span><span class="mi">300</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="n">T</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">T</span><span class="o">*=</span><span class="mf">8.6173324e-5</span><span class="o">/</span><span class="mf">27.21138386</span> <span class="c"># multiplied by k_B in hartree/K</span>
+
+      <span class="k">try</span><span class="p">:</span>
+	 <span class="n">linspect</span> 
+      <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+	 <span class="n">linespectrum</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=linspect: )[\w\.]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+	 <span class="k">if</span> <span class="n">linespectrum</span><span class="o">==</span><span class="p">[]:</span>
+	    <span class="n">linespectrum</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=linespect:)[ \w\.]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+	 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">linespectrum</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;if no spectrum calculation was done before&quot;</span><span class="o">+</span>\
+				 <span class="s">&quot;, please specify a file containing line-spectrum.&quot;</span>
+	 <span class="n">freq</span><span class="o">=</span><span class="p">[]</span>
+	 <span class="n">intens</span><span class="o">=</span><span class="p">[]</span>
+	 <span class="n">mode</span><span class="o">=</span><span class="p">[]</span>
+	 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">linespectrum</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">as</span> <span class="n">lines</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -277,14 +356,66 @@ of.replace(inputs[0], f[1], Lsorted[1])</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-15'>#</a>
       </div>
-      <p>==calculate Duschinsky-Rotated Spectrum taking OPA into account==
-linspect=OPA.FCfOPA(J,K,f,Energy[0]-Energy[1],4, T, E0)
-of.outspect(61009, linspect, 3, spectfile)</p>
+      <h4>handel: also files containing further information!</h4>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   
+      <div class="highlight"><pre>	    <span class="n">lis</span><span class="o">=</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>  <span class="c"># create a list of lists</span>
+	    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lis</span><span class="p">):</span>        <span class="c"># print the list items </span>
+	       <span class="n">freq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+	       <span class="n">intens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+	       <span class="n">mode</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+	 <span class="n">linspect</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)))</span>
+	 <span class="n">linspect</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+	 <span class="n">linspect</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">intens</span><span class="p">)</span>
+	 <span class="n">linspect</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <h6>########### change this to make it work with multiple files!!</h6>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">br</span><span class="o">.</span><span class="n">outspect</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <h2>if to nPA is specified: #### need energy-difference -&gt; need to read it, if spectrum is taken from file...</h2>
+<p>br.outspect(T, opt, linspect, Energy-difference)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">try</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	 <span class="n">secondlinspect</span>
+	 <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+	 <span class="n">br</span><span class="o">.</span><span class="n">outspect</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+	 <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c">#do something arbitrary</span>
+
+   <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;end of calculation reached. Normal exit.&quot;</span><span class="p">)</span>
+   
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
    <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+<span class="n">version</span><span class="o">=</span><span class="mf">1.1</span>
 
 </pre></div>
     </div>

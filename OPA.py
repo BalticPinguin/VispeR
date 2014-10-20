@@ -14,8 +14,9 @@ class OPA:
    def insert(self, N, FC):
       ni=N[len(N)//2:]
       nf=N[:len(N)//2]
-      if np.any(ni>0):
-	 exc=np.max(ni)
+      #exc=np.max(ni)
+      exc=exc[np.argmax(ni)]
+      if exc>0:
 	 index=np.argmax(ni)
 	 self.mat[index][exc]=FC
       else:
@@ -25,8 +26,8 @@ class OPA:
    def getState(self, N): 
       ni=N[len(N)//2:]
       nf=N[:len(N)//2]
-      if np.any(ni>0):
-	 exc=np.max(ni)
+      exc=exc[np.argmax(ni)]
+      if exc>0:
 	 index=np.argmax(ni)
 	 return self.mat[index][exc]
       else:
@@ -176,11 +177,13 @@ def FCfOPA(J, K, f, Energy, N, T,E0):
 
    def makeLine(intens,E0, T, index, ex, Gamma, Gammap,E, n):
       F=np.zeros(( len(index),2 ))
+      log=open("calculation.log", "a")
       for i in range(len(index)): 
 	 F[i][1]=(Gammap[index[i]][index[i]]*(ex[i]+0.5)-
    		   Gamma[index[i]][index[i]]*(n-ex[i]+0.5)+E)*Hartree2cm_1
 	 F[i][0]=intens[i]*intens[i]*np.exp((-Gamma[index[i]][index[i]]*ex[i]+E0)/T)
-	 logging.critical(repr(F[i][1])+"  "+repr(F[i][0])+"  "+repr(index[i]))
+	 log.write(u"{0}".format(repr(F[i][1])+"  "+repr(F[i][0])+"  "+repr(index[i])))
+	 #logging.critical(repr(F[i][1])+"  "+repr(F[i][0])+"  "+repr(index[i]))
       return np.array(F)
    
    np.shape(f)
@@ -197,8 +200,11 @@ def FCfOPA(J, K, f, Energy, N, T,E0):
       intens, index, excitation=L2.extract()
       for lines in makeLine(intens,E0, T, index, excitation, Gamma, Gammap, Energy, i):
 	 linspect.append(lines)
-   spect=np.zeros(( 2,len(linspect) ))
+   spect=np.zeros(( 3,len(linspect) ))
    for i in range(len(linspect)):
       for j in range(2):
          spect[1-j][i]=linspect[i][j]
+      spect[2][i]=2 ######################## this has to be changed!
    return spect 
+
+version=0.1
