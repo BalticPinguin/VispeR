@@ -359,8 +359,7 @@ def gs(A):
       for inY in Y :
 	 proj_vec = proj(inY, X[i])
 	 temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)
-      a=np.sqrt(sum(temp_vec[j]*temp_vec[j] for j in range(len(temp_vec)) )) #calculate norm
-      Y.append( temp_vec/a) #normalize all vectors
+      Y.append( temp_vec/np.sqrt(sum(temp_vec[j]*temp_vec[j] for j in range(len(temp_vec)) ))) # normalise vectors
    return np.matrix(Y).T # undo transposition in the beginning
 
 def HuangR(K, f): #what is with different frequencies???
@@ -395,14 +394,14 @@ def HuangR(K, f): #what is with different frequencies???
       uniF=[]
 
       log=open("calculation.log", "a")
-      log.write(u'HR-fact           freq')
+      log.write(u'HR-fact           freq\n')
       #logging.critical('HR-fact           freq')
       for j in range(len(sortuni[i])):
 	 #select all 'big' HR-factors 
 	 if sortuni[i][-j]>0.02: 
 	    uniHR.append(sortuni[i][-j])
 	    uniF.append(funi[i][-j])
-	    log.write(u"{0}".format(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1)))
+	    log.write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
 	    #logging.critical(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1))
       uniHRall.append(uniHR)
       uniFall.append(uniF)

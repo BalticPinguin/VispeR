@@ -134,7 +134,7 @@ def outspect(T, opt, linspect, E=0):
    if (re.search(r"to ?PA", opt, re.I) is not None) is True:
       n=re.findall(r"(?<=(to )[\d](?=PA)", opt, re.I)
       if n[0]=='2':
-	 TPAfreq, TPAintens=OPA2TPA(linspect[0][minint:],E , linspect[1][minint:], 10, linspect[2][minint:])
+	 TPAfreq, TPAintens=OPA2TPA(linspect[0][minint:],E ,linspect[1][minint:], 10, linspect[2][minint:])
 	 minint=0
 	 for i in range(len(TPAintens)):
 	    if TPAintens[i]>=0.0001*TPAintens[-1]:

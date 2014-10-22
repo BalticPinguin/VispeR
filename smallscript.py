@@ -151,7 +151,8 @@ def main(argv=None):
       logging.info("temperature of system:"+repr(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       for i in range(len(initial)): #calculate separate line-spects for different states
-	 linspect=OPA.FCfOPA(J[i], K[i], f, Energy[0]-Energy[1], 5, T, 0)
+	 k=[0,i]
+	 linspect=OPA.FCfOPA(J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
 
    if np.mod(todo,16)>=8:
       #calculate Broadening
