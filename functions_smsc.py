@@ -1,16 +1,17 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, re, mmap, os.path, logging, math
+import numpy as np, re, mmap, os.path, math
 #for python-3 compatibility
 from io import open 
 
+   #debug, info, warning, error, critical
 # Below are the conversion factors and fundamental constant
 AMU2au=1822.88839                                          
 Angs2Bohr=1/0.52917721092                                  
 Hartree2GHz=6.579684e6                                     
 Hartree2cm_1=219474.63 
 
-def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
+def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
    """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
@@ -57,7 +58,8 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
       **RETURNS**
       a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
       """
-      logging.debug('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
+      if logging[0]<1:
+   	 logging[1].write('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
       J=len(intens[0])
       spect=np.zeros((3,len(intens)*len(intens[0])+1))
       spect[1][0]=FC00 #0->0 transition
@@ -82,12 +84,11 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
    FC00=tmp*tmp*1e2
    uency00=E*Hartree2cm_1 #zero-zero transition
    if approx=="OPA":
-      logging.critical("Line-spectrum in One-Particle approximation:")
+      logging[1].write("Line-spectrum in One-Particle approximation:\n")
    elif approx=="TPA":
-      logging.critical("Line-spectrum in Two-Particle approximation:")
-   log=open("calculation.log", "a")
-   log.write(u"frequency     intensity  ")
-   log.write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
+      logging[1].write("Line-spectrum in Two-Particle approximation:\n")
+   logging[1].write(u"frequency     intensity  \n")
+   logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
    #logging.critical( "frequency     intensity  ")
    #logging.critical(repr(E*Hartree2cm_1)+" "+repr(FC00))
    #this is OPA and valid in any case
@@ -101,8 +102,7 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
 	    tmp=FCeqf(HR[a], i, j)/temp
 	    FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
 	    uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	    log.write(u" {0}\n".format(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a)))
-	    #logging.critical(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a))
+	    logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a)))
    if approx=="TPA":
       ind=0
       for a in range(n):
@@ -125,10 +125,9 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
 			tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
 			FC2[0][ind]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i+freq[b]*l)/T)
 			uency2[0][ind]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
-			log.write(u" {0}\n".format(repr(uency2[0][ind])+"  "+repr(FC2[0][ind])+"  "+repr(a*n+b)))
+			logging[1].write(u" {0}\n".format(repr(uency2[0][ind])+"  "+repr(FC2[0][ind])+"  "+repr(a*n+b)))
 			#logging.critical(repr(uency2[0][ind])+"  "+repr(FC2[0][ind])+"  "+repr(a*n+b))
 			ind+=1
-   log.close()
    FC00*=np.exp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    if approx=="TPA":
@@ -140,7 +139,7 @@ def calcspect(HR, freq, E, E0, N, M, T, approx="OPA"):
       return result
    return spect
 
-def CalculationHR(initial, final, opt):
+def CalculationHR(logging, initial, final, opt):
    """ This function gathers most essential parts for calculation of HR-factors from g09-files"""
    assert len(initial)>0, 'no initial state found!'
    assert len(final)>0, 'no final state found!'
@@ -152,45 +151,61 @@ def CalculationHR(initial, final, opt):
 	    final[i]+' is not a valid file name or not readable.'
    for i in range(len(initial)):
       #read coordinates, force constant, binding energies from log-files and calculate needed quantities
-      dim, Coord, mass, B, A, E=ReadLog(initial[i])
+      dim, Coord, mass, B, A, E=ReadLog(logging, initial[i])
       if i is 0:# do only in first run
-	 F, CartCoord, X, P, Energy=quantity(dim, len(initial)+len(final)) #creates respective quantities (empty)
-	 logging.debug("Dimensions: "+ repr(dim)+ '\n Masses: '+ repr(mass**2))
+	 F, CartCoord, X, P, Energy=quantity(logging, dim, len(initial)+len(final)) #creates respective quantities (empty)
+	 if logging[0]==0:
+	    logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
       X[i],F[i],Energy[i]=B, A, E
       CartCoord[i]=Coord
-      P[i]=GetProjector(X[i], dim, mass, CartCoord[i])
-      logging.info('Projector onto internal coordinate subspace\n'+ repr(P[i]))
+      P[i]=GetProjector(logging, X[i], dim, mass, CartCoord[i])
+      if logging[0]<2:
+	 logging[1].write('Projector onto internal coordinate subspace\n'+ str(P[i]))
    for i in range(len(final)):
-      dim, Coord, mass, B, A, E=ReadLog(final[i]) 
+      dim, Coord, mass, B, A, E=ReadLog(logging, final[i]) 
       X[len(initial)+i], F[len(initial)+i], Energy[len(initial)+i]=B, A, E
       CartCoord[len(initial)+i]=Coord
-      P[len(initial)+i]=GetProjector(X[len(initial)+i], dim, mass, CartCoord[len(initial)+i])
-      logging.info('Projector onto internal coordinate subspace\n'+ repr(P[len(initial)+i]))
-   for i in range(len(initial)):
-      for j in range(len(final)):
-	 logging.warning('difference of minimum energy between states: Delta E= '\
-	       + repr((Energy[j+len(initial)]-Energy[i])*Hartree2cm_1))
-   for i in range(len(initial)):
-      logging.debug('Cartesion coordinates of initial state '+repr(i)+':\n'+repr(CartCoord[i].T)+'\n')
-   for j in range(len(initial),len(final)+len(initial)):
-      logging.debug('Cartesion coordinates of final state '+repr(j)+':\n'+repr(CartCoord[j].T)+'\n')
-   logging.info('forces:')
-   for i in range(len(initial)):
-      logging.info(repr(i)+'. initial state: \n'+repr(F[i]))
-   for j in range(len(initial), len(final)+len(initial) ):
-      logging.info(repr(j-len(initial))+'. final state: \n'+repr(F[j]))
+      P[len(initial)+i]=GetProjector(logging, X[len(initial)+i], dim, mass, CartCoord[len(initial)+i])
+      if logging[0]<2:
+      	 logging[1].write('Projector onto internal coordinate subspace\n'+ str(P[len(initial)+i]))
+   if logging[0]<3:
+      for i in range(len(initial)):
+	 for j in range(len(final)):
+	    logging[1].write('difference of minimum energy between states: Delta E= '\
+	      	  + str((Energy[j+len(initial)]-Energy[i])*Hartree2cm_1))
+   if logging[0]<1:
+      for i in range(len(initial)):
+	 logging[1].write('Cartesion coordinates of initial state '+repr(i)+':\n'+repr(CartCoord[i].T)+'\n')
+      for j in range(len(initial),len(final)+len(initial)):
+	 logging[1].write('Cartesion coordinates of final state '+repr(j)+':\n'+repr(CartCoord[j].T)+'\n')
+   if logging[0]<3:
+      log.write('forces:')
+      for i in range(len(initial)):
+	 logging[1].write(str(i)+'. initial state: \n'+str(F[i]))
+      for j in range(len(initial), len(final)+len(initial) ):
+	 logging[1].write(str(j-len(initial))+'. final state: \n'+str(F[j]))
 
    #Calculate Frequencies and normal modes
-   L, f, Lsorted=GetL(dim, mass,F, P)
-   J, K=Duschinsky(Lsorted, mass, dim, CartCoord)
+   L, f, Lsorted=GetL(logging, dim, mass,F, P)
+   J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
+   Gauf=gaussianfreq(logging, initial, final, dim) 
+   #print "changes of eigenvalues 2:"
+   #unity=np.eye(len(F[i]))
+   #for j in range(len(f[i])):
+      #change=Gauf[i][j]-f[i][j]
+      #if np.linalg.norm(change)>0.0001:
+	 #print np.linalg.norm(change), j 
+	 #for k in range(len(f)):
+	    #print f[i][k]-Gauf[i][k]
+   
    #calculate HR-spect
-   HR, funi= HuangR(K, f)
+   HR, funi= HuangR(logging, K, f)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
       for i in range(len(initial)): #### this needs to be enhanced
-	 replace(initial[i], f[i], Lsorted[i])
+	 replace(logging, initial[i], f[i], Lsorted[i])
    return HR, funi, Energy, J, K, f
 
-def Duschinsky(L, mass, dim, x):
+def Duschinsky(logging, L, mass, dim, x):
    """
    **PARAMETERS:**
    L:    Matrix having mass-weighted normal modes as column-vectors
@@ -216,62 +231,47 @@ def Duschinsky(L, mass, dim, x):
 
    for i in range(len(DeltaX)):
       DeltaX[i]=np.array(x[0]-x[i+1]).flatten('F')
-      logging.debug('changes of Cartesian coordinates:(state'+repr(i)+')\n'+repr(DeltaX[i]))
+      if logging[0] <1:
+	 logging[1].write('changes of Cartesian coordinates:(state'+repr(i)+')\n'+repr(DeltaX[i]))
       K[i]=np.dot(L[i+1].T.dot(M),DeltaX[i].T) #at the moment: mass-weighted
 
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=5, linewidth=138)
    for i in range(len(J)):
-      logging.info('Duschinsky rotation matrix, state '+repr(i)+\
-   	    '  :\n'+ repr(J[i])+'  :\n'+ repr(J[i][:4].T[11:25])+'\nDuschinsky displacement vector:\n'+ repr(K[i]))
+      if logging[0]<2:
+      	 logging[1].write('Duschinsky rotation matrix, state '+repr(i)+\
+      	       '  :\n'+ repr(J[i])+'  :\n'+ repr(J[i][:4].T[11:25])+'\nDuschinsky displacement vector:\n'+ repr(K[i]))
    return J, K 
 
-def Geometries(ContntInfo, problems):
-   name=[]
-   geometry=[] # will contain names of the files refering to different states
-   coordName=[]
-   coordNumb=[]
-   geometry.append(ContntInfo[0][0])
-   for i in range(len(ContntInfo)):  #loop over all states investigated
-      files=open(ContntInfo[i][0], "r")#open file and map it for better working
-      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
+def gaussianfreq(logging, initial, final , dim):
+   """Extraction of the frequencies from g09-log file"""
+   ##read frequencies calculated by g09 from file
+   #Gauf=of.gaussianfreq(ContntInfo, dim) 
+   #Gauf/=Hartree2cm_1  #convert to atomic units
+   f=np.zeros((len(initial)+len(final), dim-6))
+   for i in range(len(initial)): 
+      files=open(initial[i], "r") #open file and map it for better working
+      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
       files.close
-      coords=re.findall(
-	    r" ! Name  Definition[ ]+Value[]+Derivative Info.[ ]+![!,()RADEXcalutenyi\d /=\n .-]+",
-	    mapedlog, re.I)
-      if len(coords)==0:
-	    print("in file "+ContntInfo[i][0]+' are no coordinate-informations')
-	    continue
-      mapedlog.close()
-      coordName.append(re.findall(r" [RAD]{1}\([\d,]+\)", coords[-1]))
-      coordNumb.append(re.findall(r" \d+.\d+", coords[-1]))
-      check=np.zeros(len(coordName)-1)
-      if i==0:
-         for k in range(len(coordName[0])):
-            coordNumb[0][k]=float(coordNumb[0][k])
-      for j in range(len(coordName)-1):  #loop over all previously investigated files
-         if len(coordName[j]) != len(coordName[i]): #if number of coordinates doesn't mach
-	    check[j]+=1
-	    continue
-	 for k in range(len(coordName[j])):
-	    if coordName[j][k] != coordName[i][k]: ##here an error occurs!!!!
-	       check[j]+=1
-	       continue
-	    coordNumb[-1][k]=float(coordNumb[i][k])
-	    if np.abs(coordNumb[-1][k])<0.1: #avoid dividing by 0
-	       if np.abs(coordNumb[j][k]-coordNumb[-1][k])>3:
-		  check[j]+=1
-		  continue
-	    elif np.abs(
-		  (coordNumb[j][k]-coordNumb[-1][k])
-		  /coordNumb[-1][k])>0.04: #difference more than 4%
-	       check[j]+=1
-	       continue
-      if np.all(check > 0):
-	 geometry.append(ContntInfo[i][0])
-   return geometry
+      f1=re.findall(r" Frequencies -- [\d .-]+", mapedlog, re.M)# 
+      f2=[re.findall(r"[- ]\d+.\d+", f1[j]) for j in range(len(f1))]
+      s=0
+      for j in range(len(f2)):
+	 f[i][s:s+len(f2[j])]=f2[j]
+	 s+=len(f2[j])
+   for i in range(len(final)): 
+      files=open(final[i], "r") #open file and map it for better working
+      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
+      files.close
+      f1=re.findall(r" Frequencies -- [\d .-]+", mapedlog, re.M)# 
+      f2=[re.findall(r"[- ]\d+.\d+", f1[j]) for j in range(len(f1))]
+      s=0
+      for j in range(len(f2)):
+	 f[i][s:s+len(f2[j])]=f2[j]
+	 s+=len(f2[j])
+   return f
 
-def GetL(dim, mass, F, D):
+def GetL(logging, dim, mass, F, D):
    """ Function that calculates the frequencies and normal modes from force constant matrix 
    with and without projection onto internal degrees of freedom
 
@@ -289,22 +289,60 @@ def GetL(dim, mass, F, D):
    """
    # Defining arrays
    L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
+   Ltest=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
    Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
    f=np.zeros(( len(F), len(F[0])-6 ))
    Ltemp=np.zeros(( len(F[0]), len(F[0])-6 ))
    ftemp=np.zeros(len(F[0]-6))
 
    for i in range(len(F)):
+      #### the condition number of F[i] is some millions...
       ftemp,Ltemp=np.linalg.eig(F[i])
-      #assert np.any(ftemp< 0) or np.any(np.imag(ftemp)!=0),\
-	       #'Frequencies smaller than 0 occured. Please check the input-file!!'
+      #ftemp,Ltemp=np.linalg.eigh(F[i])
+      assert np.any(ftemp< 0) or np.any(np.imag(ftemp)!=0),\
+	       'Frequencies smaller than 0 occured. Please check the input-file!!'
       if np.any(ftemp<0):
-	 logging.error('Frequencies smaller than 0 occured. The absolute values are used in the following.')
+	 if logging[0]<4:
+	    logging[1].write('Frequencies smaller than 0 occured. The absolute values are used in the following.')
 	 ftemp=np.abs(ftemp)
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       L[i]=np.real(Ltemp[index]).T[:].T[6:].T
-      logging.debug("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
+      for j in range(len(L[i])):
+	 L[i][j]=L[i][j]/np.linalg.norm(L[i][j])
+      #Ltest[i]=gs(L[i])
+      #for j in range(len(L[i])):
+#	 Ltest[i][j]=Ltest[i][j]/np.linalg.norm(Ltest[i][j])
+#
+#      ############################### begin test-area
+#      print "orthogonality:"
+#      for j in range(len(Ltest[i])):
+#	 for k in range(len(Ltest[i])):
+#	    if k==j:
+#	       continue
+#	    scale=Ltest[i][k].T.dot(Ltest[i][j])
+#	    if scale >1e-10 and scale< -1e-10: 
+#	       print scale, i, j, k, "scale"
+#      print "changes of 2-norm"
+#      for j in range(len(Ltest[i])):
+#	 change=Ltest[i][j]-L[i][j]
+#     	 if np.linalg.norm(change)>1.0:
+#	    print np.linalg.norm(change, ord=None), np.linalg.norm(change, ord=np.inf), j
+#	    print change
+#	    print
+#
+#      print "changes of eigenvalues:"
+#      unity=np.eye(len(F[i]))
+#      for j in range(len(f[i])):
+#	 fi=np.linalg.norm(F[i].dot(Ltest[i][:].T[j]))-f[i][j]*Ltest[i][:].T[j]
+#     	 if np.linalg.norm(fi, ord=np.inf)>0.0001:
+#	    print f[i][j], np.linalg.norm(fi), np.linalg.norm(fi, ord=np.inf), j
+#
+      ###test, if it is sensible to recalculate eigenvalues!
+      
+      ############################### end test-area
+      if logging[0]<1:
+	 logging[1].write("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
       M=np.zeros((dim,dim))
       for j in range(0,dim):
          M[j,j]=1/mass[j/3]
@@ -314,25 +352,26 @@ def GetL(dim, mass, F, D):
 	 if np.abs(norm)>1e-12:
 	    Lcart.T[j]/=np.sqrt(norm)
       Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T
-      logging.debug("Normalized Lcart\n"+ repr(Lcart)+"\nNormalized, sorted and truncated Lcart\n"+ repr(Lsorted[i]))
+      if logging[0]<1:
+	 logging[1].write("Normalized Lcart\n"+ repr(Lcart)+"\nNormalized, sorted and truncated Lcart\n"+ repr(Lsorted[i]))
 
       for j in range(len(f[i])):
      	 f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
-      logging.info("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
-	    repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i]))
+      if logging[0]<2:
+	 logging[1].write("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
+	       repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i]))
       
-   #np.set_printoptions(precision=4, linewidth=122, suppress=True)
    return L, f, Lsorted
 
-def GetProjector(X, dim, m, Coord):
+def GetProjector(logging, X, dim, m, Coord):
    D=np.zeros((dim,6))
    for k in range(3):# first three rows in D: The translational vectors
       for j in range(dim/3):
 	 D[3*j+k][k]=m[j]
    for k in range(dim):# next three rows in D: The rotational vectors
       D[k][3:6]=(np.cross(np.dot(X,Coord)[:].T[k/3],X[:].T[k%3]))*m[k/3]
-
-   logging.debug("Original translational and rotational displacement vectors"+repr(D[3:13].T))
+   if logging<1:
+      log.write("Original translational and rotational displacement vectors"+repr(D[3:13].T))
    AOE=gs(np.array(D)) #orhogonalize it
    ones=np.identity(dim)
    one_P=ones-np.dot(AOE,AOE.T)
@@ -359,10 +398,10 @@ def gs(A):
       for inY in Y :
 	 proj_vec = proj(inY, X[i])
 	 temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)
-      Y.append( temp_vec/np.sqrt(sum(temp_vec[j]*temp_vec[j] for j in range(len(temp_vec)) ))) # normalise vectors
+      Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
    return np.matrix(Y).T # undo transposition in the beginning
 
-def HuangR(K, f): #what is with different frequencies???
+def HuangR(logging, K, f): #what is with different frequencies???
    """ Function that calculates the Huang-Rhys factors for all vibrational states
 
    **Arguments**
@@ -387,28 +426,26 @@ def HuangR(K, f): #what is with different frequencies???
       sortuni[i]=unif[index]
       funi[i]=f[i+1][index]
       if np.any(funi)<0:
-	 logging.warning('ATTENTION: some HR-factors are <0.\
-	       In the following their absolute value is used.')
+	 if logging[0]<4:
+	    logging[1].write('ATTENTION: some HR-factors are <0.\
+		  In the following their absolute value is used.')
 	 funi[i]=np.abs(funi[i])
       uniHR=[]
       uniF=[]
 
-      log=open("calculation.log", "a")
-      log.write(u'HR-fact           freq\n')
-      #logging.critical('HR-fact           freq')
+      logging[1].write(u'HR-fact           freq\n')
       for j in range(len(sortuni[i])):
 	 #select all 'big' HR-factors 
 	 if sortuni[i][-j]>0.02: 
 	    uniHR.append(sortuni[i][-j])
 	    uniF.append(funi[i][-j])
-	    log.write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
+	    logging[1].write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
 	    #logging.critical(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1))
       uniHRall.append(uniHR)
       uniFall.append(uniF)
-   log.close
    return uniHRall, uniFall
 
-def quantity(dim, num_of_files):
+def quantity(logging, dim, num_of_files):
    F=np.zeros((num_of_files, dim, dim)) 
    CartCoord=np.zeros((num_of_files, 3, dim/3))
    X=np.zeros((num_of_files, 3,3))
@@ -416,7 +453,7 @@ def quantity(dim, num_of_files):
    Energy=np.zeros(num_of_files)
    return F, CartCoord, X, P, Energy
 
-def ReadHR(HRfile):
+def ReadHR(logging, HRfile):
    assert os.path.isfile(HRfile) and os.access(HRfile, os.R_OK),\
 	    HRfile+' is not a valid file name or not readable.'
    fi=open(HRfile, "r")
@@ -437,7 +474,7 @@ def ReadHR(HRfile):
       funi.append(float(line[1])/Hartree2cm_1)
    return HR, funi, Energy
 
-def ReadLog(fileN):
+def ReadLog(logging, fileN):
    # Mapping the log file
    files=open(fileN, "r")
    log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
@@ -458,10 +495,8 @@ def ReadLog(fileN):
       for k in range(len(mtemp[j])):
 	 mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
       foonum+=len(mtemp[j])
-   logging.debug('nuclear masses:\n'+ repr(mtemp))
-   logging.info("Number of atoms: "+ repr(dim/3)+'\nNumber of vibrational modes: '+\
-	 repr(dim)+', Sqrt of masses in a.u. as read from log file\n'+ repr(mass))
-
+   if logging[0]<2:
+      logging[1].write("Number of atoms: {0}\nNumber of vibrational modes: {1} Sqrt of masses in a.u. as read from log file\n {2}".format(dim/3,dim,mass))
    # Reading Cartesian coordinates
    temp=[]
    temp=re.findall(r' Number     Number       Type             X           Y           Z[\n -.\d]+', log)
@@ -474,12 +509,14 @@ def ReadLog(fileN):
    for j in range(3):
       MassCenter[j]=np.sum(Coord[j]*mass)
       MassCenter[j]/=np.sum(mass) #now it is cartesian center of mass
-   logging.debug("Cartesian (Angstrom) coordinates before alignment to center of mass\n"+ repr(Coord.T)+\
-	 "\nCenter of mass coordinates (Angstrom)\n"+ repr(MassCenter))
+   if logging[0]<3:
+      logging[1].write("Cartesian (Angstrom) coordinates before alignment to center of mass\n {0} \nCenter of mass coordinates (Angstrom)\n{1}".format(Coord.T, MassCenter))
+   
    for j in range(3):#displacement of molecule into center of mass:
       Coord[j]-=MassCenter[j] # if commented we get rotational constants in agreement with Gaussian log
    Coord*=Angs2Bohr
-   logging.info("Cartesian coordinates (a.u.) in center of mass system\n"+repr(Coord.T))
+   if logging[0]<2:
+      logging[1].write("Cartesian coordinates (a.u.) in center of mass system\n {0}".format(Coord.T))
 
    # Getting tensor of inertia, transforming to principlas axes
    moi=np.zeros((3,3))# this is Moment Of Inertia
@@ -492,16 +529,15 @@ def ReadLog(fileN):
 		     Coord[j]*Coord[k]))
 	 else:
 	    moi[j][k]=np.sum(mass*mass*(Coord[j]*Coord[k]))
-   logging.debug("Moments of intertia as read from log file\n"+repr(moi))
+   if logging[0]<1:
+      logging[1].write("Moments of intertia as read from log file\n,{0}".format(moi))
    diagI,X=np.linalg.eig(moi) # this can be shortened of course!
    index=np.argsort(diagI, kind="heapsort")
    #X=np.matrix(X[index]) #sorting by eigenvalues
    X=np.matrix(X) #sorting by eigenvalues
    diagI=diagI[index]
-   logging.debug("Moments of inertia (a.u.) in principle axes\n"+repr(diagI.T)+\
-	 '\nRotational constants (GHz) in principle axes\n'+ repr(1/(2*diagI.T)*Hartree2GHz)+\
-      "Rotation matrix\n"+repr(X))
-
+   if logging[0]<2:
+      logging[1].write("Moments of inertia (a.u.) in principle axes\n {0}\nRotational constants (GHz) in principle axes\n {1} Rotation matrix\n{2}".format(diagI.T,1/(2*diagI.T)*Hartree2GHz, X))
    # Reading of Cartesian force constant matrix  
    f=re.findall(r"Force constants in Cartesian coordinates: [\n\d .+-D]+", log, re.M)
    f_str=str(f)[2:-2]
@@ -518,7 +554,8 @@ def ReadLog(fileN):
       for j in range(1,len(elements)):
          F[int(elements[0])-1][j-1+5*n]=float(elements[j])
          F[j-1+5*n][int(elements[0])-1]=float(elements[j])
-   logging.debug('F matrix as read from log file\n'+ repr(F) +'\n0:9x0:9\n'+ repr(F[:9].T[:9].T))
+   if logging[0]<1:
+      logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
    for i in range(0,dim):
       for j in range(0,dim):
          F[i][j]/= (mass[i/3]*mass[j/3]) 
@@ -527,11 +564,12 @@ def ReadLog(fileN):
    assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
    if re.search(r'\n ', Etemp[-1]) is not None:
       Etemp[-1]=Etemp[-1].replace("\n ", "") 
-   logging.info('temporary energy of state:'+repr(Etemp[-1]))
+   if logging[0]<=1:
+      logging[1].write('temporary energy of state: '.format(Etemp[-1]))
    E=-float(re.findall(r'[\d.]+', Etemp[-1])[0])# energy is negative (bound state)
    return dim, Coord, mass, X, F, E
 
-def replace(files, freq, L):
+def replace(logging,log, files, freq, L):
    """ This function creates a new file (determined by files, ending with 
    ".rep" and copies the log-file (files) into it, replacing the frequencies and 
    normal modes by those calculated by smallscript.
@@ -558,7 +596,8 @@ def replace(files, freq, L):
 	 if re.search(r'Frequencies -- [\d .-]+', line) is not None:
 	    t=0 #reset t, when frequencies occur
 	    u+=3 #
-	    logging.debug('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
+	    if logging<1:
+	       log.write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
 	    if len(freq[s:].T)> 2: # there are at least three more frequencies
 	       out.write(re.sub(r'Frequencies -- [\d .-]+',
 		     'Frequencies --'+'    '+repr(freq[s])+'          '\

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # filename: broadening.py
-import numpy as np, re, logging
+import numpy as np, re
 # Below are the conversion factors and fundamental constant
 
 def handel_input(opt):
@@ -100,7 +100,7 @@ def OPA23PA(OPAfreq,freq00, OPAintens,intens00, mode):
 	intens[i]=TPAintens[i]
    return freq, intens
 
-def outspect(T, opt, linspect, E=0):
+def outspect(logging, T, opt, linspect, E=0):
    """This function calculates the broadened spectrum given the line spectrum, 
    frequency-rage and output-file whose name is first argument. 
    As basis-function a Lorentzian is assumed with a common width.
@@ -127,8 +127,10 @@ def outspect(T, opt, linspect, E=0):
       if linspect[1][i]>=0.001*linspect[1][-1]:
 	 minint=i
 	 break
-   logging.warning('neglect '+repr(minint)+' transitions, use only '+repr(len(linspect[1])-minint)+" instead.")
-   logging.info('minimal and maximal intensities:\n'+repr(linspect[1][minint])+' '+repr(linspect[1][-1]))
+   if logging[0]<3:
+      logging[1].write('neglect '+repr(minint)+' transitions, use only '+repr(len(linspect[1])-minint)+" instead.")
+      if logging[0]<2:
+	 logging[1].write('minimal and maximal intensities:\n'+repr(linspect[1][minint])+' '+repr(linspect[1][-1]))
 
    #make TPA from OPA:
    if (re.search(r"to ?PA", opt, re.I) is not None) is True:
@@ -140,7 +142,8 @@ def outspect(T, opt, linspect, E=0):
 	    if TPAintens[i]>=0.0001*TPAintens[-1]:
 	       minint=i
 	       break
-	 logging.warning('for TPA: again neglect '+repr(minint)+
+	 if logging[0]<3:
+   	    logging[1].write('for TPA: again neglect '+repr(minint)+
 		     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.")
 	 index=np.argsort(TPAintens,kind='heapsort')
 	 TPAintens=TPAintens[index] #resort by intensity
@@ -152,7 +155,8 @@ def outspect(T, opt, linspect, E=0):
 	    if TPAintens[i]>=0.0001*TPAintens[-1]:
 	       minint=i
 	       break
-	 logging.warning('for 3PA: again neglect '+repr(minint)+
+	 if logging[0]<3:
+	    logging[1].write('for 3PA: again neglect '+repr(minint)+
 		     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.")
 	 index=np.argsort(TPAintens,kind='heapsort')
 	 TPAintens=TPAintens[index] #resort by intensity
@@ -161,15 +165,16 @@ def outspect(T, opt, linspect, E=0):
 	 TPAfreq=linspect[0][minint:]
 	 TPAintens=linspect[1][minint:]
       else:
-	 logging.critical("to <n>PA was given but not recognised.")
+	 logging[1].write("to <n>PA was given but not recognised.")
    else:
       TPAfreq=linspect[0][minint:]
       TPAintens=linspect[1][minint:]
 
    #find transition with minimum intensity to be respected
-   logging.info("intensity, frequency,   2")
-   for i in range(len(TPAfreq)):
-	logging.info(repr(TPAintens[i])+"  "+repr(TPAfreq[i])+"  "+repr(2))
+   if logging[0]<2:
+      logging[1].write("intensity, frequency,   2\n")
+      for i in range(len(TPAfreq)):
+	logging[1].write(repr(TPAintens[i])+"  "+repr(TPAfreq[i])+"  "+repr(2))
 
    #the range of frequency ( should be greater than the transition-frequencies)
    if omega==None:
@@ -180,12 +185,14 @@ def outspect(T, opt, linspect, E=0):
    else:
       minfreq=omega[0]
       maxfreq=omega[-1]
-   logging.warning('maximal and minimal frequencies: '+repr(maxfreq)+"  "+repr(minfreq))
+   if logging[0]<3:
+      logging[1].write('maximal and minimal frequencies: '+repr(maxfreq)+"  "+repr(minfreq))
    #truncate arrays and sort by index for further efficient processes
    #if no other grid is defined: use linspace in range
    if omega==None:
       omega=np.linspace(minfreq,maxfreq,gridpt)
-      logging.info("omega is equally spaced")
+      if logging[0]<2:
+	 logging[1].write("omega is equally spaced")
    spect=np.zeros(len(omega))
    sigma=gamma*2/2.355 #if gaussian used: same FWHM
 
@@ -234,7 +241,6 @@ def outspect(T, opt, linspect, E=0):
 	 out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
 	 log.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
 	 #logging.critical(u" {0}  {1}".format(omega[i] ,spect[i]))
-   log.close()
    out.close()
 
 version=1.1
