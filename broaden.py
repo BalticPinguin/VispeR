@@ -128,9 +128,9 @@ def outspect(logging, T, opt, linspect, E=0):
 	 minint=i
 	 break
    if logging[0]<3:
-      logging[1].write('neglect '+repr(minint)+' transitions, use only '+repr(len(linspect[1])-minint)+" instead.")
+      logging[1].write('neglect '+repr(minint)+' transitions, use only '+repr(len(linspect[1])-minint)+" instead.\n")
       if logging[0]<2:
-	 logging[1].write('minimal and maximal intensities:\n'+repr(linspect[1][minint])+' '+repr(linspect[1][-1]))
+	 logging[1].write('minimal and maximal intensities:\n'+repr(linspect[1][minint])+' '+repr(linspect[1][-1])+"\n")
 
    #make TPA from OPA:
    if (re.search(r"to ?PA", opt, re.I) is not None) is True:
@@ -144,7 +144,7 @@ def outspect(logging, T, opt, linspect, E=0):
 	       break
 	 if logging[0]<3:
    	    logging[1].write('for TPA: again neglect '+repr(minint)+
-		     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.")
+		     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.\n")
 	 index=np.argsort(TPAintens,kind='heapsort')
 	 TPAintens=TPAintens[index] #resort by intensity
 	 TPAfreq=TPAfreq[index]
@@ -157,7 +157,7 @@ def outspect(logging, T, opt, linspect, E=0):
 	       break
 	 if logging[0]<3:
 	    logging[1].write('for 3PA: again neglect '+repr(minint)+
-		     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.")
+		     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.\n")
 	 index=np.argsort(TPAintens,kind='heapsort')
 	 TPAintens=TPAintens[index] #resort by intensity
 	 TPAfreq=TPAfreq[index]
@@ -174,7 +174,7 @@ def outspect(logging, T, opt, linspect, E=0):
    if logging[0]<2:
       logging[1].write("intensity, frequency,   2\n")
       for i in range(len(TPAfreq)):
-	logging[1].write(repr(TPAintens[i])+"  "+repr(TPAfreq[i])+"  "+repr(2))
+	logging[1].write(repr(TPAintens[i])+"  "+repr(TPAfreq[i])+"  "+repr(2)+"\n")
 
    #the range of frequency ( should be greater than the transition-frequencies)
    if omega==None:
@@ -186,7 +186,7 @@ def outspect(logging, T, opt, linspect, E=0):
       minfreq=omega[0]
       maxfreq=omega[-1]
    if logging[0]<3:
-      logging[1].write('maximal and minimal frequencies: '+repr(maxfreq)+"  "+repr(minfreq))
+      logging[1].write('maximal and minimal frequencies: '+repr(maxfreq)+"  "+repr(minfreq)+'\n')
    #truncate arrays and sort by index for further efficient processes
    #if no other grid is defined: use linspace in range
    if omega==None:
@@ -207,8 +207,7 @@ def outspect(logging, T, opt, linspect, E=0):
    if spectfile==None:
       spectfile="/dev/null" #discart spectrum
    out = open(spectfile, "w")
-   log = open("calculation.log", "a")
-   log.write("broadened spectrum:\n frequency      intensity\n")
+   logging[1].write("broadened spectrum:\n frequency      intensity\n")
    #logging.critical("broadened spectrum:\n frequency      intensity")
    if shape=='g':
       for i in range(len(omega)): 
@@ -224,7 +223,7 @@ def outspect(logging, T, opt, linspect, E=0):
 		  np.exp(-(omega[i]-freq[j])*(omega[i]-freq[j])/(2*sigma*sigma))
 		  for j in range(mini, maxi))
 	 out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
-	 log.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+	 logging[1].write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
 	 #logging.critical(u" {0}  {1}".format(omega[i] ,spect[i]))
    else:  #shape=='l':
       for i in range(len(omega)): 
@@ -239,7 +238,7 @@ def outspect(logging, T, opt, linspect, E=0):
 	 spect[i]=sum(intens[j]/np.pi*gamma/((omega[i]-freq[j])*(omega[i]-freq[j])+gamma*gamma)
 		  for j in range(mini, maxi))
 	 out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
-	 log.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+	 logging[1].write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
 	 #logging.critical(u" {0}  {1}".format(omega[i] ,spect[i]))
    out.close()
 

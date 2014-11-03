@@ -12,29 +12,23 @@ def usage():
    print "usage: smallscript <input-file>"
 
 def invokeLogging(mode="important"):
+   log=open("calculation.log", "a")
    if mode in ['all', 'ALL', 'All', '0']:
-      #logging.basicConfig(filename='calculation.log',level=logging.DEBUG, format='%(message)s')
       logging=0
-      #logging.debug('use log-level all')
+      log.write('use log-level all\n')
    elif mode in ['detailed', 'DETAILED', 'Detailed', "1"]:
       logging=1
-      #logging.basicConfig(filename='calculation.log',level=logging.INFO, format='%(message)s')
-      #logging.info('use log-level detailed')
+      log.write('use log-level detailed\n')
    elif mode in ['medium', 'MEDIUM','Medium', '2']:
       logging=2
-      #logging.basicConfig(filename='calculation.log',level=logging.WARNING, format='%(message)s')
-      #logging.warning('use log-level medium')
+      log.write('use log-level medium\n')
    elif mode in ['important', 'IMPORTANT','Important', '3']:
       logging=3
-      #logging.basicConfig(filename='calculation.log',level=logging.ERROR, format='%(message)s')
    elif mode in ['short', 'SHORT','Short', '4']:
-      #logging.basicConfig(filename='calculation.log',level=logging.CRITICAL, format='%(message)s')
       logging=4
    else:
       logging=3
-      #logging.basicConfig(filename='calculation.log',level=logging.ERROR, format='%(message)s')
-      #logging.error("logging-mode not recognized. Using 'important' instead")
-   log=open("calculation.log", "a")
+      log.write("logging-mode not recognized. Using 'important' instead\n")
    return logging, log
 
 def main(argv=None):
@@ -213,7 +207,7 @@ def main(argv=None):
       ################## change this to make it work with multiple files!!
       br.outspect(logging, T, opt, linspect)
       ###if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
-	 #br.outspect(T, opt, linspect, Energy-difference)
+	 #br.outspect(logging, T, opt, linspect, Energy-difference)
       try:
 	 # if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...
 	 secondlinspect

@@ -12,6 +12,48 @@ class OPA:
       self.mat=np.zeros((alpha,L+1)) #change elements to some float32 or so...
    
    def insert(self, N, FC):
+      ni=N[len(N)//2:]
+      exc=ni[np.argmax(ni)]
+      if exc>0:
+	 index=np.argmax(ni)
+	 self.mat[index][exc]=FC
+      else:
+	 nf=N[:len(N)//2]
+	 index=np.argmax(nf)
+	 self.mat[index][0]=FC
+
+   def getState(self, N): 
+      ni=N[len(N)//2:]
+      exc=ni[np.argmax(ni)]
+      if exc>0:
+	 index=np.argmax(ni)
+	 return self.mat[index][exc]
+      else:
+	 nf=N[:len(N)//2]
+	 index=np.argmax(nf)
+	 return self.mat[index][0]
+
+   def extract(self): #extract all elements 
+      intens=[]
+      ind=[]
+      excs=[]
+      for index in range(len(self.mat)):
+	 for exc in range(len(self.mat[0])):
+	    if self.mat[index][exc]>Threshold:
+   	       intens.append(self.mat[index][exc])
+   	       ind.append(index)
+   	       excs.append(exc)
+
+	       #print "diff", self.mat[index][exc],self.mat[index][-exc] #this should, in principle, coincide --> does!
+      return intens, ind, excs #I need squares as intensities
+
+class optOPA:
+   def __init__(self,alpha,L): #should it be __new__?
+      """ initializes the class"""
+      assert alpha>0, "There must be at least one degree of freedom!"
+      self.mat=np.zeros((alpha,L+1)) #change elements to some float32 or so...
+   
+   def insert(self, N, FC):
       exc=N[len(N)//2:].max()
       if exc>0:
 	 #index=ni.argmax()

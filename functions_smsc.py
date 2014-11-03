@@ -89,9 +89,6 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       logging[1].write("Line-spectrum in Two-Particle approximation:\n")
    logging[1].write(u"frequency     intensity  \n")
    logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
-   #logging.critical( "frequency     intensity  ")
-   #logging.critical(repr(E*Hartree2cm_1)+" "+repr(FC00))
-   #this is OPA and valid in any case
    for a in range(n):
       temp=FCeqf(HR[a],0,0)
       for j in range(N):
@@ -172,18 +169,17 @@ def CalculationHR(logging, initial, final, opt):
       for i in range(len(initial)):
 	 for j in range(len(final)):
 	    logging[1].write('difference of minimum energy between states: Delta E= '\
-	      	  + str((Energy[j+len(initial)]-Energy[i])*Hartree2cm_1))
-   if logging[0]<1:
-      for i in range(len(initial)):
-	 logging[1].write('Cartesion coordinates of initial state '+repr(i)+':\n'+repr(CartCoord[i].T)+'\n')
-      for j in range(len(initial),len(final)+len(initial)):
-	 logging[1].write('Cartesion coordinates of final state '+repr(j)+':\n'+repr(CartCoord[j].T)+'\n')
-   if logging[0]<3:
-      log.write('forces:')
-      for i in range(len(initial)):
-	 logging[1].write(str(i)+'. initial state: \n'+str(F[i]))
-      for j in range(len(initial), len(final)+len(initial) ):
-	 logging[1].write(str(j-len(initial))+'. final state: \n'+str(F[j]))
+	      	  + str((Energy[j+len(initial)]-Energy[i])*Hartree2cm_1)+'\n')
+      if logging[0]<2:
+	 for i in range(len(initial)):
+	    logging[1].write('Cartesion coordinates of initial state '+repr(i)+':\n'+repr(CartCoord[i].T)+'\n')
+	 for j in range(len(initial),len(final)+len(initial)):
+	    logging[1].write('Cartesion coordinates of final state '+repr(j)+':\n'+repr(CartCoord[j].T)+'\n')
+	 logging[1].write('forces:-n')
+	 for i in range(len(initial)):
+	    logging[1].write(str(i)+'. initial state: \n'+str(F[i]))
+	 for j in range(len(initial), len(final)+len(initial) ):
+	    logging[1].write(str(j-len(initial))+'. final state: \n'+str(F[j]))
 
    #Calculate Frequencies and normal modes
    L, f, Lsorted=GetL(logging, dim, mass,F, P)
@@ -303,7 +299,7 @@ def GetL(logging, dim, mass, F, D):
 	       'Frequencies smaller than 0 occured. Please check the input-file!!'
       if np.any(ftemp<0):
 	 if logging[0]<4:
-	    logging[1].write('Frequencies smaller than 0 occured. The absolute values are used in the following.')
+	    logging[1].write('Frequencies smaller than 0 occured. The absolute values are used in the following.\n')
 	 ftemp=np.abs(ftemp)
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
@@ -370,8 +366,8 @@ def GetProjector(logging, X, dim, m, Coord):
 	 D[3*j+k][k]=m[j]
    for k in range(dim):# next three rows in D: The rotational vectors
       D[k][3:6]=(np.cross(np.dot(X,Coord)[:].T[k/3],X[:].T[k%3]))*m[k/3]
-   if logging<1:
-      log.write("Original translational and rotational displacement vectors"+repr(D[3:13].T))
+   if logging[0]<1:
+      logging[1].write("Original translational and rotational displacement vectors"+repr(D[3:13].T))
    AOE=gs(np.array(D)) #orhogonalize it
    ones=np.identity(dim)
    one_P=ones-np.dot(AOE,AOE.T)
@@ -509,7 +505,7 @@ def ReadLog(logging, fileN):
    for j in range(3):
       MassCenter[j]=np.sum(Coord[j]*mass)
       MassCenter[j]/=np.sum(mass) #now it is cartesian center of mass
-   if logging[0]<3:
+   if logging[0]<2:
       logging[1].write("Cartesian (Angstrom) coordinates before alignment to center of mass\n {0} \nCenter of mass coordinates (Angstrom)\n{1}".format(Coord.T, MassCenter))
    
    for j in range(3):#displacement of molecule into center of mass:
@@ -596,8 +592,8 @@ def replace(logging,log, files, freq, L):
 	 if re.search(r'Frequencies -- [\d .-]+', line) is not None:
 	    t=0 #reset t, when frequencies occur
 	    u+=3 #
-	    if logging<1:
-	       log.write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
+	    if logging[0]<1:
+	       logging[1].write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
 	    if len(freq[s:].T)> 2: # there are at least three more frequencies
 	       out.write(re.sub(r'Frequencies -- [\d .-]+',
 		     'Frequencies --'+'    '+repr(freq[s])+'          '\
