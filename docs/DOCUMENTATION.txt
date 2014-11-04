@@ -43,6 +43,12 @@ print=<level>	specifies, how detailed the output should be printed
 		where level is: all, detailed, medium, important, short ; 
 broaden()	to calculate the broadened spectrum as well
 T=<number in K>  specifies temperature of system (default: 300K
+model=<>	specify, which model should be used within Duschinsky-picture:
+		'Simple' simple model uses OPA and no resorting of modes; this is assumed to have very big errors 
+			(don't use it)
+		'Resort' here the normal modes are resorted and all highest transitions are taken into account (default)
+		'Distributing' besides the transitions between states of same number, also transitions between different
+			vibrational states are taken into account.
 
 4: Broadening() /broaden()
 T=		Temperature of equilibrated system
