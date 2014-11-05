@@ -62,8 +62,9 @@ def main(argv=None):
    if (re.search(r"Broadening",f, re.I) is not None) is True:
       todo+=8
    opts.append(re.findall(r"(?<=Broadening)[\w\d\.,:\(\)\= -]+",f,re.I))
-   if todo>=16 or todo==0 or todo in [4,6,9,13]:
+   if todo>=16 or todo==0 or todo in [4,6,9]:
       print "options for calculation don't make sense. Please check the input-file!"
+      print opts
       return 0
 
    if np.mod(todo,2)==1: 
@@ -75,7 +76,7 @@ def main(argv=None):
       elif opts[2]!=[]:
 	 opt=opts[2][0]
       else:
-	  print 'You want nothing to be calculated? Here it is:\n'
+	  print 'You want nothing to be calculated? Here it is:\n \n'
 	  return 2
       #invoke logging: take options of HR-fact, if exists, else: from FC-spect, else: from Duschinsky-spect
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
@@ -110,8 +111,8 @@ def main(argv=None):
 	 T=300
       else:
 	 T=float(T[0])
-      if logging<=1:
-	 log.write("temperature of system: "+repr(T))
+      if logging[0]<=1:
+	 logging[1].write("temperature of system: "+repr(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       part=re.findall(r"(particles:)[\s\d]*", opt, re.I)
       if part==1:
@@ -155,21 +156,48 @@ def main(argv=None):
       if logging[0]<=1:
 	 logging[1].write("temperature of system:"+repr(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
-      for i in range(len(initial)): #calculate separate line-spects for different states
-	 k=[0,i]
-	 linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
+      model=re.findall(r"(?<=model\=)[\w]+",opt, re.I)
+      try:
+	 model=model[0]
+      except IndexError:
+	 for i in range(len(initial)): 
+	    k=[0,i]
+	    linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
+      if model in ['Simple', 'simple', 'SIMPLE']:
+	 for i in range(len(initial)):
+	    k=[0,i]
+	    ############# make linspect to append; at the moment it will be replaced!!!
+	    linspect=OPA.simpleFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
+      elif model in ['Resort', 'resort', 'RESORT']:
+	 for i in range(len(initial)): #calculate separate line-spects for different states
+	    k=[0,i]
+	    linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
+      elif model in ['Distributing', 'distributing', 'DISTRIBUTING', 'dist', 'DIST', 'Dist']:
+	 for i in range(len(initial)): #calculate separate line-spects for different states
+	    k=[0,i]
+	    linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, 4)
+	    # the threshold (4) can be made to be a parameter as well
+      else:
+	 logging[1].write('An error occured. The option of "model" is not known! Please check the spelling,'\
+	       ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".')
+	 for i in range(len(initial)):
+	    k=[0,i]
+	    linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
 
    if np.mod(todo,16)>=8:
       #calculate Broadening
-      if (re.search(r"(?<=broaden)[\w\.\-\= ,()]", opts[1][0], re.M) is not None) is True:
-	 opt=re.findall(r"(?<=broaden)[\w\.\-\= ,()]", opts[1][0], re.M)[0]
-      elif (re.search(r"(?<=broaden)[\w\.\-\= ,()]", opts[2][0], re.M) is not None) is True:
-	 opt=re.findall(r"(?<=broaden)[\w\.\-\= ,()]", opts[2][0], re.M)[0]
-      elif (re.search(r"(?<=broaden)[\w\.\-\= ,()]", opts[1][0], re.M) is not None) is True:
-	 opt=re.findall(r"(?<=broaden)[\w\.\-\= ,()]", opts[1][0], re.M)[0]
+      opt=0
+      if opts[3]!=[]:
+	 opt=opts[3][0]
       else:
-	  print 'You want nothing to be calculated? Here it is:\n nothing'
-	  return 2
+	 for i in range(len(opts)):
+	    if opts[i]!=[]:
+	       if (re.search(r"(?<=broaden)[\w\.\-\= ,()]", opts[i][0], re.M) is not None) is True:
+	       	  opt=re.findall(r"(?<=broaden)[\w\.\-\= ,()]", opts[i][0], re.M)[0]
+	       break
+      if opt==0:
+	 print 'You want nothing to be calculated? Here it is:\n nothing'
+	 return 2
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
 	 invokeLogging()
@@ -222,4 +250,4 @@ def main(argv=None):
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-version=1.1
+version=1.2
