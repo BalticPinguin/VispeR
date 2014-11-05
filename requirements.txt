@@ -21,6 +21,7 @@ python-debian==0.1.21ubuntu1
 reportlab==2.5
 scipy==0.14.0
 six==1.8.0
+smallscript==0.2
 unattended-upgrades==0.1
 urwid==1.2.1
 virtualenv==1.11.6

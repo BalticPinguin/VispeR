@@ -46,6 +46,37 @@ def handel_input(opt):
 	 shape="g"
    return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape
 
+def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
+   def putN(length, j, n, OPAintens, OPAfreq, mode):
+      if n==0:
+	 #this is 0-0 transition (before renormalising and 'pushing back' due to electronic transtion
+	 return 1, 0 
+      intens=[]
+      freq=[]
+      for i in range(j+1, length):
+	 if mode[i]==mode[j]: 
+	       continue
+	 if intens>0.001:
+	    intens.append(OPAintens[i]) #this is OPA-part
+	    freq.append(OPAfreq[i])
+	    ind+=1
+	 intens2, freq2=putN(length, i, n-1, OPAintens, OPAfreq, mode)
+	 intens.append(intens2)
+	 freq.append(freq2)
+      return np.array(intens), np.array(freq) ############ make shure, this has convenient structure!
+
+   length=len(OPAfreq)
+   ind=1
+   for i in range(len(OPAfreq)):
+      OPAfreq[i]-=freq00
+      OPAintens[i]/=intens00
+   putN(length, -1, n, OPAintens, OPAfreq, mode) 
+
+   for i in range(1,len(TPAfreq)):
+      TPAfreq[i]+=freq00
+      OPAintens[i]*=intens00
+   return TPAfreq, TPAintens
+
 def OPA2TPA(OPAfreq,freq00, OPAintens,intens00, mode):
    length=len(OPAfreq)
    TPAfreq=np.zeros((length+1)*(length+2)//2+length+1) #this is overestimation of size...
@@ -167,8 +198,23 @@ def outspect(logging, T, opt, linspect, E=0):
       else:
 	 logging[1].write("to <n>PA was given but not recognised.")
    else:
-      TPAfreq=linspect[0][minint:]
-      TPAintens=linspect[1][minint:]
+      n=re.findall(r"(?<=to nPA:)[\d]", opt, re.I)
+      if n==[]:
+	 TPAfreq=linspect[0][minint:]
+	 TPAintens=linspect[1][minint:]
+      else:
+	 TPAfreq, TPAintens=OPA2nPA(linspect[0][minint:],E , linspect[1][minint:], 10, linspect[2][minint:], n)
+	 minint=0
+	 for i in range(len(TPAintens)):
+	    if TPAintens[i]>=0.0005*TPAintens[-1]:
+	       minint=i
+	       break
+	 if logging[0]<3:
+	    logging[1].write('for {0}PA: again neglect {1} '.format(n, minint)+
+		     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.\n")
+	 index=np.argsort(TPAintens,kind='heapsort')
+	 TPAintens=TPAintens[index] #resort by intensity
+	 TPAfreq=TPAfreq[index]
 
    #find transition with minimum intensity to be respected
    if logging[0]<2:
@@ -208,7 +254,6 @@ def outspect(logging, T, opt, linspect, E=0):
       spectfile="/dev/null" #discart spectrum
    out = open(spectfile, "w")
    logging[1].write("broadened spectrum:\n frequency      intensity\n")
-   #logging.critical("broadened spectrum:\n frequency      intensity")
    if shape=='g':
       for i in range(len(omega)): 
      	 for j in range(maxi,len(freq)):
@@ -224,7 +269,6 @@ def outspect(logging, T, opt, linspect, E=0):
 		  for j in range(mini, maxi))
 	 out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
 	 logging[1].write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
-	 #logging.critical(u" {0}  {1}".format(omega[i] ,spect[i]))
    else:  #shape=='l':
       for i in range(len(omega)): 
 	 for j in range(maxi,len(freq)):

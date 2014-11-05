@@ -12,51 +12,8 @@ class OPA:
       self.mat=np.zeros((alpha,L+1)) #change elements to some float32 or so...
    
    def insert(self, N, FC):
-      ni=N[len(N)//2:]
-      exc=ni[np.argmax(ni)]
-      if exc>0:
-	 index=np.argmax(ni)
-	 self.mat[index][exc]=FC
-      else:
-	 nf=N[:len(N)//2]
-	 index=np.argmax(nf)
-	 self.mat[index][0]=FC
-
-   def getState(self, N): 
-      ni=N[len(N)//2:]
-      exc=ni[np.argmax(ni)]
-      if exc>0:
-	 index=np.argmax(ni)
-	 return self.mat[index][exc]
-      else:
-	 nf=N[:len(N)//2]
-	 index=np.argmax(nf)
-	 return self.mat[index][0]
-
-   def extract(self): #extract all elements 
-      intens=[]
-      ind=[]
-      excs=[]
-      for index in range(len(self.mat)):
-	 for exc in range(len(self.mat[0])):
-	    if self.mat[index][exc]>Threshold:
-   	       intens.append(self.mat[index][exc])
-   	       ind.append(index)
-   	       excs.append(exc)
-
-	       #print "diff", self.mat[index][exc],self.mat[index][-exc] #this should, in principle, coincide --> does!
-      return intens, ind, excs #I need squares as intensities
-
-class optOPA:
-   def __init__(self,alpha,L): #should it be __new__?
-      """ initializes the class"""
-      assert alpha>0, "There must be at least one degree of freedom!"
-      self.mat=np.zeros((alpha,L+1)) #change elements to some float32 or so...
-   
-   def insert(self, N, FC):
       exc=N[len(N)//2:].max()
       if exc>0:
-	 #index=ni.argmax()
 	 index=N[len(N)//2:].argmax()
 	 self.mat[index][exc]=FC
       else:
@@ -64,12 +21,11 @@ class optOPA:
 	 self.mat[index][0]=FC
 
    def getState(self, N): 
-      exc=N[N[len(N)//2:].argmax()]
+      exc=N[len(N)//2:].max()
       if exc>0:
 	 index=N[len(N)//2:].argmax()
 	 return self.mat[index][exc]
       else:
-	 #index=np.argmax(N[:len(N)//2])
 	 index=N[:len(N)//2].argmax()
 	 return self.mat[index][0]
 
@@ -224,19 +180,18 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
 	 logging[1].write(u"{1}   {0}    {2}\n".format(F[i][1], F[i][0], index[i]))
       return np.matrix(F)
    
-   np.shape(f)
    Gamma=np.diag(f[0])
    Gammap=np.diag(f[1]) # for final state
 
    linspect=[]
-   logging[1].write("frequency,           intensity ,      mode")
+   logging[1].write("frequency,           intensity ,      mode\n")
    L2=CalcI00(len(K), Energy)
    #this is already extracted to linspect (using side-effects)
    L1=L2 
    for i in range(1,N+1):
       L1, L2=iterate(L1, L2, Energy, i, f, J, K)
       intens, index, excitation=L2.extract()
-      linspect.append(makeLine(loggig,intens,E0, T, index, excitation, Gamma, Gammap, Energy, i))
+      linspect.append(makeLine(logging,intens,E0, T, index, excitation, Gamma, Gammap, Energy, i))
    dimen=0
    for i in range(len(linspect)):
       dimen+=len(linspect[i])
@@ -459,9 +414,41 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
       if resort[i][k]==-1:
 	 resort[i][k]=1 #use absolute value only.
    f[1]=resort.dot(f[1].T)
+   spect2=[]
+   spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
 
-   spect=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0).T
+   resort=np.eye(len(resort))
+   for i in range(threshold):
+      vec=resort[0]
+      for j in range(len(resort)-1):
+	 resort[i]=resort[i+1]
+      resort[-1]=vec
 
-   return spect
+      J=resort.dot(J.T)
+      K=resort.dot(K.T)
+      f[1]=resort.dot(f[1].T)
+      spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
 
-version=0.1
+   resort=np.eye(len(resort))
+   for i in range(threshold):
+      vec=resort[-1]
+      for j in range(1,len(resort)):
+	 resort[i]=resort[i-1]
+      resort[0]=vec
+
+      J=resort.dot(J.T)
+      K=resort.dot(K.T)
+      f[1]=resort.dot(f[1].T)
+      spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
+   dim=0
+   for i in range(len(spect2)):
+      dim+=len(spect2[i][0])
+   spect=np.zeros((dim, 3))
+   leng=0
+   for i in range(len(spect2)):
+      spect[leng:leng+len(spect2[i][0])]=spect2[i].T
+      leng+=len(spect2[i][0])
+
+   return spect.T
+
+version=0.2
