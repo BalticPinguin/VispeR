@@ -35,8 +35,10 @@ print=<level>	specifies, how detailed the output should be printed
 print=<level>	specifies, how detailed the output should be printed
 		where level is: all, detailed, medium, important, short ; 
 broaden()	to calculate the broadened spectrum as well
-particles: 1, 2 OPA/TPA (if not specified: calculate OPA
-T=<number in K>  specifies temperature of system (default: 300K
+particles: 1, 2 OPA/TPA (if not specified: calculate OPA ##########throw this out!
+	        attention: The TPA-part here is computationally expensive, since all TPA-transitions are taken 
+		into account explicitly. Use broaden(to 2PA) broaden(to nPA:2 ) instead.
+T=<number in K> specifies temperature of system (default: 300K
 
 3: Duschinsky-spect()
 print=<level>	specifies, how detailed the output should be printed
@@ -69,7 +71,7 @@ needs: Delta E=  <in cm^-1>
 
 further the file may contain arbitrary additional information; hence the output-files of other smallscript-calculations can be used.
 
-line-spect:
+line-spect: 
 
 ==PLANED ==
 accept some parameters (like T) as global ones -> if specified, local parameters are not taken into account

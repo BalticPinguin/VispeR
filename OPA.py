@@ -6,6 +6,9 @@ Hartree2cm_1=219474.63
 Threshold=3e-10
 
 class OPA:
+   """ This class containes the functions and objects for the calculation of vibronic spectra 
+       in Duschinski-rotated systems.
+   """
    def __init__(self,alpha,L): #should it be __new__?
       """ initializes the class"""
       assert alpha>0, "There must be at least one degree of freedom!"

@@ -12,6 +12,14 @@ def usage():
    print "usage: smallscript <input-file>"
 
 def invokeLogging(mode="important"):
+   """ initialises the logging-functionality
+   ==PARAMETERS==
+   mode:	5 different values are possible (see below); the lowest means: print much, higher values mean 
+		less printing
+   ==RETURNS==
+   logging: 	number of respective mode
+   log:		opened file to write in
+   """
    log=open("calculation.log", "a")
    if mode in ['all', 'ALL', 'All', '0']:
       logging=0
@@ -33,6 +41,7 @@ def invokeLogging(mode="important"):
 
 def main(argv=None):
    assert len(argv)==1, 'exactly one argument required.'
+   #open input-file (if existent and readable) and map it to f
    try:
       infile=open(argv[0], "r")
       f=mmap.mmap(infile.fileno(), 0, prot=mmap.PROT_READ)
@@ -41,8 +50,11 @@ def main(argv=None):
       print "file", inputf, "not found."
       usage()
       return 2
+   #opts is an array containing all options of respective sub-tasks, which are evaluated in the respective part
    opts=[]
+   # todo specifies the sub-tasks to be done in numerical values (powers of 2).
    todo=0
+   # here: evaluate the file with respect to the tasks to be done
    if (re.search(r"HR-fact",f, re.I) is not None) is True:
       todo+=1
    opts.append(re.findall(r"(?<=HR-fact)[\w.,\(\) \=:\-]+", f, re.I))
@@ -69,6 +81,7 @@ def main(argv=None):
 
    if np.mod(todo,2)==1: 
       #calculation up to HR-facts needed (FC- or Duschinsky spect)
+      #first find in where the options for this task are written in
       if opts[0]!=[]:
 	 opt=opts[0][0]
       elif opts[1]!=[]:
@@ -86,20 +99,25 @@ def main(argv=None):
 	 logging=invokeLogging(loglevel[0])
       initial=re.findall(r"(?<=initial: )[\w.]+",f, re.I)
       final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
+      ## the calculation of all needed quantities is done in this function
       HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
 
    if np.mod(todo,4)>=2:
       #calculate FC-spect
-      opt=opts[1][0]
+      #here exists only one possibility for the options 
+      opt=opts[1][0] 
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
-	 invokeLogging()
+	 logging[1].close()
+	 logging=invokeLogging()
       else:
-	 invokeLogging(loglevel[0])
+	 logging[1].close()
+	 logging=invokeLogging(loglevel[0])
       try: 
 	 #test, whether HR-facts were calculated above
 	 HR
       except NameError:
+	 #otherwise they have to be extracted from file
 	 HRfile=re.findall(r"(?<=HR-file: )[\w.,\/\-]+",f, re.I)
 	 assert len(HRfile)==1, 'There must be exactly one file specified containing HR-facts.'
 	 HR, funi, E=of.ReadHR(HRfile[0])
@@ -114,11 +132,11 @@ def main(argv=None):
       if logging[0]<=1:
 	 logging[1].write("temperature of system: "+repr(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
-      part=re.findall(r"(particles:)[\s\d]*", opt, re.I)
-      if part==1:
+      part=re.findall(r"(?<=particles:)[ \d]*", opt, re.I)
+      if float(part[0])==1:
 	 for i in range(len(initial)):
 	    linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "OPA")
-      elif part==2:
+      elif float(part[0])==2:
 	 for i in range(len(initial)):
 	    linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "TPA")
       else:
@@ -136,9 +154,11 @@ def main(argv=None):
       opt=opts[2][0]
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
-	 invokeLogging()
+	 logging[1].close()
+	 logging=invokeLogging()
       else:
-	 invokeLogging(loglevel[0])
+	 logging[1].close()
+	 logging=invokeLogging(loglevel[0])
       if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8: 
 	 if np.mod(todo,16)<8:
 	    todo+=8
@@ -154,7 +174,7 @@ def main(argv=None):
       else:
 	 T=float(T[0])
       if logging[0]<=1:
-	 logging[1].write("temperature of system:"+repr(T))
+	 logging[1].write("temperature of system: {0}\n".format(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       model=re.findall(r"(?<=model\=)[\w]+",opt, re.I)
       try:
@@ -200,9 +220,11 @@ def main(argv=None):
 	 return 2
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
-	 invokeLogging()
+	 logging[1].close()
+	 logging=invokeLogging()
       else:
-	 invokeLogging(loglevel[0])
+	 logging[1].close()
+	 logging=invokeLogging(loglevel[0])
       T=re.findall(r"(?<=T=)[ \=\s\d\.]+", opt, re.M)
       if len(T)==0:
 	 T=300

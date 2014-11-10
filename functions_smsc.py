@@ -59,7 +59,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
       """
       if logging[0]<1:
-   	 logging[1].write('Spectrum\n'+ repr(N)+' '+repr(M)+'  '+repr(len(intens))+'  '+repr(len(intens[0])))
+   	 logging[1].write('Spectrum\n {0}  {1}  {2}  {3}\n'.format(N, M, len(intens), len(intens[0])))
       J=len(intens[0])
       spect=np.zeros((3,len(intens)*len(intens[0])+1))
       spect[1][0]=FC00 #0->0 transition
@@ -67,7 +67,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       spect[2][0]=0
       for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
 	 for j in range(J):
-	    spect[2][i*J+j+1]=i
+	    spect[2][i*J+j+1]=i+1
 	    spect[1][i*J+j+1]=intens[i][j]
 	    spect[0][i*J+j+1]=freqs[i][j]
       return spect
@@ -83,12 +83,13 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
    #scale whole spectrum
    FC00=tmp*tmp*1e2
    uency00=E*Hartree2cm_1 #zero-zero transition
-   if approx=="OPA":
-      logging[1].write("Line-spectrum in One-Particle approximation:\n")
-   elif approx=="TPA":
-      logging[1].write("Line-spectrum in Two-Particle approximation:\n")
-   logging[1].write(u"frequency     intensity  \n")
-   logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
+   if logging[0]<1:
+      if approx=="OPA":
+	 logging[1].write("Line-spectrum in One-Particle approximation:\n")
+      elif approx=="TPA":
+	 logging[1].write("Line-spectrum in Two-Particle approximation:\n")
+      logging[1].write(u"frequency     intensity  \n")
+      logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
    for a in range(n):
       temp=FCeqf(HR[a],0,0)
       for j in range(N):
@@ -99,7 +100,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
 	    tmp=FCeqf(HR[a], i, j)/temp
 	    FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
 	    uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	    logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a)))
+	    if logging[0]<1:
+	       logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a)))
    if approx=="TPA":
       ind=0
       for a in range(n):
@@ -120,19 +122,24 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
 		  for k in krange:
 		     for l in lrange:
 			tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
-			FC2[0][ind]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i+freq[b]*l)/T)
-			uency2[0][ind]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
-			logging[1].write(u" {0}\n".format(repr(uency2[0][ind])+"  "+repr(FC2[0][ind])+"  "+repr(a*n+b)))
-			#logging.critical(repr(uency2[0][ind])+"  "+repr(FC2[0][ind])+"  "+repr(a*n+b))
-			ind+=1
+			######throw out all transitions that are too small
+			if tmp*tmp>1e-4:
+			   FC2[0][ind]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i+freq[b]*l)/T)
+			   uency2[0][ind]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
+			   #logging[1].write(u" {0}  {1}  {2}\n"\
+				       #.format(uency2[0][ind],FC2[0][ind], a*n+b))
+			   ind+=1
    FC00*=np.exp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    if approx=="TPA":
       spect2=unifSpect(FC2, uency2, E*Hartree2cm_1, 0)
-      result=np.zeros(( 2, len(spect[0])+len(spect2[0]) ))
+      result=np.zeros(( 3, len(spect[0])+len(spect2[0]) ))
       for i in range(2):
 	 result[i][:len(spect[0])]=spect[i]
 	 result[i][len(spect[0]):]=spect2[i]
+	 ### this is arbitrary but should be constant, so that no OPA2nPA is possible
+      result[2]=42
+      result[2]=42
       return result
    return spect
 
@@ -185,14 +192,6 @@ def CalculationHR(logging, initial, final, opt):
    L, f, Lsorted=GetL(logging, dim, mass,F, P)
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
    Gauf=gaussianfreq(logging, initial, final, dim) 
-   #print "changes of eigenvalues 2:"
-   #unity=np.eye(len(F[i]))
-   #for j in range(len(f[i])):
-      #change=Gauf[i][j]-f[i][j]
-      #if np.linalg.norm(change)>0.0001:
-	 #print np.linalg.norm(change), j 
-	 #for k in range(len(f)):
-	    #print f[i][k]-Gauf[i][k]
    
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f)
