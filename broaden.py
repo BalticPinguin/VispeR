@@ -47,7 +47,12 @@ def handel_input(opt):
    return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape
 
 def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
+   """ This function is a generalisation of OPA2TPA and OPA23PA.
+   Finally, it should be able to work with arbitrary n and hence can be used to calculate full spectrum.
+   """
    def putN(length, j, n, OPAintens, OPAfreq, mode):
+      """ This function does the most calculation that is the iteration to the next number of particles
+      """
       if n==0:
 	 #this is 0-0 transition (before renormalising and 'pushing back' due to electronic transtion
 	 return np.array([]), np.array([])
@@ -99,7 +104,7 @@ def OPA2TPA(OPAfreq,freq00, OPAintens,intens00, mode):
       ind+=1
       for j in range(i+1,length):
 	 ##not only same mode but all modes with lower number should not be taken into account here!?
-	 if mode[i]<=mode[j]: #both have same mode...
+	 if mode[i]==mode[j]: #both have same mode...
 	    continue
 	 TPAintens[ind]=OPAintens[i]*OPAintens[j]/intens00
 	 TPAfreq[ind]=OPAfreq[i]+OPAfreq[j]-freq00
@@ -158,7 +163,7 @@ def outspect(logging, T, opt, linspect, E=0):
    #find transition with minimum intensity to be respected
    minint=0
    for i in range(len(linspect[1])):
-      if linspect[1][i]>=0.001*linspect[1][-1]:
+      if linspect[1][i]>=0.0001*linspect[1][-1]:
 	 minint=i
 	 break
    if logging[0]<3:
@@ -173,21 +178,21 @@ def outspect(logging, T, opt, linspect, E=0):
       if n[0]=='2':
 	 ind=linspect[2].argmin()
 	 #                          spectral frequency   0-0 transition      intensities          0-0 intensit.          modes        
-	 TPAfreq, TPAintens=OPA2TPA(linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], linspect[1][ind], 
+	 TPAf, TPAi=OPA2TPA(linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], linspect[1][ind], 
 											     linspect[2][minint:])
-	 index=np.argsort(TPAintens,kind='heapsort')
-	 TPAintens=TPAintens[index] #resort by intensity
-	 TPAfreq=TPAfreq[index]
+	 index=np.argsort(TPAi,kind='heapsort')
+	 TPAi=TPAi[index] #resort by intensity
+	 TPAf=TPAf[index]
 	 minint=0
-	 for i in range(len(TPAintens)):
-	    if TPAintens[i]>=0.00001*TPAintens[-1]:
+	 for i in range(len(TPAi)):
+	    if TPAi[i]>=0.0001*TPAi[-1]:
 	       minint=i
 	       break
 	 if logging[0]<3:
    	    logging[1].write('for TPA: again neglect '+repr(minint)+
-		     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.\n")
-	 TPAintens=TPAintens[minint:] #resort by intensity
-	 TPAfreq=TPAfreq[minint:]
+		     ' transitions, use only '+repr(len(TPAi)-minint)+" instead.\n")
+	 TPAintens=TPAi[minint:]
+	 TPAfreq=TPAf[minint:]
       elif n[0]=='3':
 	 ind=linspect[2].argmin()
 	 TPAfreq, TPAintens=OPA2TPA(linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], 
@@ -233,15 +238,15 @@ def outspect(logging, T, opt, linspect, E=0):
 	 TPAfreq=TPAfreq[minint:]
 
    #print line spectrum (interesting, if nPA is specified
-   if logging[0]<4:
-      logging[1].write("frequency, intensity,  2\n")
-      foo=TPAintens[minint:] #resort by intensity
-      bar=TPAfreq[minint:]
-      index=np.argsort(foo,kind='heapsort')
-      foo=foo[index]
-      bar=bar[index]
-      for i in range(len(foo)):
-	logging[1].write(repr(bar[i])+"  "+repr(foo[i])+"  "+repr(2)+"\n")
+   #if logging[0]<1:
+      #logging[1].write("frequency, intensity,  2\n")
+      #foo=TPAintens
+      #bar=TPAfreq
+      #index=np.argsort(bar,kind='heapsort')
+      #foo=foo[index]
+      #bar=bar[index]
+      #for i in range(len(foo)):
+	#logging[1].write(repr(bar[i])+"  "+repr(foo[i])+"  "+repr(2)+"\n")
 
    #find transition with minimum intensity to be respected
    #the range of frequency ( should be greater than the transition-frequencies)
@@ -254,7 +259,7 @@ def outspect(logging, T, opt, linspect, E=0):
       minfreq=omega[0]
       maxfreq=omega[-1]
    if logging[0]<3:
-      logging[1].write('maximal and minimal frequencies:\n {0} {1}'.format(maxfreq, minfreq))
+      logging[1].write('maximal and minimal frequencies:\n {0} {1}\n'.format(maxfreq, minfreq))
    #truncate arrays and sort by index for further efficient processes
    #if no other grid is defined: use linspace in range
    if omega==None:
@@ -267,6 +272,11 @@ def outspect(logging, T, opt, linspect, E=0):
    index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
    freq=TPAfreq[index]
    intens=TPAintens[index]
+   if logging[0]<1:
+      logging[1].write('intensity   frequency\n')
+      for i in range(len(intens)):
+	 logging[1].write(u"{0} {1}\n".format(intens[i], freq[i]))
+
    mini=0
    for i in range(1,len(freq)):
       if freq[i]>=5*gamma+freq[0]:
@@ -274,10 +284,6 @@ def outspect(logging, T, opt, linspect, E=0):
 	 break
    if spectfile==None:
       spectfile="/dev/null" #discart spectrum
-   if logging[0]<1:
-      logging[1].write('intensity   frequency\n')
-      for i in range(len(intens)):
-	 logging[1].write(u"{0} {1}\n".format(intens[i], freq[i]))
    out = open(spectfile, "w")
    logging[1].write("broadened spectrum:\n frequency      intensity\n")
    if shape=='g':
@@ -297,7 +303,6 @@ def outspect(logging, T, opt, linspect, E=0):
 	 logging[1].write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
    else:  #shape=='l':
       for i in range(len(omega)): 
-      ########################attention!!!! This is going to be a dauerschleife..
 	 for j in range(maxi,len(freq)):
 	    if freq[j]>=5*gamma+omega[i]:
 	       maxi=j

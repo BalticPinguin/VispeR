@@ -9,11 +9,11 @@ if the script is located in a executable folder
 where <input> is a custom file specifying all calculations to be done (see sect. input)
 
 ==INPUT==
-The smallscript can do four different tasks:
-1: Calculate Huang-Rhys factors using G09-log files by 			'HR-fact()'
-2: Calculate spectra in FC-picture using G09-log files or HR-factors by 'FC-spect()'
-3: Calculate Duschinsky-rotated spectra using G09-log files by 		'Duschinsky-spect()'
-4: Calculate broadened spectra from line-spectra by 			'Broadening()'
+The smallscript can do four different tasks that can be called separately:
+'HR-fact()'          Calculate Huang-Rhys factors using G09-log files 
+'FC-spect()'         Calculate spectra in FC-picture using G09-log files or HR-factors 
+'Duschinsky-spect()' Calculate Duschinsky-rotated spectra using G09-log files
+'Broadening()'       Calculate broadened spectra from line-spectrum 
 
 where the G09-files need to include geometry and force-constant matrix for different electronic states.
 
@@ -34,7 +34,7 @@ print=<level>	specifies, how detailed the output should be printed
 2: FC-spect()
 print=<level>	specifies, how detailed the output should be printed
 		where level is: all, detailed, medium, important, short ; 
-broaden()	to calculate the broadened spectrum as well
+broaden()	to calculate the broadened spectrum as well, options for this: see Broadening()
 particles: 1, 2 OPA/TPA (if not specified: calculate OPA ##########throw this out!
 	        attention: The TPA-part here is computationally expensive, since all TPA-transitions are taken 
 		into account explicitly. Use broaden(to 2PA) broaden(to nPA:2 ) instead.
@@ -43,7 +43,7 @@ T=<number in K> specifies temperature of system (default: 300K
 3: Duschinsky-spect()
 print=<level>	specifies, how detailed the output should be printed
 		where level is: all, detailed, medium, important, short ; 
-broaden()	to calculate the broadened spectrum as well
+broaden()	to calculate the broadened spectrum as well; options for this: see Broadening()
 T=<number in K>  specifies temperature of system (default: 300K
 model=<>	specify, which model should be used within Duschinsky-picture:
 		'Simple' simple model uses OPA and no resorting of modes; this is assumed to have very big errors 
@@ -64,15 +64,17 @@ shape=		shape of broadening: gaussian (g) or lorentzian (l)
 to <n>PA	adds the calculation of n-particle approximation out of given OPA spectrum (n=2,3)
 to nPA:<n>	same as above, but using a recursive algorithm; n is not restricted.
 
-===SYNTAX OF FILES===
+===SYNTAX OF SOURCE-FILES===
 HR-file:
 needs: Delta E=  <in cm^-1>
        HR-fact           freq  <following: list of respective quantities>
 
 further the file may contain arbitrary additional information; hence the output-files of other smallscript-calculations can be used.
 
-line-spect: 
+line-spect: ???
+grid: (see broadening) the energies of the grid (in cm^-1) in columns. No further numbers or letters should be contained in the file.
 
 ==PLANED ==
 accept some parameters (like T) as global ones -> if specified, local parameters are not taken into account
 planned parameters for broadening: file to write in 
+accept paths for files as well
