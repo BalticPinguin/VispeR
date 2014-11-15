@@ -59,33 +59,35 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       intens=[]
       freq=[]
       for i in range(j+1, length):
-	 if mode[i]<=mode[j]: 
-	    continue
 	 if OPAintens[i]>0.0001:
 	    intens.append(OPAintens[i]) #this is OPA-part
 	    freq.append(OPAfreq[i])
-	    ############################# decompose intens,freq
+	    # decompose intens,freq
 	    tmpintens=[]
 	    tmpfreq=[]
-	    tmpmode=[]
-	    for k in range(len(OPAintens)):
-	       if mode[i]<=mode[k]:
+	    newmode=np.zeros((2*len(mode), len(mode[0]) ))
+	    newmode[:len(mode)]=mode
+	    for k in range(i+1,len(OPAintens)):
+	       if np.any(mode[:].T[i]-mode[:].T[k]==0):
 		  continue
 	       tmpintens.append(OPAintens[k]*OPAintens[i])
 	       tmpfreq.append(OPAfreq[k]+OPAfreq[i])
-	       ######change 'mode' as well.
-	    intens2, freq2=putN(len(tmpintens), i, n-1, tmpintens, tmpfreq, mode)
+	       newmode[len(mode):].T[i]=mode[:].T[k]
+	    freq2, intens2=putN(len(tmpintens), i, n-1, tmpintens, tmpfreq, mode)
 	    for k in range(len(intens2)):
 	       intens.append(intens2[k])
 	       freq.append(freq2[k])
-      return np.array(freq), np.array(intens)  ############ make shure, this has convenient structure!
+      return np.array(freq), np.array(intens)  
 
    length=len(OPAfreq)
    ind=1
    for i in range(len(OPAfreq)):
       OPAfreq[i]-=freq00
       OPAintens[i]/=intens00
-   TPAfreq, TPAintens=putN(length, -1, n, OPAintens, OPAfreq, mode) 
+   newmode=np.zeros((2,len(mode))) #for n>1: matrix-structure needed
+   newmode[0]=mode
+   newmode[1]=mode #this is redundant but needed to make any(mode[i]) work...
+   TPAfreq, TPAintens=putN(length, -1, n, OPAintens, OPAfreq, newmode)
    for i in range(len(TPAfreq)):
       TPAfreq[i]+=freq00
       TPAintens[i]*=intens00
@@ -172,7 +174,7 @@ def outspect(logging, T, opt, linspect, E=0):
       if logging[0]<2:
 	 logging[1].write('minimal and maximal intensities:\n'+repr(linspect[1][minint])+' '+repr(linspect[1][-1])+"\n")
 
-   #make TPA from OPA:
+   #make nPA from OPA:
    if (re.search(r"to [\d]PA", opt, re.I) is not None) is True:
       n=re.findall(r"(?<=to )[\d](?=PA)", opt, re.I)
       if n[0]=='2':
@@ -222,13 +224,16 @@ def outspect(logging, T, opt, linspect, E=0):
 	 TPAintens=linspect[1][minint:]
       else:
 	 n=float(n[0])
-	 TPAfreq, TPAintens=OPA2nPA(linspect[0][minint:], E, linspect[1][minint:], 10, linspect[2][minint:], n)
+	 ind=linspect[2].argmin()
+	 #                          spectral frequency   0-0 transition      intensities          0-0 intensit.          modes        
+	 TPAfreq, TPAintens=OPA2nPA(linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], linspect[1][ind], 
+											     linspect[2][minint:], n)
 	 index=np.argsort(TPAintens,kind='heapsort')
 	 TPAintens=TPAintens[index] #resort by intensity
 	 TPAfreq=TPAfreq[index]
 	 minint=0
 	 for i in range(len(TPAintens)):
-	    if TPAintens[i]>=0.0005*TPAintens[-1]:
+	    if TPAintens[i]>=0.00005*TPAintens[-1]:
 	       minint=i
 	       break
 	 if logging[0]<3:
@@ -237,16 +242,6 @@ def outspect(logging, T, opt, linspect, E=0):
 	 TPAintens=TPAintens[minint:] #resort by intensity
 	 TPAfreq=TPAfreq[minint:]
 
-   #print line spectrum (interesting, if nPA is specified
-   #if logging[0]<1:
-      #logging[1].write("frequency, intensity,  2\n")
-      #foo=TPAintens
-      #bar=TPAfreq
-      #index=np.argsort(bar,kind='heapsort')
-      #foo=foo[index]
-      #bar=bar[index]
-      #for i in range(len(foo)):
-	#logging[1].write(repr(bar[i])+"  "+repr(foo[i])+"  "+repr(2)+"\n")
 
    #find transition with minimum intensity to be respected
    #the range of frequency ( should be greater than the transition-frequencies)

@@ -2,7 +2,7 @@
 #include [[functions_smsc.py]]
 import functions_smsc as of 
 #include [[OPA.py]]
-import OPA 
+import OPA
 #include [[broaden.py]]
 import broaden as br
 #include further dicts
@@ -11,16 +11,21 @@ import sys, os, re, mmap, numpy as np
 def usage():
    print "usage: smallscript <input-file>"
 
-def invokeLogging(mode="important"):
+def invokeLogging(logfile, mode="important"):
    """ initialises the logging-functionality
    ==PARAMETERS==
+   logfile 	name of file to be used as log-file. It is expected to be an array of length 0 or one.
    mode:	5 different values are possible (see below); the lowest means: print much, higher values mean 
 		less printing
    ==RETURNS==
    logging: 	number of respective mode
    log:		opened file to write in
    """
-   log=open("calculation.log", "a")
+   if logfile==[]:
+      log=open("calculation.log", "a")
+   else:
+      s=logfile[0].strip()
+      log=open(s, "a")
    if mode in ['all', 'ALL', 'All', '0']:
       logging=0
       log.write('use log-level all\n')
@@ -78,6 +83,7 @@ def main(argv=None):
       print "options for calculation don't make sense. Please check the input-file!"
       print opts
       return 0
+   logfile=re.findall(r"(?<=out: )[\.\-_ \w]+",f, re.I)
 
    if np.mod(todo,2)==1: 
       #calculation up to HR-facts needed (FC- or Duschinsky spect)
@@ -94,13 +100,15 @@ def main(argv=None):
       #invoke logging: take options of HR-fact, if exists, else: from FC-spect, else: from Duschinsky-spect
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
-	 logging=invokeLogging()
+	 logging=invokeLogging(logfile)
       else:
-	 logging=invokeLogging(loglevel[0])
+	 logging=invokeLogging(logfile,loglevel[0])
       initial=re.findall(r"(?<=initial: )[\w.]+",f, re.I)
       final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
       ## the calculation of all needed quantities is done in this function
       HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
+      if logging[0]<3:
+	 logging[1].write('pure electronic transition at {0}'.format(Energy[0]-Energy[1]))
 
    if np.mod(todo,4)>=2:
       #calculate FC-spect
@@ -109,10 +117,10 @@ def main(argv=None):
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
 	 logging[1].close()
-	 logging=invokeLogging()
+	 logging=invokeLogging(logfile)
       else:
 	 logging[1].close()
-	 logging=invokeLogging(loglevel[0])
+	 logging=invokeLogging(logfile, loglevel[0])
       try: 
 	 #test, whether HR-facts were calculated above
 	 HR
@@ -133,6 +141,8 @@ def main(argv=None):
 	 logging[1].write("temperature of system: "+repr(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       part=re.findall(r"(?<=particles:)[ \d]*", opt, re.I)
+      if len(part)==0: #particles not specified
+	 part=np.array([1])
       if float(part[0])==1:
 	 for i in range(len(initial)):
 	    linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "OPA")
@@ -155,10 +165,10 @@ def main(argv=None):
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
 	 logging[1].close()
-	 logging=invokeLogging()
+	 logging=invokeLogging(logfile)
       else:
 	 logging[1].close()
-	 logging=invokeLogging(loglevel[0])
+	 logging=invokeLogging(logfile, loglevel[0])
       if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8: 
 	 if np.mod(todo,16)<8:
 	    todo+=8
@@ -221,10 +231,10 @@ def main(argv=None):
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
 	 logging[1].close()
-	 logging=invokeLogging()
+	 logging=invokeLogging(logfile)
       else:
 	 logging[1].close()
-	 logging=invokeLogging(loglevel[0])
+	 logging=invokeLogging(logfile, loglevel[0])
       T=re.findall(r"(?<=T=)[ \=\s\d\.]+", opt, re.M)
       if len(T)==0:
 	 T=300

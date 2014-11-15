@@ -22,6 +22,8 @@ Further, the sources are specified as:
 'final: '	specifies G09-log files for final electronic states geomitries
 'HR-file: '	specifies file containing HR-factors (1. column) and frequencies (second column)
 'line-spect: '	specifies file containing line-spectrum (intensity  frequency  [mode-number])
+'out:'		specify file the output should be saved in; default is 'calculation.log'.
+		If the file already exists, the logging-information will be appended.
 
 The order of the arguments is not important; further they are read case-insensitive.
 If HR-fact() and FC-spect() are both specified in the same file, the newly calculated HR-factors are taken, even if HR-file is specified.
@@ -60,7 +62,7 @@ grid=		specify grid: either a file (containing list of gridpoints) or three numb
 		or one number: number of points (minimum and maximum will be taken from default
 linspect=	specifies file with a line-spectrum already calculated
 spectfile=	specifies file where the spectrum should be saved. 
-shape=		shape of broadening: gaussian (g) or lorentzian (l)
+shape=		shape of broadening: Gaussian (g) or Lorentzian (l)
 to <n>PA	adds the calculation of n-particle approximation out of given OPA spectrum (n=2,3)
 to nPA:<n>	same as above, but using a recursive algorithm; n is not restricted.
 
@@ -71,7 +73,7 @@ needs: Delta E=  <in cm^-1>
 
 further the file may contain arbitrary additional information; hence the output-files of other smallscript-calculations can be used.
 
-line-spect: ???
+line-spect: 
 grid: (see broadening) the energies of the grid (in cm^-1) in columns. No further numbers or letters should be contained in the file.
 
 ==PLANED ==
