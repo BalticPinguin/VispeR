@@ -107,8 +107,6 @@ def main(argv=None):
       final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
       ## the calculation of all needed quantities is done in this function
       HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
-      if logging[0]<3:
-	 logging[1].write('pure electronic transition at {0}'.format(Energy[0]-Energy[1]))
 
    if np.mod(todo,4)>=2:
       #calculate FC-spect
@@ -116,11 +114,17 @@ def main(argv=None):
       opt=opts[1][0] 
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
-	 logging[1].close()
-	 logging=invokeLogging(logfile)
+	 try:
+	    logging[1].close()
+	    logging=invokeLogging(logfile)
+	 except UnboundLocalError:
+	    logging=invokeLogging(logfile)
       else:
-	 logging[1].close()
-	 logging=invokeLogging(logfile, loglevel[0])
+	 try:
+	    logging[1].close()
+	    logging=invokeLogging(logfile, loglevel[0])
+	 except UnboundLocalError:
+	    logging=invokeLogging(logfile, loglevel[0])
       try: 
 	 #test, whether HR-facts were calculated above
 	 HR
@@ -128,7 +132,7 @@ def main(argv=None):
 	 #otherwise they have to be extracted from file
 	 HRfile=re.findall(r"(?<=HR-file: )[\w.,\/\-]+",f, re.I)
 	 assert len(HRfile)==1, 'There must be exactly one file specified containing HR-facts.'
-	 HR, funi, E=of.ReadHR(HRfile[0])
+	 initial, HR, funi, E=of.ReadHR(logging, HRfile[0])
 	 Energy=np.zeros(2)
 	 Energy[0]=E
 	 Energy[1]=0
@@ -151,6 +155,7 @@ def main(argv=None):
 	    linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "TPA")
       else:
 	 for i in range(len(initial)):
+	    print i
 	    linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T)
       if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
 	 if opts[2]!=[]:
@@ -164,11 +169,17 @@ def main(argv=None):
       opt=opts[2][0]
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
-	 logging[1].close()
-	 logging=invokeLogging(logfile)
+	 try:
+	    logging[1].close()
+	    logging=invokeLogging(logfile)
+	 except UnboundLocalError:
+	    logging=invokeLogging(logfile)
       else:
-	 logging[1].close()
-	 logging=invokeLogging(logfile, loglevel[0])
+	 try:
+	    logging[1].close()
+	    logging=invokeLogging(logfile, loglevel[0])
+	 except UnboundLocalError:
+	    logging=invokeLogging(logfile, loglevel[0])
       if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8: 
 	 if np.mod(todo,16)<8:
 	    todo+=8
@@ -222,19 +233,25 @@ def main(argv=None):
       else:
 	 for i in range(len(opts)):
 	    if opts[i]!=[]:
-	       if (re.search(r"(?<=broaden)[\w\.\-\= ,()]", opts[i][0], re.M) is not None) is True:
-	       	  opt=re.findall(r"(?<=broaden)[\w\.\-\= ,()]", opts[i][0], re.M)[0]
+	       if (re.search(r"(?<=broaden)[\w\.\-\= ,\(\):]", opts[i][0], re.M) is not None) is True:
+	       	  opt=re.findall(r"(?<=broaden)[\w\.\-\= ,\(\):]+", opts[i][0], re.M)[0]
 	       break
       if opt==0:
 	 print 'You want nothing to be calculated? Here it is:\n nothing'
 	 return 2
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
-	 logging[1].close()
-	 logging=invokeLogging(logfile)
+	 try:
+	    logging[1].close()
+	    logging=invokeLogging(logfile)
+	 except UnboundLocalError:
+	    logging=invokeLogging(logfile)
       else:
-	 logging[1].close()
-	 logging=invokeLogging(logfile, loglevel[0])
+	 try:
+	    logging[1].close()
+	    logging=invokeLogging(logfile, loglevel[0])
+	 except UnboundLocalError:
+	    logging=invokeLogging(logfile, loglevel[0])
       T=re.findall(r"(?<=T=)[ \=\s\d\.]+", opt, re.M)
       if len(T)==0:
 	 T=300
