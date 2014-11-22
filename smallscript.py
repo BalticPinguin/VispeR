@@ -3,6 +3,8 @@
 import functions_smsc as of 
 #include [[OPA.py]]
 import OPA
+#include [[Dusch_unrest.py]]
+import Dusch_unrest as DR
 #include [[broaden.py]]
 import broaden as br
 #include further dicts
@@ -216,8 +218,21 @@ def main(argv=None):
       elif model in ['Distributing', 'distributing', 'DISTRIBUTING', 'dist', 'DIST', 'Dist']:
 	 for i in range(len(initial)): #calculate separate line-spects for different states
 	    k=[0,i]
-	    linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, 4)
+	    shifts=re.findall(r"(?<=maxshift\=)[\d]+",opt, re.I)
+	    if len(shifts)==1:
+	       linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, shifts[0])
+	    else:
+	       linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, 6)
 	    # the threshold (4) can be made to be a parameter as well
+      elif model in ["Unrestricted", 'UNRESTRITED', 'unrestricted', 'unrest']:
+	 for i in range(len(initial)): #calculate separate line-spects for different states
+	    k=[0,i]
+	    #make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters
+	    modes=re.findall(r"(?<=maxmodes\=)[\d]+",opt, re.I)
+	    if len(modes)==1:
+	       linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, modes[0])
+	    else:
+	       linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, 10)
       else:
 	 logging[1].write('An error occured. The option of "model" is not known! Please check the spelling,'\
 	       ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".')
@@ -284,7 +299,6 @@ def main(argv=None):
       ################## change this to make it work with multiple files!!
       br.outspect(logging, T, opt, linspect)
       ###if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
-	 #br.outspect(logging, T, opt, linspect, Energy-difference)
       try:
 	 # if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...
 	 secondlinspect

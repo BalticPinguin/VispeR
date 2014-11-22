@@ -20,7 +20,8 @@
       <p>filename: functions_smsc.py</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">math</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">scipy.linalg.lapack</span> <span class="kn">as</span> <span class="nn">LA</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -398,7 +399,7 @@ logging[1].write(u" {0}\n".format(repr(uency[a][j<em>M+i-1])+"  "+repr(FC[a][j</
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
 	 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">final</span><span class="p">)):</span>
 	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;difference of minimum energy between states: Delta E= &#39;</span>\
-	      	  <span class="o">+</span> <span class="nb">str</span><span class="p">((</span><span class="n">Energy</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+	      	  <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">Energy</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)]</span><span class="o">+</span><span class="n">Energy</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
 	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
 	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Cartesion coordinates of initial state &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
@@ -602,21 +603,13 @@ Gauf/=Hartree2cm_1  #convert to atomic units</p>
         <a class='octothorpe' href='#section-31'>#</a>
       </div>
       <h3>the condition number of F[i] is some millions...</h3>
+<p>ftemp,Ltemp=np.linalg.eig(F[i])
+ftemp,Ltemp=np.linalg.eigh(F[i])</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">ftemp</span><span class="p">,</span><span class="n">Ltemp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-32'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
-      </div>
-      <p>ftemp,Ltemp=np.linalg.eigh(F[i])</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ftemp</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">ftemp</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">),</span>\
+      <div class="highlight"><pre>      <span class="n">ftemp</span><span class="p">,</span><span class="n">Ltemp</span><span class="p">,</span><span class="n">info</span><span class="o">=</span><span class="n">LA</span><span class="o">.</span><span class="n">dsyev</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="c">#this seems to be the best function</span>
+
+      <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ftemp</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">ftemp</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">),</span>\
 	       <span class="s">&#39;Frequencies smaller than 0 occured. Please check the input-file!!&#39;</span>
       <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ftemp</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">):</span>
 	 <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">:</span>
@@ -625,29 +618,34 @@ Gauf/=Hartree2cm_1  #convert to atomic units</p>
       <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ftemp</span><span class="p">),</span><span class="n">kind</span><span class="o">=</span><span class="s">&#39;heapsort&#39;</span><span class="p">)</span> <span class="c"># ascending sorting f</span>
       <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ftemp</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
       <span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Ltemp</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+
       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
-	 <span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span></pre></div>
+	 <span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+      <span class="n">Ltest</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-33'>
+  <div class='section' id='section-32'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-32'>#</a>
       </div>
-      <p>Ltest[i]=gs(L[i])
-for j in range(len(L[i])):
- Ltest[i][j]=Ltest[i][j]/np.linalg.norm(Ltest[i][j])</p>
-<pre><code> ############################### begin test-area
- print "orthogonality:"
+      <h6>######################## begin test-area</h6>
+<pre><code> print "orthogonality:"
  for j in range(len(Ltest[i])):
 </code></pre>
 <p>for k in range(len(Ltest[i])):
     if k==j:
+       scale=Ltest[i][k].T.dot(Ltest[i][j])
+       if scale &gt;1.01 or scale&lt; 0.99: 
+      print scale, i, j, k, "norm"
        continue
     scale=Ltest[i][k].T.dot(Ltest[i][j])
-    if scale &gt;1e-10 and scale&lt; -1e-10: 
+    if scale &gt;1e-8 and scale&lt; -1e-8:
        print scale, i, j, k, "scale"
+     Ltest[i]=gs(L[i])
+     for j in range(len(L[i])):
+ Ltest[i][j]=Ltest[i][j]/np.linalg.norm(Ltest[i][j])
      print "changes of 2-norm"
      for j in range(len(Ltest[i])):
  change=Ltest[i][j]-L[i][j]
@@ -669,10 +667,10 @@ for j in range(len(L[i])):
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-34'>
+  <div class='section' id='section-33'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
+        <a class='octothorpe' href='#section-33'>#</a>
       </div>
       <h6>######################## end test-area</h6>
     </div>
@@ -701,10 +699,10 @@ for j in range(len(L[i])):
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-35'>
+  <div class='section' id='section-34'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
+        <a class='octothorpe' href='#section-34'>#</a>
       </div>
       
     </div>
@@ -731,10 +729,10 @@ for j in range(len(L[i])):
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       <p>This function does row-wise Gram-Schmidt orthonormalization of matrices.</p>
     </div>
@@ -743,10 +741,10 @@ for j in range(len(L[i])):
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
+  <div class='section' id='section-36'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
+        <a class='octothorpe' href='#section-36'>#</a>
       </div>
       <p>code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876</p>
     </div>
@@ -767,10 +765,10 @@ for j in range(len(L[i])):
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-38'>
+  <div class='section' id='section-37'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-38'>#</a>
+        <a class='octothorpe' href='#section-37'>#</a>
       </div>
       <p>Function that calculates the Huang-Rhys factors for all vibrational states</p>
     </div>
@@ -779,10 +777,10 @@ for j in range(len(L[i])):
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-39'>
+  <div class='section' id='section-38'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-39'>#</a>
+        <a class='octothorpe' href='#section-38'>#</a>
       </div>
       <p><em>Arguments</em>*
 . The displacements of minima in internal coordinates
@@ -818,10 +816,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-40'>
+  <div class='section' id='section-39'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
+        <a class='octothorpe' href='#section-39'>#</a>
       </div>
       <p>select all 'big' HR-factors </p>
     </div>
@@ -833,10 +831,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-41'>
+  <div class='section' id='section-40'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
+        <a class='octothorpe' href='#section-40'>#</a>
       </div>
       <p>logging.critical(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1))</p>
     </div>
@@ -847,10 +845,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-42'>
+  <div class='section' id='section-41'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       
     </div>
@@ -865,16 +863,36 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      <p>This function reads the HR-factors and electronic transition energy from a given file and brings them into a</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">ReadHR</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HRfile</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-43'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-43'>#</a>
       </div>
-      
+      <p>imilar structure as they are used in the 'smallscript'.</p>
+<p><em>PARAMETERS</em>*
+ogging: array containing the mode (how detailed the printed information is) (first element) and the file-object
+Rfile:  the file where the information is found</p>
+<p><em>RETURNS</em>*
+nitial: a dummy-array that originally contains information about the inital states. Here at the moment only one
+        is allowed and only its length is relevant in the further programme.
+Rm: a 2-dimensional array containing all Huang-Rhys-factors
+reqm:   analogously to HRm, containing the respective frequencies
+nergy:  the energy-difference of the electronic states. (in atomic units)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">ReadHR</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HRfile</span><span class="p">):</span>
-   <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">HRfile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">HRfile</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">),</span>\
+      <div class="highlight"><pre>   <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">HRfile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">HRfile</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">),</span>\
 	    <span class="n">HRfile</span><span class="o">+</span><span class="s">&#39; is not a valid file name or not readable.&#39;</span>
    <span class="n">fi</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">HRfile</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span>
    <span class="n">f</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">fi</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
@@ -892,7 +910,7 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
       <span class="n">line</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;[\d.]+&quot;</span><span class="p">,</span><span class="n">HRf</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
       <span class="n">HR</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
       <span class="n">funi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="n">Hartree2cm_1</span><span class="p">)</span>
-   <span class="k">return</span> <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span></pre></div>
+   <span class="n">initial</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;excited&#39;</span><span class="p">]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -901,10 +919,14 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
       <div class='octowrap'>
         <a class='octothorpe' href='#section-44'>#</a>
       </div>
-      
+      <p>the following is just to be consistent with structure of HR calculated in first part</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">ReadLog</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">fileN</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">HRm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">HR</span><span class="p">)))</span>
+   <span class="n">HRm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">HR</span>
+   <span class="n">freqm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">HR</span><span class="p">)))</span>
+   <span class="n">freqm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">funi</span>
+   <span class="k">return</span> <span class="n">initial</span><span class="p">,</span> <span class="n">HRm</span><span class="p">,</span> <span class="n">freqm</span><span class="p">,</span> <span class="n">Energy</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -912,6 +934,18 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">ReadLog</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">fileN</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
       <p>Mapping the log file</p>
     </div>
@@ -922,10 +956,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-46'>
+  <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-47'>#</a>
       </div>
       <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!</p>
     </div>
@@ -949,10 +983,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-47'>
+  <div class='section' id='section-48'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
+        <a class='octothorpe' href='#section-48'>#</a>
       </div>
       <p>Reading Cartesian coordinates</p>
     </div>
@@ -979,10 +1013,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-49'>#</a>
       </div>
       <p>Getting tensor of inertia, transforming to principlas axes</p>
     </div>
@@ -991,10 +1025,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-50'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-50'>#</a>
       </div>
       <p>print Coord[1]</p>
     </div>
@@ -1014,10 +1048,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-51'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-51'>#</a>
       </div>
       <p>X=np.matrix(X[index]) #sorting by eigenvalues</p>
     </div>
@@ -1029,10 +1063,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-51'>
+  <div class='section' id='section-52'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
+        <a class='octothorpe' href='#section-52'>#</a>
       </div>
       <p>Reading of Cartesian force constant matrix  </p>
     </div>
@@ -1069,10 +1103,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-52'>
+  <div class='section' id='section-53'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-52'>#</a>
+        <a class='octothorpe' href='#section-53'>#</a>
       </div>
       <p>This function creates a new file (determined by files, ending with</p>
     </div>
@@ -1081,10 +1115,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-53'>
+  <div class='section' id='section-54'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-53'>#</a>
+        <a class='octothorpe' href='#section-54'>#</a>
       </div>
       <p>.rep" and copies the log-file (files) into it, replacing the frequencies and 
 ormal modes by those calculated by smallscript.
@@ -1153,10 +1187,10 @@ he code is originally from stevaha (http://stackoverflow.com/questions/1597649/r
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-54'>
+  <div class='section' id='section-55'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-54'>#</a>
+        <a class='octothorpe' href='#section-55'>#</a>
       </div>
       <p>End of functions_smsc.py</p>
     </div>

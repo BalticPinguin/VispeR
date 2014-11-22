@@ -55,6 +55,8 @@ model=<>	specify, which model should be used within Duschinsky-picture:
 			vibrational states are taken into account.
 		'Unrestricted' Don't use OPA but a full particle-picture; restricted by number of modes 
 		 	(at the moment fixed to number of 10)
+      'maxshift=<>'     if model=Distributing is specified: this parameter specifies the number 
+                        of modes to left and right hand side taken into account. Default is 6.
 
 4: Broadening() /broaden()
 T=		Temperature of equilibrated system
