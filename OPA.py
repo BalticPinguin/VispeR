@@ -122,8 +122,8 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
       A=J.dot(np.dot(C,J.T)) 
       A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
       TMP=J.dot(C).dot(J.T).dot(Gammap)
-      b=2*sqGammap.dot(unity-TMP).dot(K)
-      d=-2*sqGamma.dot(C).dot(J.T).dot(Gammap).dot(K)
+      b=2*(sqGammap.dot((unity-TMP).dot(K)))
+      d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
       E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
       C=2*sqGamma.dot(C).dot(sqGamma)-unity 		#this is 'real' C-matrix
    

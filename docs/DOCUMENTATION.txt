@@ -53,6 +53,8 @@ model=<>	specify, which model should be used within Duschinsky-picture:
 		'Resort' here the normal modes are resorted and all highest transitions are taken into account (default)
 		'Distributing' besides the transitions between states of same number, also transitions between different
 			vibrational states are taken into account.
+		'Unrestricted' Don't use OPA but a full particle-picture; restricted by number of modes 
+		 	(at the moment fixed to number of 10)
 
 4: Broadening() /broaden()
 T=		Temperature of equilibrated system
