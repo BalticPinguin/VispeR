@@ -53,7 +53,7 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
    
    # finally, calculate the Duschinsky-rotated line spectrum in this picture
    linspect=FCf(logging, j, k, f, Energy, N, T, E0)
-   return linspect #2-dimensional array
+   return linspect #3-dimensional array
 
 def FCf(logging, J, K, f, Energy, N, T, E0):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
@@ -75,22 +75,26 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
    """
    def CalcI00(J, K, Gamma, Gammap, E):
       """This function calculates the overlap-integral for zero vibrations """
-      pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
-      TMP=J.dot(J.T.dot(Gammap).dot(J)+Gamma)
-      pref/=np.linalg.det(TMP)
+      #pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
+      #TMP=J.dot(J.T.dot(Gammap).dot(J)+Gamma)
+      #pref/=np.linalg.det(TMP)
 
-      #error!!!! This has to be positive but is not always!!
-      pref=np.sqrt(pref)
-      TMP=J.T.dot(Gammap).dot(J)+Gamma
-      TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(J.T)-np.eye(len(J))
-      exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))
+      ########error!!!! This has to be positive but is not always!!
+      #pref=np.sqrt(np.abs(pref))
+      #TMP=J.T.dot(Gammap).dot(J)+Gamma
+      #TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(J.T)-np.eye(len(J))
+      #exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))
 
       Tree=bt.Tree(2*len(K))
       Tree.fill(0)
       Zero=np.zeros(2*len(K))
-      Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
+      #Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
+      Tree.insert(Zero, [10, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
       #I_00 transition-probability [[Btree.py#extract]]
-      linspect.append(Tree.extract()) 
+      linespect=np.array(Tree.extract())
+      ### this is done using implicit side effects
+      lines.append(linespect[0][0])
+      freqs.append(linespect[0][1])
       return Tree
    
    def iterate(L1, L2, Energy, i, f, J, K):
@@ -118,14 +122,14 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       unity=np.eye(len(Gamma))
    
       C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
-      A=np.dot(J,np.dot(C,J.T)) 
+      A=J.dot(np.dot(C,J.T)) 
       A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
-      E=J.dot(C).dot(J.T).dot(Gammap) #this is temporary only
-      b=2*sqGammap.dot(unity-E).dot(K)
-      d=-2*sqGamma.dot(C).dot(J.T).dot(Gammap).dot(K)
+      TMP=J.dot(C).dot(J.T).dot(Gammap)
+      b=2*(sqGammap.dot((unity-TMP).dot(K)))
+      d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
       E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
       C=2*sqGamma.dot(C).dot(sqGamma)-unity 		#this is 'real' C-matrix
-   
+
       #initialize new tree
       alpha=2*len(b)
       L3=bt.Tree(i)    	       		# initialize root-node
@@ -147,15 +151,16 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
    
       def FirstNonzero(n): 
 	 """Find first non-zero elements in first and second half of array n """
-	 ni=n[len(n)//2:] #interger division (python3-compatible)
-	 nf=n[:len(n)//2]
-	 m=len(ni)+1 #this means there is no excitation in this state
-	 mp=len(nf)+1
-	 for j in range(len(ni)):
+	 leng=len(n)//2
+	 ni=n[:leng] #interger division (python3-compatible)
+	 nf=n[leng:]
+	 m=leng+1 #this means there is no excitation in this state
+	 mp=leng+1
+	 for j in range(leng):
 	    if ni[j]>0:
 	       m=j
 	       break
-	 for j in range(len(nf)):
+	 for j in range(leng):
 	    if nf[j]>0:
 	       mp=j
 	       break
@@ -165,7 +170,9 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
 	 m, mp= FirstNonzero(n)# index of first-non-zero element of (initial, final) state
 	 # if the 'first' excited state is in initial state: need first iteration formula
 	 I_nn=0
+	 leng=len(n)//2
 	 if m<=mp:
+	    # need first iteration-formula
 	    n_m=n[m]
 	    ntemp=deepcopy(n)
 	    ntemp[m]-=1 #n[m] is at least 1
@@ -177,16 +184,16 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
 	       Ps=L1.getState(ntemp)[0]
 	       if not math.isnan(Ps) and abs(Ps)>1e-8:
 		  I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term
-	    for i in range(m+1, len(n)/2):
+	    for i in range(m+1, leng):
 	       if n[i]>0:
 		  ntemp=deepcopy(n)
 		  ntemp[m]-=1
 		  ntemp[i]-=1
 		  Ps=L1.getState(ntemp)[0]
 		  if not math.isnan(Ps) and abs(Ps)>1e-8:
-		     I_nn+=np.sqrt(n[i]/2)*(A[m][i]+A[i][m])*Ps	# second term
+		     I_nn+=np.sqrt(float(n[i])*0.5)*(A[m][i]+A[i][m])*Ps	# second term
 
-	    for i in range(mp+len(n)//2, len(n)): 			# sum over respective final states
+	    for i in range(mp+leng, len(n)): 			# sum over respective final states
 	       if mp>len(n)//2:					# that means: there are no excited vibrations
 		  break
 	       if n[i]>0:
@@ -195,51 +202,54 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
 		  ntemp[i]-=1
 		  Ps=L1.getState(ntemp)[0]
 		  if not math.isnan(Ps) and abs(Ps)>1e-8:
-		     I_nn+=np.sqrt(n[i]/2)*(E[i-len(n)//2][m])*Ps		# second term
+		     I_nn+=np.sqrt(float(n[i])*0.5)*(E[i-leng][m])*Ps		# second term
 	 #else: need the other iteration-formula
 	 else: 
-	    n_m=n[mp]
+	    n_m=n[mp+leng]
 	    ntemp=deepcopy(n)
-	    ntemp[mp]-=1
+	    ntemp[mp+leng]-=1
 	    Ps=L2.getState(ntemp)[0]
 	    if not math.isnan(Ps) and abs(Ps)>1e-8:
 	       I_nn=d[mp]*Ps					# first term 
-	    if ntemp[mp]>0:
-	       ntemp[mp]-=1
+	    if ntemp[mp+leng]>0:
+	       ntemp[mp+leng]-=1
 	       Ps=L1.getState(ntemp)[0]
 	       if not math.isnan(Ps) and abs(Ps)>1e-8:
-		  I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps          	# second term
+		  I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps         # second term
 	    for i in range(mp+1, len(n)):
 	       if n[i]>0:
 		  ntemp=deepcopy(n)
-		  ntemp[mp]-=1
+		  ntemp[mp+leng]-=1
 		  ntemp[i]-=1
 		  Ps=L1.getState(ntemp)[0]
 		  if not math.isnan(Ps) and abs(Ps)>1e-8:
-		     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+    # second term
-			      C[i-len(n)//2][mp])*Ps	
-	    for i in range(m, len(n)): 				#sum over respective final states
+		     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+ # second term
+			      C[i-leng][mp])*Ps	
+	    for i in range(m, leng): 				#sum over respective final states
 	       if m>len(n)//2:					# that means: there are no excited vibrations
-		  break
+		  break						#actually not needed, right?
    	       if n[i]>0:
    		  ntemp=deepcopy(n)
-   		  ntemp[mp]-=1
+   		  ntemp[mp+leng]-=1
    		  ntemp[i]-=1
    		  Ps=L1.getState(ntemp)[0]
    		  if not math.isnan(Ps) and abs(Ps)>1e-8:
-   		     I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps 		# second term
-	 print "n_m:", n_m
+   		     I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps # second term
      	 I_nn/=np.sqrt(2*n_m)
 	 #threshold for insertion: saves memory, since int insead of float is used
-	 if I_nn>1e-8:
+	 if np.abs(I_nn)>1e-8:
 	    try:
-	       L3.insert(n, [I_nn, freq(Energy, f[0]*n[:len(n)//2], f[1]*n[len(n)//2:]) ])
+	       print n, f[0]*n[:leng], f[1]*n[leng:], 'i:', I_nn
+	       L3.insert(n, [I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]) ])
 	    except MemoryError: 
-	       print('memory-error by inserting data. Finishing calculation.')
-	       linspect=open('/tmp/linspect', "a")
-	       linspect.writelines("%s\n" % item  for item in L2.extract())
-	       linspect.close()
+	       logging[1].write('memory-error by inserting data. Finishing calculation.')
+	       logging[1].writelines("%s\n" % item  for item in L2.extract())
+	       #linspect=open('/tmp/linspect', "a")
+	       #linspect.writelines("%s\n" % item  for item in L2.extract())
+	       #linspect.close()
 	       return 0,0
+	 else:
+	    print n, I_nn
       return L2, L3
 
    def states(alpha, n): 
@@ -361,20 +371,31 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
 
    Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
    Gammap=np.diag(f[1]) # for final state
+   lines=[]
+   freqs=[]
 
-   linspect=[]
    L2=CalcI00(J, K, Gamma, Gammap, Energy)
    #both trees can be expected to coincide for first state. 
    L1=L2 
    for i in range(1,N+1):
       L1, L2=iterate(L1, L2, Energy, i, f, J,K)
-      #only by assert: MemoryError
       if L1==0 and L2==0:
-	 linspect.append(L2.extract()) #for this probably there is no more space
-	 break #finish calculation
-      linspect.append(L2.extract())
-   print np.shape(linspect) , "linspect"
-   return np.matrix(linspect).T #2-dimensional array
+	 #only by assert: MemoryError
+	 break # kill calculation
+      spect=L2.extract()
+      for j in range(len(spect)):
+	 lines.append(spect[j][0])
+	 freqs.append(spect[j][1])
+   result=np.zeros((3, len(lines) ))
+   result[0]=freqs
+   for i in range(len(result[0])):
+      #arbitrary but constant number for mode
+      result[2][i]=42
+      # intensities are proportional to square of the transition rates
+      result[1][i]=lines[i]*lines[i] 
+   print 'max:', np.max(lines), "min:", np.min(lines)
+   print 'max:', np.max(freqs), "min:", np.min(freqs)
+   return result
 
 version=0.2
 # End of Dusch_unrest.py

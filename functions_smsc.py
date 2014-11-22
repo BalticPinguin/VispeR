@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
 import numpy as np, re, mmap, os.path, math
+import scipy.linalg.lapack as LA
 #for python-3 compatibility
 from io import open 
 
@@ -12,7 +13,8 @@ Hartree2GHz=6.579684e6
 Hartree2cm_1=219474.63 
 
 def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
-   """This is used to calculate the line spectrum assuming no mode mixing (shift only) and coinciding frequencies in both electronic states.
+   """This is used to calculate the line spectrum assuming no mode mixing (shift only) 
+   and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
    HR:     Huang-Rhys factors
@@ -26,6 +28,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
    **RETURNS:**
    nothing (output into /tmp/linspect)
    """
+   # M,N are maximal numbers of vibrational modes (+1, since they should be arrived really; count from 0)
    N+=1
    M+=1
    def FCeqf( Deltag, M, N):
@@ -38,6 +41,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       M:      excitation number of final state
 
       RETURNS:
+      Franck-Condon factor of the respective transition
       """
       exg=np.exp(-Deltag/2) #actually Deltag should be >0, but is not always due to negative frequencies
       faktNM=math.factorial(M)*math.factorial(N)
@@ -62,6 +66,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
    	 logging[1].write('Spectrum\n {0}  {1}  {2}  {3}\n'.format(N, M, len(intens), len(intens[0])))
       J=len(intens[0])
       spect=np.zeros((3,len(intens)*len(intens[0])+1))
+      #first transition: 0-0 transition. 
       spect[1][0]=FC00 #0->0 transition
       spect[0][0]=E
       spect[2][0]=0
@@ -89,7 +94,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       elif approx=="TPA":
 	 logging[1].write("Line-spectrum in Two-Particle approximation:\n")
       logging[1].write(u"frequency     intensity  \n")
-      logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
+      #logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
    for a in range(n):
       temp=FCeqf(HR[a],0,0)
       for j in range(N):
@@ -100,8 +105,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
 	    tmp=FCeqf(HR[a], i, j)/temp
 	    FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
 	    uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-	    if logging[0]<1:
-	       logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a)))
+	    #if logging[0]<1:
+	       #logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a)))
    if approx=="TPA":
       ind=0
       for a in range(n):
@@ -176,7 +181,7 @@ def CalculationHR(logging, initial, final, opt):
       for i in range(len(initial)):
 	 for j in range(len(final)):
 	    logging[1].write('difference of minimum energy between states: Delta E= '\
-	      	  + str((Energy[j+len(initial)]-Energy[i])*Hartree2cm_1)+'\n')
+	      	  + str(-(Energy[j+len(initial)]+Energy[i])*Hartree2cm_1)+'\n')
       if logging[0]<2:
 	 for i in range(len(initial)):
 	    logging[1].write('Cartesion coordinates of initial state '+repr(i)+':\n'+repr(CartCoord[i].T)+'\n')
@@ -292,8 +297,10 @@ def GetL(logging, dim, mass, F, D):
 
    for i in range(len(F)):
       #### the condition number of F[i] is some millions...
-      ftemp,Ltemp=np.linalg.eig(F[i])
+      #ftemp,Ltemp=np.linalg.eig(F[i])
       #ftemp,Ltemp=np.linalg.eigh(F[i])
+      ftemp,Ltemp,info=LA.dsyev(F[i]) #this seems to be the best function
+
       assert np.any(ftemp< 0) or np.any(np.imag(ftemp)!=0),\
 	       'Frequencies smaller than 0 occured. Please check the input-file!!'
       if np.any(ftemp<0):
@@ -303,21 +310,26 @@ def GetL(logging, dim, mass, F, D):
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       L[i]=np.real(Ltemp[index]).T[:].T[6:].T
+
       for j in range(len(L[i])):
 	 L[i][j]=L[i][j]/np.linalg.norm(L[i][j])
-      #Ltest[i]=gs(L[i])
-      #for j in range(len(L[i])):
-#	 Ltest[i][j]=Ltest[i][j]/np.linalg.norm(Ltest[i][j])
-#
-#      ############################### begin test-area
+      Ltest[i]=L[i]
+
+      ############################### begin test-area
 #      print "orthogonality:"
 #      for j in range(len(Ltest[i])):
 #	 for k in range(len(Ltest[i])):
 #	    if k==j:
+#	       scale=Ltest[i][k].T.dot(Ltest[i][j])
+#	       if scale >1.01 or scale< 0.99: 
+#		  print scale, i, j, k, "norm"
 #	       continue
 #	    scale=Ltest[i][k].T.dot(Ltest[i][j])
-#	    if scale >1e-10 and scale< -1e-10: 
+#	    if scale >1e-8 and scale< -1e-8:
 #	       print scale, i, j, k, "scale"
+#      Ltest[i]=gs(L[i])
+#      for j in range(len(L[i])):
+#	 Ltest[i][j]=Ltest[i][j]/np.linalg.norm(Ltest[i][j])
 #      print "changes of 2-norm"
 #      for j in range(len(Ltest[i])):
 #	 change=Ltest[i][j]-L[i][j]
@@ -449,6 +461,21 @@ def quantity(logging, dim, num_of_files):
    return F, CartCoord, X, P, Energy
 
 def ReadHR(logging, HRfile):
+   """ This function reads the HR-factors and electronic transition energy from a given file and brings them into a 
+   similar structure as they are used in the 'smallscript'.
+
+   **PARAMETERS**
+   logging:	array containing the mode (how detailed the printed information is) (first element) and the file-object
+   HRfile:	the file where the information is found
+
+   **RETURNS**
+   initial:	a dummy-array that originally contains information about the inital states. Here at the moment only one
+            is allowed and only its length is relevant in the further programme.
+   HRm:	a 2-dimensional array containing all Huang-Rhys-factors
+   freqm:	analogously to HRm, containing the respective frequencies
+   Energy:	the energy-difference of the electronic states. (in atomic units)
+
+   """
    assert os.path.isfile(HRfile) and os.access(HRfile, os.R_OK),\
 	    HRfile+' is not a valid file name or not readable.'
    fi=open(HRfile, "r")
@@ -467,7 +494,13 @@ def ReadHR(logging, HRfile):
       line=re.findall(r"[\d.]+",HRf[i], re.I)
       HR.append(float(line[0]))
       funi.append(float(line[1])/Hartree2cm_1)
-   return HR, funi, Energy
+   initial=['excited']
+   #the following is just to be consistent with structure of HR calculated in first part
+   HRm=np.zeros((1,len(HR)))
+   HRm[0]=HR
+   freqm=np.zeros((1,len(HR)))
+   freqm[0]=funi
+   return initial, HRm, freqm, Energy
 
 def ReadLog(logging, fileN):
    # Mapping the log file

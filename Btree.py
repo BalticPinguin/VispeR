@@ -127,7 +127,12 @@ class Tree:
       result=[]
 
       def extra(self,result):
-   	 """creates the vector to be returned in a recursive way """
+   	 """creates the vector to be returned in a recursive way 
+	    **PARAMETER**
+	    self: 	object
+	    result:	2-dimensional array containing data already read from the tree, data will be added to it using 
+			side effects
+	    """
 	 if self.type=='n':
 	    extra(self.right,result)
 	    extra(self.left,result)
@@ -147,6 +152,7 @@ class Tree:
 	 else:
 	    if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
 	       result.append(self.data2)
+
       extra(self,result)
       #return np.matrix(result) #
       if len(result)==0: #if no intensity is higher than DATATHRESHOLD
