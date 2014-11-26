@@ -156,7 +156,7 @@ class Tree:
       extra(self,result)
       #return np.matrix(result) #
       if len(result)==0: #if no intensity is higher than DATATHRESHOLD
-	 return [0, 0]
+	 return [[0, 0]]
       return result
 
    def getState(self, N): 
@@ -180,7 +180,6 @@ class Tree:
 	       n+=1
 	       if self.type=='l': #exception for 'diagonal' elements
 		  if M==m:
-		     print  self.data
 		     return self.data
 	    self=self.left
 	 elif self.type=='r': #allways has success

@@ -42,9 +42,22 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
 	 resort[i][k]=1 #use absolute value only.
    F[1]=resort.dot(F[1].T)
 
+   ## change the following: not size of K but off-diagonal-elements of J!!! 
+   ## if J[i][j] is large, add indices i and j to ind if they are not contained already...
+   Jtemp=np.zeros(( len(J)-1, len(J)-1 ))
+   for i in rang(Jtemp):
+      Jtemp[i][:i-1]=J[i][:i-1]
+      Jtemp[i][:i+1]=J[i][:i+1]
+   ##now: find biggest elements in Jtemp: get indices of it -> ready.
+   index=np.argsort(np.abs(Jtemp), kind="heapsort")
+   print index
+
    # index K by the size of its elements and truncate K and J due to this.
-   index=np.argsort(K, kind="heapsort")
-   ind=index[:m]
+   index=np.argsort(np.abs(K), kind="heapsort")
+   if m<len(index):
+      ind=index[:m]
+   else:
+      ind=index
    k=K[ind]
    j=J[ind].T[ind]
    f=np.zeros(( 2,len(ind) ))
@@ -239,8 +252,8 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
 	 #threshold for insertion: saves memory, since int insead of float is used
 	 if np.abs(I_nn)>1e-8:
 	    try:
-	       print n, f[0]*n[:leng], f[1]*n[leng:], 'i:', I_nn
 	       L3.insert(n, [I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]) ])
+	       print n, I_nn*I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:])
 	    except MemoryError: 
 	       logging[1].write('memory-error by inserting data. Finishing calculation.')
 	       logging[1].writelines("%s\n" % item  for item in L2.extract())
@@ -248,8 +261,6 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
 	       #linspect.writelines("%s\n" % item  for item in L2.extract())
 	       #linspect.close()
 	       return 0,0
-	 else:
-	    print n, I_nn
       return L2, L3
 
    def states(alpha, n): 
@@ -393,8 +404,6 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       result[2][i]=42
       # intensities are proportional to square of the transition rates
       result[1][i]=lines[i]*lines[i] 
-   print 'max:', np.max(lines), "min:", np.min(lines)
-   print 'max:', np.max(freqs), "min:", np.min(freqs)
    return result
 
 version=0.2

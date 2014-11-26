@@ -53,10 +53,13 @@ model=<>	specify, which model should be used within Duschinsky-picture:
 		'Resort' here the normal modes are resorted and all highest transitions are taken into account (default)
 		'Distributing' besides the transitions between states of same number, also transitions between different
 			vibrational states are taken into account.
-		'Unrestricted' Don't use OPA but a full particle-picture; restricted by number of modes 
-		 	(at the moment fixed to number of 10)
       'maxshift=<>'     if model=Distributing is specified: this parameter specifies the number 
                         of modes to left and right hand side taken into account. Default is 6.
+		'Unrestricted' Don't use OPA but a full particle-picture; restricted by number of modes 
+		 	(at the moment fixed to number of 10)
+      'modes=<>'	if model=unrestricted, with this parameter one can set the number of modes that are calculated in
+			the spectrum. The truncation is due to the shift of normal modes, assuming this is a valid 
+			quantity for coupling strength as well.
 
 4: Broadening() /broaden()
 T=		Temperature of equilibrated system

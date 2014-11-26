@@ -196,7 +196,7 @@ def CalculationHR(logging, initial, final, opt):
    #Calculate Frequencies and normal modes
    L, f, Lsorted=GetL(logging, dim, mass,F, P)
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
-   Gauf=gaussianfreq(logging, initial, final, dim) 
+   #Gauf=gaussianfreq(logging, initial, final, dim) 
    
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f)
@@ -354,6 +354,7 @@ def GetL(logging, dim, mass, F, D):
       for j in range(0,dim):
          M[j,j]=1/mass[j/3]
       Lcart=np.dot(M,np.dot(D[i],np.real(Ltemp)))
+      #Lcart=np.real(Ltemp)
       for j in range(0,dim):
          norm=np.sum(Lcart.T[j]*Lcart.T[j])
 	 if np.abs(norm)>1e-12:
@@ -597,13 +598,15 @@ def ReadLog(logging, fileN):
    E=-float(re.findall(r'[\d.]+', Etemp[-1])[0])# energy is negative (bound state)
    return dim, Coord, mass, X, F, E
 
-def replace(logging,log, files, freq, L):
+def replace(logging, files, freq, L):
    """ This function creates a new file (determined by files, ending with 
    ".rep" and copies the log-file (files) into it, replacing the frequencies and 
    normal modes by those calculated by smallscript.
    The function is suited to test, whether these results coincide qualitatively with the gaussian's.
 
    ** PARAMETERS: **
+   logging: specifies the level of logging-outputs
+   log:	  i
    files: file taken as basis ('.rep' added to be used for replacements)
    freq:  frequencies to be inserted
    L:     normal modes to be inserted  
@@ -624,8 +627,8 @@ def replace(logging,log, files, freq, L):
 	 if re.search(r'Frequencies -- [\d .-]+', line) is not None:
 	    t=0 #reset t, when frequencies occur
 	    u+=3 #
-	    if logging[0]<1:
-	       logging[1].write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
+	  #  if logging[0]<1:
+	  #     logging[1].write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
 	    if len(freq[s:].T)> 2: # there are at least three more frequencies
 	       out.write(re.sub(r'Frequencies -- [\d .-]+',
 		     'Frequencies --'+'    '+repr(freq[s])+'          '\

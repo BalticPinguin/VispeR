@@ -47,8 +47,23 @@ def handel_input(opt):
    return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape
 
 def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
-   """ This function is a generalisation of OPA2TPA and OPA23PA.
-   Finally, it should be able to work with arbitrary n and hence can be used to calculate full spectrum.
+   """ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.
+
+      **PARAMETERS**
+      OPAfreq:	frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
+	        array of lenght n
+      freq00:	frequency of purely electronic transition
+      OPAintens:intensities of the respective transitions in same order as OPAfreq
+      intens00:	intensity of the purely electronic transition
+	        array of lenght n
+      mode:	number of vibrational states changing
+	        array of lenght n
+
+      **RETURNS**
+      TPAfreq:	
+
+      TPAfreq:	frequencies of the nPA-vibrational spectrum
+      TPAintens:intensities of the nPA-vibrational spectrum	
    """
    def putN(length, j, n, OPAintens, OPAfreq, mode):
       """ This function does the most calculation that is the iteration to the next number of particles
@@ -95,9 +110,6 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    for i in range(len(TPAfreq)):
       TPAfreq[i]+=freq00
       TPAintens[i]*=intens00
-   index=np.argsort(TPAfreq,kind='heapsort')
-   TPAfreq=TPAfreq[index]
-   TPAintens=TPAintens[index]
    return TPAfreq, TPAintens
 
 def OPA2TPA(OPAfreq,freq00, OPAintens,intens00, mode):
@@ -171,7 +183,7 @@ def outspect(logging, T, opt, linspect, E=0):
    #read file in format of linspect
 
    #sort spectrum with respect to size of elements
-   index=np.argsort(linspect[1],kind='heapsort')
+   index=np.argsort(linspect[1], kind='heapsort')
    linspect[1]=linspect[1][index] #intensity
    linspect[2]=linspect[2][index] #mode
    linspect[0]=linspect[0][index] #frequency
@@ -286,6 +298,7 @@ def outspect(logging, T, opt, linspect, E=0):
 	 logging[1].write(u"{0} {1}\n".format(intens[i], freq[i]))
 
    mini=0
+   maxi=len(freq) #just in case Gamma is too big or frequency-range too low
    for i in range(1,len(freq)):
       if freq[i]>=5*gamma+freq[0]:
 	 maxi=i

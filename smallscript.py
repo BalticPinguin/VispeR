@@ -313,4 +313,4 @@ def main(argv=None):
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-version=1.2
+version=1.3
