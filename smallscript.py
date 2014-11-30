@@ -157,7 +157,6 @@ def main(argv=None):
 	    linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "TPA")
       else:
 	 for i in range(len(initial)):
-	    print i
 	    linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T)
       if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
 	 if opts[2]!=[]:

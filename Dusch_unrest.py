@@ -44,13 +44,16 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
 
    ## change the following: not size of K but off-diagonal-elements of J!!! 
    ## if J[i][j] is large, add indices i and j to ind if they are not contained already...
-   Jtemp=np.zeros(( len(J)-1, len(J)-1 ))
-   for i in rang(Jtemp):
-      Jtemp[i][:i-1]=J[i][:i-1]
-      Jtemp[i][:i+1]=J[i][:i+1]
+   Jtemp=np.zeros((len(J)-1)*(len(J)-1))
+   Jtemp[:len(J)-1]=J[0][1:]
+   for i in range(1,len(Jtemp)):
+      for j in range(i):
+	 Jtemp[i*len(Jtemp)+j]=J[i][i+j]
+      for j in range(len(Jtemp)-i):
+	 Jtemp[i*len(Jtemp)+j+i]=J[i][i+j+1]
    ##now: find biggest elements in Jtemp: get indices of it -> ready.
    index=np.argsort(np.abs(Jtemp), kind="heapsort")
-   print index
+   print index, Jtemp[index]
 
    # index K by the size of its elements and truncate K and J due to this.
    index=np.argsort(np.abs(K), kind="heapsort")
