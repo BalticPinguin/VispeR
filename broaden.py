@@ -84,7 +84,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
 	    newmode=np.zeros((2*len(mode), len(mode[0]) ))
 	    newmode[:len(mode)]=mode
 	    for k in range(i+1,length):
-	       test=[p for p in mode[:].T[i] if p in mode[:].T[k] ]
+	       test=[p for p in mode[:].T[i] if (p in mode[:].T[k]) or p==0 ]
 	       if test!=[]:
 		  continue
 	       tmpintens.append(OPAintens[k]*OPAintens[i]) ####### here must be the error!!
@@ -147,8 +147,10 @@ def OPA23PA(OPAfreq,freq00, OPAintens,intens00, mode):
    for i in range(length):
       TPAintens.append(OPAintens[i]) #this is OPA-part
       TPAfreq.append(OPAfreq[i])
+      if mode[i]==0: #don't work with pure electronic transition
+	 continue
       for j in range(i+1,length):
-	 if mode[i]<=mode[j]: #both have same mode...
+	 if mode[i]<=mode[j] or mode[j]==0: #both have same mode... or mode[j] is ground-state transition
 	    continue
 	 TPAintens.append(OPAintens[i]*OPAintens[j]/intens00)
 	 TPAfreq.append(OPAfreq[i]+OPAfreq[j]-freq00)
