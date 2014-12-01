@@ -65,48 +65,66 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       TPAfreq:	frequencies of the nPA-vibrational spectrum
       TPAintens:intensities of the nPA-vibrational spectrum	
    """
-   def putN(length, j, n, OPAintens, OPAfreq, mode):
+   def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
       """ This function does the most calculation that is the iteration to the next number of particles
       """
-      intens=[]
-      freq=[]
-      #print 'arguments got:', length, j, n, OPAintens, OPAfreq, mode
-      for i in range(length):
-	 if OPAintens[i]>0.0001:
-	    intens.append(OPAintens[i]) #this is OPA-part
-	    freq.append(OPAfreq[i])
+      newintens=[]
+      newfreq=[]
+      #print 'arrived here:', mode, oldmode, n ,'-------------------'
+      for i in range(len(intens)):
+	 if intens[i]>0.000:
+	    newintens.append(intens[i]) #this is OPA-part
+	    newfreq.append(freq[i])
 	    if n<=1:
 	       continue 
 	       #this saves creating new objects and running through loops without having results
 	    tmpintens=[]
 	    tmpfreq=[]
 	    newmode=[]
-	    oldmode=[]
-	    for k in range(i):
-	       tmpmode=[p for p in mode[:].T[i] if (p not in mode[:].T[k]) and p!=0 ]
+	    nwemode=[]
+	    for k in range(i, len(oldmode[0])): # go through whole range of states ...
+	       tmpmode=[p for p in mode[:].T[i] if (p not in oldmode[:].T[k]) and np.all(p!=0) ]
+	       #tmpmode=list(set(mode[:].T[i]).difference(oldmode[:].T[k]))
 	       if tmpmode==[]:
-		  #print 'see on your own:', mode[:].T[i], mode[:].T[k], i, k
 		  continue
-	       tempmode=[p for p in mode[:].T[k] if (p not in mode[:].T[i]) and p!=0 ]
-	       if tempmode==[]:
+	       tempmode=oldmode[:].T[k]
+	       if tempmode==[0]:
 		  # that means, if mode[:].T[k] contains 0-0 transition
 		  continue
-	       newmode.append(tmpmode[0])
-	       oldmode.append(tempmode[0])
-	       tmpintens.append(OPAintens[k]*OPAintens[i])
-	       tmpfreq.append(OPAfreq[k]+OPAfreq[i])
+	       #print 'new modes:', tmpmode, tempmode
+	       try :
+		  tmpmode=np.array(tmpmode[0])
+		  #print tmpmode
+		  xmode=[]
+		  for j in range(len(tmpmode[0])):
+		     xmode.append(tmpmode[0][j])
+		  #### how to change rows and columns in a list?
+		  newmode.append(xmode) #or xmode.T??
+	       except IndexError:
+		  newmode.append(float(tmpmode))
+	       nwemode.append(tempmode[0])
+	       #print "new modes:\n", newmode, nwemode, k
+	       tmpintens.append(OPAintens[k]*intens[i])
+	       tmpfreq.append(OPAfreq[k]+freq[i])
 	    if len(tmpintens)>0:
 	       xmode=[]
 	       xmode.append(newmode)
-	       xmode.append(oldmode)
-	       newmode=np.matrix(xmode)
-	       print "full mode:\n", newmode
-	       freq2, intens2=putN(len(tmpintens), i, n-1, tmpintens, tmpfreq, newmode)
+	       if len(np.shape(xmode))>2:
+		  xmode=np.matrix(xmode[0]).T
+		  #print 'what I want:', xmode, np.shape(xmode)
+		  nmode=np.zeros(( len(xmode)+1, len(xmode.T) ))
+		  nmode[:-1]=xmode
+		  nmode[-1]=nwemode
+		  #print 'what I finally get:', nmode
+	       else:
+		  xmode.append(nwemode)
+		  nmode=np.matrix(xmode)
+	       print "submitting:", nmode
+	       freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode)
 	       for k in range(len(intens2)):
-		  intens.append(intens2[k])
-		  freq.append(freq2[k])
-      #print "finish:", intens, freq
-      return np.array(freq), np.array(intens)
+		  newintens.append(intens2[k])
+		  newfreq.append(freq2[k])
+      return np.array(newfreq), np.array(newintens)
 	
    length=len(OPAfreq)
    for i in range(length):
@@ -115,7 +133,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    newmode=np.zeros((1,len(mode))) #for n>1: matrix-structure needed
    newmode[0]=mode
    print 'mode:', newmode
-   TPAfreq, TPAintens=putN(length, -1, n, OPAintens, OPAfreq, newmode)
+   TPAfreq, TPAintens=putN(-1, n, OPAintens, OPAfreq, newmode, OPAintens, OPAfreq, newmode)
    for i in range(len(TPAfreq)):
       TPAfreq[i]+=freq00
       TPAintens[i]*=intens00
@@ -159,13 +177,16 @@ def OPA23PA(OPAfreq,freq00, OPAintens,intens00, mode):
    for i in range(length):
       TPAintens.append(OPAintens[i]) #this is OPA-part
       TPAfreq.append(OPAfreq[i])
+      if mode[i]==0:
+	 #0-0 transition is included, but only once!
+	 continue
       for j in range(i+1,length):
-	 if mode[i]<=mode[j]: #both have same mode...
+	 if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
 	    continue
 	 TPAintens.append(OPAintens[i]*OPAintens[j]/intens00)
 	 TPAfreq.append(OPAfreq[i]+OPAfreq[j]-freq00)
 	 for k in range(j+1,length):
-	    if mode[k]==mode[j]: #both have same mode...
+	    if mode[k]==mode[j] or mode[j]==0: #both have same mode...
 	       continue
 	    if mode[k]==mode[i]:
 	       continue
