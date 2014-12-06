@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, re, mmap, os.path, math
+import numpy as np, re, mmap, os.path, math, sys
 import scipy.linalg.lapack as LA
 #for python-3 compatibility
 from io import open 
@@ -237,8 +237,8 @@ def Duschinsky(logging, L, mass, dim, x):
 
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=5, linewidth=138)
-   for i in range(len(J)):
-      if logging[0]<2:
+   if logging[0]<2:
+      for i in range(len(J)):
       	 logging[1].write('Duschinsky rotation matrix, state '+repr(i)+\
       	       '  :\n'+ repr(J[i])+'  :\n'+ repr(J[i][:4].T[11:25])+'\nDuschinsky displacement vector:\n'+ repr(K[i]))
    return J, K 
@@ -301,11 +301,12 @@ def GetL(logging, dim, mass, F, D):
       #ftemp,Ltemp=np.linalg.eigh(F[i])
       ftemp,Ltemp,info=LA.dsyev(F[i]) #this seems to be the best function
 
-      assert np.any(ftemp< 0) or np.any(np.imag(ftemp)!=0),\
-	       'Frequencies smaller than 0 occured. Please check the input-file!!'
+      #assert np.any(ftemp< 0) or np.any(np.imag(ftemp)!=0),\
+#       'Frequencies smaller than 0 occured. Please check the input-file!! {0}'.format(ftemp)
       if np.any(ftemp<0):
 	 if logging[0]<4:
-	    logging[1].write('Frequencies smaller than 0 occured. The absolute values are used in the following.\n')
+	    logging[1].write('Frequencies smaller than 0 occured. The absolute'
+			' values are used in the following.\n{0}'.format(ftemp))
 	 ftemp=np.abs(ftemp)
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
@@ -361,14 +362,14 @@ def GetL(logging, dim, mass, F, D):
 	    Lcart.T[j]/=np.sqrt(norm)
       Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T
       if logging[0]<1:
-	 logging[1].write("Normalized Lcart\n"+ repr(Lcart)+"\nNormalized, sorted and truncated Lcart\n"+ repr(Lsorted[i]))
+	 logging[1].write("Normalized Lcart\n"+ repr(Lcart)+"\nNormalized,"
+	        "sorted and truncated Lcart\n"+ repr(Lsorted[i]))
 
       for j in range(len(f[i])):
      	 f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
       if logging[0]<2:
 	 logging[1].write("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
 	       repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i]))
-      
    return L, f, Lsorted
 
 def GetProjector(logging, X, dim, m, Coord):
@@ -524,8 +525,10 @@ def ReadLog(logging, fileN):
       for k in range(len(mtemp[j])):
 	 mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
       foonum+=len(mtemp[j])
+   assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
    if logging[0]<2:
-      logging[1].write("Number of atoms: {0}\nNumber of vibrational modes: {1} Sqrt of masses in a.u. as read from log file\n {2}".format(dim/3,dim,mass))
+      logging[1].write("Number of atoms: {0}\nNumber of vibrational "
+                        "modes: {1} Sqrt of masses in a.u. as read from log file\n {2}".format(dim/3,dim,mass))
    # Reading Cartesian coordinates
    temp=[]
    temp=re.findall(r' Number     Number       Type             X           Y           Z[\n -.\d]+', log)
@@ -539,7 +542,8 @@ def ReadLog(logging, fileN):
       MassCenter[j]=np.sum(Coord[j]*mass)
       MassCenter[j]/=np.sum(mass) #now it is cartesian center of mass
    if logging[0]<2:
-      logging[1].write("Cartesian (Angstrom) coordinates before alignment to center of mass\n {0} \nCenter of mass coordinates (Angstrom)\n{1}".format(Coord.T, MassCenter))
+      logging[1].write("Cartesian (Angstrom) coordinates before alignment to center of"
+		       "mass\n {0} \nCenter of mass coordinates (Angstrom)\n{1}".format(Coord.T, MassCenter))
    
    for j in range(3):#displacement of molecule into center of mass:
       Coord[j]-=MassCenter[j] # if commented we get rotational constants in agreement with Gaussian log
@@ -566,10 +570,12 @@ def ReadLog(logging, fileN):
    X=np.matrix(X) #sorting by eigenvalues
    diagI=diagI[index]
    if logging[0]<2:
-      logging[1].write("Moments of inertia (a.u.) in principle axes\n {0}\nRotational constants (GHz) in principle axes\n {1} Rotation matrix\n{2}".format(diagI.T,1/(2*diagI.T)*Hartree2GHz, X))
+      logging[1].write("Moments of inertia (a.u.) in principle axes\n {0}\nRotational "
+                       "constants (GHz) in principle axes\n {1} Rotation matrix\n{2}"
+		       .format(diagI.T,1/(2*diagI.T)*Hartree2GHz, X))
    # Reading of Cartesian force constant matrix  
    f=re.findall(r"Force constants in Cartesian coordinates: [\n\d .+-D]+", log, re.M)
-   f_str=str(f)[2:-2]
+   f_str=str([f[-1]])#[2:-2]
    lines=f_str.strip().split("\\n")
    F=np.zeros((dim,dim))
    n=0
@@ -631,39 +637,39 @@ def replace(logging, files, freq, L):
 	  #     logging[1].write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
 	    if len(freq[s:].T)> 2: # there are at least three more frequencies
 	       out.write(re.sub(r'Frequencies -- [\d .-]+',
-		     'Frequencies --'+'    '+repr(freq[s])+'          '\
-		     +repr(freq[s+1])+'          '+repr(freq[s+2]), line))
+		     'Frequencies --'+'   '+repr(freq[s])+'     '\
+		     +repr(freq[s+1])+'     '+repr(freq[s+2]), line))
 	    elif len(freq[s:].T)== 2: # there are only two frequencies left
 	       out.write(re.sub(r'Frequencies -- [\d .-]+',
-		     'Frequencies --'+'     '+repr(freq[s])+'          '\
+		     'Frequencies --'+'    '+repr(freq[s])+'     '\
 		     +repr(freq[s+1]), line))
 	    elif len(freq[s:].T)== 1: # there is just one additional freq
 	       out.write(re.sub(r'Frequencies -- [\d .-]+',
-		     'Frequencies --'+'    '+repr(freq[s]), line))
+		     'Frequencies --'+'   '+repr(freq[s]), line))
 	    s+=3
 	 elif re.search(r'[ ]+\d+[ ]+\d+[ -]+\d.\d\d[ -]+\d.\d\d+[ \d.-]+', line) is not None:
 	    if len(L[t][u:].T)> 2: # there are at least three more frequencies
-	       out.write(re.sub(r'[\d .-]+', '    '+repr(t/3)+'    '+repr(s)+'   '+
-		  '   '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
-			str("%.2f" % L[t+2][u+0])+
-		  '   '+str("%.2f" % L[t+0][u+1])+'  '+str("%.2f" % L[t+1][u+1])+' '+
-			str("%.2f" % L[t+2][u+1])+
-		  '   '+str("%.2f" % L[t+0][u+2])+'  '+str("%.2f" % L[t+1][u+2])+' '+
+	       out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
+		  '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
+		       str("%.2f" % L[t+2][u+0])+
+		  '  '+str("%.2f" % L[t+0][u+1])+'  '+str("%.2f" % L[t+1][u+1])+' '+
+		       str("%.2f" % L[t+2][u+1])+
+		  '  '+str("%.2f" % L[t+0][u+2])+'  '+str("%.2f" % L[t+1][u+2])+' '+
 			str("%.2f" % L[t+2][u+2]), line))
 	    elif len(L[t][u:].T)== 2:
-	       out.write(re.sub(r'[\d .-]+', '    '+repr(t/3)+'    '+repr(s)+'   '+
-		  '   '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
-			str("%.2f" % L[t+2][u+0])+
-		  '   '+str("%.2f" % L[t+0][u+1])+'  '+str("%.2f" % L[t+1][u+1])+' '+
+	       out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
+		  '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
+		       str("%.2f" % L[t+2][u+0])+
+		  '  '+str("%.2f" % L[t+0][u+1])+'  '+str("%.2f" % L[t+1][u+1])+' '+
 			str("%.2f" % L[t+2][u+1]), line))
 	    elif len(L[t][u:].T)== 1:
-	       out.write(re.sub(r'[\d .-]+', '    '+repr(t/3)+'    '+repr(s)+'   '+
-		  '   '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
+	       out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
+		  '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
 			str("%.2f" % L[t+2][u+0]), line))
 	    t+=3 # 
 	 else: 
 	    out.write(re.sub('replace nothing','by nothing', line)) #just write line as it is
       out.close()
 
-version=1.1
+version=1.2
 # End of functions_smsc.py

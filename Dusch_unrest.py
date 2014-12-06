@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # filename: Dusch_unrest.py
-import numpy as np, math
+import numpy as np, math, sys
 from copy import deepcopy
 #include [[Btree.py]]
 import Btree as bt
@@ -33,7 +33,7 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
 	 resort[i][j]=1
       else:
 	 resort[i][k]=-1
-
+   print J
    J=resort.dot(J.T)
    K=resort.dot(K.T)
    for i in range(len(resort)):
@@ -44,16 +44,18 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
 
    ## change the following: not size of K but off-diagonal-elements of J!!! 
    ## if J[i][j] is large, add indices i and j to ind if they are not contained already...
-   Jtemp=np.zeros((len(J)-1)*(len(J)-1))
+   Jtemp=np.zeros((len(J)-1)*len(J))
    Jtemp[:len(J)-1]=J[0][1:]
-   for i in range(1,len(Jtemp)):
+   print J
+   for i in range(1,len(J)):
       for j in range(i):
-	 Jtemp[i*len(Jtemp)+j]=J[i][i+j]
-      for j in range(len(Jtemp)-i):
-	 Jtemp[i*len(Jtemp)+j+i]=J[i][i+j+1]
+	 Jtemp[i*len(J)+j-i]=J[i][j]
+      for j in range(i+1,len(J)):
+	 Jtemp[i*len(J)+j-1-i]=J[i][j]
    ##now: find biggest elements in Jtemp: get indices of it -> ready.
    index=np.argsort(np.abs(Jtemp), kind="heapsort")
-   print index, Jtemp[index]
+   print Jtemp
+   print Jtemp[index]
 
    # index K by the size of its elements and truncate K and J due to this.
    index=np.argsort(np.abs(K), kind="heapsort")

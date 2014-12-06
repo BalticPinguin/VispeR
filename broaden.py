@@ -72,7 +72,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       newfreq=[]
       #print 'arrived here:', mode, oldmode, n ,'-------------------'
       for i in range(len(intens)):
-	 if intens[i]>0.000:
+	 if intens[i]>0.000: #######
 	    newintens.append(intens[i]) #this is OPA-part
 	    newfreq.append(freq[i])
 	    if n<=1:
@@ -118,7 +118,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
 	       else:
 		  xmode.append(nwemode)
 		  nmode=np.matrix(xmode)
-	       #print "submitting:", nmode
+	       #print "submitting:\n", nmode
 	       #print tmpfreq
 	       freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode)
 	       for k in range(len(intens2)):
@@ -132,7 +132,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       OPAintens[i]/=intens00
    newmode=np.zeros((1,len(mode))) #for n>1: matrix-structure needed
    newmode[0]=mode
-   #print 'mode:', newmode
+   #print 'mode:\n', newmode
    TPAfreq, TPAintens=putN(-1, n, OPAintens, OPAfreq, newmode, OPAintens, OPAfreq, newmode)
    for i in range(len(TPAfreq)):
       TPAfreq[i]+=freq00
@@ -314,7 +314,6 @@ def outspect(logging, T, opt, linspect, E=0):
       maxfreq=omega[-1]
    if logging[0]<3:
       logging[1].write('maximal and minimal frequencies:\n {0} {1}\n'.format(maxfreq, minfreq))
-   #truncate arrays and sort by index for further efficient processes
    #if no other grid is defined: use linspace in range
    if omega==None:
       omega=np.linspace(minfreq,maxfreq,gridpt)
@@ -322,6 +321,8 @@ def outspect(logging, T, opt, linspect, E=0):
 	 logging[1].write("omega is equally spaced\n")
    spect=np.zeros(len(omega))
    sigma=gamma*2/2.355 #if gaussian used: same FWHM
+
+   TPAintens/=TPAintens[-1]*100 #normalise spectrum (due to highest peak) to make different approaches comparable
 
    index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
    freq=TPAfreq[index]
@@ -372,5 +373,5 @@ def outspect(logging, T, opt, linspect, E=0):
 	 logging[1].write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
    out.close()
 
-version=1.1
+version=1.2
 # End of broadening.py
