@@ -169,29 +169,22 @@ def CalculationHR(logging, initial, final, opt):
       CartCoord[i]=Coord
       P[i]=GetProjector(logging, X[i], dim, mass, CartCoord[i])
       if logging[0]<2:
-	 logging[1].write('Projector onto internal coordinate subspace\n'+ str(P[i]))
+	 logging[1].write('Projector onto internal coordinate subspace\n{0}\n'.format(P[i]))
    for i in range(len(final)):
       dim, Coord, mass, B, A, E=ReadLog(logging, final[i]) 
       X[len(initial)+i], F[len(initial)+i], Energy[len(initial)+i]=B, A, E
       CartCoord[len(initial)+i]=Coord
       P[len(initial)+i]=GetProjector(logging, X[len(initial)+i], dim, mass, CartCoord[len(initial)+i])
       if logging[0]<2:
-      	 logging[1].write('Projector onto internal coordinate subspace\n'+ str(P[len(initial)+i]))
+      	 logging[1].write('Projector onto internal coordinate subspace\n{0}\n'.format(P[len(initial)+i]))
    if logging[0]<3:
-      for i in range(len(initial)):
-	 for j in range(len(final)):
-	    logging[1].write('difference of minimum energy between states: Delta E= '\
-	      	  + str(-(Energy[j+len(initial)]+Energy[i])*Hartree2cm_1)+'\n')
+      logging[1].write('difference of minimum energy between states:'
+  		       ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
       if logging[0]<2:
-	 for i in range(len(initial)):
-	    logging[1].write('Cartesion coordinates of initial state '+repr(i)+':\n'+repr(CartCoord[i].T)+'\n')
-	 for j in range(len(initial),len(final)+len(initial)):
-	    logging[1].write('Cartesion coordinates of final state '+repr(j)+':\n'+repr(CartCoord[j].T)+'\n')
-	 logging[1].write('forces:-n')
-	 for i in range(len(initial)):
-	    logging[1].write(str(i)+'. initial state: \n'+str(F[i]))
-	 for j in range(len(initial), len(final)+len(initial) ):
-	    logging[1].write(str(j-len(initial))+'. final state: \n'+str(F[j]))
+	 logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( CartCoord[0].T))
+	 logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( CartCoord[1].T))
+	 logging[1].write('initial state: \n{0}\n'.format(F[0]))
+	 logging[1].write('final state: \n {0}\n'.format(F[1]))
 
    #Calculate Frequencies and normal modes
    L, f, Lsorted=GetL(logging, dim, mass,F, P)
@@ -380,7 +373,7 @@ def GetProjector(logging, X, dim, m, Coord):
    for k in range(dim):# next three rows in D: The rotational vectors
       D[k][3:6]=(np.cross(np.dot(X,Coord)[:].T[k/3],X[:].T[k%3]))*m[k/3]
    if logging[0]<1:
-      logging[1].write("Original translational and rotational displacement vectors"+repr(D[3:13].T))
+      logging[1].write("Original translational and rotational displacement vectors:\n{0}\n".format(D[3:13].T))
    AOE=gs(np.array(D)) #orhogonalize it
    ones=np.identity(dim)
    one_P=ones-np.dot(AOE,AOE.T)
@@ -449,7 +442,6 @@ def HuangR(logging, K, f): #what is with different frequencies???
 	    uniHR.append(sortuni[i][-j])
 	    uniF.append(funi[i][-j])
 	    logging[1].write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
-	    #logging.critical(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1))
       uniHRall.append(uniHR)
       uniFall.append(uniF)
    return uniHRall, uniFall
@@ -528,7 +520,7 @@ def ReadLog(logging, fileN):
    assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
    if logging[0]<2:
       logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                        "modes: {1} Sqrt of masses in a.u. as read from log file\n {2}".format(dim/3,dim,mass))
+                        "modes: {1} Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
    # Reading Cartesian coordinates
    temp=[]
    temp=re.findall(r' Number     Number       Type             X           Y           Z[\n -.\d]+', log)
@@ -542,14 +534,14 @@ def ReadLog(logging, fileN):
       MassCenter[j]=np.sum(Coord[j]*mass)
       MassCenter[j]/=np.sum(mass) #now it is cartesian center of mass
    if logging[0]<2:
-      logging[1].write("Cartesian (Angstrom) coordinates before alignment to center of"
-		       "mass\n {0} \nCenter of mass coordinates (Angstrom)\n{1}".format(Coord.T, MassCenter))
+      logging[1].write("Cartesian (Angstrom) coordinates before alignment to center of "
+		       "mass\n {0} \nCenter of mass coordinates (Angstrom):\n{1}\n".format(Coord.T, MassCenter))
    
    for j in range(3):#displacement of molecule into center of mass:
       Coord[j]-=MassCenter[j] # if commented we get rotational constants in agreement with Gaussian log
    Coord*=Angs2Bohr
    if logging[0]<2:
-      logging[1].write("Cartesian coordinates (a.u.) in center of mass system\n {0}".format(Coord.T))
+      logging[1].write("Cartesian coordinates (a.u.) in center of mass system\n{0}\n".format(Coord.T))
 
    # Getting tensor of inertia, transforming to principlas axes
    moi=np.zeros((3,3))# this is Moment Of Inertia
@@ -600,11 +592,11 @@ def ReadLog(logging, fileN):
    if re.search(r'\n ', Etemp[-1]) is not None:
       Etemp[-1]=Etemp[-1].replace("\n ", "") 
    if logging[0]<=1:
-      logging[1].write('temporary energy of state: '.format(Etemp[-1]))
-   E=-float(re.findall(r'[\d.]+', Etemp[-1])[0])# energy is negative (bound state)
+      logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
+   E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
    return dim, Coord, mass, X, F, E
 
-def replace(logging, files, freq, L):
+def replace(logging, files, fre, L):
    """ This function creates a new file (determined by files, ending with 
    ".rep" and copies the log-file (files) into it, replacing the frequencies and 
    normal modes by those calculated by smallscript.
@@ -622,7 +614,7 @@ def replace(logging, files, freq, L):
    **NOTE:**
    The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)
    """
-   freq*=Hartree2cm_1
+   freq=fre*Hartree2cm_1
    with open(files) as f:
       out_fname = files + ".rep"
       out = open(out_fname, "w")
