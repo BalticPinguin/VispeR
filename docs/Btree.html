@@ -313,7 +313,7 @@ de effects</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="c">#if no intensity is higher than DATATHRESHOLD</span>
-	 <span class="k">return</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+	 <span class="k">return</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
       <span class="k">return</span> <span class="n">result</span></pre></div>
     </div>
   </div>
@@ -353,7 +353,6 @@ the Franck-Condon factor for this state</p>
 	       <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
 	       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;l&#39;</span><span class="p">:</span> <span class="c">#exception for &#39;diagonal&#39; elements</span>
 		  <span class="k">if</span> <span class="n">M</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
-		     <span class="k">print</span>  <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
 		     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
 	    <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span>
 	 <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;r&#39;</span><span class="p">:</span> <span class="c">#allways has success</span>

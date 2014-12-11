@@ -245,7 +245,8 @@ og:     opened file to write in</p>
         <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <p>calculation up to HR-facts needed (FC- or Duschinsky spect)
-first find in where the options for this task are written in</p>
+first find in where the options for this task are written in
+print "start HR"</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="k">if</span> <span class="n">opts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="p">[]:</span>
@@ -359,14 +360,13 @@ here exists only one possibility for the options </p>
 	 <span class="n">part</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">])</span>
       <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
 	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
-	    <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="s">&quot;OPA&quot;</span><span class="p">)</span>
+	    <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="s">&quot;OPA&quot;</span><span class="p">)</span>
       <span class="k">elif</span> <span class="nb">float</span><span class="p">(</span><span class="n">part</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
 	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
 	    <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="s">&quot;TPA&quot;</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
 	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
-	    <span class="k">print</span> <span class="n">i</span>
-	    <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+	    <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
       <span class="k">if</span> <span class="p">((</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;broaden&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">todo</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">:</span>
 	 <span class="k">if</span> <span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">!=</span><span class="p">[]:</span></pre></div>
     </div>
@@ -458,7 +458,7 @@ here exists only one possibility for the options </p>
 	    <span class="n">k</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
 	    <span class="n">shifts</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=maxshift\=)[\d]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
 	    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shifts</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
-	       <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">distFCfOPA</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shifts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	       <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">distFCfOPA</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">shifts</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 	    <span class="k">else</span><span class="p">:</span>
 	       <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">distFCfOPA</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span></pre></div>
     </div>
@@ -473,6 +473,7 @@ here exists only one possibility for the options </p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="k">elif</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;Unrestricted&quot;</span><span class="p">,</span> <span class="s">&#39;UNRESTRITED&#39;</span><span class="p">,</span> <span class="s">&#39;unrestricted&#39;</span><span class="p">,</span> <span class="s">&#39;unrest&#39;</span><span class="p">]:</span>
+	 <span class="k">print</span> <span class="n">J</span>
 	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span> <span class="c">#calculate separate line-spects for different states</span>
 	    <span class="n">k</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span></pre></div>
     </div>
@@ -486,7 +487,11 @@ here exists only one possibility for the options </p>
       <p>make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>	    <span class="n">linspect</span><span class="o">=</span><span class="n">DR</span><span class="o">.</span><span class="n">unrestricted</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+      <div class="highlight"><pre>	    <span class="n">modes</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=maxmodes\=)[\d]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+	    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">modes</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+	       <span class="n">linspect</span><span class="o">=</span><span class="n">DR</span><span class="o">.</span><span class="n">unrestricted</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">modes</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+	    <span class="k">else</span><span class="p">:</span>
+	       <span class="n">linspect</span><span class="o">=</span><span class="n">DR</span><span class="o">.</span><span class="n">unrestricted</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
 	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;An error occured. The option of &quot;model&quot; is not known! Please check the spelling,&#39;</span>\
 	       <span class="s">&#39; meanwile the Duschinsky-rotated spectrum is calculated using &quot;resort&quot;.&#39;</span><span class="p">)</span>
@@ -494,7 +499,8 @@ here exists only one possibility for the options </p>
 	    <span class="n">k</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
 	    <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">resortFCfOPA</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
-   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">8</span><span class="p">:</span></pre></div>
+
+   <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -502,6 +508,18 @@ here exists only one possibility for the options </p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>print 'linespect:', linspect.T</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">8</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       <p>calculate Broadening</p>
     </div>
@@ -553,10 +571,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <h4>handel: also files containing further information!</h4>
     </div>
@@ -573,10 +591,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-28'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <h6>########### change this to make it work with multiple files!!</h6>
     </div>
@@ -585,10 +603,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-29'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-29'>#</a>
       </div>
       <h2>if to nPA is specified: #### need energy-difference -&gt; need to read it, if spectrum is taken from file...</h2>
     </div>
@@ -597,10 +615,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-29'>
+  <div class='section' id='section-30'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
+        <a class='octothorpe' href='#section-30'>#</a>
       </div>
       <p>if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...</p>
     </div>
@@ -617,7 +635,7 @@ here exists only one possibility for the options </p>
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
    <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
-<span class="n">version</span><span class="o">=</span><span class="mf">1.2</span>
+<span class="n">version</span><span class="o">=</span><span class="mf">1.3</span>
 
 </pre></div>
     </div>

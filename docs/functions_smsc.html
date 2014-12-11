@@ -20,7 +20,7 @@
       <p>filename: functions_smsc.py</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">math</span>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">scipy.linalg.lapack</span> <span class="kn">as</span> <span class="nn">LA</span></pre></div>
     </div>
   </div>
@@ -387,29 +387,22 @@ logging[1].write(u" {0}\n".format(repr(uency[a][j<em>M+i-1])+"  "+repr(FC[a][j</
       <span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">Coord</span>
       <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">GetProjector</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dim</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
       <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
-	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Projector onto internal coordinate subspace</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Projector onto internal coordinate subspace</span><span class="se">\n</span><span class="s">{0}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">final</span><span class="p">)):</span>
       <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">ReadLog</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">final</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> 
       <span class="n">X</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="n">F</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">B</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">E</span>
       <span class="n">CartCoord</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">Coord</span>
       <span class="n">P</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">GetProjector</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="n">dim</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">])</span>
       <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
-      	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Projector onto internal coordinate subspace</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">]))</span>
+      	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Projector onto internal coordinate subspace</span><span class="se">\n</span><span class="s">{0}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">+</span><span class="n">i</span><span class="p">]))</span>
    <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">3</span><span class="p">:</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
-	 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">final</span><span class="p">)):</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;difference of minimum energy between states: Delta E= &#39;</span>\
-	      	  <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">Energy</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)]</span><span class="o">+</span><span class="n">Energy</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;difference of minimum energy between states:&#39;</span>
+  		       <span class="s">&#39; Delta E= {0}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">))</span>
       <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
-	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Cartesion coordinates of initial state &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-	 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">final</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Cartesion coordinates of final state &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
-	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;forces:-n&#39;</span><span class="p">)</span>
-	 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;. initial state: </span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-	 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">final</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span> <span class="p">):</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">))</span><span class="o">+</span><span class="s">&#39;. final state: </span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span></pre></div>
+	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Cartesion coordinates of initial state: </span><span class="se">\n</span><span class="s">{0}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Cartesion coordinates of final state: </span><span class="se">\n</span><span class="s">{0}</span><span class="se">\n</span><span class="s"> Forces:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span> <span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;initial state: </span><span class="se">\n</span><span class="s">{0}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;final state: </span><span class="se">\n</span><span class="s"> {0}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -422,8 +415,7 @@ logging[1].write(u" {0}\n".format(repr(uency[a][j<em>M+i-1])+"  "+repr(FC[a][j</
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="n">L</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Lsorted</span><span class="o">=</span><span class="n">GetL</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span><span class="n">F</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-   <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">Duschinsky</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">Lsorted</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">)</span>
-   <span class="n">Gauf</span><span class="o">=</span><span class="n">gaussianfreq</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span></pre></div>
+   <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="o">=</span><span class="n">Duschinsky</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">Lsorted</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">CartCoord</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -431,6 +423,18 @@ logging[1].write(u" {0}\n".format(repr(uency[a][j<em>M+i-1])+"  "+repr(FC[a][j</
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      <p>Gauf=gaussianfreq(logging, initial, final, dim) </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
       </div>
       <p>calculate HR-spect</p>
     </div>
@@ -443,10 +447,10 @@ logging[1].write(u" {0}\n".format(repr(uency[a][j<em>M+i-1])+"  "+repr(FC[a][j</
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-24'>
+  <div class='section' id='section-25'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-24'>#</a>
+        <a class='octothorpe' href='#section-25'>#</a>
       </div>
       <p><strong>PARAMETERS:</strong>
 L:    Matrix having mass-weighted normal modes as column-vectors
@@ -462,10 +466,10 @@ K:    displacement-vector of energy-minima in normal coordinates</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-26'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       
     </div>
@@ -480,10 +484,10 @@ K:    displacement-vector of energy-minima in normal coordinates</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <p>for i in range(len(DeltaX[0])/3):
 DeltaX[0][3<em>i:3</em>i+3]=x[0].T[i]</p>
@@ -500,18 +504,18 @@ DeltaX[0][3<em>i:3</em>i+3]=x[0].T[i]</p>
 
    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
    <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">138</span><span class="p">)</span>
-   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)):</span>
-      <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+   <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)):</span>
       	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Duschinsky rotation matrix, state &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span>\
       	       <span class="s">&#39;  :</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  :</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">11</span><span class="p">:</span><span class="mi">25</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">Duschinsky displacement vector:</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
    <span class="k">return</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-28'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <p>Extraction of the frequencies from g09-log file</p>
     </div>
@@ -520,10 +524,10 @@ DeltaX[0][3<em>i:3</em>i+3]=x[0].T[i]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-29'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-29'>#</a>
       </div>
       <h1>read frequencies calculated by g09 from file</h1>
 <p>Gauf=of.gaussianfreq(ContntInfo, dim) 
@@ -555,10 +559,10 @@ Gauf/=Hartree2cm_1  #convert to atomic units</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-29'>
+  <div class='section' id='section-30'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
+        <a class='octothorpe' href='#section-30'>#</a>
       </div>
       <p>Function that calculates the frequencies and normal modes from force constant matrix</p>
     </div>
@@ -567,10 +571,10 @@ Gauf/=Hartree2cm_1  #convert to atomic units</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-30'>
+  <div class='section' id='section-31'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-30'>#</a>
+        <a class='octothorpe' href='#section-31'>#</a>
       </div>
       <p>ith and without projection onto internal degrees of freedom</p>
 <p><em>argumets</em>*
@@ -597,23 +601,33 @@ Gauf/=Hartree2cm_1  #convert to atomic units</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-31'>
+  <div class='section' id='section-32'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-31'>#</a>
+        <a class='octothorpe' href='#section-32'>#</a>
       </div>
       <h3>the condition number of F[i] is some millions...</h3>
 <p>ftemp,Ltemp=np.linalg.eig(F[i])
 ftemp,Ltemp=np.linalg.eigh(F[i])</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">ftemp</span><span class="p">,</span><span class="n">Ltemp</span><span class="p">,</span><span class="n">info</span><span class="o">=</span><span class="n">LA</span><span class="o">.</span><span class="n">dsyev</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="c">#this seems to be the best function</span>
-
-      <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ftemp</span><span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">ftemp</span><span class="p">)</span><span class="o">!=</span><span class="mi">0</span><span class="p">),</span>\
-	       <span class="s">&#39;Frequencies smaller than 0 occured. Please check the input-file!!&#39;</span>
-      <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ftemp</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">):</span>
+      <div class="highlight"><pre>      <span class="n">ftemp</span><span class="p">,</span><span class="n">Ltemp</span><span class="p">,</span><span class="n">info</span><span class="o">=</span><span class="n">LA</span><span class="o">.</span><span class="n">dsyev</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="c">#this seems to be the best function</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>assert np.any(ftemp&lt; 0) or np.any(np.imag(ftemp)!=0),\
+      'Frequencies smaller than 0 occured. Please check the input-file!! {0}'.format(ftemp)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ftemp</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">):</span>
 	 <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">:</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Frequencies smaller than 0 occured. The absolute values are used in the following.</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;Frequencies smaller than 0 occured. The absolute&#39;</span>
+			<span class="s">&#39; values are used in the following.</span><span class="se">\n</span><span class="s">{0}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ftemp</span><span class="p">))</span>
 	 <span class="n">ftemp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">ftemp</span><span class="p">)</span>
       <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ftemp</span><span class="p">),</span><span class="n">kind</span><span class="o">=</span><span class="s">&#39;heapsort&#39;</span><span class="p">)</span> <span class="c"># ascending sorting f</span>
       <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ftemp</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
@@ -625,10 +639,10 @@ ftemp,Ltemp=np.linalg.eigh(F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-32'>
+  <div class='section' id='section-34'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
+        <a class='octothorpe' href='#section-34'>#</a>
       </div>
       <h6>######################## begin test-area</h6>
 <pre><code> print "orthogonality:"
@@ -667,10 +681,10 @@ ftemp,Ltemp=np.linalg.eigh(F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-33'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       <h6>######################## end test-area</h6>
     </div>
@@ -680,29 +694,40 @@ ftemp,Ltemp=np.linalg.eigh(F[i])</p>
       <span class="n">M</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
          <span class="n">M</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span>
-      <span class="n">Lcart</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Ltemp</span><span class="p">)))</span>
-      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+      <span class="n">Lcart</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Ltemp</span><span class="p">)))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>Lcart=np.real(Ltemp)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
          <span class="n">norm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Lcart</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">Lcart</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
 	 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span><span class="o">&gt;</span><span class="mf">1e-12</span><span class="p">:</span>
 	    <span class="n">Lcart</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span>
       <span class="n">Lsorted</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="n">Lcart</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
       <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
-	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Normalized Lcart</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">Lcart</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Normalized, sorted and truncated Lcart</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">Lsorted</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Normalized Lcart</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">Lcart</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Normalized,&quot;</span>
+	        <span class="s">&quot;sorted and truncated Lcart</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">Lsorted</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
 
       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
      	 <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]))</span>
       <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
 	 <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;After projecting onto internal coords subspace</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span><span class="s">&quot;Frequencies (cm-1)</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span>\
 	       <span class="nb">repr</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">)</span><span class="o">+</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">L-matrix </span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
-      
    <span class="k">return</span> <span class="n">L</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Lsorted</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-34'>
+  <div class='section' id='section-37'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
+        <a class='octothorpe' href='#section-37'>#</a>
       </div>
       
     </div>
@@ -715,7 +740,7 @@ ftemp,Ltemp=np.linalg.eigh(F[i])</p>
    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span><span class="c"># next three rows in D: The rotational vectors</span>
       <span class="n">D</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Coord</span><span class="p">)[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="o">/</span><span class="mi">3</span><span class="p">],</span><span class="n">X</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="o">%</span><span class="mi">3</span><span class="p">]))</span><span class="o">*</span><span class="n">m</span><span class="p">[</span><span class="n">k</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span>
    <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
-      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Original translational and rotational displacement vectors&quot;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">13</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Original translational and rotational displacement vectors:</span><span class="se">\n</span><span class="s">{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">13</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
    <span class="n">AOE</span><span class="o">=</span><span class="n">gs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">D</span><span class="p">))</span> <span class="c">#orhogonalize it</span>
    <span class="n">ones</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
    <span class="n">one_P</span><span class="o">=</span><span class="n">ones</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">AOE</span><span class="p">,</span><span class="n">AOE</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
@@ -729,10 +754,10 @@ ftemp,Ltemp=np.linalg.eigh(F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-35'>
+  <div class='section' id='section-38'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
+        <a class='octothorpe' href='#section-38'>#</a>
       </div>
       <p>This function does row-wise Gram-Schmidt orthonormalization of matrices.</p>
     </div>
@@ -741,10 +766,10 @@ ftemp,Ltemp=np.linalg.eigh(F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-39'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-39'>#</a>
       </div>
       <p>code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876</p>
     </div>
@@ -765,10 +790,10 @@ ftemp,Ltemp=np.linalg.eigh(F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
+  <div class='section' id='section-40'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
+        <a class='octothorpe' href='#section-40'>#</a>
       </div>
       <p>Function that calculates the Huang-Rhys factors for all vibrational states</p>
     </div>
@@ -777,10 +802,10 @@ ftemp,Ltemp=np.linalg.eigh(F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-38'>
+  <div class='section' id='section-41'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-38'>#</a>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       <p><em>Arguments</em>*
 . The displacements of minima in internal coordinates
@@ -816,10 +841,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-39'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-39'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       <p>select all 'big' HR-factors </p>
     </div>
@@ -827,28 +852,17 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
       <div class="highlight"><pre>	 <span class="k">if</span> <span class="n">sortuni</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;</span><span class="mf">0.02</span><span class="p">:</span> 
 	    <span class="n">uniHR</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sortuni</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">j</span><span class="p">])</span>
 	    <span class="n">uniF</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">j</span><span class="p">])</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&quot;{0}   {1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sortuni</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">j</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">))</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-40'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
-      </div>
-      <p>logging.critical(repr(sortuni[i][-j])+'  '+repr(funi[i][-j]*Hartree2cm_1))</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="n">uniHRall</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uniHR</span><span class="p">)</span>
+	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&quot;{0}   {1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sortuni</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">j</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="o">-</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">))</span>
+      <span class="n">uniHRall</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uniHR</span><span class="p">)</span>
       <span class="n">uniFall</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">uniF</span><span class="p">)</span>
    <span class="k">return</span> <span class="n">uniHRall</span><span class="p">,</span> <span class="n">uniFall</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-41'>
+  <div class='section' id='section-43'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
+        <a class='octothorpe' href='#section-43'>#</a>
       </div>
       
     </div>
@@ -863,10 +877,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-42'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>This function reads the HR-factors and electronic transition energy from a given file and brings them into a</p>
     </div>
@@ -875,10 +889,10 @@ eturn sortuni, funi, sortmulti, sortfG, sortfE
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-43'>
+  <div class='section' id='section-45'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-43'>#</a>
+        <a class='octothorpe' href='#section-45'>#</a>
       </div>
       <p>imilar structure as they are used in the 'smallscript'.</p>
 <p><em>PARAMETERS</em>*
@@ -914,10 +928,10 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-44'>
+  <div class='section' id='section-46'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
       <p>the following is just to be consistent with structure of HR calculated in first part</p>
     </div>
@@ -930,10 +944,10 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-45'>
+  <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
+        <a class='octothorpe' href='#section-47'>#</a>
       </div>
       
     </div>
@@ -942,10 +956,10 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-46'>
+  <div class='section' id='section-48'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-48'>#</a>
       </div>
       <p>Mapping the log file</p>
     </div>
@@ -956,10 +970,10 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-47'>
+  <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
+        <a class='octothorpe' href='#section-49'>#</a>
       </div>
       <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!</p>
     </div>
@@ -978,15 +992,17 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
       <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])):</span>
 	 <span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="n">foonum</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">])</span><span class="o">*</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c">#elements in m are sqrt(m_i) where m_i is the i-th atoms mass</span>
       <span class="n">foonum</span><span class="o">+=</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+   <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s">&quot;some atomic masses are zero. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
    <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
-      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Number of atoms: {0}</span><span class="se">\n</span><span class="s">Number of vibrational modes: {1} Sqrt of masses in a.u. as read from log file</span><span class="se">\n</span><span class="s"> {2}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span><span class="n">dim</span><span class="p">,</span><span class="n">mass</span><span class="p">))</span></pre></div>
+      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Number of atoms: {0}</span><span class="se">\n</span><span class="s">Number of vibrational &quot;</span>
+                        <span class="s">&quot;modes: {1} Sqrt of masses in a.u. as read from log file</span><span class="se">\n</span><span class="s">{2}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span><span class="n">dim</span><span class="p">,</span><span class="n">mass</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-50'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-50'>#</a>
       </div>
       <p>Reading Cartesian coordinates</p>
     </div>
@@ -1003,20 +1019,21 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
       <span class="n">MassCenter</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Coord</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">mass</span><span class="p">)</span>
       <span class="n">MassCenter</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span> <span class="c">#now it is cartesian center of mass</span>
    <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
-      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Cartesian (Angstrom) coordinates before alignment to center of mass</span><span class="se">\n</span><span class="s"> {0} </span><span class="se">\n</span><span class="s">Center of mass coordinates (Angstrom)</span><span class="se">\n</span><span class="s">{1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Coord</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">MassCenter</span><span class="p">))</span>
+      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Cartesian (Angstrom) coordinates before alignment to center of &quot;</span>
+		       <span class="s">&quot;mass</span><span class="se">\n</span><span class="s"> {0} </span><span class="se">\n</span><span class="s">Center of mass coordinates (Angstrom):</span><span class="se">\n</span><span class="s">{1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Coord</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">MassCenter</span><span class="p">))</span>
    
    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="c">#displacement of molecule into center of mass:</span>
       <span class="n">Coord</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">-=</span><span class="n">MassCenter</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="c"># if commented we get rotational constants in agreement with Gaussian log</span>
    <span class="n">Coord</span><span class="o">*=</span><span class="n">Angs2Bohr</span>
    <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
-      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Cartesian coordinates (a.u.) in center of mass system</span><span class="se">\n</span><span class="s"> {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Coord</span><span class="o">.</span><span class="n">T</span><span class="p">))</span></pre></div>
+      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Cartesian coordinates (a.u.) in center of mass system</span><span class="se">\n</span><span class="s">{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Coord</span><span class="o">.</span><span class="n">T</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-51'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-51'>#</a>
       </div>
       <p>Getting tensor of inertia, transforming to principlas axes</p>
     </div>
@@ -1025,10 +1042,10 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-52'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-52'>#</a>
       </div>
       <p>print Coord[1]</p>
     </div>
@@ -1048,10 +1065,10 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-51'>
+  <div class='section' id='section-53'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
+        <a class='octothorpe' href='#section-53'>#</a>
       </div>
       <p>X=np.matrix(X[index]) #sorting by eigenvalues</p>
     </div>
@@ -1059,20 +1076,22 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
       <div class="highlight"><pre>   <span class="n">X</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="c">#sorting by eigenvalues</span>
    <span class="n">diagI</span><span class="o">=</span><span class="n">diagI</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
    <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
-      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Moments of inertia (a.u.) in principle axes</span><span class="se">\n</span><span class="s"> {0}</span><span class="se">\n</span><span class="s">Rotational constants (GHz) in principle axes</span><span class="se">\n</span><span class="s"> {1} Rotation matrix</span><span class="se">\n</span><span class="s">{2}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">diagI</span><span class="o">.</span><span class="n">T</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">diagI</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">*</span><span class="n">Hartree2GHz</span><span class="p">,</span> <span class="n">X</span><span class="p">))</span></pre></div>
+      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Moments of inertia (a.u.) in principle axes</span><span class="se">\n</span><span class="s"> {0}</span><span class="se">\n</span><span class="s">Rotational &quot;</span>
+                       <span class="s">&quot;constants (GHz) in principle axes</span><span class="se">\n</span><span class="s"> {1} Rotation matrix</span><span class="se">\n</span><span class="s">{2}&quot;</span>
+		       <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">diagI</span><span class="o">.</span><span class="n">T</span><span class="p">,</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">diagI</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">*</span><span class="n">Hartree2GHz</span><span class="p">,</span> <span class="n">X</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-52'>
+  <div class='section' id='section-54'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-52'>#</a>
+        <a class='octothorpe' href='#section-54'>#</a>
       </div>
       <p>Reading of Cartesian force constant matrix  </p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;Force constants in Cartesian coordinates: [\n\d .+-D]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
-   <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+   <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span><span class="c">#[2:-2]</span>
    <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">)</span>
    <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
    <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
@@ -1097,34 +1116,36 @@ nergy:  the energy-difference of the electronic states. (in atomic units)</p>
    <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;\n &#39;</span><span class="p">,</span> <span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
       <span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s"> &quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span> 
    <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;=</span><span class="mi">1</span><span class="p">:</span>
-      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;temporary energy of state: &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-   <span class="n">E</span><span class="o">=-</span><span class="nb">float</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&#39;[\d.]+&#39;</span><span class="p">,</span> <span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span><span class="c"># energy is negative (bound state)</span>
+      <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;temporary energy of state: {0}</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+   <span class="n">E</span><span class="o">=-</span><span class="nb">float</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&#39;[\d.]+&#39;</span><span class="p">,</span> <span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span> <span class="c">#energy is negative (bound state)</span>
    <span class="k">return</span> <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">E</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-53'>
+  <div class='section' id='section-55'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-53'>#</a>
+        <a class='octothorpe' href='#section-55'>#</a>
       </div>
       <p>This function creates a new file (determined by files, ending with</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span><span class="n">log</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">fre</span><span class="p">,</span> <span class="n">L</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-54'>
+  <div class='section' id='section-56'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-54'>#</a>
+        <a class='octothorpe' href='#section-56'>#</a>
       </div>
       <p>.rep" and copies the log-file (files) into it, replacing the frequencies and 
 ormal modes by those calculated by smallscript.
 he function is suited to test, whether these results coincide qualitatively with the gaussian's.</p>
 <ul>
 <li>PARAMETERS: **
+ogging: specifies the level of logging-outputs
+og:   i
 iles: file taken as basis ('.rep' added to be used for replacements)
 req:  frequencies to be inserted
 :     normal modes to be inserted  </li>
@@ -1134,7 +1155,7 @@ req:  frequencies to be inserted
 he code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">freq</span><span class="o">*=</span><span class="n">Hartree2cm_1</span>
+      <div class="highlight"><pre>   <span class="n">freq</span><span class="o">=</span><span class="n">fre</span><span class="o">*</span><span class="n">Hartree2cm_1</span>
    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
       <span class="n">out_fname</span> <span class="o">=</span> <span class="n">files</span> <span class="o">+</span> <span class="s">&quot;.rep&quot;</span>
       <span class="n">out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_fname</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
@@ -1144,53 +1165,63 @@ he code is originally from stevaha (http://stackoverflow.com/questions/1597649/r
       <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
 	 <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;Frequencies -- [\d .-]+&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
 	    <span class="n">t</span><span class="o">=</span><span class="mi">0</span> <span class="c">#reset t, when frequencies occur</span>
-	    <span class="n">u</span><span class="o">+=</span><span class="mi">3</span> <span class="c">#</span>
-	    <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
-	       <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;frequencies not yet written to file:&#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
-	    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span> <span class="c"># there are at least three more frequencies</span>
+	    <span class="n">u</span><span class="o">+=</span><span class="mi">3</span> <span class="c">#</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-57'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-57'>#</a>
+      </div>
+      <p>if logging[0]&lt;1:
+    logging[1].write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span> <span class="c"># there are at least three more frequencies</span>
 	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;Frequencies -- [\d .-]+&#39;</span><span class="p">,</span>
-		     <span class="s">&#39;Frequencies --&#39;</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;          &#39;</span>\
-		     <span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;          &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">2</span><span class="p">]),</span> <span class="n">line</span><span class="p">))</span>
+		     <span class="s">&#39;Frequencies --&#39;</span><span class="o">+</span><span class="s">&#39;   &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;     &#39;</span>\
+		     <span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;     &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">2</span><span class="p">]),</span> <span class="n">line</span><span class="p">))</span>
 	    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c"># there are only two frequencies left</span>
 	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;Frequencies -- [\d .-]+&#39;</span><span class="p">,</span>
-		     <span class="s">&#39;Frequencies --&#39;</span><span class="o">+</span><span class="s">&#39;     &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;          &#39;</span>\
+		     <span class="s">&#39;Frequencies --&#39;</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;     &#39;</span>\
 		     <span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="o">+</span><span class="mi">1</span><span class="p">]),</span> <span class="n">line</span><span class="p">))</span>
 	    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c"># there is just one additional freq</span>
 	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;Frequencies -- [\d .-]+&#39;</span><span class="p">,</span>
-		     <span class="s">&#39;Frequencies --&#39;</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">]),</span> <span class="n">line</span><span class="p">))</span>
+		     <span class="s">&#39;Frequencies --&#39;</span><span class="o">+</span><span class="s">&#39;   &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">s</span><span class="p">]),</span> <span class="n">line</span><span class="p">))</span>
 	    <span class="n">s</span><span class="o">+=</span><span class="mi">3</span>
 	 <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&#39;[ ]+\d+[ ]+\d+[ -]+\d.\d\d[ -]+\d.\d\d+[ \d.-]+&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
 	    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="n">u</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span> <span class="c"># there are at least three more frequencies</span>
-	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[\d .-]+&#39;</span><span class="p">,</span> <span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;   &#39;</span><span class="o">+</span>
-		  <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
-			<span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span>
-		  <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
-			<span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span>
-		  <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
+	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[\d .-]+&#39;</span><span class="p">,</span> <span class="s">&#39;     &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;   &#39;</span><span class="o">+</span>
+		  <span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
+		       <span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span>
+		  <span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
+		       <span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span>
+		  <span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
 			<span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">2</span><span class="p">]),</span> <span class="n">line</span><span class="p">))</span>
 	    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="n">u</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[\d .-]+&#39;</span><span class="p">,</span> <span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;   &#39;</span><span class="o">+</span>
-		  <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
-			<span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span>
-		  <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
+	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[\d .-]+&#39;</span><span class="p">,</span> <span class="s">&#39;     &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;   &#39;</span><span class="o">+</span>
+		  <span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
+		       <span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span>
+		  <span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
 			<span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">1</span><span class="p">]),</span> <span class="n">line</span><span class="p">))</span>
 	    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="p">][</span><span class="n">u</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[\d .-]+&#39;</span><span class="p">,</span> <span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;   &#39;</span><span class="o">+</span>
-		  <span class="s">&#39;   &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
+	       <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[\d .-]+&#39;</span><span class="p">,</span> <span class="s">&#39;     &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">t</span><span class="o">/</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;    &#39;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;   &#39;</span><span class="o">+</span>
+		  <span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">0</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;  &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="s">&#39; &#39;</span><span class="o">+</span>
 			<span class="nb">str</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%.2f</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">L</span><span class="p">[</span><span class="n">t</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="n">u</span><span class="o">+</span><span class="mi">0</span><span class="p">]),</span> <span class="n">line</span><span class="p">))</span>
 	    <span class="n">t</span><span class="o">+=</span><span class="mi">3</span> <span class="c"># </span>
 	 <span class="k">else</span><span class="p">:</span> 
 	    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;replace nothing&#39;</span><span class="p">,</span><span class="s">&#39;by nothing&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">))</span> <span class="c">#just write line as it is</span>
       <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<span class="n">version</span><span class="o">=</span><span class="mf">1.1</span></pre></div>
+<span class="n">version</span><span class="o">=</span><span class="mf">1.2</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-55'>
+  <div class='section' id='section-58'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-55'>#</a>
+        <a class='octothorpe' href='#section-58'>#</a>
       </div>
       <p>End of functions_smsc.py</p>
     </div>

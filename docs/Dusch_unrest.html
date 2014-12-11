@@ -20,7 +20,7 @@
       <p>filename: Dusch_unrest.py</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">math</span>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span></pre></div>
     </div>
   </div>
@@ -80,7 +80,6 @@
 	 <span class="n">resort</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
       <span class="k">else</span><span class="p">:</span>
 	 <span class="n">resort</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=-</span><span class="mi">1</span>
-
    <span class="n">J</span><span class="o">=</span><span class="n">resort</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
    <span class="n">K</span><span class="o">=</span><span class="n">resort</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">resort</span><span class="p">)):</span>
@@ -96,16 +95,17 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-4'>#</a>
       </div>
-      <p>index K by the size of its elements and truncate K and J due to this.</p>
+      <h1>change the following: not size of K but off-diagonal-elements of J!!!</h1>
+<h1>if J[i][j] is large, add indices i and j to ind if they are not contained already...</h1>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s">&quot;heapsort&quot;</span><span class="p">)</span>
-   <span class="n">ind</span><span class="o">=</span><span class="n">index</span><span class="p">[:</span><span class="n">m</span><span class="p">]</span>
-   <span class="n">k</span><span class="o">=</span><span class="n">K</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
-   <span class="n">j</span><span class="o">=</span><span class="n">J</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
-   <span class="n">f</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="p">))</span>
-   <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">ind</span><span class="p">]</span>
-   <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">ind</span><span class="p">]</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">Jtemp</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">))</span>
+   <span class="n">Jtemp</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">J</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)):</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+	 <span class="n">Jtemp</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)</span><span class="o">+</span><span class="n">j</span><span class="o">-</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)):</span>
+	 <span class="n">Jtemp</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">J</span><span class="p">)</span><span class="o">+</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -114,16 +114,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
-      <p>finally, calculate the Duschinsky-rotated line spectrum in this picture</p>
+      <h1>now: find biggest elements in Jtemp: get indices of it -&gt; ready.</h1>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">linspect</span><span class="o">=</span><span class="n">FCf</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">E0</span><span class="p">)</span>
-   <span class="n">linspectrum</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">linspect</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
-   <span class="n">linspectrum</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">linspectrum</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-   <span class="n">linspectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">linspectrum</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">linspectrum</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
-      <span class="n">linspectrum</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="mi">42</span>
-   <span class="k">return</span> <span class="n">linspectrum</span> <span class="c">#2-dimensional array</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">Jtemp</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s">&quot;heapsort&quot;</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -132,10 +126,19 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-6'>#</a>
       </div>
-      <p>Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA</p>
+      <p>index K by the size of its elements and truncate K and J due to this.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">FCf</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">E0</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">K</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s">&quot;heapsort&quot;</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">m</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+      <span class="n">ind</span><span class="o">=</span><span class="n">index</span><span class="p">[:</span><span class="n">m</span><span class="p">]</span>
+   <span class="k">else</span><span class="p">:</span>
+      <span class="n">ind</span><span class="o">=</span><span class="n">index</span>
+   <span class="n">k</span><span class="o">=</span><span class="n">K</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+   <span class="n">j</span><span class="o">=</span><span class="n">J</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+   <span class="n">f</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span> <span class="p">))</span>
+   <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">ind</span><span class="p">]</span>
+   <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">ind</span><span class="p">]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -143,6 +146,31 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>finally, calculate the Duschinsky-rotated line spectrum in this picture</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="n">linspect</span><span class="o">=</span><span class="n">FCf</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">E0</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">linspect</span> <span class="c">#3-dimensional array</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">FCf</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">E0</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <p><em>PARAMETERS:</em>
 logging: object having as first element the mode and as second the (already opened) log-file
@@ -163,10 +191,10 @@ linespectrum </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-8'>
+  <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
+        <a class='octothorpe' href='#section-10'>#</a>
       </div>
       <p>pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
 TMP=J.dot(J.T.dot(Gammap).dot(J)+Gamma)
@@ -177,10 +205,10 @@ pref/=np.linalg.det(TMP)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-11'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <h6>#error!!!! This has to be positive but is not always!!</h6>
 <p>pref=np.sqrt(np.abs(pref))
@@ -195,22 +223,22 @@ exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-10'>
+  <div class='section' id='section-12'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-10'>#</a>
+        <a class='octothorpe' href='#section-12'>#</a>
       </div>
       <p>Tree.insert(Zero, [pref<em>exp, (E+sum(sum(Gammap-Gamma))/2)</em>Hartree2cm_1] ) #sum(sum()) due to matrix</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">Tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Zero</span><span class="p">,</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="p">(</span><span class="n">E</span><span class="o">+</span><span class="nb">sum</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">Gammap</span><span class="o">-</span><span class="n">Gamma</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">]</span> <span class="p">)</span> <span class="c">#sum(sum()) due to matrix</span></pre></div>
+      <div class="highlight"><pre>      <span class="n">Tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">Zero</span><span class="p">,</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="p">(</span><span class="n">E</span><span class="o">+</span><span class="nb">sum</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">Gammap</span><span class="o">-</span><span class="n">Gamma</span><span class="p">))</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">]</span> <span class="p">)</span> <span class="c">#sum(sum()) due to matrix</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-11'>
+  <div class='section' id='section-13'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-11'>#</a>
+        <a class='octothorpe' href='#section-13'>#</a>
       </div>
       <p>I_00 transition-probability <a href="Btree.html#extract">Btree.py</a></p>
     </div>
@@ -219,10 +247,10 @@ exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-12'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-12'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <h2>this is done using implicit side effects</h2>
     </div>
@@ -233,10 +261,10 @@ exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-13'>
+  <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-13'>#</a>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <p>Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2</p>
     </div>
@@ -245,10 +273,10 @@ exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-14'>
+  <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
+        <a class='octothorpe' href='#section-16'>#</a>
       </div>
       <p>PARAMETERS:*
 1:     binary tree where i-2 quanta are excited (structure: <a href="Btree.html">Btree.py</a>
@@ -267,10 +295,10 @@ nergy: Energy-difference between the states (minimal energy)
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-15'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       <p>quantities for the iterative spectrum-calculation</p>
     </div>
@@ -282,20 +310,20 @@ nergy: Energy-difference between the states (minimal energy)
       <span class="n">unity</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Gamma</span><span class="p">))</span>
    
       <span class="n">C</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Gammap</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="p">)</span><span class="o">+</span><span class="n">Gamma</span><span class="p">)</span> <span class="c">#C is only temporary matrix here</span>
-      <span class="n">A</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">,</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">))</span> 
+      <span class="n">A</span><span class="o">=</span><span class="n">J</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">,</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">))</span> 
       <span class="n">A</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGammap</span><span class="p">,</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGammap</span><span class="p">))</span><span class="o">-</span><span class="n">unity</span>
-      <span class="n">E</span><span class="o">=</span><span class="n">J</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Gammap</span><span class="p">)</span> <span class="c">#this is temporary only</span>
-      <span class="n">b</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">sqGammap</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">unity</span><span class="o">-</span><span class="n">E</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
-      <span class="n">d</span><span class="o">=-</span><span class="mi">2</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Gammap</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+      <span class="n">TMP</span><span class="o">=</span><span class="n">J</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Gammap</span><span class="p">)</span>
+      <span class="n">b</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">sqGammap</span><span class="o">.</span><span class="n">dot</span><span class="p">((</span><span class="n">unity</span><span class="o">-</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">)))</span>
+      <span class="n">d</span><span class="o">=-</span><span class="mi">2</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Gammap</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">))))</span>
       <span class="n">E</span><span class="o">=</span><span class="mi">4</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGammap</span><span class="p">)</span>
       <span class="n">C</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">C</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGamma</span><span class="p">)</span><span class="o">-</span><span class="n">unity</span> 		<span class="c">#this is &#39;real&#39; C-matrix</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-16'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       <p>initialize new tree</p>
     </div>
@@ -307,10 +335,10 @@ nergy: Energy-difference between the states (minimal energy)
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       <p>Calculates the frequency of respective transition including vibrational frequency</p>
     </div>
@@ -319,10 +347,10 @@ nergy: Energy-difference between the states (minimal energy)
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-18'>
+  <div class='section' id='section-20'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-20'>#</a>
       </div>
       <p>TERS:*
 rgy-difference of states
@@ -336,10 +364,10 @@ cy of respective transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-19'>
+  <div class='section' id='section-21'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
+        <a class='octothorpe' href='#section-21'>#</a>
       </div>
       <p>Find first non-zero elements in first and second half of array n</p>
     </div>
@@ -348,10 +376,10 @@ cy of respective transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-20'>
+  <div class='section' id='section-22'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-20'>#</a>
+        <a class='octothorpe' href='#section-22'>#</a>
       </div>
       
     </div>
@@ -376,23 +404,24 @@ cy of respective transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-21'>
+  <div class='section' id='section-23'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-21'>#</a>
+        <a class='octothorpe' href='#section-23'>#</a>
       </div>
       <p>if the 'first' excited state is in initial state: need first iteration formula</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>	 <span class="n">I_nn</span><span class="o">=</span><span class="mi">0</span>
+	 <span class="n">leng</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span>
 	 <span class="k">if</span> <span class="n">m</span><span class="o">&lt;=</span><span class="n">mp</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-22'>
+  <div class='section' id='section-24'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-22'>#</a>
+        <a class='octothorpe' href='#section-24'>#</a>
       </div>
       <p>need first iteration-formula</p>
     </div>
@@ -408,16 +437,16 @@ cy of respective transition</p>
 	       <span class="n">Ps</span><span class="o">=</span><span class="n">L1</span><span class="o">.</span><span class="n">getState</span><span class="p">(</span><span class="n">ntemp</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 	       <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">Ps</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Ps</span><span class="p">)</span><span class="o">&gt;</span><span class="mf">1e-8</span><span class="p">:</span>
 		  <span class="n">I_nn</span><span class="o">+=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">n_m</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span><span class="o">*</span><span class="n">A</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">m</span><span class="p">]</span><span class="o">*</span><span class="n">Ps</span>		<span class="c"># second term</span>
-	    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">):</span>
+	    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">leng</span><span class="p">):</span>
 	       <span class="k">if</span> <span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
 		  <span class="n">ntemp</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 		  <span class="n">ntemp</span><span class="p">[</span><span class="n">m</span><span class="p">]</span><span class="o">-=</span><span class="mi">1</span>
 		  <span class="n">ntemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-=</span><span class="mi">1</span>
 		  <span class="n">Ps</span><span class="o">=</span><span class="n">L1</span><span class="o">.</span><span class="n">getState</span><span class="p">(</span><span class="n">ntemp</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 		  <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">Ps</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Ps</span><span class="p">)</span><span class="o">&gt;</span><span class="mf">1e-8</span><span class="p">:</span>
-		     <span class="n">I_nn</span><span class="o">+=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">m</span><span class="p">])</span><span class="o">*</span><span class="n">Ps</span>	<span class="c"># second term</span>
+		     <span class="n">I_nn</span><span class="o">+=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">m</span><span class="p">])</span><span class="o">*</span><span class="n">Ps</span>	<span class="c"># second term</span>
 
-	    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mp</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)):</span> 			<span class="c"># sum over respective final states</span>
+	    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mp</span><span class="o">+</span><span class="n">leng</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)):</span> 			<span class="c"># sum over respective final states</span>
 	       <span class="k">if</span> <span class="n">mp</span><span class="o">&gt;</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span>					<span class="c"># that means: there are no excited vibrations</span>
 		  <span class="k">break</span>
 	       <span class="k">if</span> <span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
@@ -426,20 +455,19 @@ cy of respective transition</p>
 		  <span class="n">ntemp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-=</span><span class="mi">1</span>
 		  <span class="n">Ps</span><span class="o">=</span><span class="n">L1</span><span class="o">.</span><span class="n">getState</span><span class="p">(</span><span class="n">ntemp</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 		  <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">Ps</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Ps</span><span class="p">)</span><span class="o">&gt;</span><span class="mf">1e-8</span><span class="p">:</span>
-		     <span class="n">I_nn</span><span class="o">+=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">][</span><span class="n">m</span><span class="p">])</span><span class="o">*</span><span class="n">Ps</span>		<span class="c"># second term</span></pre></div>
+		     <span class="n">I_nn</span><span class="o">+=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="mf">0.5</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="n">leng</span><span class="p">][</span><span class="n">m</span><span class="p">])</span><span class="o">*</span><span class="n">Ps</span>		<span class="c"># second term</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-23'>
+  <div class='section' id='section-25'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-23'>#</a>
+        <a class='octothorpe' href='#section-25'>#</a>
       </div>
       <p>else: need the other iteration-formula</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>	 <span class="k">else</span><span class="p">:</span> 
-	    <span class="n">leng</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span>
 	    <span class="n">n_m</span><span class="o">=</span><span class="n">n</span><span class="p">[</span><span class="n">mp</span><span class="o">+</span><span class="n">leng</span><span class="p">]</span>
 	    <span class="n">ntemp</span><span class="o">=</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 	    <span class="n">ntemp</span><span class="p">[</span><span class="n">mp</span><span class="o">+</span><span class="n">leng</span><span class="p">]</span><span class="o">-=</span><span class="mi">1</span>
@@ -474,27 +502,27 @@ cy of respective transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-24'>
+  <div class='section' id='section-26'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-24'>#</a>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       <p>threshold for insertion: saves memory, since int insead of float is used</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>	 <span class="k">if</span> <span class="n">I_nn</span><span class="o">&gt;</span><span class="mf">1e-8</span><span class="p">:</span>
+      <div class="highlight"><pre>	 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">I_nn</span><span class="p">)</span><span class="o">&gt;</span><span class="mf">1e-8</span><span class="p">:</span>
 	    <span class="k">try</span><span class="p">:</span>
-	       <span class="n">L3</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="p">[</span><span class="n">I_nn</span><span class="p">,</span> <span class="n">freq</span><span class="p">(</span><span class="n">Energy</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">n</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">n</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">//</span><span class="mi">2</span><span class="p">:])</span> <span class="p">])</span>
+	       <span class="n">L3</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="p">[</span><span class="n">I_nn</span><span class="p">,</span> <span class="n">freq</span><span class="p">(</span><span class="n">Energy</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">n</span><span class="p">[:</span><span class="n">leng</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">n</span><span class="p">[</span><span class="n">leng</span><span class="p">:])</span> <span class="p">])</span>
 	    <span class="k">except</span> <span class="ne">MemoryError</span><span class="p">:</span> 
 	       <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;memory-error by inserting data. Finishing calculation.&#39;</span><span class="p">)</span>
 	       <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">item</span>  <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">L2</span><span class="o">.</span><span class="n">extract</span><span class="p">())</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <p>linspect=open('/tmp/linspect', "a")
 linspect.writelines("%s\n" % item  for item in L2.extract())
@@ -506,10 +534,10 @@ linspect.close()</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-28'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <p>This function creates all possible states having a total number of n excitations in alpha different states</p>
     </div>
@@ -518,10 +546,10 @@ linspect.close()</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-29'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-29'>#</a>
       </div>
       <p><em>PARAMETERS:</em>
 alpha: number of degrees of freedom</p>
@@ -532,10 +560,10 @@ alpha: number of degrees of freedom</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-30'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-30'>#</a>
       </div>
       <p>These functions are part of python-package: 'combinatorics' 
 (download from https://pypi.python.org/pypi/Combinatorics)
@@ -571,10 +599,10 @@ class-based code into a generator function.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-29'>
+  <div class='section' id='section-31'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
+        <a class='octothorpe' href='#section-31'>#</a>
       </div>
       <p>This recursive generator function was designed to be returned by
 <code>unlabeled_balls_in_labeled_boxes</code>.</p>
@@ -584,10 +612,10 @@ class-based code into a generator function.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-30'>
+  <div class='section' id='section-32'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-30'>#</a>
+        <a class='octothorpe' href='#section-32'>#</a>
       </div>
       
     </div>
@@ -596,10 +624,10 @@ class-based code into a generator function.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-31'>
+  <div class='section' id='section-33'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-31'>#</a>
+        <a class='octothorpe' href='#section-33'>#</a>
       </div>
       <p>If there are no balls, all boxes must be empty:</p>
     </div>
@@ -611,10 +639,10 @@ class-based code into a generator function.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-32'>
+  <div class='section' id='section-34'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
+        <a class='octothorpe' href='#section-34'>#</a>
       </div>
       <p>If the single available box has sufficient capacity to store the balls,
 there is only one possible distribution, and we return it to the caller
@@ -629,10 +657,10 @@ function, triggering a <code>StopIteration</code> exception.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-33'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       <p>Iterate over the number of balls in the first box (from the maximum
 possible down to zero), recursively invoking the generator to distribute
@@ -647,10 +675,10 @@ the remaining balls among the remaining boxes.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-34'>
+  <div class='section' id='section-36'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
+        <a class='octothorpe' href='#section-36'>#</a>
       </div>
       <p>end three alternative blocks</p>
     </div>
@@ -680,10 +708,10 @@ the remaining balls among the remaining boxes.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-35'>
+  <div class='section' id='section-37'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
+        <a class='octothorpe' href='#section-37'>#</a>
       </div>
       <p>end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)</p>
     </div>
@@ -692,10 +720,10 @@ the remaining balls among the remaining boxes.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-38'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-38'>#</a>
       </div>
       <p>States=np.zeros((math.factorial(n+alpha-1)/(math.factorial(n)*math.factorial(alpha-1)),alpha))</p>
     </div>
@@ -709,10 +737,10 @@ the remaining balls among the remaining boxes.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
+  <div class='section' id='section-39'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
+        <a class='octothorpe' href='#section-39'>#</a>
       </div>
       <p>States[i]=np.matrix(distributions)</p>
     </div>
@@ -723,10 +751,10 @@ the remaining balls among the remaining boxes.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-38'>
+  <div class='section' id='section-40'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-38'>#</a>
+        <a class='octothorpe' href='#section-40'>#</a>
       </div>
       <p>if the memory is not enough: don't add further states and use what is availibleA</p>
     </div>
@@ -746,10 +774,10 @@ the remaining balls among the remaining boxes.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-39'>
+  <div class='section' id='section-41'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-39'>#</a>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       <p>both trees can be expected to coincide for first state. </p>
     </div>
@@ -761,10 +789,10 @@ the remaining balls among the remaining boxes.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-40'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       <p>only by assert: MemoryError</p>
     </div>
@@ -774,18 +802,43 @@ the remaining balls among the remaining boxes.</p>
       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spect</span><span class="p">)):</span>
 	 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spect</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
 	 <span class="n">freqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spect</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
-   <span class="k">print</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">lines</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
-   <span class="k">print</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">((</span><span class="n">freqs</span><span class="p">,</span> <span class="n">lines</span><span class="p">))</span> <span class="p">)</span>
-   <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">((</span><span class="n">freqs</span><span class="p">,</span> <span class="n">lines</span><span class="p">))</span> <span class="c">#2-dimensional array</span>
+   <span class="n">result</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="p">))</span>
+   <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">freqs</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      <p>arbitrary but constant number for mode</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="mi">42</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>intensities are proportional to square of the transition rates</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> 
+   <span class="k">return</span> <span class="n">result</span>
 
 <span class="n">version</span><span class="o">=</span><span class="mf">0.2</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-41'>
+  <div class='section' id='section-45'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
+        <a class='octothorpe' href='#section-45'>#</a>
       </div>
       <p>End of Dusch_unrest.py</p>
     </div>
