@@ -17,33 +17,33 @@ class OPA:
    def insert(self, N, FC):
       exc=N[len(N)//2:].max()
       if exc>0:
-	 index=N[len(N)//2:].argmax()
-	 self.mat[index][exc]=FC
+         index=N[len(N)//2:].argmax()
+         self.mat[index][exc]=FC
       else:
-	 index=N[:len(N)//2].argmax()
-	 self.mat[index][0]=FC
+         index=N[:len(N)//2].argmax()
+         self.mat[index][0]=FC
 
    def getState(self, N): 
       exc=N[len(N)//2:].max()
       if exc>0:
-	 index=N[len(N)//2:].argmax()
-	 return self.mat[index][exc]
+         index=N[len(N)//2:].argmax()
+         return self.mat[index][exc]
       else:
-	 index=N[:len(N)//2].argmax()
-	 return self.mat[index][0]
+         index=N[:len(N)//2].argmax()
+         return self.mat[index][0]
 
    def extract(self): #extract all elements 
       intens=[]
       ind=[]
       excs=[]
       for index in range(len(self.mat)):
-	 for exc in range(len(self.mat[0])):
-	    if self.mat[index][exc]>Threshold:
-   	       intens.append(self.mat[index][exc])
-   	       ind.append(index)
-   	       excs.append(exc)
+         for exc in range(len(self.mat[0])):
+            if self.mat[index][exc]>Threshold:
+               intens.append(self.mat[index][exc])
+               ind.append(index)
+               excs.append(exc)
 
-	       #print "diff", self.mat[index][exc],self.mat[index][-exc] #this should, in principle, coincide --> does!
+               #print "diff", self.mat[index][exc],self.mat[index][-exc] #this should, in principle, coincide --> does!
       return intens, ind, excs #I need squares as intensities
 
 def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
@@ -63,15 +63,16 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
    *RETURNS:*
    linespectrum 
    """
+
    def CalcI00(dim, E):
       """This function calculates the overlap-integral for zero vibrations """
 
       opa=OPA(dim,1) #is this clear to be the respective class?
       zeros=np.zeros(2*dim)
       for i in range(len(zeros)): #insert this transition into all values... important for recursion...
-	 zeros[i]=1
-	 opa.insert(zeros, 10) #sum(sum()) due to matrix
-	 zeros[i]=0
+         zeros[i]=1
+         opa.insert(zeros, 10) #sum(sum()) due to matrix
+         zeros[i]=0
       linspect.append(np.matrix([E*Hartree2cm_1, 10, 0]))
       return opa
 
@@ -92,28 +93,28 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
       L3:     new binary tree 
       """
       def states(alpha, n): 
-	 """This function creates all possible states having a total number of n excitations in alpha different states
+         """This function creates all possible states having a total number of n excitations in alpha different states
       
-       	 *PARAMETERS:*
-	 alpha: number of degrees of freedom
-	 n:     number of excitations
+         *PARAMETERS:*
+         alpha: number of degrees of freedom
+         n:     number of excitations
       
-       	 *RETURNS:*
-	 """
-	 States=[]
-	 distributions=np.zeros(2*alpha)
-	 for i in range(alpha):
-	    for j in range(n+1):
-	       distributions[i]=n-j
-	       distributions[i+alpha]=j
-	       States.append(np.array(distributions, dtype=np.int8)) #save memory!
-	       distributions[i]=0
-	       distributions[i+alpha]=0
-	 return States
+         *RETURNS:*
+         """
+         States=[]
+         distributions=np.zeros(2*alpha)
+         for i in range(alpha):
+            for j in range(n+1):
+               distributions[i]=n-j
+               distributions[i+alpha]=j
+               States.append(np.array(distributions, dtype=np.int8)) #save memory!
+               distributions[i]=0
+               distributions[i+alpha]=0
+         return States
 
       #quantities for the iterative spectrum-calculation
-      Gamma=np.diag(f[0])              	# in atomic units. It is equivalent to 4pi^2/h f_i
-      Gammap=np.diag(f[1])             	# for final state
+      Gamma=np.diag(f[0])               # in atomic units. It is equivalent to 4pi^2/h f_i
+      Gammap=np.diag(f[1])              # for final state
       sqGamma=np.diag(np.sqrt(f[0]))   
       sqGammap=np.diag(np.sqrt(f[1]))  
       unity=np.eye(len(Gamma))
@@ -125,62 +126,62 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
       b=2*(sqGammap.dot((unity-TMP).dot(K)))
       d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
       E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
-      C=2*sqGamma.dot(C).dot(sqGamma)-unity 		#this is 'real' C-matrix
+      C=2*sqGamma.dot(C).dot(sqGamma)-unity             #this is 'real' C-matrix
    
       #initialize new OPA-object
       alpha=len(b)
-      L3=OPA(alpha,i)    	  	# initialize root-node
-      States=states(alpha, i) 		# States are all possible
-      for n in States:			#for each possible state, described by n(vector)
-	 # index of excited elements
-	 m=np.argmax(n[:len(n)//2])	#if there is no excitation: it returns 0
-	 I_nn=0
-	 #need first iteration formula
-	 if n[m]!=0:
-	    n_m=n[m]
-	    ntemp=deepcopy(n)
-	    ntemp[m]-=1 #n[m] is at least 1
-	    Ps=L2.getState(ntemp)
-	    if not math.isnan(Ps) and abs(Ps)>1e-8:
-	       I_nn=b[m]*Ps					# first term 
-	    if ntemp[m]>0:
-	       ntemp[m]-=1
-	       Ps=L1.getState(ntemp)
-	       if abs(Ps)>1e-8 and not math.isnan(Ps):
-		  I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps		# second term
-	    if n[m+len(n)//2]>0:
-	       ntemp=deepcopy(n)
-	       ntemp[m]-=1
-	       ntemp[m+len(n)//2]-=1
-     	       Ps=L1.getState(ntemp)
-	       if not math.isnan(Ps) and abs(Ps)>1e-8:
-		  I_nn+=np.sqrt(n[m+len(n)//2]*0.5)*E[m][m]*Ps	# second term
-	 #else: need the other iteration-formula
-	 else: 
-	    m=np.argmax(n[len(n)//2:])				# index of excited elements
-	    n_m=n[m+len(n)//2]
-	    ntemp=deepcopy(n)
-	    ntemp[m+len(n)//2]-=1
-	    Ps=L2.getState(ntemp)
-	    if not math.isnan(Ps) and abs(Ps)>1e-8:
-	       I_nn=d[m]*Ps					# first term 
-	    if ntemp[m+len(n)//2]>0:
-	       ntemp[m+len(n)//2]-=1
-	       Ps=L1.getState(ntemp)
-	       if not math.isnan(Ps) and abs(Ps)>1e-8:
-		  I_nn+=np.sqrt(2*(n_m-1))*C[m][m]*Ps        	# second term; all other terms vanish in OPA...
-     	 I_nn/=np.sqrt(2*n_m)
-	 L3.insert(n, I_nn)
+      L3=OPA(alpha,i)                   # initialize root-node
+      States=states(alpha, i)           # States are all possible
+      for n in States:                  #for each possible state, described by n(vector)
+         # index of excited elements
+         m=np.argmax(n[:len(n)//2])     #if there is no excitation: it returns 0
+         I_nn=0
+         #need first iteration formula
+         if n[m]!=0:
+            n_m=n[m]
+            ntemp=deepcopy(n)
+            ntemp[m]-=1 #n[m] is at least 1
+            Ps=L2.getState(ntemp)
+            if not math.isnan(Ps) and abs(Ps)>1e-8:
+               I_nn=b[m]*Ps                                     # first term 
+            if ntemp[m]>0:
+               ntemp[m]-=1
+               Ps=L1.getState(ntemp)
+               if abs(Ps)>1e-8 and not math.isnan(Ps):
+                  I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps           # second term
+            if n[m+len(n)//2]>0:
+               ntemp=deepcopy(n)
+               ntemp[m]-=1
+               ntemp[m+len(n)//2]-=1
+               Ps=L1.getState(ntemp)
+               if not math.isnan(Ps) and abs(Ps)>1e-8:
+                  I_nn+=np.sqrt(n[m+len(n)//2]*0.5)*E[m][m]*Ps  # second term
+         #else: need the other iteration-formula
+         else: 
+            m=np.argmax(n[len(n)//2:])                          # index of excited elements
+            n_m=n[m+len(n)//2]
+            ntemp=deepcopy(n)
+            ntemp[m+len(n)//2]-=1
+            Ps=L2.getState(ntemp)
+            if not math.isnan(Ps) and abs(Ps)>1e-8:
+               I_nn=d[m]*Ps                                     # first term 
+            if ntemp[m+len(n)//2]>0:
+               ntemp[m+len(n)//2]-=1
+               Ps=L1.getState(ntemp)
+               if not math.isnan(Ps) and abs(Ps)>1e-8:
+                  I_nn+=np.sqrt(2*(n_m-1))*C[m][m]*Ps           # second term; all other terms vanish in OPA...
+         I_nn/=np.sqrt(2*n_m)
+         L3.insert(n, I_nn)
       return L2, L3
 
-   def makeLine(logging, intens,E0, T, index, ex, Gamma, Gammap,E, n):
+   def makeLine(logging, intens, E0, T, index, ex, Gamma, Gammap,E, n):
       F=np.zeros(( len(index),3 ))
       for i in range(len(index)): 
-	 F[i][2]= index[i]
-	 F[i][0]=(Gammap[index[i]][index[i]]*(ex[i]+0.5)-
-   		   Gamma[index[i]][index[i]]*(n-ex[i]+0.5)+E)*Hartree2cm_1
-	 F[i][1]=intens[i]*intens[i]*np.exp((-Gamma[index[i]][index[i]]*ex[i]+E0)/T)
-	 logging[1].write(u"{1}   {0}    {2}\n".format(F[i][1], F[i][0], index[i]))
+         F[i][2]= index[i]
+         F[i][0]=(Gammap[index[i]][index[i]]*(ex[i]+0.5)-
+                   Gamma[index[i]][index[i]]*(n-ex[i]+0.5)+E)*Hartree2cm_1
+         F[i][1]=intens[i]*intens[i]*np.exp((-Gamma[index[i]][index[i]]*ex[i]+E0)/T)
+         logging[1].write(u"{1}   {0}    {2}\n".format(F[i][1], F[i][0], index[i]))
       return np.matrix(F)
    
    Gamma=np.diag(f[0])
@@ -228,20 +229,17 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
       j=np.argmax(J[i])
       k=np.argmin(J[i])
       if J[i][j]>-J[i][k]:
-	 resort[i][j]=1
+         resort[i][j]=1
       else:
-	 resort[i][k]=-1
-   print "first: J:\n",J
+         resort[i][k]=-1
    J=resort.dot(J)
-   print "after: J:\n",J
    K=resort.dot(K)
    for i in range(len(resort)):
       k=np.argmin(resort[i])
       if resort[i][k]==-1:
-	 resort[i][k]=1 #use absolute value only.
+         resort[i][k]=1 #use absolute value only.
    f[1]=resort.dot(f[1])
    spect=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
-   print "spect:\n",spect
    return spect
 
 def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
@@ -267,16 +265,16 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
       j=np.argmax(J[i])
       k=np.argmin(J[i])
       if J[i][j]>-J[i][k]:
-	 resort[i][j]=1
+         resort[i][j]=1
       else:
-	 resort[i][k]=-1
+         resort[i][k]=-1
 
    J=resort.dot(J.T)
    K=resort.dot(K.T)
    for i in range(len(resort)):
       k=np.argmin(resort[i])
       if resort[i][k]==-1:
-	 resort[i][k]=1 #use absolute value only.
+         resort[i][k]=1 #use absolute value only.
    f[1]=resort.dot(f[1].T)
    spect2=[]
    spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
@@ -288,7 +286,7 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
    for i in range(threshold):
       vec=resort[0]
       for j in range(len(resort)-1):
-	 resort[j]=resort[j+1]
+         resort[j]=resort[j+1]
       resort[-1]=vec
 
       J=resort.dot(J.T)
@@ -300,7 +298,7 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
    for i in range(threshold):
       vec=resort[-1]
       for j in range(1,len(resort)):
-	 resort[j]=resort[j-1]
+         resort[j]=resort[j-1]
       resort[0]=vec
 
       J=resort.dot(J.T)

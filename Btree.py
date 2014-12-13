@@ -31,28 +31,28 @@ class Tree:
       assert self.alpha!=0, 'There must be at least 1 vibrational mode!!'
       assert n>=0, 'The dimensionality of a tree can not be smaller 0'
       if n==0:
-	 self.data2=0 #this is extra-tree
-	 self.type='_'
+         self.data2=0 #this is extra-tree
+         self.type='_'
       elif n==1 and self.alpha==1:
-	 self.data=np.array([0, 0],dtype=np.int8) #saves memory
-	 self.data2=np.array([0, 0],dtype=np.int8)
-	 self.type='u'
+         self.data=np.array([0, 0],dtype=np.int8) #saves memory
+         self.data2=np.array([0, 0],dtype=np.int8)
+         self.type='u'
       elif self.alpha==1:
-  	 self.data=np.array([0, 0],dtype=np.int8)
-  	 self.right=Tree(self.alpha)
-  	 self.right.fill(n-1)
-	 self.type='r'
+         self.data=np.array([0, 0],dtype=np.int8)
+         self.right=Tree(self.alpha)
+         self.right.fill(n-1)
+         self.type='r'
       elif n==1:
-  	 self.data=np.array([0, 0],dtype=np.int8)
-  	 self.left=Tree(self.alpha-1)
-  	 self.left.fill(1)
-	 self.type='l'
+         self.data=np.array([0, 0],dtype=np.int8)
+         self.left=Tree(self.alpha-1)
+         self.left.fill(1)
+         self.type='l'
       else:
-  	 self.right=Tree(self.alpha)
-  	 self.right.fill(n-1)
-	 self.left=Tree(self.alpha-1)
-	 self.left.fill(n)
-	 self.type='n'
+         self.right=Tree(self.alpha)
+         self.right.fill(n-1)
+         self.left=Tree(self.alpha-1)
+         self.left.fill(n)
+         self.type='n'
 
    def insert(self, N, FC):
       """ function that inserts some data into a specific placed denoted by the 2*alpha-dimensional array
@@ -71,48 +71,55 @@ class Tree:
       the function 'fill()'. This is not checked as well and will NOT lead 
       to asserts but will fill the element into wrong ns'
       """
+      def summ(array):
+         total=0
+         for i,n in enumerate(N):
+            total+=n
+         return total
+
       n=M=0
       test=1
-      m=np.sum(N[i] for i in range(len(N)))
+      #m=np.sum(N[i] for i in range(len(N)))
+      m=summ(N)
       for i in range(self.alpha+1): #self.alpha==alpha since this is root-n
-	 if test==0:
-	    break
-	 M+=N[i]
-	 if self.type=='n':
-	    for j in range(0,int(N[i])):
-	       self=self.right
-	       n+=1
-	       if self.type=='l': 
-		  if M==m:
-		     #additional decreas of memory by factor 2
-		     # float16 no more feasible due to iteration and strong rounding effects
-		     self.data=np.array(FC, dtype=np.float32) 
-		     test=0
-		     break
-	    self=self.left
-	 elif self.type=='r': 
-	    for j in range(0,int(N[i])):
-	       self=self.right
-	       n+=1
-	       if self.type == 'u': #important for last elements
-		  break #inner for-loop
-	    if M!=m and self.type=='u':
-  	       self.data2=np.array(FC, dtype=np.float32)
-	    else:
-	       self.data=np.array(FC, dtype=np.float32)
-	    break
-	 elif self.type=='l':
-	    if M==m:
-	       self.data=np.array(FC, dtype=np.float32)
-	       break
-	    else:
-	       self=self.left
-	 else: #self.type=='u' or 0-th tree
-	    if N[i]>0:
-	       self.data=np.array(FC, dtype=np.float32)
-	    else:
-	       self.data2=np.array(FC, dtype=np.float32)
-	    break
+         if test==0:
+            break
+         M+=N[i]
+         if self.type=='n':
+            for j in range(0,int(N[i])):
+               self=self.right
+               n+=1
+               if self.type=='l': 
+                  if M==m:
+                     #additional decreas of memory by factor 2
+                     # float16 no more feasible due to iteration and strong rounding effects
+                     self.data=np.array(FC, dtype=np.float32) 
+                     test=0
+                     break
+            self=self.left
+         elif self.type=='r': 
+            for j in range(0,int(N[i])):
+               self=self.right
+               n+=1
+               if self.type == 'u': #important for last elements
+                  break #inner for-loop
+            if M!=m and self.type=='u':
+               self.data2=np.array(FC, dtype=np.float32)
+            else:
+               self.data=np.array(FC, dtype=np.float32)
+            break
+         elif self.type=='l':
+            if M==m:
+               self.data=np.array(FC, dtype=np.float32)
+               break
+            else:
+               self=self.left
+         else: #self.type=='u' or 0-th tree
+            if N[i]>0:
+               self.data=np.array(FC, dtype=np.float32)
+            else:
+               self.data2=np.array(FC, dtype=np.float32)
+            break
 
    def extract(self): #extract all elements 
       """
@@ -127,36 +134,36 @@ class Tree:
       result=[]
 
       def extra(self,result):
-   	 """creates the vector to be returned in a recursive way 
-	    **PARAMETER**
-	    self: 	object
-	    result:	2-dimensional array containing data already read from the tree, data will be added to it using 
-			side effects
-	    """
-	 if self.type=='n':
-	    extra(self.right,result)
-	    extra(self.left,result)
-	 elif self.type=='l':
-	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
-   	       result.append(self.data)
-	    extra(self.left,result)
-	 elif self.type=='r':
-	    extra(self.right,result)
-	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
-   	       result.append(self.data)
-	 elif self.type=='u':
-	    if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
-	       result.append(self.data)
-	    if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
-	       result.append(self.data2)
-	 else:
-	    if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
-	       result.append(self.data2)
+         """creates the vector to be returned in a recursive way 
+            **PARAMETER**
+            self:       object
+            result:     2-dimensional array containing data already read from the tree, data will be added to it using 
+                        side effects
+            """
+         if self.type=='n':
+            extra(self.right,result)
+            extra(self.left,result)
+         elif self.type=='l':
+            if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
+               result.append(self.data)
+            extra(self.left,result)
+         elif self.type=='r':
+            extra(self.right,result)
+            if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
+               result.append(self.data)
+         elif self.type=='u':
+            if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
+               result.append(self.data)
+            if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
+               result.append(self.data2)
+         else:
+            if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
+               result.append(self.data2)
 
       extra(self,result)
       #return np.matrix(result) #
       if len(result)==0: #if no intensity is higher than DATATHRESHOLD
-	 return [[0, 0]]
+         return [[0, 0]]
       return result
 
    def getState(self, N): 
@@ -168,41 +175,47 @@ class Tree:
       **returns:**
       the Franck-Condon factor for this state
       """
+      def summ(array):
+         total=0
+         for i,n in enumerate(N):
+            total+=n
+         return total
+
       if any(N)<0: 
-	 return 0 ##from iteration it will happen
+         return 0 ##from iteration it will happen
       n=M=0
-      m=np.sum(N[i] for i in range(len(N)))
+      #m=np.sum([N[i] for i in range(len(N))])
+      m=summ(N)
       for i in range(self.alpha+1): #self.alpha==alpha since this is root-n
-	 M+=N[i]
-	 if self.type=='n':
-	    for j in range(0,int(N[i])):
-	       self=self.right
-	       n+=1
-	       if self.type=='l': #exception for 'diagonal' elements
-		  if M==m:
-		     return self.data
-	    self=self.left
-	 elif self.type=='r': #allways has success
-	    for j in range(0,int(N[i])):
-	       self=self.right
-	       n+=1
-	       if self.type == 'u': #important for last elements
-		  break #inner for-loop
-	    if M!=m and self.type=='u':
-  	       return self.data2
-	    else:
-	       return self.data
-	    break
-	 elif self.type=='l':
-	    if M==m:
-	       return self.data
-	    else:
-	       self=self.left
-	 else: #self.type=='u':
-	    if N[i]>0:
-	       return self.data
-	    else:
-	       return self.data2
+         M+=N[i]
+         if self.type=='n':
+            for j in range(0,int(N[i])):
+               self=self.right
+               n+=1
+               if self.type=='l': #exception for 'diagonal' elements
+                  if M==m:
+                     return self.data
+            self=self.left
+         elif self.type=='r': #allways has success
+            for j in range(0,int(N[i])):
+               self=self.right
+               n+=1
+               if self.type == 'u': #important for last elements
+                  break #inner for-loop
+            if M!=m and self.type=='u':
+               return self.data2
+            else:
+               return self.data
+         elif self.type=='l':
+            if M==m:
+               return self.data
+            else:
+               self=self.left
+         else: #self.type=='u':
+            if N[i]>0:
+               return self.data
+            else:
+               return self.data2
 
    def size(self):
       """ function that returns the size of the tree (number of data-points). 
@@ -210,13 +223,13 @@ class Tree:
       by the input-argumens of '__init__' and 'fill'.
       """
       if self.type=='u':
-	 return 2
+         return 2
       if self.type=='r':
-	 return self.right.size() + 1
+         return self.right.size() + 1
       if self.type=='l':
-	 return self.left.size() + 1
+         return self.left.size() + 1
       if self.type=='n':
-	 return self.left.size() + self.right.size()
+         return self.left.size() + self.right.size()
 
 version=1.3
 # End of Btree.py
