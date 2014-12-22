@@ -21,7 +21,9 @@ class Tree:
    __slots__=['data', 'data2', 'left','right','alpha'] #why is 'type' not neccesary?
 
    def __init__(self,alph):
-      """ initializes the tree root of a (sub-) tree"""
+      """ initializes the tree root of a (sub-) tree
+      where alph is twize the number of modes, decreasing within the tree.
+      """
       #self.alpha is not the same for different ns in the tree.
       # For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational modes
       self.alpha=alph
@@ -35,15 +37,15 @@ class Tree:
          self.type='_'
       elif n==1 and self.alpha==1:
          self.data=np.array([0, 0],dtype=np.int8) #saves memory
-         self.data2=np.array([0, 0],dtype=np.int8)
+         self.data2=np.array([0, 3],dtype=np.int8)
          self.type='u'
       elif self.alpha==1:
-         self.data=np.array([0, 0],dtype=np.int8)
+         self.data=np.array([0, 2],dtype=np.int8)
          self.right=Tree(self.alpha)
          self.right.fill(n-1)
          self.type='r'
       elif n==1:
-         self.data=np.array([0, 0],dtype=np.int8)
+         self.data=np.array([0, 1],dtype=np.int8)
          self.left=Tree(self.alpha-1)
          self.left.fill(1)
          self.type='l'
@@ -71,15 +73,16 @@ class Tree:
       the function 'fill()'. This is not checked as well and will NOT lead 
       to asserts but will fill the element into wrong ns'
       """
+      #cdef int summ(float* array):
       def summ(array):
          total=0
-         for i,n in enumerate(N):
-            total+=n
+         #for i from 0 < = i < len(N):
+         for i in range(len(N)):
+            total+=N[i]
          return total
 
       n=M=0
       test=1
-      #m=np.sum(N[i] for i in range(len(N)))
       m=summ(N)
       for i in range(self.alpha+1): #self.alpha==alpha since this is root-n
          if test==0:
@@ -88,38 +91,56 @@ class Tree:
          if self.type=='n':
             for j in range(0,int(N[i])):
                self=self.right
+               print "go right", 1
                n+=1
                if self.type=='l': 
                   if M==m:
                      #additional decreas of memory by factor 2
                      # float16 no more feasible due to iteration and strong rounding effects
                      self.data=np.array(FC, dtype=np.float32) 
+                     print self.data, 1
+		     print 'type:',self.type
                      test=0
                      break
             self=self.left
+            print "go left", 1
          elif self.type=='r': 
             for j in range(0,int(N[i])):
                self=self.right
+               print "go right", 2
                n+=1
                if self.type == 'u': #important for last elements
                   break #inner for-loop
             if M!=m and self.type=='u':
                self.data2=np.array(FC, dtype=np.float32)
+               print self.data2, 2
+	       print 'type:',self.type
             else:
                self.data=np.array(FC, dtype=np.float32)
+               print self.data, 3
+	       print 'type:',self.type
             break
          elif self.type=='l':
             if M==m:
                self.data=np.array(FC, dtype=np.float32)
+               print self.data, 4
+	       print 'type:',self.type
                break
             else:
                self=self.left
+               print "go left", 2
+	       print 'type:',self.type
          else: #self.type=='u' or 0-th tree
             if N[i]>0:
                self.data=np.array(FC, dtype=np.float32)
+               print self.data, 5
+	       print 'type:',self.type
             else:
                self.data2=np.array(FC, dtype=np.float32)
+               print self.data2, 6
+	       print 'type:',self.type
             break
+      print'extraction now:\n', self.extract()
 
    def extract(self): #extract all elements 
       """
@@ -135,33 +156,31 @@ class Tree:
 
       def extra(self,result):
          """creates the vector to be returned in a recursive way 
-            **PARAMETER**
-            self:       object
-            result:     2-dimensional array containing data already read from the tree, data will be added to it using 
-                        side effects
-            """
+         **PARAMETER**
+         self:       object
+         result:     2-dimensional array containing data already read from the tree, data will be added to it using 
+                     side effects
+         """
          if self.type=='n':
             extra(self.right,result)
             extra(self.left,result)
          elif self.type=='l':
-            if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
+            if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
                result.append(self.data)
             extra(self.left,result)
          elif self.type=='r':
             extra(self.right,result)
-            if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
+            if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
                result.append(self.data)
          elif self.type=='u':
-            if self.data[0]>DATATHRESHOLD and not math.isnan(self.data[0]):
+            if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
                result.append(self.data)
-            if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
+            if self.data2[0]>DATATHRESHOLD or self.data2[0]<-DATATHRESHOLD:
                result.append(self.data2)
          else:
-            if self.data2[0]>DATATHRESHOLD and not math.isnan(self.data2[0]):
+            if self.data2[0]>DATATHRESHOLD or self.data2[0]<-DATATHRESHOLD:
                result.append(self.data2)
-
       extra(self,result)
-      #return np.matrix(result) #
       if len(result)==0: #if no intensity is higher than DATATHRESHOLD
          return [[0, 0]]
       return result
@@ -182,7 +201,7 @@ class Tree:
          return total
 
       if any(N)<0: 
-         return 0 ##from iteration it will happen
+         return 0 #????? is there a reason for?
       n=M=0
       #m=np.sum([N[i] for i in range(len(N))])
       m=summ(N)
