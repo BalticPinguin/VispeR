@@ -33,7 +33,7 @@ class Tree:
       assert self.alpha!=0, 'There must be at least 1 vibrational mode!!'
       assert n>=0, 'The dimensionality of a tree can not be smaller 0'
       if n==0:
-         self.data2=0 #this is extra-tree
+         self.data2=[0, 0] #this is extra-tree
          self.type='_'
       elif n==1 and self.alpha==1:
          self.data=np.array([0, 0],dtype=np.int8) #saves memory
@@ -41,22 +41,22 @@ class Tree:
          self.type='u'
       elif self.alpha==1:
          self.data=np.array([0, 2],dtype=np.int8)
-         self.right=Tree(self.alpha)
-         self.right.fill(n-1)
-         self.type='r'
+         self.left=Tree(self.alpha)
+         self.left.fill(n-1)
+         self.type='l'
       elif n==1:
          self.data=np.array([0, 1],dtype=np.int8)
-         self.left=Tree(self.alpha-1)
-         self.left.fill(1)
-         self.type='l'
+         self.right=Tree(self.alpha-1)
+         self.right.fill(1)
+         self.type='r'
       else:
-         self.right=Tree(self.alpha)
-         self.right.fill(n-1)
-         self.left=Tree(self.alpha-1)
-         self.left.fill(n)
+         self.left=Tree(self.alpha)
+         self.left.fill(n-1)
+         self.right=Tree(self.alpha-1)
+         self.right.fill(n)
          self.type='n'
 
-   def insert(self, N, FC):
+   def insert(self, N, FC): 
       """ function that inserts some data into a specific placed denoted by the 2*alpha-dimensional array
       (note: 2*alpha-1 is 'self.alpha' of the main n)
 
@@ -73,74 +73,45 @@ class Tree:
       the function 'fill()'. This is not checked as well and will NOT lead 
       to asserts but will fill the element into wrong ns'
       """
-      #cdef int summ(float* array):
       def summ(array):
          total=0
-         #for i from 0 < = i < len(N):
-         for i in range(len(N)):
-            total+=N[i]
+         for i,n in enumerate(N):
+            total+=n
          return total
 
-      n=M=0
-      test=1
+      n=0
+      #m=np.sum([N[i] for i in range(len(N))])
       m=summ(N)
-      for i in range(self.alpha+1): #self.alpha==alpha since this is root-n
-         if test==0:
-            break
-         M+=N[i]
+      for i in range(len(N)): #self.alpha==alpha since this is root-n
          if self.type=='n':
-            for j in range(0,int(N[i])):
+            for j in range(N[i]):
                self=self.right
-               print "go right", 1
-               n+=1
-               if self.type=='l': 
-                  if M==m:
-                     #additional decreas of memory by factor 2
-                     # float16 no more feasible due to iteration and strong rounding effects
-                     self.data=np.array(FC, dtype=np.float32) 
-                     print self.data, 1
-		     print 'type:',self.type
-                     test=0
-                     break
-            self=self.left
-            print "go left", 1
-         elif self.type=='r': 
-            for j in range(0,int(N[i])):
-               self=self.right
-               print "go right", 2
-               n+=1
-               if self.type == 'u': #important for last elements
-                  break #inner for-loop
-            if M!=m and self.type=='u':
-               self.data2=np.array(FC, dtype=np.float32)
-               print self.data2, 2
-	       print 'type:',self.type
-            else:
-               self.data=np.array(FC, dtype=np.float32)
-               print self.data, 3
-	       print 'type:',self.type
-            break
-         elif self.type=='l':
-            if M==m:
-               self.data=np.array(FC, dtype=np.float32)
-               print self.data, 4
-	       print 'type:',self.type
+               if self.type=='l' and N[i]+n==m:
+                  break
+            if n+N[i]==m:
+               self.data=np.array(FC, dtype=np.float32) 
                break
             else:
                self=self.left
-               print "go left", 2
-	       print 'type:',self.type
-         else: #self.type=='u' or 0-th tree
-            if N[i]>0:
-               self.data=np.array(FC, dtype=np.float32)
-               print self.data, 5
-	       print 'type:',self.type
+         elif self.type=='l':
+            if n+N[i]==m:
+               self.data=np.array(FC, dtype=np.float32) 
+               break
             else:
-               self.data2=np.array(FC, dtype=np.float32)
-               print self.data2, 6
-	       print 'type:',self.type
+               self=self.left
+               n+=N[i]
+         elif self.type=='r':
+            self.data=np.array(FC, dtype=np.float32) 
             break
-      print'extraction now:\n', self.extract()
+         else:# self.type=='u' or '_'
+            if N[i]+n==m:
+               self.data=np.array(FC, dtype=np.float32) 
+               break
+            else:
+               ############################################### never reached!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+               self.data2=np.array(FC, dtype=np.float32) 
+               break
+         n+=N[i]
 
    def extract(self): #extract all elements 
       """
@@ -162,14 +133,14 @@ class Tree:
                      side effects
          """
          if self.type=='n':
-            extra(self.right,result)
             extra(self.left,result)
-         elif self.type=='l':
+            extra(self.right,result)
+         elif self.type=='r':
             if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
                result.append(self.data)
-            extra(self.left,result)
-         elif self.type=='r':
             extra(self.right,result)
+         elif self.type=='l':
+            extra(self.left,result)
             if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
                result.append(self.data)
          elif self.type=='u':
@@ -178,8 +149,8 @@ class Tree:
             if self.data2[0]>DATATHRESHOLD or self.data2[0]<-DATATHRESHOLD:
                result.append(self.data2)
          else:
-            if self.data2[0]>DATATHRESHOLD or self.data2[0]<-DATATHRESHOLD:
-               result.append(self.data2)
+            if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
+               result.append(self.data)
       extra(self,result)
       if len(result)==0: #if no intensity is higher than DATATHRESHOLD
          return [[0, 0]]
@@ -200,41 +171,34 @@ class Tree:
             total+=n
          return total
 
-      if any(N)<0: 
-         return 0 #????? is there a reason for?
-      n=M=0
+      n=0
       #m=np.sum([N[i] for i in range(len(N))])
       m=summ(N)
-      for i in range(self.alpha+1): #self.alpha==alpha since this is root-n
-         M+=N[i]
+      for i in range(len(N)): #self.alpha==alpha since this is root-n
          if self.type=='n':
-            for j in range(0,int(N[i])):
+            for j in range(N[i]):
                self=self.right
-               n+=1
-               if self.type=='l': #exception for 'diagonal' elements
-                  if M==m:
-                     return self.data
-            self=self.left
-         elif self.type=='r': #allways has success
-            for j in range(0,int(N[i])):
-               self=self.right
-               n+=1
-               if self.type == 'u': #important for last elements
-                  break #inner for-loop
-            if M!=m and self.type=='u':
-               return self.data2
-            else:
-               return self.data
-         elif self.type=='l':
-            if M==m:
+               if self.type=='l' and N[i]+n==m:
+                  break
+            if n+N[i]==m:
                return self.data
             else:
                self=self.left
-         else: #self.type=='u':
-            if N[i]>0:
+         elif self.type=='l':
+            if n+N[i]==m:
+               return self.data
+            else:
+               self=self.left
+               n+=N[i]
+         elif self.type=='r':
+            return self.data
+         else:# self.type=='u' or '_'
+            if N[i]+n==m:
                return self.data
             else:
                return self.data2
+               ############################################### never reached!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+         n+=N[i]
 
    def size(self):
       """ function that returns the size of the tree (number of data-points). 

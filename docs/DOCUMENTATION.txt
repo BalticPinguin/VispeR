@@ -21,7 +21,7 @@ Further, the sources are specified as:
 'initial: ' 	specifies G09-log files for initial electronic states geometries (multiple files separated by ',')
 'final: '	specifies G09-log files for final electronic states geomitries
 'HR-file: '	specifies file containing HR-factors (1. column) and frequencies (second column)
-'line-spect: '	specifies file containing line-spectrum (intensity  frequency  [mode-number])
+'linespect: '	specifies file containing line-spectrum (intensity  frequency  [mode-number])
 'out:'		specify file the output should be saved in; default is 'calculation.log'.
 		If the file already exists, the logging-information will be appended.
 

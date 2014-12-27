@@ -185,11 +185,13 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          # if the 'first' excited state is in initial state: need first iteration formula
          I_nn=0
          leng=len(n)//2
+         print 'n:',n
          if m<=mp:
             # need first iteration-formula
             n_m=n[m]
             ntemp=deepcopy(n)
             ntemp[m]-=1 #n[m] is at least 1
+            #print "Ps", L2.getState(ntemp)
             Ps=L2.getState(ntemp)[0]
             if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn=b[m]*Ps                                     # first term 
@@ -230,11 +232,13 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                Ps=L1.getState(ntemp)[0]
                if not math.isnan(Ps) and abs(Ps)>1e-8:
                   I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps         # second term
-            for i in range(mp+1, len(n)):
+            for i in range(mp+1+leng, len(n)):
                if n[i]>0:
+                  print n[i], mp, i
                   ntemp=deepcopy(n)
                   ntemp[mp+leng]-=1
                   ntemp[i]-=1
+                  print ntemp,' b'
                   Ps=L1.getState(ntemp)[0]
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
                      I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+ # second term
@@ -251,6 +255,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                      I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps # second term
          I_nn/=np.sqrt(2*n_m)
          #threshold for insertion: saves memory, since int insead of float is used
+         #print 'state:', n, "I_nn", I_nn
          if np.abs(I_nn)>1e-8:
             try:
                L3.insert(n, [I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]) ])
@@ -386,7 +391,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
    freqs=[]
 
    L2=CalcI00(J, K, Gamma, Gammap, Energy)
-   #both trees can be expected to coincide for first state. 
+   #both trees can be considered to coincide for first state. 
    L1=L2 
    for i in range(1,N+1):
       L1, L2=iterate(L1, L2, Energy, i, f, J,K)

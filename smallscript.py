@@ -158,13 +158,13 @@ def main(argv=None):
          part=np.array([1])
       if float(part[0])==1:
          for i in range(len(initial)):
-            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 2, 2, T, "OPA")
+            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "OPA")
       elif float(part[0])==2:
          for i in range(len(initial)):
             linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "TPA")
       else:
          for i in range(len(initial)):
-            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 2, 2, T)
+            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T)
       if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
          if opts[2]!=[]:
             ## i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated
@@ -231,7 +231,6 @@ def main(argv=None):
                linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, 6)
             # the threshold (4) can be made to be a parameter as well
       elif model in ["Unrestricted", 'UNRESTRITED', 'unrestricted', 'unrest']:
-         print J
          for i in range(len(initial)): #calculate separate line-spects for different states
             k=[0,i]
             #make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters
@@ -242,7 +241,7 @@ def main(argv=None):
                linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, 10)
       else:
          logging[1].write('An error occured. The option of "model" is not known! Please check the spelling,'\
-               ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".')
+               ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".\n')
          for i in range(len(initial)):
             k=[0,i]
             linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)

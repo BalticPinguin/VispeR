@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # filename: broadening.py
 import numpy as np, re
+from line_profiler import LineProfiler
 # Below are the conversion factors and fundamental constant
 
 def handel_input(opt):
@@ -47,6 +48,7 @@ def handel_input(opt):
          shape="g"
    return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape
 
+#@profile
 def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    """ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.
 
@@ -87,7 +89,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
          return True
 
       for i in range(len(intens)):
-         if intens[i]>0.000: #######
+         if intens[i]>1e-9: #######
             newintens.append(intens[i]) #this is OPA-part
             newfreq.append(freq[i])
             if n<=1:
@@ -145,10 +147,13 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    newmode[0]=mode
    x=mode.max()
    if n>x:
-      n==x
+      n=x
       #save complexity, that it does not try to make more combinations than actually possible...
    #np.set_printoptions(precision=5, linewidth=138)
    TPAfreq, TPAintens=putN(-1, n, OPAintens, OPAfreq, newmode, OPAintens, OPAfreq, newmode)
+   print "TPA:"
+   for i in range(len(TPAfreq)):
+      print TPAfreq[i], TPAintens[i], "42"
    for i in range(len(TPAfreq)):
       TPAfreq[i]+=freq00
       TPAintens[i]*=intens00
@@ -234,9 +239,11 @@ def outspect(logging, T, opt, linspect, E=0):
    linspect[2]=linspect[2][index] #mode
    linspect[0]=linspect[0][index] #frequency
    #find transition with minimum intensity to be respected
+
+
    minint=0
    for i in range(len(linspect[1])):
-      if linspect[1][i]>=0.0001*linspect[1][-1]:
+      if linspect[1][i]>=1e-6*linspect[1][-1]:
          minint=i
          break
    if logging[0]<3:
@@ -304,7 +311,7 @@ def outspect(logging, T, opt, linspect, E=0):
          TPAfreq=TPAfreq[index]
          minint=0
          for i in range(len(TPAintens)):
-            if TPAintens[i]>=0.00005*TPAintens[-1]:
+            if TPAintens[i]>=1e-6*TPAintens[-1]:
                minint=i
                break
          if logging[0]<3:
@@ -331,14 +338,16 @@ def outspect(logging, T, opt, linspect, E=0):
       omega=np.linspace(minfreq,maxfreq,gridpt)
       if logging[0]<2:
          logging[1].write("omega is equally spaced\n")
-   spect=np.zeros(len(omega))
    sigma=gamma*2/2.355 #if gaussian used: same FWHM
 
-   TPAintens/=TPAintens[-1]*100 #normalise spectrum (due to highest peak) to make different approaches comparable
+   TPAintens/=TPAintens[-1]*0.01 #normalise spectrum (due to highest peak) to make different approaches comparable
 
    index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
    freq=TPAfreq[index]
    intens=TPAintens[index]
+   #for i in range(len(freq)):
+   #   print freq[i], intens[i], "42"
+
    if logging[0]<1:
       logging[1].write('intensity   frequency\n')
       for i in range(len(intens)):
@@ -353,6 +362,8 @@ def outspect(logging, T, opt, linspect, E=0):
    if spectfile==None:
       spectfile="/dev/null" #discart spectrum
    out = open(spectfile, "w")
+
+   spect=np.zeros(len(omega))
    logging[1].write("broadened spectrum:\n frequency      intensity\n")
    if shape=='g':
       for i in range(len(omega)): 
@@ -368,7 +379,7 @@ def outspect(logging, T, opt, linspect, E=0):
                   np.exp(-(omega[i]-freq[j])*(omega[i]-freq[j])/(2*sigma*sigma))
                   for j in range(mini, maxi))
          #out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
-         logging[1].write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+         logging[1].write(u" %s  %s\n" %omega[i] %spect[i])
    else:  #shape=='l':
       for i in range(len(omega)): 
          for j in range(maxi,len(freq)):
@@ -379,11 +390,12 @@ def outspect(logging, T, opt, linspect, E=0):
             if freq[j]>=omega[i]-5*gamma:
                mini=j-1
                break
-         spect[i]=sum(intens[j]/np.pi*gamma/((omega[i]-freq[j])*(omega[i]-freq[j])+gamma*gamma)
-                  for j in range(mini, maxi))
-         out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+         spect[i]=sum(intens[k]/np.pi*gamma/((omega[i]-freq[k])*(omega[i]-freq[k])+gamma*gamma)
+                  for k in range(mini, maxi))
+         #out.write(u" %s  %s\n" %omega[i] %spect[i])
          logging[1].write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+         #logging[1].write(u" %s  %s\n" %omega[i], %spect[i])
    out.close()
 
-version=1.2
+version=1.3
 # End of broadening.py

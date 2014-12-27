@@ -1,12 +1,10 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
 import numpy as np, re, mmap, os.path, math, sys
-
-from scipy.linalg.lapack import dsyev as LA.dsyev #is this faster?
+from scipy.linalg.lapack import dsyev as dsyev #is this faster?
 #import scipy.linalg.lapack as LA
 #for python-3 compatibility
 from io import open 
-
    #debug, info, warning, error, critical
 # Below are the conversion factors and fundamental constant
 AMU2au=1822.88839                                          
@@ -294,14 +292,14 @@ def GetL(logging, dim, mass, F, D):
       #### the condition number of F[i] is some millions...
       #ftemp,Ltemp=np.linalg.eig(F[i])
       #ftemp,Ltemp=np.linalg.eigh(F[i])
-      ftemp,Ltemp,info=LA.dsyev(F[i]) #this seems to be the best function
+      ftemp,Ltemp,info=dsyev(F[i]) #this seems to be the best function
 
       #assert np.any(ftemp< 0) or np.any(np.imag(ftemp)!=0),\
 #       'Frequencies smaller than 0 occured. Please check the input-file!! {0}'.format(ftemp)
       if np.any(ftemp<0):
          if logging[0]<4:
             logging[1].write('Frequencies smaller than 0 occured. The absolute'
-                        ' values are used in the following.\n{0}'.format(ftemp))
+                        ' values are used in the following.\n{0}\n'.format(ftemp))
          ftemp=np.abs(ftemp)
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
@@ -527,7 +525,7 @@ def ReadLog(logging, fileN):
    temp=[]
    temp=re.findall(r' Number     Number       Type             X           Y           Z[\n -.\d]+', log)
    tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
-   assert len(tmp)==dim, 'Not all atoms were found! Something went wrong...'
+   assert len(tmp)==dim, 'Not all atoms were found! Something went wrong...{0}, {1}'.format(len(tmp),dim)
    Coord=np.zeros((3, dim/3))
    MassCenter=np.zeros(3)
    for j in range(len(tmp)):

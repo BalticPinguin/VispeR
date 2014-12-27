@@ -42,6 +42,10 @@ class OPA:
                intens.append(self.mat[index][exc])
                ind.append(index)
                excs.append(exc)
+            elif self.mat[index][exc]<-Threshold:
+               intens.append(self.mat[index][exc])
+               ind.append(index)
+               excs.append(exc)
 
                #print "diff", self.mat[index][exc],self.mat[index][-exc] #this should, in principle, coincide --> does!
       return intens, ind, excs #I need squares as intensities
@@ -132,6 +136,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
       alpha=len(b)
       L3=OPA(alpha,i)                   # initialize root-node
       States=states(alpha, i)           # States are all possible
+      #print "spectrum of state ", i
       for n in States:                  #for each possible state, described by n(vector)
          # index of excited elements
          m=np.argmax(n[:len(n)//2])     #if there is no excitation: it returns 0
@@ -172,16 +177,18 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
                   I_nn+=np.sqrt(2*(n_m-1))*C[m][m]*Ps           # second term; all other terms vanish in OPA...
          I_nn/=np.sqrt(2*n_m)
          L3.insert(n, I_nn)
+         #print n, I_nn
       return L2, L3
 
    def makeLine(logging, intens, E0, T, index, ex, Gamma, Gammap,E, n):
       F=np.zeros(( len(index),3 ))
-      for i in range(len(index)): 
-         F[i][2]= index[i]
-         F[i][0]=(Gammap[index[i]][index[i]]*(ex[i]+0.5)-
-                   Gamma[index[i]][index[i]]*(n-ex[i]+0.5)+E)*Hartree2cm_1
-         F[i][1]=intens[i]*intens[i]*np.exp((-Gamma[index[i]][index[i]]*ex[i]+E0)/T)
-         logging[1].write(u"{1}   {0}    {2}\n".format(F[i][1], F[i][0], index[i]))
+      for i in range(len(index)):
+         indi=index[i]
+         F[i][2]= indi
+         F[i][0]=(Gammap[indi][indi]*(ex[i]+0.5)-
+                   Gamma[indi][indi]*(n-ex[i]+0.5)+E)*Hartree2cm_1
+         F[i][1]=intens[i]*intens[i]*np.exp((-Gamma[indi][indi]*ex[i]+E0)/T)
+         logging[1].write(u"{1}   {0}    {2}\n".format(F[i][1], F[i][0], indi))
       return np.matrix(F)
    
    Gamma=np.diag(f[0])
@@ -192,10 +199,13 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
    L2=CalcI00(len(K), Energy)
    #this is already extracted to linspect (using side-effects)
    L1=L2 
-   for i in range(1,N+1):
+   for i in range(1, N+1):
       L1, L2=iterate(L1, L2, Energy, i, f, J, K)
       intens, index, excitation=L2.extract()
+      #print "linspect:\n", intens, index, excitation
       linspect.append(makeLine(logging,intens,E0, T, index, excitation, Gamma, Gammap, Energy, i))
+      #print
+      #print makeLine(logging,intens,E0, T, index, excitation, Gamma, Gammap, Energy, i)
    dimen=0
    for i in range(len(linspect)):
       dimen+=len(linspect[i])
@@ -278,6 +288,8 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
    f[1]=resort.dot(f[1].T)
    spect2=[]
    spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
+   #print 'J:\n', J
+   #print 'Spect2\n', spect2
 
    resort=np.eye(len(resort))
    if threshold>len(resort):
