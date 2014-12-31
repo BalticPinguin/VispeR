@@ -47,7 +47,6 @@ class OPA:
                ind.append(index)
                excs.append(exc)
 
-               #print "diff", self.mat[index][exc],self.mat[index][-exc] #this should, in principle, coincide --> does!
       return intens, ind, excs #I need squares as intensities
 
 def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
@@ -136,7 +135,6 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
       alpha=len(b)
       L3=OPA(alpha,i)                   # initialize root-node
       States=states(alpha, i)           # States are all possible
-      #print "spectrum of state ", i
       for n in States:                  #for each possible state, described by n(vector)
          # index of excited elements
          m=np.argmax(n[:len(n)//2])     #if there is no excitation: it returns 0
@@ -177,7 +175,6 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
                   I_nn+=np.sqrt(2*(n_m-1))*C[m][m]*Ps           # second term; all other terms vanish in OPA...
          I_nn/=np.sqrt(2*n_m)
          L3.insert(n, I_nn)
-         #print n, I_nn
       return L2, L3
 
    def makeLine(logging, intens, E0, T, index, ex, Gamma, Gammap,E, n):
@@ -202,10 +199,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
    for i in range(1, N+1):
       L1, L2=iterate(L1, L2, Energy, i, f, J, K)
       intens, index, excitation=L2.extract()
-      #print "linspect:\n", intens, index, excitation
       linspect.append(makeLine(logging,intens,E0, T, index, excitation, Gamma, Gammap, Energy, i))
-      #print
-      #print makeLine(logging,intens,E0, T, index, excitation, Gamma, Gammap, Energy, i)
    dimen=0
    for i in range(len(linspect)):
       dimen+=len(linspect[i])
@@ -288,8 +282,6 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
    f[1]=resort.dot(f[1].T)
    spect2=[]
    spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
-   #print 'J:\n', J
-   #print 'Spect2\n', spect2
 
    resort=np.eye(len(resort))
    if threshold>len(resort):

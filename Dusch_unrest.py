@@ -43,28 +43,30 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
 
    ## change the following: not size of K but off-diagonal-elements of J!!! 
    ## if J[i][j] is large, add indices i and j to ind if they are not contained already...
-   Jtemp=np.zeros((len(J)-1)*len(J))
-   Jtemp[:len(J)-1]=J[0][1:]
-   for i in range(1,len(J)):
-      for j in range(i):
-         Jtemp[i*len(J)+j-i]=J[i][j]
-      for j in range(i+1,len(J)):
-         Jtemp[i*len(J)+j-1-i]=J[i][j]
-   ##now: find biggest elements in Jtemp: get indices of it -> ready.
-   index=np.argsort(np.abs(Jtemp), kind="heapsort")
-
-   # index K by the size of its elements and truncate K and J due to this.
-   index=np.argsort(np.abs(K), kind="heapsort")
-   if m<len(index):
-      ind=index[:m]
+   if m<len(J):
+      Jtemp=np.reshape(J, len(J)*len(J))
+      index=np.argsort(-np.abs(Jtemp), kind="heapsort")
+      index=index[len(J):] #truncate the diagonal elements
+      ind=[]
+      n=len(J)
+      for i in range(len(index)):
+         indexi=np.mod(index[i],n)
+         if indexi not in ind:
+            ind.append(indexi)
+            if len(ind)>=m+1: 
+               break
+      k=K[ind]
+      j=J[ind].T[ind]
+      f=np.zeros(( 2,len(ind) ))
+      f[1]=F[1][ind]
+      f[0]=F[0][ind]
    else:
-      ind=index
-   k=K[ind]
-   j=J[ind].T[ind]
-   f=np.zeros(( 2,len(ind) ))
-   f[1]=F[1][ind]
-   f[0]=F[0][ind]
-   
+      k=K
+      j=J
+      f=np.zeros(( 2,len(F[0]) ))
+      f[1]=F[1]
+      f[0]=F[0]
+
    # finally, calculate the Duschinsky-rotated line spectrum in this picture
    linspect=FCf(logging, j, k, f, Energy, N, T, E0)
    return linspect #3-dimensional array
@@ -103,12 +105,13 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       Tree.fill(0)
       Zero=np.zeros(2*len(K))
       #Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
-      Tree.insert(Zero, [10, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
+      Tree.insert(Zero, [10, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1, 0] ) #sum(sum()) due to matrix
       #I_00 transition-probability [[Btree.py#extract]]
       linespect=np.array(Tree.extract())
       ### this is done using implicit side effects
       lines.append(linespect[0][0])
       freqs.append(linespect[0][1])
+      initF.append(linespect[0][2]) #needed for boltzmann-weighing
       return Tree
    
    def iterate(L1, L2, Energy, i, f, J, K):
@@ -185,13 +188,11 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          # if the 'first' excited state is in initial state: need first iteration formula
          I_nn=0
          leng=len(n)//2
-         print 'n:',n
          if m<=mp:
             # need first iteration-formula
             n_m=n[m]
             ntemp=deepcopy(n)
             ntemp[m]-=1 #n[m] is at least 1
-            #print "Ps", L2.getState(ntemp)
             Ps=L2.getState(ntemp)[0]
             if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn=b[m]*Ps                                     # first term 
@@ -234,11 +235,9 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                   I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps         # second term
             for i in range(mp+1+leng, len(n)):
                if n[i]>0:
-                  print n[i], mp, i
                   ntemp=deepcopy(n)
                   ntemp[mp+leng]-=1
                   ntemp[i]-=1
-                  print ntemp,' b'
                   Ps=L1.getState(ntemp)[0]
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
                      I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+ # second term
@@ -255,16 +254,12 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                      I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps # second term
          I_nn/=np.sqrt(2*n_m)
          #threshold for insertion: saves memory, since int insead of float is used
-         #print 'state:', n, "I_nn", I_nn
          if np.abs(I_nn)>1e-8:
             try:
-               L3.insert(n, [I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]) ])
+               L3.insert(n, [I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]), freq(0, 0, f[1]*n[leng:]) ])
             except MemoryError: 
                logging[1].write('memory-error by inserting data. Finishing calculation.')
                logging[1].writelines("%s\n" % item  for item in L2.extract())
-               #linspect=open('/tmp/linspect', "a")
-               #linspect.writelines("%s\n" % item  for item in L2.extract())
-               #linspect.close()
                return 0,0
       return L2, L3
 
@@ -384,11 +379,23 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          i+=1
       return States2
 
+   def Boltzmann(intens, freq, T):
+      """ introduce Boltzmann-distribution in final state and weight all intensities respectively
+      ***PARAMETERS***
+      intens:   intensity of the transitions (array)
+      freq:     vibrational frequency of respective transitions (array of same length as intens)
+      T:        Temperature of the system considered
+      ***RETURN***
+      intens (using side-effects)
+      """
+      for i in range(len(intens)):
+         intens[i]*=np.exp(-freq[i]/T)
 
    Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
    Gammap=np.diag(f[1]) # for final state
    lines=[]
    freqs=[]
+   initF=[]
 
    L2=CalcI00(J, K, Gamma, Gammap, Energy)
    #both trees can be considered to coincide for first state. 
@@ -402,6 +409,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       for j in range(len(spect)):
          lines.append(spect[j][0])
          freqs.append(spect[j][1])
+         initF.append(spect[j][2]) #needed for boltzmann-weighing
    result=np.zeros((3, len(lines) ))
    result[0]=freqs
    for i in range(len(result[0])):
@@ -409,7 +417,8 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       result[2][i]=42
       # intensities are proportional to square of the transition rates
       result[1][i]=lines[i]*lines[i] 
+   Boltzmann(result[1], initF, T)
    return result
 
-version=0.2
+version=0.3
 # End of Dusch_unrest.py

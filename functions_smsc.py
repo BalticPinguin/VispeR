@@ -309,39 +309,6 @@ def GetL(logging, dim, mass, F, D):
          L[i][j]=L[i][j]/np.linalg.norm(L[i][j])
       Ltest[i]=L[i]
 
-      ############################### begin test-area
-#      print "orthogonality:"
-#      for j in range(len(Ltest[i])):
-#        for k in range(len(Ltest[i])):
-#           if k==j:
-#              scale=Ltest[i][k].T.dot(Ltest[i][j])
-#              if scale >1.01 or scale< 0.99: 
-#                 print scale, i, j, k, "norm"
-#              continue
-#           scale=Ltest[i][k].T.dot(Ltest[i][j])
-#           if scale >1e-8 and scale< -1e-8:
-#              print scale, i, j, k, "scale"
-#      Ltest[i]=gs(L[i])
-#      for j in range(len(L[i])):
-#        Ltest[i][j]=Ltest[i][j]/np.linalg.norm(Ltest[i][j])
-#      print "changes of 2-norm"
-#      for j in range(len(Ltest[i])):
-#        change=Ltest[i][j]-L[i][j]
-#        if np.linalg.norm(change)>1.0:
-#           print np.linalg.norm(change, ord=None), np.linalg.norm(change, ord=np.inf), j
-#           print change
-#           print
-#
-#      print "changes of eigenvalues:"
-#      unity=np.eye(len(F[i]))
-#      for j in range(len(f[i])):
-#        fi=np.linalg.norm(F[i].dot(Ltest[i][:].T[j]))-f[i][j]*Ltest[i][:].T[j]
-#        if np.linalg.norm(fi, ord=np.inf)>0.0001:
-#           print f[i][j], np.linalg.norm(fi), np.linalg.norm(fi, ord=np.inf), j
-#
-      ###test, if it is sensible to recalculate eigenvalues!
-      
-      ############################### end test-area
       if logging[0]<1:
          logging[1].write("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
       M=np.zeros((dim,dim))
@@ -545,7 +512,6 @@ def ReadLog(logging, fileN):
 
    # Getting tensor of inertia, transforming to principlas axes
    moi=np.zeros((3,3))# this is Moment Of Inertia
-   # print Coord[1]
    for j in range(3):
       for k in range(3):
          if k is j:

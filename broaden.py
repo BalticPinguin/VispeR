@@ -32,7 +32,7 @@ def handel_input(opt):
          grid=[]
          with open(gridfile) as f:
             lis=[line.split() for line in f]  # create a list of lists
-            for i,x in enumerate(lis):        #print the list items 
+            for i,x in enumerate(lis):        # get the list items 
                grid.append(float(x[0]))
          omega=np.zeros(len(grid))
          for i in range(len(grid)):
@@ -73,7 +73,6 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       """
       newintens=[]
       newfreq=[]
-      #print 'arrived here:', mode, oldmode, n ,'-------------------'
 
       def allnonzero(foo):
          """ a more efficient version of np.all(foo!=0), made for arrays and integers...
@@ -111,7 +110,6 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
                   continue
                try :
                   tmpmode=np.array(tmpmode[0])
-                  #print tmpmode
                   xmode=[]
                   for j in range(len(tmpmode[0])):
                      xmode.append(tmpmode[0][j])
@@ -151,9 +149,6 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       #save complexity, that it does not try to make more combinations than actually possible...
    #np.set_printoptions(precision=5, linewidth=138)
    TPAfreq, TPAintens=putN(-1, n, OPAintens, OPAfreq, newmode, OPAintens, OPAfreq, newmode)
-   print "TPA:"
-   for i in range(len(TPAfreq)):
-      print TPAfreq[i], TPAintens[i], "42"
    for i in range(len(TPAfreq)):
       TPAfreq[i]+=freq00
       TPAintens[i]*=intens00
@@ -169,7 +164,6 @@ def OPA2TPA(OPAfreq,freq00, OPAintens,intens00, mode):
    for i in range(length):
       TPAintens[ind]=OPAintens[i] #this is OPA-part
       TPAfreq[ind]=OPAfreq[i]
-      #print i, TPAfreq[ind]-freq00, TPAintens[ind]/intens00
       ind+=1
       for j in range(i+1,length):
          ##not only same mode but all modes with lower number should not be taken into account here!?
@@ -178,12 +172,9 @@ def OPA2TPA(OPAfreq,freq00, OPAintens,intens00, mode):
          TPAintens[ind]=OPAintens[i]*OPAintens[j]/intens00
          TPAfreq[ind]=OPAfreq[i]+OPAfreq[j]-freq00
          ind+=1
-         #print mode[i], mode[j]
    index=np.argsort(TPAfreq,kind='heapsort')
    TPAfreq=TPAfreq[index]
    TPAintens=TPAintens[index]
-   #for i in range(len(TPAfreq)):
-      #print TPAfreq[i], TPAintens[i]
    return TPAfreq, TPAintens
 
 def OPA23PA(OPAfreq,freq00, OPAintens,intens00, mode):
@@ -345,8 +336,6 @@ def outspect(logging, T, opt, linspect, E=0):
    index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
    freq=TPAfreq[index]
    intens=TPAintens[index]
-   #for i in range(len(freq)):
-   #   print freq[i], intens[i], "42"
 
    if logging[0]<1:
       logging[1].write('intensity   frequency\n')
