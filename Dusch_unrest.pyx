@@ -420,5 +420,5 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
    Boltzmann(result[1], initF, T)
    return result
 
-version=0.3
+version=0.4
 # End of Dusch_unrest.py

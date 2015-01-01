@@ -48,7 +48,6 @@ def handel_input(opt):
          shape="g"
    return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape
 
-#@profile
 def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    """ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.
 
@@ -68,15 +67,18 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       TPAfreq:  frequencies of the nPA-vibrational spectrum
       TPAintens:intensities of the nPA-vibrational spectrum     
    """
-   def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
+   def putN(int j, int n, int[:] intens, int[:] freq, int[:,:] mode,int[:] OPAintens,int[:] OPAfreq,int[:] oldmode):
       """ This function does the most calculation that is the iteration to the next number of particles
       """
+      cdef int i
+      cdef int k
       newintens=[]
       newfreq=[]
-
+      
       def allnonzero(foo):
          """ a more efficient version of np.all(foo!=0), made for arrays and integers...
          """
+         cdef int s
          try:
             foo=np.array(foo)
             for s in range(len(foo[0])):
@@ -86,7 +88,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
             if foo==0:
                return False
          return True
-
+     
       for i in range(len(intens)):
          if intens[i]>1e-9: #######
             newintens.append(intens[i]) #this is OPA-part
@@ -99,21 +101,18 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
             newmode=[]
             nwemode=[]
             for k in range(i+1, len(oldmode[0])): # go through whole range of states ...
-               #tmpmode=[p for p in mode[:].T[i] if (p not in oldmode[:].T[k]) and np.all(p!=0) ]
-               tmpmode=[p for p in mode[:].T[i] if (p not in oldmode[:].T[k]) and allnonzero(p) ]
-               #> how to change this line???
-               if tmpmode==[]:
-                  continue
                tempmode=oldmode[:].T[k]
                if tempmode==[0]:
                   # that means, if mode[:].T[k] contains 0-0 transition
+                  continue
+               tmpmode=[p for p in mode[:].T[i] if (p not in tempmode) and allnonzero(p)]
+               if tmpmode==[]:
                   continue
                try :
                   tmpmode=np.array(tmpmode[0])
                   xmode=[]
                   for j in range(len(tmpmode[0])):
                      xmode.append(tmpmode[0][j])
-                  #### how to change rows and columns in a list?
                   newmode.append(xmode) #or xmode.T??
                except IndexError:
                   newmode.append(float(tmpmode))
@@ -386,5 +385,5 @@ def outspect(logging, T, opt, linspect, E=0):
          #logging[1].write(u" %s  %s\n" %omega[i], %spect[i])
    out.close()
 
-version=1.3
+version=1.5
 # End of broadening.py

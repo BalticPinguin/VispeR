@@ -49,7 +49,8 @@ class OPA:
 
       return intens, ind, excs #I need squares as intensities
 
-def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
+#cdef double[:,:] simpleFCfOPA(logging, double[:,:] J, double[:] K,double[:] f,double Energy, int N, float T, float E0):
+def simpleFCfOPA(logging, double[:,:] J, double[:] K,double[:] f,double Energy, int N, float T, float E0):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
    
    *PARAMETERS:*
@@ -67,9 +68,9 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
    linespectrum 
    """
 
-   def CalcI00(dim, E):
+   def CalcI00(int dim, float E):
       """This function calculates the overlap-integral for zero vibrations """
-
+      cdef int i
       opa=OPA(dim,1) #is this clear to be the respective class?
       zeros=np.zeros(2*dim)
       for i in range(len(zeros)): #insert this transition into all values... important for recursion...
@@ -177,7 +178,8 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
          L3.insert(n, I_nn)
       return L2, L3
 
-   def makeLine(logging, intens, E0, T, index, ex, Gamma, Gammap,E, n):
+   def makeLine(logging, double[:] intens, double E0,float T, int[:] index, int[:] ex, double[:,:] Gamma, double[:,:] Gammap,float E,int  n):
+      cdef int indi
       F=np.zeros(( len(index),3 ))
       for i in range(len(index)):
          indi=index[i]
@@ -188,6 +190,9 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
          logging[1].write(u"{1}   {0}    {2}\n".format(F[i][1], F[i][0], indi))
       return np.matrix(F)
    
+   cdef int dimen=0
+   cdef int i
+
    Gamma=np.diag(f[0])
    Gammap=np.diag(f[1]) # for final state
 
@@ -200,7 +205,6 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T,E0):
       L1, L2=iterate(L1, L2, Energy, i, f, J, K)
       intens, index, excitation=L2.extract()
       linspect.append(makeLine(logging,intens,E0, T, index, excitation, Gamma, Gammap, Energy, i))
-   dimen=0
    for i in range(len(linspect)):
       dimen+=len(linspect[i])
    spect=np.zeros((dimen,3))
