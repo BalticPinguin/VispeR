@@ -28,7 +28,7 @@ class Tree:
       # For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational modes
       self.alpha=alph
 
-   def fill(self, n):
+   def fill(self, int n):
       """ fills the Tree with the specific structure required for the level-fixed binary tree"""
       assert self.alpha!=0, 'There must be at least 1 vibrational mode!!'
       assert n>=0, 'The dimensionality of a tree can not be smaller 0'
@@ -74,13 +74,14 @@ class Tree:
       to asserts but will fill the element into wrong ns'
       """
       def summ(array):
-         total=0
-         for i,n in enumerate(N):
+         cdef double total=0
+         cdef int i, n
+         for i,n in enumerate(array):
             total+=n
-         return total
+         return int(total)
 
-      n=0
-      #m=np.sum([N[i] for i in range(len(N))])
+      cdef int n=0
+      cdef int i
       m=summ(N)
       for i in range(len(N)): #self.alpha==alpha since this is root-n
          if self.type=='n':
@@ -99,7 +100,7 @@ class Tree:
                break
             else:
                self=self.left
-               n+=N[i]
+               n+=int(N[i])
          elif self.type=='r':
             self.data=np.array(FC, dtype=np.float32) 
             break
@@ -111,7 +112,7 @@ class Tree:
                ############################################### never reached!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                self.data2=np.array(FC, dtype=np.float32) 
                break
-         n+=N[i]
+         n+=int(N[i])
 
    def extract(self): #extract all elements 
       """
@@ -151,12 +152,13 @@ class Tree:
          else:
             if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
                result.append(self.data)
+
       extra(self,result)
       if len(result)==0: #if no intensity is higher than DATATHRESHOLD
          return [[0, 0]]
       return result
 
-   def getState(self, N): 
+   def getState(self, N):
       """This function returns a particular state denoted by the array N (comprising thi initial and final state).
 
       **Input-Arguments:**
@@ -166,14 +168,16 @@ class Tree:
       the Franck-Condon factor for this state
       """
       def summ(array):
-         total=0
-         for i,n in enumerate(N):
+         cdef double total=0
+         cdef int i,n
+         for i,n in enumerate(array):
             total+=n
          return total
 
-      n=0
+      cdef double n=0
+      cdef int i
       #m=np.sum([N[i] for i in range(len(N))])
-      m=summ(N)
+      cdef double m=summ(N)
       for i in range(len(N)): #self.alpha==alpha since this is root-n
          if self.type=='n':
             for j in range(N[i]):
@@ -189,15 +193,15 @@ class Tree:
                return self.data
             else:
                self=self.left
-               n+=N[i]
+               n+=int(N[i])
          elif self.type=='r':
             return self.data
          else:# self.type=='u' or '_'
             if N[i]+n==m:
                return self.data
             else:
-               return self.data2
-               ############################################### never reached!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+               return 'error!!' #I think, this is never reached.
+               #Than this can be remevod as well as the attribute data2
          n+=N[i]
 
    def size(self):

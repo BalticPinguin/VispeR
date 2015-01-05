@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # filename: broadening.py
 import numpy as np, re
-from line_profiler import LineProfiler
+#cython: profile=True
+#cython: linetrace=True
+
 # Below are the conversion factors and fundamental constant
 
 def handel_input(opt):
@@ -51,23 +53,25 @@ def handel_input(opt):
 def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    """ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.
 
-      **PARAMETERS**
-      OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
-                array of lenght n
-      freq00:   frequency of purely electronic transition
-      OPAintens:intensities of the respective transitions in same order as OPAfreq
-      intens00: intensity of the purely electronic transition
-                array of lenght n
-      mode:     number of vibrational states changing
-                array of lenght n
+   **PARAMETERS**
+   OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
+             array of lenght n
+   freq00:   frequency of purely electronic transition
+   OPAintens:intensities of the respective transitions in same order as OPAfreq
+   intens00: intensity of the purely electronic transition
+             array of lenght n
+   mode:     number of vibrational states changing
+             array of lenght n
 
-      **RETURNS**
-      TPAfreq:  
+   **RETURNS**
+   TPAfreq:  
 
-      TPAfreq:  frequencies of the nPA-vibrational spectrum
-      TPAintens:intensities of the nPA-vibrational spectrum     
+   TPAfreq:  frequencies of the nPA-vibrational spectrum
+   TPAintens:intensities of the nPA-vibrational spectrum     
    """
-   def putN(int j, int n, int[:] intens, int[:] freq, int[:,:] mode,int[:] OPAintens,int[:] OPAfreq,int[:] oldmode):
+   #def putN(int j, int n, double[:] intens, double[:] freq, double[:,:] mode, double[:] OPAintens, double[:] OPAfreq, double[:,:] oldmode):
+   #def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
+   def putN(int j, int n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
       """ This function does the most calculation that is the iteration to the next number of particles
       """
       cdef int i
@@ -80,19 +84,20 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
          """
          cdef int s
          try:
-            foo=np.array(foo)
             for s in range(len(foo[0])):
                if foo[0][s]==0:
                   return False
-         except IndexError:
+         except TypeError:
             if foo==0:
                return False
          return True
      
       for i in range(len(intens)):
-         if intens[i]>1e-9: #######
-            newintens.append(intens[i]) #this is OPA-part
-            newfreq.append(freq[i])
+         intensi=intens[i]
+         if intensi>1e-9: #######
+            newintens.append(intensi) #this is OPA-part
+            freqi=freq[i]
+            newfreq.append(freqi)
             if n<=1:
                continue 
                #this saves creating new objects and running through loops without having results
@@ -105,20 +110,21 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
                if tempmode==[0]:
                   # that means, if mode[:].T[k] contains 0-0 transition
                   continue
-               tmpmode=[p for p in mode[:].T[i] if (p not in tempmode) and allnonzero(p)]
+               tmpmode=np.array(mode[:].T[i])
                if tmpmode==[]:
                   continue
+               if not allnonzero(tmpmode):
+                  continue
+               if tempmode in tmpmode:
+                  continue
                try :
-                  tmpmode=np.array(tmpmode[0])
-                  xmode=[]
-                  for j in range(len(tmpmode[0])):
-                     xmode.append(tmpmode[0][j])
-                  newmode.append(xmode) #or xmode.T??
+                  tmpmode=tmpmode[0][0]
+                  newmode.append(tmpmode[0]) #or xmode.T??
                except IndexError:
                   newmode.append(float(tmpmode))
                nwemode.append(tempmode[0])
-               tmpintens.append(OPAintens[k]*intens[i])
-               tmpfreq.append(OPAfreq[k]+freq[i])
+               tmpintens.append(OPAintens[k]*intensi)
+               tmpfreq.append(OPAfreq[k]+freqi)
             if len(tmpintens)>0:
                xmode=[]
                xmode.append(newmode)

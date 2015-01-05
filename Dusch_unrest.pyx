@@ -105,7 +105,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       Tree.fill(0)
       Zero=np.zeros(2*len(K))
       #Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
-      Tree.insert(Zero, [10, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1, 0] ) #sum(sum()) due to matrix
+      Tree.insert(Zero, np.array([10, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1, 0]) ) #sum(sum()) due to matrix
       #I_00 transition-probability [[Btree.py#extract]]
       linespect=np.array(Tree.extract())
       ### this is done using implicit side effects
@@ -192,66 +192,64 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
             # need first iteration-formula
             n_m=n[m]
             ntemp=deepcopy(n)
-            ntemp[m]-=1 #n[m] is at least 1
-            Ps=L2.getState(ntemp)[0]
+            n[m]-=1 #n[m] is at least 1
+            Ps=L2.getState(n)[0]
             if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn=b[m]*Ps                                     # first term 
-            if ntemp[m]>0:
-               ntemp[m]-=1
-               Ps=L1.getState(ntemp)[0]
+            if n[m]>0:
+               n[m]-=1
+               Ps=L1.getState(n)[0]
                if not math.isnan(Ps) and abs(Ps)>1e-8:
                   I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps           # second term
+               n[m]+=1
             for i in range(m+1, leng):
                if n[i]>0:
-                  ntemp=deepcopy(n)
-                  ntemp[m]-=1
-                  ntemp[i]-=1
-                  Ps=L1.getState(ntemp)[0]
+                  n[i]-=1
+                  Ps=L1.getState(n)[0]
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
-                     I_nn+=np.sqrt(float(n[i])*0.5)*(A[m][i]+A[i][m])*Ps        # second term
+                     I_nn+=np.sqrt(float(n[i]+1)*0.5)*(A[m][i]+A[i][m])*Ps        # second term
+                  n[i]+=1
 
             for i in range(mp+leng, len(n)):                    # sum over respective final states
                if mp>len(n)//2:                                 # that means: there are no excited vibrations
                   break
                if n[i]>0:
-                  ntemp=deepcopy(n)
-                  ntemp[m]-=1
-                  ntemp[i]-=1
-                  Ps=L1.getState(ntemp)[0]
+                  n[i]-=1
+                  Ps=L1.getState(n)[0]
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
-                     I_nn+=np.sqrt(float(n[i])*0.5)*(E[i-leng][m])*Ps           # second term
+                     I_nn+=np.sqrt(float(n[i]+1)*0.5)*(E[i-leng][m])*Ps           # second term
+                  n[i]+=1
+            n[m]+=1
          #else: need the other iteration-formula
          else: 
             n_m=n[mp+leng]
-            ntemp=deepcopy(n)
-            ntemp[mp+leng]-=1
-            Ps=L2.getState(ntemp)[0]
+            n[mp+leng]-=1
+            Ps=L2.getState(n)[0]
             if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn=d[mp]*Ps                                    # first term 
-            if ntemp[mp+leng]>0:
-               ntemp[mp+leng]-=1
-               Ps=L1.getState(ntemp)[0]
+            if n[mp+leng]>0:
+               n[mp+leng]-=1
+               Ps=L1.getState(n)[0]
                if not math.isnan(Ps) and abs(Ps)>1e-8:
                   I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps         # second term
             for i in range(mp+1+leng, len(n)):
                if n[i]>0:
-                  ntemp=deepcopy(n)
-                  ntemp[mp+leng]-=1
-                  ntemp[i]-=1
-                  Ps=L1.getState(ntemp)[0]
+                  n[i]-=1
+                  Ps=L1.getState(n)[0]
+                  n[i]+=1
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
-                     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-len(n)//2]+ # second term
+                     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-leng]+ # second term
                               C[i-leng][mp])*Ps 
             for i in range(m, leng):                            #sum over respective final states
                if m>len(n)//2:                                  # that means: there are no excited vibrations
                   break                                         #actually not needed, right?
                if n[i]>0:
-                  ntemp=deepcopy(n)
-                  ntemp[mp+leng]-=1
-                  ntemp[i]-=1
-                  Ps=L1.getState(ntemp)[0]
+                  n[i]-=1
+                  Ps=L1.getState(n)[0]
+                  n[i]+=1
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
                      I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps # second term
+            n[mp+leng]+=1
          I_nn/=np.sqrt(2*n_m)
          #threshold for insertion: saves memory, since int insead of float is used
          if np.abs(I_nn)>1e-8:
@@ -379,7 +377,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          i+=1
       return States2
 
-   def Boltzmann(intens, freq, T):
+   def Boltzmann( double[:] intens, double[:] freq, double T):
       """ introduce Boltzmann-distribution in final state and weight all intensities respectively
       ***PARAMETERS***
       intens:   intensity of the transitions (array)
@@ -388,6 +386,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       ***RETURN***
       intens (using side-effects)
       """
+      cdef int i
       for i in range(len(intens)):
          intens[i]*=np.exp(-freq[i]/T)
 
