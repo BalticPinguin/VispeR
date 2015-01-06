@@ -9,13 +9,14 @@ class OPA:
    """ This class containes the functions and objects for the calculation of vibronic spectra 
        in Duschinski-rotated systems.
    """
-   def __init__(self,alpha,L): #should it be __new__?
+   def __init__(self,int alpha,int L): #should it be __new__?
       """ initializes the class"""
       assert alpha>0, "There must be at least one degree of freedom!"
       self.mat=np.zeros((alpha,L+1)) #change elements to some float32 or so...
    
-   def insert(self, N, FC):
-      exc=N[len(N)//2:].max()
+   def insert(self,double[:] N, double[:] FC):
+      cdef int exc=int(N[len(N)//2:].max())
+      cdef int index
       if exc>0:
          index=N[len(N)//2:].argmax()
          self.mat[index][exc]=FC
@@ -23,8 +24,9 @@ class OPA:
          index=N[:len(N)//2].argmax()
          self.mat[index][0]=FC
 
-   def getState(self, N): 
-      exc=N[len(N)//2:].max()
+   def getState(self, double[:] N): 
+      cdef int exc=int(N[len(N)//2:].max())
+      cdef int index
       if exc>0:
          index=N[len(N)//2:].argmax()
          return self.mat[index][exc]
@@ -36,6 +38,8 @@ class OPA:
       intens=[]
       ind=[]
       excs=[]
+      cdef int index
+      cdef int exc
       for index in range(len(self.mat)):
          for exc in range(len(self.mat[0])):
             if self.mat[index][exc]>Threshold:
@@ -49,7 +53,6 @@ class OPA:
 
       return intens, ind, excs #I need squares as intensities
 
-#cdef double[:,:] simpleFCfOPA(logging, double[:,:] J, double[:] K,double[:] f,double Energy, int N, float T, float E0):
 def simpleFCfOPA(logging, double[:,:] J, double[:] K,double[:] f,double Energy, int N, float T, float E0):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
    

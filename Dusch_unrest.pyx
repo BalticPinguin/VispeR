@@ -1,8 +1,7 @@
 #!/usr/bin/python
-# filename: Dusch_unrest.py
+# filename: Dusch_unrest.pyx
 import numpy as np, math, sys
-from copy import deepcopy
-#include [[Btree.py]]
+#include [[Btree.pyx]]
 import Btree as bt
 
 Hartree2cm_1=219474.63 
@@ -191,7 +190,6 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          if m<=mp:
             # need first iteration-formula
             n_m=n[m]
-            ntemp=deepcopy(n)
             n[m]-=1 #n[m] is at least 1
             Ps=L2.getState(n)[0]
             if not math.isnan(Ps) and abs(Ps)>1e-8:
@@ -377,7 +375,9 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          i+=1
       return States2
 
-   def Boltzmann( double[:] intens, double[:] freq, double T):
+   #def Boltzmann( double[:] intens, double[:] freq, double T):
+   
+   def Boltzmann(intens, freq, T):
       """ introduce Boltzmann-distribution in final state and weight all intensities respectively
       ***PARAMETERS***
       intens:   intensity of the transitions (array)

@@ -1,8 +1,6 @@
 #!/usr/bin/python
-# filename: broadening.py
+# filename: broadening.pyx
 import numpy as np, re
-#cython: profile=True
-#cython: linetrace=True
 
 # Below are the conversion factors and fundamental constant
 
@@ -299,7 +297,7 @@ def outspect(logging, T, opt, linspect, E=0):
       else:
          n=float(n[0])
          ind=linspect[2].argmin()
-         #                          spectral frequency   0-0 transition      intensities          0-0 intensit.          modes        
+         #                     spectral frequency   0-0 transition      intensities        0-0 intensit.        modes ,
          TPAfreq, TPAintens=OPA2nPA(linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], linspect[1][ind], 
                                                                                              linspect[2][minint:], n)
          index=np.argsort(TPAintens,kind='heapsort')

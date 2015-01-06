@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # filename: Btree.py
 import numpy as np, math
-#contstant is important for [[Btree.py#extract]]
+#contstant is important for [[Btree.pyx#extract]]
 DATATHRESHOLD=1e-6
 
 class Tree:
