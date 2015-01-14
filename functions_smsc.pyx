@@ -78,7 +78,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       return spect
 
    n=len(HR) #=len(freq)
-   FC=np.zeros((n,M*N-1)) 
+   FC=np.zeros((n,M*N-1))
    uency=np.zeros((n,M*N-1)) #freqUENCY
    if approx=="TPA":
       FC2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
@@ -187,7 +187,7 @@ def CalculationHR(logging, initial, final, opt):
          logging[1].write('final state: \n {0}\n'.format(F[1]))
 
    #Calculate Frequencies and normal modes
-   L, f, Lsorted=GetL(logging, dim, mass,F, P)
+   f, Lsorted=GetL(logging, dim, mass,F, P)
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
    #Gauf=gaussianfreq(logging, initial, final, dim) 
    
@@ -283,7 +283,7 @@ def GetL(logging, dim, mass, F, D):
    # Defining arrays
    L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
    Ltest=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
-   Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
+   Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 ))
    f=np.zeros(( len(F), len(F[0])-6 ))
    Ltemp=np.zeros(( len(F[0]), len(F[0])-6 ))
    ftemp=np.zeros(len(F[0]-6))
@@ -301,13 +301,6 @@ def GetL(logging, dim, mass, F, D):
             logging[1].write('Frequencies smaller than 0 occured. The absolute'
                         ' values are used in the following.\n{0}\n'.format(ftemp))
          ftemp=np.abs(ftemp)
-      index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
-      f[i]=np.real(ftemp[index]).T[:].T[6:].T
-      L[i]=np.real(Ltemp[index]).T[:].T[6:].T
-
-      for j in range(len(L[i])):
-         L[i][j]=L[i][j]/np.linalg.norm(L[i][j])
-      Ltest[i]=L[i]
 
       if logging[0]<1:
          logging[1].write("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
@@ -320,6 +313,9 @@ def GetL(logging, dim, mass, F, D):
          norm=np.sum(Lcart.T[j]*Lcart.T[j])
          if np.abs(norm)>1e-12:
             Lcart.T[j]/=np.sqrt(norm)
+
+      index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
+      f[i]=np.real(ftemp[index]).T[:].T[6:].T
       Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T
       if logging[0]<1:
          logging[1].write("Normalized Lcart\n"+ repr(Lcart)+"\nNormalized,"
@@ -330,7 +326,7 @@ def GetL(logging, dim, mass, F, D):
       if logging[0]<2:
          logging[1].write("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
                repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i]))
-   return L, f, Lsorted
+   return f, Lsorted
 
 def GetProjector(logging, X, dim, m, Coord):
    D=np.zeros((dim,6))
@@ -405,7 +401,7 @@ def HuangR(logging, K, f): #what is with different frequencies???
       logging[1].write(u'HR-fact           freq\n')
       for j in range(len(sortuni[i])):
          #select all 'big' HR-factors 
-         if sortuni[i][-j]>0.02: 
+         if sortuni[i][-j]>0.001: 
             uniHR.append(sortuni[i][-j])
             uniF.append(funi[i][-j])
             logging[1].write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
@@ -533,6 +529,7 @@ def ReadLog(logging, fileN):
                        .format(diagI.T,1/(2*diagI.T)*Hartree2GHz, X))
    # Reading of Cartesian force constant matrix  
    f=re.findall(r"Force constants in Cartesian coordinates: [\n\d .+-D]+", log, re.M)
+   assert f!=[], 'The input-file does not contain information on the force-constants!'
    f_str=str([f[-1]])#[2:-2]
    lines=f_str.strip().split("\\n")
    F=np.zeros((dim,dim))
@@ -595,35 +592,35 @@ def replace(logging, files, fre, L):
           #     logging[1].write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
             if len(freq[s:].T)> 2: # there are at least three more frequencies
                out.write(re.sub(r'Frequencies -- [\d .-]+',
-                     'Frequencies --'+'   '+repr(freq[s])+'     '\
-                     +repr(freq[s+1])+'     '+repr(freq[s+2]), line))
+                     'Frequencies --'+'    '+str("%.4f" % freq[s])+'              '\
+                     +str("%.4f" % freq[s+1])+'               '+str("%.4f" % freq[s+2]), line))
             elif len(freq[s:].T)== 2: # there are only two frequencies left
                out.write(re.sub(r'Frequencies -- [\d .-]+',
-                     'Frequencies --'+'    '+repr(freq[s])+'     '\
-                     +repr(freq[s+1]), line))
+                     'Frequencies --'+'    '+str("%.4f" % freq[s])+'               '\
+                     +str("%.4f" % freq[s+1]), line))
             elif len(freq[s:].T)== 1: # there is just one additional freq
                out.write(re.sub(r'Frequencies -- [\d .-]+',
-                     'Frequencies --'+'   '+repr(freq[s]), line))
+                     'Frequencies --'+'   '+str("%.4f" % freq[s]), line))
             s+=3
          elif re.search(r'[ ]+\d+[ ]+\d+[ -]+\d.\d\d[ -]+\d.\d\d+[ \d.-]+', line) is not None:
             if len(L[t][u:].T)> 2: # there are at least three more frequencies
                out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                  '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
-                       str("%.2f" % L[t+2][u+0])+
-                  '  '+str("%.2f" % L[t+0][u+1])+'  '+str("%.2f" % L[t+1][u+1])+' '+
-                       str("%.2f" % L[t+2][u+1])+
-                  '  '+str("%.2f" % L[t+0][u+2])+'  '+str("%.2f" % L[t+1][u+2])+' '+
-                        str("%.2f" % L[t+2][u+2]), line))
+                  '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
+                       str("%.6f" % L[t+2][u+0])+
+                  '  '+str("%.6f" % L[t+0][u+1])+'  '+str("%.6f" % L[t+1][u+1])+' '+
+                       str("%.6f" % L[t+2][u+1])+
+                  '  '+str("%.6f" % L[t+0][u+2])+'  '+str("%.6f" % L[t+1][u+2])+' '+
+                       str("%.6f" % L[t+2][u+2]), line))
             elif len(L[t][u:].T)== 2:
                out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                  '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
-                       str("%.2f" % L[t+2][u+0])+
-                  '  '+str("%.2f" % L[t+0][u+1])+'  '+str("%.2f" % L[t+1][u+1])+' '+
-                        str("%.2f" % L[t+2][u+1]), line))
+                  '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
+                       str("%.6f" % L[t+2][u+0])+
+                  '  '+str("%.6f" % L[t+0][u+1])+'  '+str("%.6f" % L[t+1][u+1])+' '+
+                       str("%.6f" % L[t+2][u+1]), line))
             elif len(L[t][u:].T)== 1:
                out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                  '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
-                        str("%.2f" % L[t+2][u+0]), line))
+                  '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
+                       str("%.6f" % L[t+2][u+0]), line))
             t+=3 # 
          else: 
             out.write(re.sub('replace nothing','by nothing', line)) #just write line as it is

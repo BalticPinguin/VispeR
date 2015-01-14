@@ -42,18 +42,9 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
 
    ## change the following: not size of K but off-diagonal-elements of J!!! 
    ## if J[i][j] is large, add indices i and j to ind if they are not contained already...
-   if m<len(J):
-      Jtemp=np.reshape(J, len(J)*len(J))
-      index=np.argsort(-np.abs(Jtemp), kind="heapsort")
-      index=index[len(J):] #truncate the diagonal elements
-      ind=[]
-      n=len(J)
-      for i in range(len(index)):
-         indexi=np.mod(index[i],n)
-         if indexi not in ind:
-            ind.append(indexi)
-            if len(ind)>=m+1: 
-               break
+   if m<len(J): #this model might be more realistic!!
+      index=np.argsort(np.abs(K), kind="heapsort")
+      ind=index[:m]
       k=K[ind]
       j=J[ind].T[ind]
       f=np.zeros(( 2,len(ind) ))
@@ -90,20 +81,10 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
    """
    def CalcI00(J, K, Gamma, Gammap, E):
       """This function calculates the overlap-integral for zero vibrations """
-      #pref=math.pow(2,len(Gamma))*np.linalg.det(Gamma)
-      #TMP=J.dot(J.T.dot(Gammap).dot(J)+Gamma)
-      #pref/=np.linalg.det(TMP)
-
-      ########error!!!! This has to be positive but is not always!!
-      #pref=np.sqrt(np.abs(pref))
-      #TMP=J.T.dot(Gammap).dot(J)+Gamma
-      #TMP=Gammap.dot(J).dot(np.linalg.inv(TMP)).dot(J.T)-np.eye(len(J))
-      #exp=np.exp(0.5*K.T.dot(TMP).dot(Gammap).dot(K))
 
       Tree=bt.Tree(2*len(K))
       Tree.fill(0)
       Zero=np.zeros(2*len(K))
-      #Tree.insert(Zero, [pref*exp, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1] ) #sum(sum()) due to matrix
       Tree.insert(Zero, np.array([10, (E+sum(sum(Gammap-Gamma))/2)*Hartree2cm_1, 0]) ) #sum(sum()) due to matrix
       #I_00 transition-probability [[Btree.py#extract]]
       linespect=np.array(Tree.extract())
@@ -148,8 +129,8 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
 
       #initialize new tree
       alpha=2*len(b)
-      L3=bt.Tree(i)                     # initialize root-node
-      L3.fill(alpha)                    # initialize tree
+      L3=bt.Tree(i)
+      L3.fill(alpha)
       States=states(alpha, i)           # States are all possible
 
       def freq(E, Gamma, Gammap):
@@ -246,13 +227,15 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                   Ps=L1.getState(n)[0]
                   n[i]+=1
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
-                     I_nn+=np.sqrt(n[i]/2)*(E[mp][i-len(n)//2])*Ps # second term
+                     I_nn+=np.sqrt(n[i]*0.5)*(E[mp][i-len(n)//2])*Ps # second term
             n[mp+leng]+=1
          I_nn/=np.sqrt(2*n_m)
          #threshold for insertion: saves memory, since int insead of float is used
          if np.abs(I_nn)>1e-8:
             try:
                L3.insert(n, [I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]), freq(0, 0, f[1]*n[leng:]) ])
+               if m==mp: ##this is OPA-case (without single-excited ones...:
+                  print n, I_nn
             except MemoryError: 
                logging[1].write('memory-error by inserting data. Finishing calculation.')
                logging[1].writelines("%s\n" % item  for item in L2.extract())
@@ -375,21 +358,6 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          i+=1
       return States2
 
-   #def Boltzmann( double[:] intens, double[:] freq, double T):
-   
-   def Boltzmann(intens, freq, T):
-      """ introduce Boltzmann-distribution in final state and weight all intensities respectively
-      ***PARAMETERS***
-      intens:   intensity of the transitions (array)
-      freq:     vibrational frequency of respective transitions (array of same length as intens)
-      T:        Temperature of the system considered
-      ***RETURN***
-      intens (using side-effects)
-      """
-      cdef int i
-      for i in range(len(intens)):
-         intens[i]*=np.exp(-freq[i]/T)
-
    Gamma=np.diag(f[0]) #in atomic units. It is equivalent to 4pi^2/h f_i
    Gammap=np.diag(f[1]) # for final state
    lines=[]
@@ -400,7 +368,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
    #both trees can be considered to coincide for first state. 
    L1=L2 
    for i in range(1,N+1):
-      L1, L2=iterate(L1, L2, Energy, i, f, J,K)
+      L1, L2=iterate(L1, L2, Energy, i, f, J, K)
       if L1==0 and L2==0:
          #only by assert: MemoryError
          break # kill calculation
@@ -408,15 +376,15 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       for j in range(len(spect)):
          lines.append(spect[j][0])
          freqs.append(spect[j][1])
-         initF.append(spect[j][2]) #needed for boltzmann-weighing
+         initF.append(spect[j][2])
    result=np.zeros((3, len(lines) ))
    result[0]=freqs
+   T*=Hartree2cm_1
    for i in range(len(result[0])):
       #arbitrary but constant number for mode
       result[2][i]=42
       # intensities are proportional to square of the transition rates
-      result[1][i]=lines[i]*lines[i] 
-   Boltzmann(result[1], initF, T)
+      result[1][i]=lines[i]*lines[i]*np.exp(-initF[i]/T)
    return result
 
 version=0.4

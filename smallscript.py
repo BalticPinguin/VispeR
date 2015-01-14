@@ -8,7 +8,7 @@ import Dusch_unrest as DR
 #include [[broaden.py]]
 import broaden as br
 #include further dicts
-import sys, os, re, mmap, numpy as np
+import sys, re, mmap, numpy as np
 
 def usage():
    print "usage: smallscript <input-file>"
