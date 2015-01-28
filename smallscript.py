@@ -153,18 +153,28 @@ def main(argv=None):
       if logging[0]<=1:
          logging[1].write("temperature of system: "+repr(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
+      states=re.findall(r"(?<=states=)[\d ]*", opt, re.I)
+      if len(states)==0:
+	 states=5
+      else:
+	 try:
+	    states=int(states[0])
+	    logging[1].write("number of states: {0}\n".format(states))
+	 except ValueError:
+	    logging[1].write("number of vibrational states {0} is not an integer. Use default instead.\n".format(states))
+	    states=5
       part=re.findall(r"(?<=particles:)[ \d]*", opt, re.I)
       if len(part)==0: #particles not specified
          part=np.array([1])
       if float(part[0])==1:
          for i in range(len(initial)):
-            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "OPA")
+            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T, "OPA")
       elif float(part[0])==2:
          for i in range(len(initial)):
-            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T, "TPA")
+            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T, "TPA")
       else:
          for i in range(len(initial)):
-            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, 5, 5, T)
+            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T)
       if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
          if opts[2]!=[]:
             ## i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated
@@ -205,30 +215,40 @@ def main(argv=None):
       if logging[0]<=1:
          logging[1].write("temperature of system: {0}\n".format(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
+      states=re.findall(r"(?<=states=)[ \d]+", opt, re.I)
+      if len(states)==0:
+	 states=5
+      else:
+	 try:
+	    states=int(states[0])
+	    logging[1].write("number of states: {0}\n".format(states))
+	 except ValueError:
+	    logging[1].write("number of vibrational states {0} is not an integer. Use default instead.\n".format(states))
+	    states=5
       model=re.findall(r"(?<=model\=)[\w]+",opt, re.I)
       try:
          model=model[0]
       except IndexError:
          for i in range(len(initial)): 
             k=[0,i]
-            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
+            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
       if model in ['Simple', 'simple', 'SIMPLE']:
          for i in range(len(initial)):
             k=[0,i]
             ############# make linspect to append; at the moment it will be replaced!!!
-            linspect=OPA.simpleFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
+            linspect=OPA.simpleFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
       elif model in ['Resort', 'resort', 'RESORT']:
          for i in range(len(initial)): #calculate separate line-spects for different states
             k=[0,i]
-            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
+            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
       elif model in ['Distributing', 'distributing', 'DISTRIBUTING', 'dist', 'DIST', 'Dist']:
          for i in range(len(initial)): #calculate separate line-spects for different states
             k=[0,i]
             shifts=re.findall(r"(?<=maxshift\=)[\d]+",opt, re.I)
             if len(shifts)==1:
-               linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, int(shifts[0]))
+               linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, int(shifts[0]))
             else:
-               linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, 6)
+               linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, 6)
             # the threshold (4) can be made to be a parameter as well
       elif model in ["Unrestricted", 'UNRESTRITED', 'unrestricted', 'unrest']:
          for i in range(len(initial)): #calculate separate line-spects for different states
@@ -236,16 +256,15 @@ def main(argv=None):
             #make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters
             modes=re.findall(r"(?<=maxmodes\=)[\d]+",opt, re.I)
             if len(modes)==1:
-               linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, int(modes[0]))
+               linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, int(modes[0]))
             else:
-               linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0, 10)
+               linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, 10)
       else:
          logging[1].write('An error occured. The option of "model" is not known! Please check the spelling,'\
                ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".\n')
          for i in range(len(initial)):
             k=[0,i]
-            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], 5, T, 0)
-
+            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
 
    np.set_printoptions(suppress=True)
    #print 'linespect:', linspect.T

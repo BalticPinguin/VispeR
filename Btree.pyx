@@ -155,7 +155,7 @@ class Tree:
 
       extra(self,result)
       if len(result)==0: #if no intensity is higher than DATATHRESHOLD
-         return [[0, 0]]
+         return [[0, 0, 0]]
       return result
 
    def getState(self, N):
