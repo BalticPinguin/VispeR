@@ -38,7 +38,7 @@ def handel_input(opt):
          for i in range(len(grid)):
             omega[i]=grid[i]
    if (re.search(r"(?<=gamma=)[ \d\.,]+", opt, re.I) is not None)  is True:
-      gamma=re.findall(r"(?<=gamma=)[ \d\.,]+", opt, re.I)
+      gamma=re.findall(r"(?<=gamma=)[ \d\.]+", opt, re.I)
       gamma=float(gamma[0])
    shape=re.findall(r"(?<=shape=)[ \w]+", opt, re.I)
    if len(shape)>0:
@@ -67,6 +67,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    TPAfreq:  frequencies of the nPA-vibrational spectrum
    TPAintens:intensities of the nPA-vibrational spectrum     
    """
+   append=np.append
    #def putN(int j, int n, double[:] intens, double[:] freq, double[:,:] mode, double[:] OPAintens, double[:] OPAfreq, double[:,:] oldmode):
    #def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
    def putN(int j, int n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
@@ -93,9 +94,10 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       for i in range(len(intens)):
          intensi=intens[i]
          if intensi>1e-9: #######
-            newintens.append(intensi) #this is OPA-part
+            newintens=append(newintens, intensi) #this is OPA-part
             freqi=freq[i]
-            newfreq.append(freqi)
+            newfreq=append(newfreq, freqi)
+            #print intensi, freqi, mode[:].T[i]
             if n<=1:
                continue 
                #this saves creating new objects and running through loops without having results
@@ -117,27 +119,27 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
                   continue
                try :
                   tmpmode=tmpmode[0][0]
-                  newmode.append(tmpmode[0]) #or xmode.T??
+                  newmode=append(newmode, tmpmode[0]) #or xmode.T??
                except IndexError:
-                  newmode.append(float(tmpmode))
-               nwemode.append(tempmode[0])
-               tmpintens.append(OPAintens[k]*intensi)
-               tmpfreq.append(OPAfreq[k]+freqi)
+                  newmode=append(newmode, float(tmpmode))
+               nwemode=append(nwemode, tempmode[0])
+               tmpintens=append(tmpintens, OPAintens[k]*intensi)
+               tmpfreq=append(tmpfreq, OPAfreq[k]+freqi)
             if len(tmpintens)>0:
                xmode=[]
-               xmode.append(newmode)
+               xmode=append(xmode,newmode)
                if len(np.shape(xmode))>2:
                   xmode=np.matrix(xmode[0]).T
                   nmode=np.zeros(( len(xmode)+1, len(xmode.T) ))
                   nmode[:-1]=xmode
                   nmode[-1]=nwemode
                else:
-                  xmode.append(nwemode)
+                  xmode=append(xmode, nwemode)
                   nmode=np.matrix(xmode)
                freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode)
                for k in range(len(intens2)):
-                  newintens.append(intens2[k])
-                  newfreq.append(freq2[k])
+                  newintens=append(newintens, intens2[k])
+                  newfreq=append(newfreq, freq2[k])
       return np.array(newfreq), np.array(newintens)
         
    length=len(OPAfreq)
@@ -211,7 +213,7 @@ def OPA23PA(OPAfreq,freq00, OPAintens,intens00, mode):
         intens[i]=TPAintens[i]
    return freq, intens
 
-def outspect(logging, T, opt, linspect, E=0):
+def outspect(logging, float T, opt, linspect, float E=0):
    """This function calculates the broadened spectrum given the line spectrum, 
    frequency-rage and output-file whose name is first argument. 
    As basis-function a Lorentzian is assumed with a common width.
@@ -224,6 +226,9 @@ def outspect(logging, T, opt, linspect, E=0):
    gamma:     broadening constant for the Lorentzians. It is the same for all peaks
    
    """
+   cdef float minint=0
+   cdef int i
+
    omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape =handel_input(opt)
    #read file in format of linspect
 
@@ -235,7 +240,6 @@ def outspect(logging, T, opt, linspect, E=0):
    #find transition with minimum intensity to be respected
 
 
-   minint=0
    for i in range(len(linspect[1])):
       if linspect[1][i]>=1e-6*linspect[1][-1]:
          minint=i
@@ -334,7 +338,7 @@ def outspect(logging, T, opt, linspect, E=0):
          logging[1].write("omega is equally spaced\n")
    sigma=gamma*2/2.355 #if gaussian used: same FWHM
 
-   TPAintens/=TPAintens[-1]*0.01 #normalise spectrum (due to highest peak) to make different approaches comparable
+   #TPAintens/=TPAintens[-1]*0.01 #normalise spectrum (due to highest peak) to make different approaches comparable
 
    index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
    freq=TPAfreq[index]
@@ -356,7 +360,8 @@ def outspect(logging, T, opt, linspect, E=0):
    out = open(spectfile, "w")
 
    spect=np.zeros(len(omega))
-   logging[1].write("broadened spectrum:\n frequency      intensity\n")
+   logwrite=logging[1].write
+   logwrite("broadened spectrum:\n frequency      intensity\n")
    if shape=='g':
       for i in range(len(omega)): 
          for j in range(maxi,len(freq)):
@@ -371,21 +376,22 @@ def outspect(logging, T, opt, linspect, E=0):
                   np.exp(-(omega[i]-freq[j])*(omega[i]-freq[j])/(2*sigma*sigma))
                   for j in range(mini, maxi))
          #out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
-         logging[1].write(u" %s  %s\n" %omega[i] %spect[i])
+         logwrite(u" %s  %s\n" %omega[i] %spect[i])
    else:  #shape=='l':
       for i in range(len(omega)): 
+         omegai=omega[i]
          for j in range(maxi,len(freq)):
-            if freq[j]>=5*gamma+omega[i]:
+            if freq[j]>=5*gamma+omegai:
                maxi=j
                break
          for j in range(max(0,mini),maxi):
-            if freq[j]>=omega[i]-5*gamma:
+            if freq[j]>=omegai-5*gamma:
                mini=j-1
                break
-         spect[i]=sum(intens[k]/np.pi*gamma/((omega[i]-freq[k])*(omega[i]-freq[k])+gamma*gamma)
+         spect[i]=sum(intens[k]/np.pi*gamma/((omegai-freq[k])*(omegai-freq[k])+gamma*gamma)
                   for k in range(mini, maxi))
          #out.write(u" %s  %s\n" %omega[i] %spect[i])
-         logging[1].write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
+         logwrite(u" {0}  {1}\n".format(omegai ,spect[i]))
          #logging[1].write(u" %s  %s\n" %omega[i], %spect[i])
    out.close()
 

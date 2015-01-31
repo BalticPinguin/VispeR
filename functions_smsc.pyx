@@ -31,7 +31,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
    # M,N are maximal numbers of vibrational modes (+1, since they should be arrived really; count from 0)
    N+=1
    M+=1
-   def FCeqf( Deltag, M, N):
+   def FCeqf( float Deltag, int M, int N):
       """Calculate Franck-Condon factors under assumption of equal frequencies 
       for only one vibrational mode
 
@@ -43,9 +43,9 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       RETURNS:
       Franck-Condon factor of the respective transition
       """
-      exg=np.exp(-Deltag/2) #actually Deltag should be >0, but is not always due to negative frequencies
-      faktNM=math.factorial(M)*math.factorial(N)
-      FC=0
+      cdef float exg=np.exp(-Deltag/2) #actually Deltag should be >0, but is not always due to negative frequencies
+      cdef float faktNM=math.factorial(M)*math.factorial(N)
+      cdef float FC=0
       for x in range(int(min(N,M))+1):
          FC+=exg*math.pow(-1,N-x)*math.pow(np.abs(Deltag),(M+N)*0.5-x)/(math.factorial(M-x)*math.factorial(N-x))*\
                math.sqrt(faktNM)/math.factorial(x)
@@ -78,15 +78,16 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       return spect
 
    n=len(HR) #=len(freq)
+   assert n>0, "There is no Huang-Rhys factor larger than the respective threshold. No mode to be calculated."
    FC=np.zeros((n,M*N-1))
    uency=np.zeros((n,M*N-1)) #freqUENCY
    if approx=="TPA":
       FC2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
       uency2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
    #calculate 0->0 transition
-   tmp=1
-   #scale whole spectrum
-   FC00=tmp*tmp*1e2
+   FC00=1
+   for a in range(n):
+      FC00*=FCeqf(HR[a],0,0)
    uency00=E*Hartree2cm_1 #zero-zero transition
    if logging[0]<1:
       if approx=="OPA":
@@ -96,17 +97,27 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       logging[1].write(u"frequency     intensity  \n")
       #logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
    for a in range(n):
+      s=0
       temp=FCeqf(HR[a],0,0)
+      HRf=np.zeros(( N , M ))
+      HRf[0][0]=FCeqf(HR[a], 0, 0)
+      HRf[0][0]*=HRf[0][0]
+      s+=HRf[0][0]
       for j in range(N):
          for i in range(M):
             if i==0 and j==0: 
+               continue
+            HRf[i][j]=FCeqf(HR[a], i, j)/HRf[0][0]
+            HRf[i][j]*=HRf[i][j]
+            s+=HRf[i][j]
+      for j in range(N):
+         for i in range(M):
+            if i==0 and j==0: 
+               continue
                ##skip 0-0 transitions
-               continue 
-            tmp=FCeqf(HR[a], i, j)/temp
-            FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
+            tmp=HRf[i][j]/s
+            FC[a][j*M+i-1]=tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
             uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-            #if logging[0]<1:
-               #logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+"  "+repr(FC[a][j*M+i-1])+"  "+repr(a)))
    if approx=="TPA":
       ind=0
       for a in range(n):
@@ -217,15 +228,13 @@ def Duschinsky(logging, L, mass, dim, x):
 
    for i in range(dim):
       M[i][i]=mass[i/3] #square root of masses
-   #for i in range(len(DeltaX[0])/3):
-      #DeltaX[0][3*i:3*i+3]=x[0].T[i]
    for i in range(len(J)):
       J[i]=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) ################ check: use L[i+1] instead L.-T
 
    for i in range(len(DeltaX)):
       DeltaX[i]=np.array(x[0]-x[i+1]).flatten('F')
       if logging[0] <1:
-         logging[1].write('changes of Cartesian coordinates:(state'+repr(i)+')\n'+repr(DeltaX[i]))
+         logging[1].write('changes of Cartesian coordinates:(state'+repr(i)+')\n'+repr(DeltaX[i])+'\n')
       K[i]=np.dot(L[i+1].T.dot(M),DeltaX[i].T) #at the moment: mass-weighted
 
    np.set_printoptions(suppress=True)
@@ -233,7 +242,8 @@ def Duschinsky(logging, L, mass, dim, x):
    if logging[0]<2:
       for i in range(len(J)):
          logging[1].write('Duschinsky rotation matrix, state '+repr(i)+\
-               '  :\n'+ repr(J[i])+'  :\n'+ repr(J[i][:4].T[11:25])+'\nDuschinsky displacement vector:\n'+ repr(K[i]))
+               '  :\n'+ repr(J[i])+'  :\n'+ repr(J[i][:4].T[11:25])+\
+               '\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
    return J, K 
 
 def gaussianfreq(logging, initial, final , dim):
@@ -263,6 +273,52 @@ def gaussianfreq(logging, initial, final , dim):
          f[i][s:s+len(f2[j])]=f2[j]
          s+=len(f2[j])
    return f
+
+def gradientHR(logging, initial, final, opt):
+   """ This function gathers most essential parts for calculation of HR-factors from g09-files"""
+   assert len(initial)>0, 'no initial state found!'
+   assert len(final)>0, 'no final state found!'
+   for i in range(len(initial)):
+      assert os.path.isfile(initial[i]) and os.access(initial[i], os.R_OK),\
+            initial[i]+' is not a valid file name or not readable.'
+   for i in range(len(final)):
+      assert os.path.isfile(final[i]) and os.access(final[i], os.R_OK),\
+            final[i]+' is not a valid file name or not readable.'
+   for i in range(len(final)):
+      dim, Coord, mass, B, A, E=ReadLog(logging, initial[i])
+      if i is 0:# do only in first run
+         F, CartCoord, X, P, Energy=quantity(logging, dim, len(initial)+len(final)) #creates respective quantities (empty)
+         if logging[0]==0:
+            logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
+      X[i],F[i],Energy[i]=B, A, E
+      F[len(initial)+i]=F[i] #force constant matrix in both states coincides
+   for i in range(len(initial)):
+      mass, Grad, E=ReadLog2(logging, final[i]) 
+      ##################################################
+      Energy[len(initial)+i]=E
+      #read coordinates, force constant, binding energies from log-files and calculate needed quantities
+   if logging[0]<3:
+      logging[1].write('difference of minimum energy between states:'
+                       ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
+      if logging[0]<2:
+         logging[1].write('initial state: \n{0}\n'.format(F[0]))
+         logging[1].write('final state: \n {0}\n'.format(F[1]))
+
+   #Calculate Frequencies and normal modes
+   f, Lsorted=GetL(logging, dim, mass,F, P)
+   K=GradientShift(logging, Lsorted, mass, Grad)
+      ##################################################
+   
+   #calculate HR-spect
+   HR, funi= HuangR(logging, K, f)
+   if (re.search(r"makeLog", opt, re.I) is not None) is True:  
+      for i in range(len(initial)): #### this needs to be enhanced
+         replace(logging, initial[i], f[i], Lsorted[i])
+   return HR, funi, Energy, K, f
+
+def GradientShift(logging, Lsorted, mass, Grad):
+   K=9
+   return K
 
 def GetL(logging, dim, mass, F, D):
    """ Function that calculates the frequencies and normal modes from force constant matrix 
@@ -302,8 +358,6 @@ def GetL(logging, dim, mass, F, D):
                         ' values are used in the following.\n{0}\n'.format(ftemp))
          ftemp=np.abs(ftemp)
 
-      if logging[0]<1:
-         logging[1].write("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
       M=np.zeros((dim,dim))
       for j in range(0,dim):
          M[j,j]=1/mass[j/3]
@@ -315,11 +369,13 @@ def GetL(logging, dim, mass, F, D):
             Lcart.T[j]/=np.sqrt(norm)
 
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
+      if logging[0]<1:
+         logging[1].write("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T
+      L[i]=(Ltemp.T[index].T)[:].T[6:].T
       if logging[0]<1:
-         logging[1].write("Normalized Lcart\n"+ repr(Lcart)+"\nNormalized,"
-                "sorted and truncated Lcart\n"+ repr(Lsorted[i]))
+         logging[1].write("Normalized, sorted and truncated Lcart\n"+ repr(L[i]))
 
       for j in range(len(f[i])):
          f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
@@ -401,7 +457,7 @@ def HuangR(logging, K, f): #what is with different frequencies???
       logging[1].write(u'HR-fact           freq\n')
       for j in range(len(sortuni[i])):
          #select all 'big' HR-factors 
-         if sortuni[i][-j]>0.001: 
+         if sortuni[i][-j]>0.001:
             uniHR.append(sortuni[i][-j])
             uniF.append(funi[i][-j])
             logging[1].write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
@@ -559,7 +615,13 @@ def ReadLog(logging, fileN):
    E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
    return dim, Coord, mass, X, F, E
 
-def replace(logging, files, fre, L):
+def ReadLog2(logging, final):
+   mass=1
+   Grad=0
+   E=9
+   return mass, Grad, E
+
+def replace(logging, files, freq, L):
    """ This function creates a new file (determined by files, ending with 
    ".rep" and copies the log-file (files) into it, replacing the frequencies and 
    normal modes by those calculated by smallscript.
@@ -577,7 +639,7 @@ def replace(logging, files, fre, L):
    **NOTE:**
    The code is originally from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)
    """
-   freq=fre*Hartree2cm_1
+   freq*=Hartree2cm_1
    with open(files) as f:
       out_fname = files + ".rep"
       out = open(out_fname, "w")

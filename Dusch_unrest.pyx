@@ -233,13 +233,11 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          #threshold for insertion: saves memory, since int insead of float is used
          if np.abs(I_nn)>1e-8:
             try:
-               L3.insert(n, [I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]), freq(0, 0, f[1]*n[leng:]) ])
-               if m==mp: ##this is OPA-case (without single-excited ones...:
-                  print n, I_nn
+               L3.insert(n, [ I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]), freq(0, 0, f[1]*n[leng:]) ])
             except MemoryError: 
                logging[1].write('memory-error by inserting data. Finishing calculation.')
                logging[1].writelines("%s\n" % item  for item in L2.extract())
-               return 0,0
+               return 0,0, 0
       return L2, L3
 
    def states(alpha, n): 

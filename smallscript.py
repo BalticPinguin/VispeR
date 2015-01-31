@@ -115,7 +115,17 @@ def main(argv=None):
       initial=re.findall(r"(?<=initial: )[\w.]+",f, re.I)
       final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
       ## the calculation of all needed quantities is done in this function
-      HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
+      method=re.findall(r"(?<=method: )[ \w]+",opt, re.I)
+      if method==[]:
+         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
+      elif method in ["gradient", "Gradient", "grad"]:
+         ## test whether Duschinsky-rotation is needed
+         HR, funi, Energy, K, f=of.gradientHR(logging, initial, final, opt)
+      elif method in ["shift", "SHIFT", "Shift"]:
+         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
+      else:
+         logging[1].write("method {0} not recognised. Please")
+         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
 
    if np.mod(todo,4)>=2:
       #calculate FC-spect
