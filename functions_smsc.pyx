@@ -278,31 +278,26 @@ def gradientHR(logging, initial, final, opt):
    """ This function gathers most essential parts for calculation of HR-factors from g09-files"""
    assert len(initial)>0, 'no initial state found!'
    assert len(final)>0, 'no final state found!'
-   for i in range(len(initial)):
-      assert os.path.isfile(initial[i]) and os.access(initial[i], os.R_OK),\
-            initial[i]+' is not a valid file name or not readable.'
-   for i in range(len(final)):
-      assert os.path.isfile(final[i]) and os.access(final[i], os.R_OK),\
-            final[i]+' is not a valid file name or not readable.'
-   for i in range(len(final)):
-      dim, Coord, mass, B, A, E=ReadLog(logging, initial[i])
-      if i is 0:# do only in first run
-         F, CartCoord, X, P, Energy=quantity(logging, dim, len(initial)+len(final)) #creates respective quantities (empty)
-         if logging[0]==0:
-            logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
-      X[i],F[i],Energy[i]=B, A, E
-      F[len(initial)+i]=F[i] #force constant matrix in both states coincides
-   for i in range(len(initial)):
-      mass, Grad, E=ReadLog2(logging, final[i]) 
-      ##################################################
-      Energy[len(initial)+i]=E
-      #read coordinates, force constant, binding energies from log-files and calculate needed quantities
+   initial=initial[0]
+   final=final[0]
+   assert os.path.isfile(initial) and os.access(initial, os.R_OK),\
+            initial+' is not a valid file name or not readable.'
+   assert os.path.isfile(final) and os.access(final, os.R_OK),\
+            final+' is not a valid file name or not readable.'
+   dim, Coord, mass, B, A, E=ReadLog(logging, initial)
+   F, CartCoord, X, P, Energy=quantity(logging, dim, 2 ) #creates respective quantities (empty)
+   if logging[0]==0:
+      logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
+   X[0],F[0],Energy[0]=B, A, E
+   F[1]=F[0] #force constant matrix in both states coincides
+   mass, Grad, E=ReadLog2(logging, final) 
+   Energy[1]=E
+   #read coordinates, force constant, binding energies from log-files and calculate needed quantities
    if logging[0]<3:
       logging[1].write('difference of minimum energy between states:'
                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
       if logging[0]<2:
          logging[1].write('initial state: \n{0}\n'.format(F[0]))
-         logging[1].write('final state: \n {0}\n'.format(F[1]))
 
    #Calculate Frequencies and normal modes
    f, Lsorted=GetL(logging, dim, mass,F, P)
@@ -316,8 +311,15 @@ def gradientHR(logging, initial, final, opt):
          replace(logging, initial[i], f[i], Lsorted[i])
    return HR, funi, Energy, K, f
 
-def GradientShift(logging, Lsorted, mass, Grad):
-   K=9
+def GradientShift(logging, L, mass, Grad):
+   print "L_0", L[0].T
+   print "Grad", Grad
+   K=L[0].T.dot(Grad.T)
+   for i in range(len(K)):
+      K*=mass[i//3]
+   K=L[1].T.dot(Grad.T)
+   for i in range(len(K)):
+      K*=mass[i//3]
    return K
 
 def GetL(logging, dim, mass, F, D):
@@ -361,7 +363,8 @@ def GetL(logging, dim, mass, F, D):
       M=np.zeros((dim,dim))
       for j in range(0,dim):
          M[j,j]=1/mass[j/3]
-      Lcart=np.dot(M,np.dot(D[i],np.real(Ltemp)))
+      #Lcart=np.dot(M,np.dot(D[i],np.real(Ltemp)))
+      Lcart=M.dot(np.real(Ltemp)) # there is no need for this projector!!!???
       #Lcart=np.real(Ltemp)
       for j in range(0,dim):
          norm=np.sum(Lcart.T[j]*Lcart.T[j])
@@ -616,9 +619,42 @@ def ReadLog(logging, fileN):
    return dim, Coord, mass, X, F, E
 
 def ReadLog2(logging, final):
-   mass=1
-   Grad=0
-   E=9
+   files=open(final, "r")
+   log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
+   files.close
+   atmwgt=re.findall(r"AtmWgt= [\d .]+",log)
+   mtemp=[]
+   foonum=0
+   for j in range(len(atmwgt)/2): # because atomic masses are printed twize in log-files...
+      mtemp.append(re.findall(r'[\d.]+',atmwgt[j]))
+   dim=0
+   for j in range(len(mtemp)):
+         dim+=len(mtemp[j]) # dim will be sum over all elements of temp
+   dim*=3
+   mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
+   for j in range(len(mtemp)):
+      for k in range(len(mtemp[j])):
+         mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
+      foonum+=len(mtemp[j])
+   assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
+   if logging[0]<2:
+      logging[1].write("Number of atoms: {0}\nNumber of vibrational "
+                        "modes: {1} Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
+   Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
+   assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
+   if re.search(r'\n ', Etemp[-1]) is not None:
+      Etemp[-1]=Etemp[-1].replace("\n ", "") 
+   if logging[0]<=1:
+      logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
+   E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
+  
+   grad=re.findall(r"Final forces over variables, Energy=[\-\+ :\.\d D\n]+", log)
+   Grad=re.findall(r"(?<=\:\n)[\-\+\.\d D\n]+", grad[0])
+   Grad=re.findall(r"[\-\d\.]+D[-+][\d]{2}", Grad[0])
+   for i in range(len(Grad)):
+      element=Grad[i].replace('D','e')
+      Grad[i]=float(element)
+   Grad=np.matrix(Grad)
    return mass, Grad, E
 
 def replace(logging, files, freq, L):
