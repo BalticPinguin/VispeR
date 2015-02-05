@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# filename: functions_smsc.py
+# filename: functions_smsc.pyx
 import numpy as np, re, mmap, os.path, math, sys
 from scipy.linalg.lapack import dsyev as dsyev #is this faster?
 #import scipy.linalg.lapack as LA
@@ -202,6 +202,7 @@ def CalculationHR(logging, initial, final, opt):
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
    #Gauf=gaussianfreq(logging, initial, final, dim) 
    
+   print K.T
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
@@ -273,54 +274,6 @@ def gaussianfreq(logging, initial, final , dim):
          f[i][s:s+len(f2[j])]=f2[j]
          s+=len(f2[j])
    return f
-
-def gradientHR(logging, initial, final, opt):
-   """ This function gathers most essential parts for calculation of HR-factors from g09-files"""
-   assert len(initial)>0, 'no initial state found!'
-   assert len(final)>0, 'no final state found!'
-   initial=initial[0]
-   final=final[0]
-   assert os.path.isfile(initial) and os.access(initial, os.R_OK),\
-            initial+' is not a valid file name or not readable.'
-   assert os.path.isfile(final) and os.access(final, os.R_OK),\
-            final+' is not a valid file name or not readable.'
-   dim, Coord, mass, B, A, E=ReadLog(logging, initial)
-   F, CartCoord, X, P, Energy=quantity(logging, dim, 2 ) #creates respective quantities (empty)
-   if logging[0]==0:
-      logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
-   X[0],F[0],Energy[0]=B, A, E
-   F[1]=F[0] #force constant matrix in both states coincides
-   mass, Grad, E=ReadLog2(logging, final) 
-   Energy[1]=E
-   #read coordinates, force constant, binding energies from log-files and calculate needed quantities
-   if logging[0]<3:
-      logging[1].write('difference of minimum energy between states:'
-                       ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
-      if logging[0]<2:
-         logging[1].write('initial state: \n{0}\n'.format(F[0]))
-
-   #Calculate Frequencies and normal modes
-   f, Lsorted=GetL(logging, dim, mass,F, P)
-   K=GradientShift(logging, Lsorted, mass, Grad)
-      ##################################################
-   
-   #calculate HR-spect
-   HR, funi= HuangR(logging, K, f)
-   if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-      for i in range(len(initial)): #### this needs to be enhanced
-         replace(logging, initial[i], f[i], Lsorted[i])
-   return HR, funi, Energy, K, f
-
-def GradientShift(logging, L, mass, Grad):
-   print "L_0", L[0].T
-   print "Grad", Grad
-   K=L[0].T.dot(Grad.T)
-   for i in range(len(K)):
-      K*=mass[i//3]
-   K=L[1].T.dot(Grad.T)
-   for i in range(len(K)):
-      K*=mass[i//3]
-   return K
 
 def GetL(logging, dim, mass, F, D):
    """ Function that calculates the frequencies and normal modes from force constant matrix 
@@ -407,6 +360,50 @@ def GetProjector(logging, X, dim, m, Coord):
             "Projecting out translations and rotations from probe vector"
    return one_P
 
+def gradientHR(logging, initial, final, opt):
+   """ This function gathers most essential parts for calculation of HR-factors from g09-files"""
+   assert len(initial)>0, 'no initial state found!'
+   assert len(final)>0, 'no final state found!'
+   initial=initial[0]
+   final=final[0]
+   assert os.path.isfile(initial) and os.access(initial, os.R_OK),\
+            initial+' is not a valid file name or not readable.'
+   assert os.path.isfile(final) and os.access(final, os.R_OK),\
+            final+' is not a valid file name or not readable.'
+   dim, Coord, mass, B, A, E=ReadLog(logging, initial)
+   F, CartCoord, X, P, Energy=quantity(logging, dim, 2 ) #creates respective quantities (empty)
+   if logging[0]==0:
+      logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
+   X[0],F[0],Energy[0]=B, A, E
+   F[1]=F[0] #force constant matrix in both states coincides
+   Grad, E=ReadLog2(logging, final) 
+   Energy[1]=E
+   #read coordinates, force constant, binding energies from log-files and calculate needed quantities
+   if logging[0]<3:
+      logging[1].write('difference of minimum energy between states:'
+                       ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
+      if logging[0]<2:
+         logging[1].write('initial state: \n{0}\n'.format(F[0]))
+
+   #Calculate Frequencies and normal modes
+   f, Lsorted=GetL(logging, dim, mass,F, P)
+   K=GradientShift(logging, Lsorted, mass, Grad)
+      ##################################################
+   
+   #calculate HR-spect
+   HR, funi= HuangR(logging, K, f)
+   if (re.search(r"makeLog", opt, re.I) is not None) is True:  
+      for i in range(len(initial)): #### this needs to be enhanced
+         replace(logging, initial[i], f[i], Lsorted[i])
+   return HR, funi, Energy, K, f
+
+def GradientShift(logging, L, mass, Grad):
+   K=L[1].T.dot(Grad).T
+   for i in range(len(K)):
+     K[i]*=mass[i//3]
+   print "K", K.T
+   return K
+
 def gs(A):
    """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
    code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
@@ -440,12 +437,13 @@ def HuangR(logging, K, f): #what is with different frequencies???
    4. respecivp frequencies of initial state for 3 (same order)
    5. respecivp frequencies of final state for 3 (same order)
    """
+   print np.shape(K), len(K), len(K[0])
    sortuni=np.zeros((len(K),len(K[0])))
    funi=np.zeros((len(K),len(K[0])))
    uniHRall=[]
    uniFall=[]
    for i in range(len(K)):
-      unif=K[i]*K[i]*f[i+1]/2.0
+      unif=K[i]*K[i]*f[i+1]*0.5
       index=np.argsort(unif, kind='heapsort')
       sortuni[i]=unif[index]
       funi[i]=f[i+1][index]
@@ -466,6 +464,9 @@ def HuangR(logging, K, f): #what is with different frequencies???
             logging[1].write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
       uniHRall.append(uniHR)
       uniFall.append(uniF)
+   print "HR,    freq\n"
+   for i in range(len(uniFall[0])):
+      print uniHRall[0][i], uniFall[0][i]*Hartree2cm_1
    return uniHRall, uniFall
 
 def quantity(logging, dim, num_of_files):
@@ -525,6 +526,10 @@ def ReadLog(logging, fileN):
    files.close
 
    # Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
+   temp=[]
+   temp=re.findall(r' Number     Number       Type             X           Y           Z[\n -.\d]+', log)
+   tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
+
    atmwgt=re.findall(r"AtmWgt= [\d .]+",log)
    mtemp=[]
    foonum=0
@@ -534,6 +539,21 @@ def ReadLog(logging, fileN):
    for j in range(len(mtemp)):
          dim+=len(mtemp[j]) # dim will be sum over all elements of temp
    dim*=3
+   if dim!=len(tmp):
+      # this is necessary since they are not always printed twice...
+      atmwgt=re.findall(r"AtmWgt= [\d .]+",log)
+      mtemp=[]
+      foonum=0
+      for j in range(len(atmwgt)): 
+         mtemp.append(re.findall(r'[\d.]+',atmwgt[j]))
+      dim=0
+      for j in range(len(mtemp)):
+            # dim will be sum over all elements of temp
+            dim+=len(mtemp[j]) 
+      dim*=3
+   #if still something is wrong with the dimensionality:
+   assert len(tmp)==dim, 'Not all atoms were found! Something went wrong...{0}, {1}'.format(len(tmp),dim)
+
    mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
    for j in range(len(mtemp)):
       for k in range(len(mtemp[j])):
@@ -544,10 +564,6 @@ def ReadLog(logging, fileN):
       logging[1].write("Number of atoms: {0}\nNumber of vibrational "
                         "modes: {1} Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
    # Reading Cartesian coordinates
-   temp=[]
-   temp=re.findall(r' Number     Number       Type             X           Y           Z[\n -.\d]+', log)
-   tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
-   assert len(tmp)==dim, 'Not all atoms were found! Something went wrong...{0}, {1}'.format(len(tmp),dim)
    Coord=np.zeros((3, dim/3))
    MassCenter=np.zeros(3)
    for j in range(len(tmp)):
@@ -588,21 +604,43 @@ def ReadLog(logging, fileN):
                        .format(diagI.T,1/(2*diagI.T)*Hartree2GHz, X))
    # Reading of Cartesian force constant matrix  
    f=re.findall(r"Force constants in Cartesian coordinates: [\n\d .+-D]+", log, re.M)
-   assert f!=[], 'The input-file does not contain information on the force-constants!'
-   f_str=str([f[-1]])#[2:-2]
-   lines=f_str.strip().split("\\n")
-   F=np.zeros((dim,dim))
-   n=0
-   k=0
-   for i in range(2,len(lines)):
-      if i == dim+k-5*n+2: 
-         k=i-1
-         n+=1
-         continue
-      elements=lines[i].replace('D','e').split()
-      for j in range(1,len(elements)):
-         F[int(elements[0])-1][j-1+5*n]=float(elements[j])
-         F[j-1+5*n][int(elements[0])-1]=float(elements[j])
+   if f==[]:
+      #if Freq was not specified in Gaussian-file:
+      f=re.findall(r"The second derivative matrix:[XYZ\n\d .-]+", log, re.M)
+      #try to find matrix from option "Force"
+      assert f!=[], 'The input-file does not contain information on the force-constants!'
+      #else: error message. The matrix is really needed...
+      f_str=str([f[-1]])#[2:-2]
+      lines=f_str.strip().split("\\n")
+      F=np.zeros((dim,dim))
+      n=0
+      k=0
+      for i in range(2,len(lines)):
+         if i == dim+k-5*n+2: 
+            k=i-1
+            n+=1
+            continue
+         elements=lines[i].split()[1:] #don't use the first element
+         line=int(re.findall(r"[\d]+", lines[i].split()[0])[0])
+         for j in range(len(elements)):
+            print line-1, j-1+5*n, float(elements[j])
+            F[line-1][j-1+5*n]=float(elements[j])
+            F[j-1+5*n][line-1]=float(elements[j])
+   else:
+      f_str=str([f[-1]])#[2:-2]
+      lines=f_str.strip().split("\\n")
+      F=np.zeros((dim,dim))
+      n=0
+      k=0
+      for i in range(2,len(lines)):
+         if i == dim+k-5*n+2: 
+            k=i-1
+            n+=1
+            continue
+         elements=lines[i].replace('D','e').split()
+         for j in range(1,len(elements)):
+            F[int(elements[0])-1][j-1+5*n]=float(elements[j])
+            F[j-1+5*n][int(elements[0])-1]=float(elements[j])
    if logging[0]<1:
       logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
    for i in range(0,dim):
@@ -622,24 +660,6 @@ def ReadLog2(logging, final):
    files=open(final, "r")
    log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
    files.close
-   atmwgt=re.findall(r"AtmWgt= [\d .]+",log)
-   mtemp=[]
-   foonum=0
-   for j in range(len(atmwgt)/2): # because atomic masses are printed twize in log-files...
-      mtemp.append(re.findall(r'[\d.]+',atmwgt[j]))
-   dim=0
-   for j in range(len(mtemp)):
-         dim+=len(mtemp[j]) # dim will be sum over all elements of temp
-   dim*=3
-   mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
-   for j in range(len(mtemp)):
-      for k in range(len(mtemp[j])):
-         mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
-      foonum+=len(mtemp[j])
-   assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
-   if logging[0]<2:
-      logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                        "modes: {1} Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
    Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
    assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
    if re.search(r'\n ', Etemp[-1]) is not None:
@@ -651,11 +671,11 @@ def ReadLog2(logging, final):
    grad=re.findall(r"Final forces over variables, Energy=[\-\+ :\.\d D\n]+", log)
    Grad=re.findall(r"(?<=\:\n)[\-\+\.\d D\n]+", grad[0])
    Grad=re.findall(r"[\-\d\.]+D[-+][\d]{2}", Grad[0])
+   grad=np.zeros((len(Grad),1))
    for i in range(len(Grad)):
       element=Grad[i].replace('D','e')
-      Grad[i]=float(element)
-   Grad=np.matrix(Grad)
-   return mass, Grad, E
+      grad[i]=float(element)
+   return grad, E
 
 def replace(logging, files, freq, L):
    """ This function creates a new file (determined by files, ending with 
@@ -725,4 +745,4 @@ def replace(logging, files, freq, L):
       out.close()
 
 version=1.2
-# End of functions_smsc.py
+# End of functions_smsc.pyx
