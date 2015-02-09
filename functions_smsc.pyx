@@ -49,7 +49,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       for x in range(int(min(N,M))+1):
          FC+=exg*math.pow(-1,N-x)*math.pow(np.abs(Deltag),(M+N)*0.5-x)/(math.factorial(M-x)*math.factorial(N-x))*\
                math.sqrt(faktNM)/math.factorial(x)
-      return FC
+      return FC*FC
    
    def unifSpect(intens, freqs, E, FC00):
       """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
@@ -88,6 +88,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
    FC00=1
    for a in range(n):
       FC00*=FCeqf(HR[a],0,0)
+   #FC00*=FC00 
    uency00=E*Hartree2cm_1 #zero-zero transition
    if logging[0]<1:
       if approx=="OPA":
@@ -100,22 +101,18 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
       s=0
       temp=FCeqf(HR[a],0,0)
       HRf=np.zeros(( N , M ))
-      HRf[0][0]=FCeqf(HR[a], 0, 0)
-      HRf[0][0]*=HRf[0][0]
-      s+=HRf[0][0]
+      #=first, calculate all FC-factors and finally normalise them (sum over all FC-factors is one)
       for j in range(N):
          for i in range(M):
-            if i==0 and j==0: 
-               continue
-            HRf[i][j]=FCeqf(HR[a], i, j)/HRf[0][0]
-            HRf[i][j]*=HRf[i][j]
+            HRf[i][j]=FCeqf(HR[a], i, j)
             s+=HRf[i][j]
+      print a, HR[a],s, '\n', HRf
       for j in range(N):
          for i in range(M):
             if i==0 and j==0: 
                continue
                ##skip 0-0 transitions
-            tmp=HRf[i][j]/s
+            tmp=HRf[i][j]/(s*HRf[0][0])
             FC[a][j*M+i-1]=tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
             uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
    if approx=="TPA":
@@ -464,9 +461,6 @@ def HuangR(logging, K, f): #what is with different frequencies???
             logging[1].write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
       uniHRall.append(uniHR)
       uniFall.append(uniF)
-   print "HR,    freq\n"
-   for i in range(len(uniFall[0])):
-      print uniHRall[0][i], uniFall[0][i]*Hartree2cm_1
    return uniHRall, uniFall
 
 def quantity(logging, dim, num_of_files):
@@ -615,17 +609,20 @@ def ReadLog(logging, fileN):
       F=np.zeros((dim,dim))
       n=0
       k=0
+      line=0
       for i in range(2,len(lines)):
          if i == dim+k-5*n+2: 
+            #these are those lines where no forces are written to
             k=i-1
             n+=1
+            line=n
             continue
          elements=lines[i].split()[1:] #don't use the first element
-         line=int(re.findall(r"[\d]+", lines[i].split()[0])[0])
+         #line=int(re.findall(r"[\d]+", lines[i].split()[0])[0])+(i-2-n)
+         line+=1
          for j in range(len(elements)):
-            print line-1, j-1+5*n, float(elements[j])
-            F[line-1][j-1+5*n]=float(elements[j])
-            F[j-1+5*n][line-1]=float(elements[j])
+            F[line-1][j+5*n]=float(elements[j])
+            F[j+5*n][line-1]=float(elements[j])
    else:
       f_str=str([f[-1]])#[2:-2]
       lines=f_str.strip().split("\\n")

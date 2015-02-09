@@ -239,7 +239,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
    linspect[0]=linspect[0][index] #frequency
    #find transition with minimum intensity to be respected
 
-
+   #truncate all transitions having less than 0.0001% of
    for i in range(len(linspect[1])):
       if linspect[1][i]>=1e-6*linspect[1][-1]:
          minint=i
@@ -352,7 +352,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
    mini=0
    maxi=len(freq) #just in case Gamma is too big or frequency-range too low
    for i in range(1,len(freq)):
-      if freq[i]>=5*gamma+freq[0]:
+      if freq[i]>=10*gamma+freq[0]:
          maxi=i
          break
    if spectfile==None:
@@ -364,30 +364,32 @@ def outspect(logging, float T, opt, linspect, float E=0):
    logwrite("broadened spectrum:\n frequency      intensity\n")
    if shape=='g':
       for i in range(len(omega)): 
+         omegai=omega[i]
          for j in range(maxi,len(freq)):
-            if freq[j]>=5*gamma+omega[i]:
+            if freq[j]>=10*gamma+omegai:
                maxi=j
                break
          for j in range(max(0,mini),maxi):
-            if freq[j]>=omega[i]-5*gamma:
+            if freq[j]>=omegai-8*gamma:
                mini=j-1
                break
          spect[i]=sum(intens[j]/(np.sqrt(2*np.pi)*sigma)*\
-                  np.exp(-(omega[i]-freq[j])*(omega[i]-freq[j])/(2*sigma*sigma))
+                  np.exp(-(omegai-freq[j])*(omegai-freq[j])/(2*sigma*sigma))
                   for j in range(mini, maxi))
-         #out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))
-         logwrite(u" %s  %s\n" %omega[i] %spect[i])
+         logwrite(u" {0}  {1}\n".format(omegai ,spect[i]))
+         #logwrite(u" %s  %s\n" %omega[i] %spect[i])
    else:  #shape=='l':
       for i in range(len(omega)): 
          omegai=omega[i]
          for j in range(maxi,len(freq)):
-            if freq[j]>=5*gamma+omegai:
+            if freq[j]>=25*gamma+omegai:
                maxi=j
                break
-         for j in range(max(0,mini),maxi):
-            if freq[j]>=omegai-5*gamma:
+         for j in range(max(1,mini),maxi):
+            if freq[j]>=omegai-25*gamma:
                mini=j-1
                break
+         print mini, maxi, omegai
          spect[i]=sum(intens[k]/np.pi*gamma/((omegai-freq[k])*(omegai-freq[k])+gamma*gamma)
                   for k in range(mini, maxi))
          #out.write(u" %s  %s\n" %omega[i] %spect[i])
