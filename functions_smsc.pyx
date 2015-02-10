@@ -12,7 +12,7 @@ Angs2Bohr=1/0.52917721092
 Hartree2GHz=6.579684e6                                     
 Hartree2cm_1=219474.63 
 
-def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
+def calcspect(logging, HR, freq, E, E0, N, M, T):
    """This is used to calculate the line spectrum assuming no mode mixing (shift only) 
    and coinciding frequencies in both electronic states.
 
@@ -22,7 +22,6 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
    freq:   frequencies (have to be in the same order as HR
    E:      energy difference of energy surfaces
    N,M:    are the numbers of vibrational quanta can be in the modes
-   approx: OPA/TPA
    All arguments are neccesary.
 
    **RETURNS:**
@@ -88,7 +87,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
    FC00=1
    for a in range(n):
       FC00*=FCeqf(HR[a],0,0)
-   #FC00*=FC00 
+   FC00/=N*0.97 
+   #since there are N FC-like progressions, each normalised to 1
    uency00=E*Hartree2cm_1 #zero-zero transition
    if logging[0]<1:
       if approx=="OPA":
@@ -97,63 +97,34 @@ def calcspect(logging, HR, freq, E, E0, N, M, T, approx="OPA"):
          logging[1].write("Line-spectrum in Two-Particle approximation:\n")
       logging[1].write(u"frequency     intensity  \n")
       #logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
+   print "0-0 trans:",FC00
    for a in range(n):
-      s=0
-      temp=FCeqf(HR[a],0,0)
-      HRf=np.zeros(( N , M ))
       #=first, calculate all FC-factors and finally normalise them (sum over all FC-factors is one)
+      HRf0=FCeqf(HR[a], 0, 0)
       for j in range(N):
-         for i in range(M):
-            HRf[i][j]=FCeqf(HR[a], i, j)
-            s+=HRf[i][j]
-      print a, HR[a],s, '\n', HRf
-      for j in range(N):
-         for i in range(M):
-            if i==0 and j==0: 
+         HRf=np.zeros( int((HR[a]+1)*(M+j)) )
+         s=0
+         i=0
+         while s<=0.96:
+            HRf[i]=FCeqf(HR[a], i, j)
+            s+=HRf[i]
+            i+=1
+         print a,j , HR[a],s, '\n', HRf
+         i-=1
+         for k in range(i):
+            if k==0 and j==0: 
+               #skip 0-0 transitions
                continue
-               ##skip 0-0 transitions
-            tmp=HRf[i][j]/(s*HRf[0][0])
-            FC[a][j*M+i-1]=tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
-            uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-   if approx=="TPA":
-      ind=0
-      for a in range(n):
-         tempa=FCeqf(HR[a],0,0)
-         #the case b=a is considered above already
-         for b in range(a+1,n):
-            tempb=FCeqf(HR[b],0,0)
-            for i in range(N):
-               if i==0:
-                  krange=range(1,M)
-               else:
-                  krange=range(M)
-               for j in range(M):
-                  if j==0 :
-                     lrange=range(1,N)
-                  else:
-                     lrange=range(N)
-                  for k in krange:
-                     for l in lrange:
-                        tmp=FCeqf(HR[a], i, k)*FCeqf(HR[b], l, j)/(tempa*tempb)
-                        ######throw out all transitions that are too small
-                        if tmp*tmp>1e-4:
-                           FC2[0][ind]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i+freq[b]*l)/T)
-                           uency2[0][ind]=(E+freq[a]*(i-k)+freq[b]*(l-j))*Hartree2cm_1
-                           #logging[1].write(u" {0}  {1}  {2}\n"\
-                                       #.format(uency2[0][ind],FC2[0][ind], a*n+b))
-                           ind+=1
+            tmp=HRf[k]/HRf0
+            FC[a][j*M+k-1]=tmp*FC00*np.exp(-(E0+freq[a]*j)/T)
+            uency[a][j*M+k-1]=(E+freq[a]*(j-k))*Hartree2cm_1
+            print FC[a][j*M+k-1], tmp
+            if k>=M-1:
+               ############# this is due to an old feature; make this more flexible in the future!!
+               break
    FC00*=np.exp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
-   if approx=="TPA":
-      spect2=unifSpect(FC2, uency2, E*Hartree2cm_1, 0)
-      result=np.zeros(( 3, len(spect[0])+len(spect2[0]) ))
-      for i in range(2):
-         result[i][:len(spect[0])]=spect[i]
-         result[i][len(spect[0]):]=spect2[i]
-         ### this is arbitrary but should be constant, so that no OPA2nPA is possible
-      result[2]=42
-      result[2]=42
-      return result
+   print "spectrum (first)\n", spect.T
    return spect
 
 def CalculationHR(logging, initial, final, opt):
@@ -434,7 +405,6 @@ def HuangR(logging, K, f): #what is with different frequencies???
    4. respecivp frequencies of initial state for 3 (same order)
    5. respecivp frequencies of final state for 3 (same order)
    """
-   print np.shape(K), len(K), len(K[0])
    sortuni=np.zeros((len(K),len(K[0])))
    funi=np.zeros((len(K),len(K[0])))
    uniHRall=[]
@@ -656,6 +626,7 @@ def ReadLog(logging, fileN):
 def ReadLog2(logging, final):
    files=open(final, "r")
    log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
+   print "in readlog2"
    files.close
    Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
    assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
@@ -665,13 +636,18 @@ def ReadLog2(logging, final):
       logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
    E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
   
-   grad=re.findall(r"Final forces over variables, Energy=[\-\+ :\.\d D\n]+", log)
-   Grad=re.findall(r"(?<=\:\n)[\-\+\.\d D\n]+", grad[0])
-   Grad=re.findall(r"[\-\d\.]+D[-+][\d]{2}", Grad[0])
+   #grad=re.findall(r"Final forces over variables, Energy=[\-\+ :\.\d D\n]+", log)
+   #Grad=re.findall(r"(?<=\:\n)[\-\+\.\d D\n]+", grad[0])
+   #Grad=re.findall(r"[\-\d\.]+D[-+][\d]{2}", Grad[0])
+   #grad=np.zeros((len(Grad),1))
+   #for i in range(len(Grad)):
+      #element=Grad[i].replace('D','e')
+      #grad[i]=float(element)
+   grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
+   Grad=re.findall(r"[\-\d\.]+[\d]{9}", grad[0])
    grad=np.zeros((len(Grad),1))
    for i in range(len(Grad)):
-      element=Grad[i].replace('D','e')
-      grad[i]=float(element)
+      grad[i]=float(Grad[i])
    return grad, E
 
 def replace(logging, files, freq, L):

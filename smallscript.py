@@ -9,6 +9,8 @@ import Dusch_unrest as DR
 import broaden as br
 #include further dicts
 import sys, re, mmap, numpy as np
+from progressbar import ProgressBar
+import time
 
 def usage():
    print "usage: smallscript <input-file>"
@@ -48,6 +50,7 @@ def invokeLogging(logfile, mode="important"):
 
 def main(argv=None):
    assert len(argv)==1, 'exactly one argument required.'
+   pbar = ProgressBar(maxval=10)
    #open input-file (if existent and readable) and map it to f
    try:
       infile=open(argv[0], "r")
@@ -118,13 +121,14 @@ def main(argv=None):
       method=re.findall(r"(?<=method: )[ \w]+",opt, re.I)
       if method==[]:
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
-      elif method in ["gradient", "Gradient", "grad"]:
+      elif method[0] in ["gradient", "Gradient", 'grad', "gradient ", "grad "]:
          ## test whether Duschinsky-rotation is needed
+         print "gradient-method"
          HR, funi, Energy, K, f=of.gradientHR(logging, initial, final, opt)
-      elif method in ["shift", "SHIFT", "Shift"]:
+      elif method[0] in ["shift", "SHIFT", "Shift"]:
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
       else:
-         logging[1].write("method {0} not recognised. Please")
+         logging[1].write("method {0} not recognised. Use Shift instead.\n".format(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
 
    if np.mod(todo,4)>=2:
@@ -173,18 +177,8 @@ def main(argv=None):
 	 except ValueError:
 	    logging[1].write("number of vibrational states {0} is not an integer. Use default instead.\n".format(states))
 	    states=5
-      part=re.findall(r"(?<=particles:)[ \d]*", opt, re.I)
-      if len(part)==0: #particles not specified
-         part=np.array([1])
-      if float(part[0])==1:
-         for i in range(len(initial)):
-            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T, "OPA")
-      elif float(part[0])==2:
-         for i in range(len(initial)):
-            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T, "TPA")
-      else:
-         for i in range(len(initial)):
-            linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T)
+      for i in range(len(initial)):
+         linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T)
       if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
          if opts[2]!=[]:
             ## i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated
@@ -347,6 +341,7 @@ def main(argv=None):
 
    logging[1].write("end of calculation reached. Normal exit.")
    logging[1].close()
+   pbar.finish()
    
 if __name__ == "__main__":
    main(sys.argv[1:])
