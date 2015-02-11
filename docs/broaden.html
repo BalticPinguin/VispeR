@@ -17,11 +17,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-0'>#</a>
       </div>
-      <p>filename: broadening.py</p>
+      <p>filename: broadening.pyx</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">line_profiler</span> <span class="kn">import</span> <span class="n">LineProfiler</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">re</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -93,13 +92,13 @@
       <div class="highlight"><pre>         <span class="n">grid</span><span class="o">=</span><span class="p">[]</span>
          <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">gridfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">lis</span><span class="o">=</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>  <span class="c"># create a list of lists</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lis</span><span class="p">):</span>        <span class="c">#print the list items </span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lis</span><span class="p">):</span>        <span class="c"># get the list items </span>
                <span class="n">grid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
          <span class="n">omega</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">))</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">grid</span><span class="p">)):</span>
             <span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">grid</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
    <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;(?&lt;=gamma=)[ \d\.,]+&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>  <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
-      <span class="n">gamma</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=gamma=)[ \d\.,]+&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="n">gamma</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=gamma=)[ \d\.]+&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
       <span class="n">gamma</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">gamma</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
    <span class="n">shape</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=shape=)[ \w]+&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
@@ -116,8 +115,7 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
-      <p>@profile
-This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.</p>
+      <p>This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">def</span> <span class="nf">OPA2nPA</span><span class="p">(</span><span class="n">OPAfreq</span><span class="p">,</span><span class="n">freq00</span><span class="p">,</span> <span class="n">OPAintens</span><span class="p">,</span> <span class="n">intens00</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span></pre></div>
@@ -129,23 +127,22 @@ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle n
       <div class='octowrap'>
         <a class='octothorpe' href='#section-6'>#</a>
       </div>
-      <p><strong>PARAMETERS</strong>
-  OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
-            array of lenght n
-  freq00:   frequency of purely electronic transition
-  OPAintens:intensities of the respective transitions in same order as OPAfreq
-  intens00: intensity of the purely electronic transition
-            array of lenght n
-  mode:     number of vibrational states changing
-            array of lenght n</p>
-<p><strong>RETURNS</strong>
-  TPAfreq:  </p>
-<p>TPAfreq:  frequencies of the nPA-vibrational spectrum
-  TPAintens:intensities of the nPA-vibrational spectrum     </p>
-<p>This function does the most calculation that is the iteration to the next number of particles</p>
+      <p><em>PARAMETERS</em>*
+PAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
+         array of lenght n
+req00:   frequency of purely electronic transition
+PAintens:intensities of the respective transitions in same order as OPAfreq
+ntens00: intensity of the purely electronic transition
+         array of lenght n
+ode:     number of vibrational states changing
+         array of lenght n</p>
+<p><em>RETURNS</em>*
+PAfreq:  </p>
+<p>PAfreq:  frequencies of the nPA-vibrational spectrum
+PAintens:intensities of the nPA-vibrational spectrum     </p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">putN</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">intens</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">OPAintens</span><span class="p">,</span> <span class="n">OPAfreq</span><span class="p">,</span> <span class="n">oldmode</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">append</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">append</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -154,11 +151,12 @@ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle n
       <div class='octowrap'>
         <a class='octothorpe' href='#section-7'>#</a>
       </div>
-      
+      <p>def putN(int j, int n, double[:] intens, double[:] freq, double[:,:] mode, double[:] OPAintens, double[:] OPAfreq, double[:,:] oldmode):
+def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
+This function does the most calculation that is the iteration to the next number of particles</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">newintens</span><span class="o">=</span><span class="p">[]</span>
-      <span class="n">newfreq</span><span class="o">=</span><span class="p">[]</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">putN</span><span class="p">(</span><span class="nb">int</span> <span class="n">j</span><span class="p">,</span> <span class="nb">int</span> <span class="n">n</span><span class="p">,</span> <span class="n">intens</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">OPAintens</span><span class="p">,</span> <span class="n">OPAfreq</span><span class="p">,</span> <span class="n">oldmode</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -167,10 +165,13 @@ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle n
       <div class='octowrap'>
         <a class='octothorpe' href='#section-8'>#</a>
       </div>
-      <p>print 'arrived here:', mode, oldmode, n ,'-------------------'</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre>      <span class="n">cdef</span> <span class="nb">int</span> <span class="n">i</span>
+      <span class="n">cdef</span> <span class="nb">int</span> <span class="n">k</span>
+      <span class="n">newintens</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">newfreq</span><span class="o">=</span><span class="p">[]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -194,22 +195,22 @@ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle n
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="k">try</span><span class="p">:</span>
-            <span class="n">foo</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">foo</span><span class="p">)</span>
+      <div class="highlight"><pre>         <span class="n">cdef</span> <span class="nb">int</span> <span class="n">s</span>
+         <span class="k">try</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">foo</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
                <span class="k">if</span> <span class="n">foo</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">s</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
                   <span class="k">return</span> <span class="bp">False</span>
-         <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">foo</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
                <span class="k">return</span> <span class="bp">False</span>
          <span class="k">return</span> <span class="bp">True</span>
-
+     
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intens</span><span class="p">)):</span>
-         <span class="k">if</span> <span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mf">1e-9</span><span class="p">:</span> <span class="c">#######</span>
-            <span class="n">newintens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="c">#this is OPA-part</span>
-            <span class="n">newfreq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">n</span><span class="o">&lt;=</span><span class="mi">1</span><span class="p">:</span>
-               <span class="k">continue</span></pre></div>
+         <span class="n">intensi</span><span class="o">=</span><span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+         <span class="k">if</span> <span class="n">intensi</span><span class="o">&gt;</span><span class="mf">1e-9</span><span class="p">:</span> <span class="c">#######</span>
+            <span class="n">newintens</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">newintens</span><span class="p">,</span> <span class="n">intensi</span><span class="p">)</span> <span class="c">#this is OPA-part</span>
+            <span class="n">freqi</span><span class="o">=</span><span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">newfreq</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">newfreq</span><span class="p">,</span> <span class="n">freqi</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -218,14 +219,11 @@ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle n
       <div class='octowrap'>
         <a class='octothorpe' href='#section-11'>#</a>
       </div>
-      <p>this saves creating new objects and running through loops without having results</p>
+      <p>print intensi, freqi, mode[:].T[i]</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="n">tmpintens</span><span class="o">=</span><span class="p">[]</span>
-            <span class="n">tmpfreq</span><span class="o">=</span><span class="p">[]</span>
-            <span class="n">newmode</span><span class="o">=</span><span class="p">[]</span>
-            <span class="n">nwemode</span><span class="o">=</span><span class="p">[]</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">oldmode</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span> <span class="c"># go through whole range of states ...</span></pre></div>
+      <div class="highlight"><pre>            <span class="k">if</span> <span class="n">n</span><span class="o">&lt;=</span><span class="mi">1</span><span class="p">:</span>
+               <span class="k">continue</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -234,10 +232,16 @@ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle n
       <div class='octowrap'>
         <a class='octothorpe' href='#section-12'>#</a>
       </div>
-      <p>tmpmode=[p for p in mode[:].T[i] if (p not in oldmode[:].T[k]) and np.all(p!=0) ]</p>
+      <p>this saves creating new objects and running through loops without having results</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>               <span class="n">tmpmode</span><span class="o">=</span><span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">oldmode</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="ow">and</span> <span class="n">allnonzero</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">]</span></pre></div>
+      <div class="highlight"><pre>            <span class="n">tmpintens</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">tmpfreq</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">newmode</span><span class="o">=</span><span class="p">[]</span>
+            <span class="n">nwemode</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">oldmode</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span> <span class="c"># go through whole range of states ...</span>
+               <span class="n">tempmode</span><span class="o">=</span><span class="n">oldmode</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+               <span class="k">if</span> <span class="n">tempmode</span><span class="o">==</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -246,75 +250,40 @@ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle n
       <div class='octowrap'>
         <a class='octothorpe' href='#section-13'>#</a>
       </div>
-      <blockquote>
-<p>how to change this line???</p>
-</blockquote>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>               <span class="k">if</span> <span class="n">tmpmode</span><span class="o">==</span><span class="p">[]:</span>
-                  <span class="k">continue</span>
-               <span class="n">tempmode</span><span class="o">=</span><span class="n">oldmode</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-               <span class="k">if</span> <span class="n">tempmode</span><span class="o">==</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-14'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
-      </div>
       <p>that means, if mode[:].T[k] contains 0-0 transition</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>                  <span class="k">continue</span>
+               <span class="n">tmpmode</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mode</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+               <span class="k">if</span> <span class="n">tmpmode</span><span class="o">==</span><span class="p">[]:</span>
+                  <span class="k">continue</span>
+               <span class="k">if</span> <span class="ow">not</span> <span class="n">allnonzero</span><span class="p">(</span><span class="n">tmpmode</span><span class="p">):</span>
+                  <span class="k">continue</span>
+               <span class="k">if</span> <span class="n">tempmode</span> <span class="ow">in</span> <span class="n">tmpmode</span><span class="p">:</span>
+                  <span class="k">continue</span>
                <span class="k">try</span> <span class="p">:</span>
-                  <span class="n">tmpmode</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tmpmode</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-15'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
-      </div>
-      <p>print tmpmode</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>                  <span class="n">xmode</span><span class="o">=</span><span class="p">[]</span>
-                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmpmode</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
-                     <span class="n">xmode</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmpmode</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">])</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-16'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
-      </div>
-      <h3>how to change rows and columns in a list?</h3>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>                  <span class="n">newmode</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xmode</span><span class="p">)</span> <span class="c">#or xmode.T??</span>
+                  <span class="n">tmpmode</span><span class="o">=</span><span class="n">tmpmode</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                  <span class="n">newmode</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">newmode</span><span class="p">,</span> <span class="n">tmpmode</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="c">#or xmode.T??</span>
                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-                  <span class="n">newmode</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">tmpmode</span><span class="p">))</span>
-               <span class="n">nwemode</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tempmode</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-               <span class="n">tmpintens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OPAintens</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-               <span class="n">tmpfreq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">OPAfreq</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+</span><span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                  <span class="n">newmode</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">newmode</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">tmpmode</span><span class="p">))</span>
+               <span class="n">nwemode</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">nwemode</span><span class="p">,</span> <span class="n">tempmode</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+               <span class="n">tmpintens</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">tmpintens</span><span class="p">,</span> <span class="n">OPAintens</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="n">intensi</span><span class="p">)</span>
+               <span class="n">tmpfreq</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">tmpfreq</span><span class="p">,</span> <span class="n">OPAfreq</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">+</span><span class="n">freqi</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmpintens</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
                <span class="n">xmode</span><span class="o">=</span><span class="p">[]</span>
-               <span class="n">xmode</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newmode</span><span class="p">)</span>
+               <span class="n">xmode</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">xmode</span><span class="p">,</span><span class="n">newmode</span><span class="p">)</span>
                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">xmode</span><span class="p">))</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
                   <span class="n">xmode</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">xmode</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
                   <span class="n">nmode</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span> <span class="nb">len</span><span class="p">(</span><span class="n">xmode</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">xmode</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="p">))</span>
                   <span class="n">nmode</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">xmode</span>
                   <span class="n">nmode</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">nwemode</span>
                <span class="k">else</span><span class="p">:</span>
-                  <span class="n">xmode</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nwemode</span><span class="p">)</span>
+                  <span class="n">xmode</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">xmode</span><span class="p">,</span> <span class="n">nwemode</span><span class="p">)</span>
                   <span class="n">nmode</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">xmode</span><span class="p">)</span>
                <span class="n">freq2</span><span class="p">,</span> <span class="n">intens2</span><span class="o">=</span><span class="n">putN</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">tmpintens</span><span class="p">,</span> <span class="n">tmpfreq</span><span class="p">,</span> <span class="n">nmode</span><span class="p">,</span> <span class="n">OPAintens</span><span class="p">,</span> <span class="n">OPAfreq</span><span class="p">,</span> <span class="n">oldmode</span><span class="p">)</span>
                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intens2</span><span class="p">)):</span>
-                  <span class="n">newintens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intens2</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
-                  <span class="n">newfreq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freq2</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                  <span class="n">newintens</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">newintens</span><span class="p">,</span> <span class="n">intens2</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                  <span class="n">newfreq</span><span class="o">=</span><span class="n">append</span><span class="p">(</span><span class="n">newfreq</span><span class="p">,</span> <span class="n">freq2</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
       <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">newfreq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">newintens</span><span class="p">)</span>
         
    <span class="n">length</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">OPAfreq</span><span class="p">)</span>
@@ -329,19 +298,16 @@ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle n
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <p>save complexity, that it does not try to make more combinations than actually possible...
 np.set_printoptions(precision=5, linewidth=138)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="n">TPAfreq</span><span class="p">,</span> <span class="n">TPAintens</span><span class="o">=</span><span class="n">putN</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">OPAintens</span><span class="p">,</span> <span class="n">OPAfreq</span><span class="p">,</span> <span class="n">newmode</span><span class="p">,</span> <span class="n">OPAintens</span><span class="p">,</span> <span class="n">OPAfreq</span><span class="p">,</span> <span class="n">newmode</span><span class="p">)</span>
-   <span class="k">print</span> <span class="s">&quot;TPA:&quot;</span>
-   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">TPAfreq</span><span class="p">)):</span>
-      <span class="k">print</span> <span class="n">TPAfreq</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">TPAintens</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s">&quot;42&quot;</span>
    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">TPAfreq</span><span class="p">)):</span>
       <span class="n">TPAfreq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+=</span><span class="n">freq00</span>
       <span class="n">TPAintens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*=</span><span class="n">intens00</span>
@@ -349,10 +315,10 @@ np.set_printoptions(precision=5, linewidth=138)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-18'>
+  <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       
     </div>
@@ -364,10 +330,10 @@ np.set_printoptions(precision=5, linewidth=138)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-19'>
+  <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
+        <a class='octothorpe' href='#section-16'>#</a>
       </div>
       <p>TPAintens[0]=intens00 #this is OPA-part
 TPAfreq[0]=freq00</p>
@@ -376,27 +342,16 @@ TPAfreq[0]=freq00</p>
       <div class="highlight"><pre>   <span class="n">ind</span><span class="o">=</span><span class="mi">0</span>
    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
       <span class="n">TPAintens</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">=</span><span class="n">OPAintens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="c">#this is OPA-part</span>
-      <span class="n">TPAfreq</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">=</span><span class="n">OPAfreq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-20'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-20'>#</a>
-      </div>
-      <p>print i, TPAfreq[ind]-freq00, TPAintens[ind]/intens00</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="n">ind</span><span class="o">+=</span><span class="mi">1</span>
+      <span class="n">TPAfreq</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">=</span><span class="n">OPAfreq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+      <span class="n">ind</span><span class="o">+=</span><span class="mi">1</span>
       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">length</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-21'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-21'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       <h1>not only same mode but all modes with lower number should not be taken into account here!?</h1>
     </div>
@@ -405,41 +360,18 @@ TPAfreq[0]=freq00</p>
             <span class="k">continue</span>
          <span class="n">TPAintens</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">=</span><span class="n">OPAintens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">OPAintens</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/</span><span class="n">intens00</span>
          <span class="n">TPAfreq</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">=</span><span class="n">OPAfreq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">OPAfreq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">-</span><span class="n">freq00</span>
-         <span class="n">ind</span><span class="o">+=</span><span class="mi">1</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-22'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-22'>#</a>
-      </div>
-      <p>print mode[i], mode[j]</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>   <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">TPAfreq</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s">&#39;heapsort&#39;</span><span class="p">)</span>
+         <span class="n">ind</span><span class="o">+=</span><span class="mi">1</span>
+   <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">TPAfreq</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s">&#39;heapsort&#39;</span><span class="p">)</span>
    <span class="n">TPAfreq</span><span class="o">=</span><span class="n">TPAfreq</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-   <span class="n">TPAintens</span><span class="o">=</span><span class="n">TPAintens</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></pre></div>
+   <span class="n">TPAintens</span><span class="o">=</span><span class="n">TPAintens</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+   <span class="k">return</span> <span class="n">TPAfreq</span><span class="p">,</span> <span class="n">TPAintens</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-23'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-23'>#</a>
-      </div>
-      <p>for i in range(len(TPAfreq)):
-print TPAfreq[i], TPAintens[i]</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>   <span class="k">return</span> <span class="n">TPAfreq</span><span class="p">,</span> <span class="n">TPAintens</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-24'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-24'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       
     </div>
@@ -455,10 +387,10 @@ print TPAfreq[i], TPAintens[i]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       <p>0-0 transition is included, but only once!</p>
     </div>
@@ -487,22 +419,22 @@ print TPAfreq[i], TPAintens[i]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-20'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-20'>#</a>
       </div>
       <p>This function calculates the broadened spectrum given the line spectrum,</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">def</span> <span class="nf">outspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">outspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="nb">float</span> <span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">,</span> <span class="nb">float</span> <span class="n">E</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-21'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-21'>#</a>
       </div>
       <p>frequency-rage and output-file whose name is first argument. 
 As basis-function a Lorentzian is assumed with a common width.</p>
@@ -514,14 +446,17 @@ linspect:  line-spectrum list (frequency, intensity)
 gamma:     broadening constant for the Lorentzians. It is the same for all peaks</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">omega</span><span class="p">,</span> <span class="n">spectfile</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">gridpt</span><span class="p">,</span> <span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span><span class="n">handel_input</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">cdef</span> <span class="nb">float</span> <span class="n">minint</span><span class="o">=</span><span class="mi">0</span>
+   <span class="n">cdef</span> <span class="nb">int</span> <span class="n">i</span>
+
+   <span class="n">omega</span><span class="p">,</span> <span class="n">spectfile</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">gridpt</span><span class="p">,</span> <span class="n">minfreq</span><span class="p">,</span> <span class="n">maxfreq</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span><span class="n">handel_input</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-22'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-22'>#</a>
       </div>
       <p>read file in format of linspect</p>
     </div>
@@ -530,10 +465,10 @@ gamma:     broadening constant for the Lorentzians. It is the same for all peaks
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-29'>
+  <div class='section' id='section-23'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
+        <a class='octothorpe' href='#section-23'>#</a>
       </div>
       <p>sort spectrum with respect to size of elements</p>
     </div>
@@ -545,16 +480,27 @@ gamma:     broadening constant for the Lorentzians. It is the same for all peaks
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-30'>
+  <div class='section' id='section-24'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-30'>#</a>
+        <a class='octothorpe' href='#section-24'>#</a>
       </div>
       <p>find transition with minimum intensity to be respected</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">minint</span><span class="o">=</span><span class="mi">0</span>
-   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">linspect</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>truncate all transitions having less than 0.0001% of</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">linspect</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
       <span class="k">if</span> <span class="n">linspect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;=</span><span class="mf">1e-6</span><span class="o">*</span><span class="n">linspect</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
          <span class="n">minint</span><span class="o">=</span><span class="n">i</span>
          <span class="k">break</span>
@@ -566,10 +512,10 @@ gamma:     broadening constant for the Lorentzians. It is the same for all peaks
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-31'>
+  <div class='section' id='section-26'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-31'>#</a>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       <p>make nPA from OPA:</p>
     </div>
@@ -581,10 +527,10 @@ gamma:     broadening constant for the Lorentzians. It is the same for all peaks
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-32'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <pre><code>                     spectral frequency   0-0 transition      intensities          0-0 intensit.          modes
 </code></pre>
@@ -638,12 +584,12 @@ gamma:     broadening constant for the Lorentzians. It is the same for all peaks
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-33'>
+  <div class='section' id='section-28'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
-      <pre><code>                     spectral frequency   0-0 transition      intensities          0-0 intensit.          modes
+      <pre><code>                spectral frequency   0-0 transition      intensities        0-0 intensit.        modes ,
 </code></pre>
     </div>
     <div class='code'>
@@ -665,10 +611,10 @@ gamma:     broadening constant for the Lorentzians. It is the same for all peaks
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-34'>
+  <div class='section' id='section-29'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
+        <a class='octothorpe' href='#section-29'>#</a>
       </div>
       <p>find transition with minimum intensity to be respected
 the range of frequency ( should be greater than the transition-frequencies)</p>
@@ -687,10 +633,10 @@ the range of frequency ( should be greater than the transition-frequencies)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-35'>
+  <div class='section' id='section-30'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
+        <a class='octothorpe' href='#section-30'>#</a>
       </div>
       <p>if no other grid is defined: use linspace in range</p>
     </div>
@@ -699,26 +645,23 @@ the range of frequency ( should be greater than the transition-frequencies)</p>
       <span class="n">omega</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">minfreq</span><span class="p">,</span><span class="n">maxfreq</span><span class="p">,</span><span class="n">gridpt</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
          <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;omega is equally spaced</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-   <span class="n">sigma</span><span class="o">=</span><span class="n">gamma</span><span class="o">*</span><span class="mi">2</span><span class="o">/</span><span class="mf">2.355</span> <span class="c">#if gaussian used: same FWHM</span>
-
-   <span class="n">TPAintens</span><span class="o">/=</span><span class="n">TPAintens</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">0.01</span> <span class="c">#normalise spectrum (due to highest peak) to make different approaches comparable</span>
-
-   <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">TPAfreq</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s">&#39;heapsort&#39;</span><span class="p">)</span> <span class="c">#sort by freq</span>
-   <span class="n">freq</span><span class="o">=</span><span class="n">TPAfreq</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-   <span class="n">intens</span><span class="o">=</span><span class="n">TPAintens</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></pre></div>
+   <span class="n">sigma</span><span class="o">=</span><span class="n">gamma</span><span class="o">*</span><span class="mi">2</span><span class="o">/</span><span class="mf">2.355</span> <span class="c">#if gaussian used: same FWHM</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-31'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-31'>#</a>
       </div>
-      <p>for i in range(len(freq)):
-  print freq[i], intens[i], "42"</p>
+      <p>TPAintens/=TPAintens[-1]*0.01 #normalise spectrum (due to highest peak) to make different approaches comparable</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
+      <div class="highlight"><pre>   <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">TPAfreq</span><span class="p">,</span><span class="n">kind</span><span class="o">=</span><span class="s">&#39;heapsort&#39;</span><span class="p">)</span> <span class="c">#sort by freq</span>
+   <span class="n">freq</span><span class="o">=</span><span class="n">TPAfreq</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+   <span class="n">intens</span><span class="o">=</span><span class="n">TPAintens</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+   <span class="k">if</span> <span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">:</span>
       <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;intensity   frequency</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intens</span><span class="p">)):</span>
          <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&quot;{0} {1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
@@ -726,7 +669,7 @@ the range of frequency ( should be greater than the transition-frequencies)</p>
    <span class="n">mini</span><span class="o">=</span><span class="mi">0</span>
    <span class="n">maxi</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="c">#just in case Gamma is too big or frequency-range too low</span>
    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)):</span>
-      <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">5</span><span class="o">*</span><span class="n">gamma</span><span class="o">+</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+      <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">10</span><span class="o">*</span><span class="n">gamma</span><span class="o">+</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
          <span class="n">maxi</span><span class="o">=</span><span class="n">i</span>
          <span class="k">break</span>
    <span class="k">if</span> <span class="n">spectfile</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
@@ -734,77 +677,80 @@ the range of frequency ( should be greater than the transition-frequencies)</p>
    <span class="n">out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">spectfile</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
 
    <span class="n">spect</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">omega</span><span class="p">))</span>
-   <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;broadened spectrum:</span><span class="se">\n</span><span class="s"> frequency      intensity</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+   <span class="n">logwrite</span><span class="o">=</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span>
+   <span class="n">logwrite</span><span class="p">(</span><span class="s">&quot;broadened spectrum:</span><span class="se">\n</span><span class="s"> frequency      intensity</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
    <span class="k">if</span> <span class="n">shape</span><span class="o">==</span><span class="s">&#39;g&#39;</span><span class="p">:</span>
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">omega</span><span class="p">)):</span> 
+         <span class="n">omegai</span><span class="o">=</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
          <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxi</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">5</span><span class="o">*</span><span class="n">gamma</span><span class="o">+</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">10</span><span class="o">*</span><span class="n">gamma</span><span class="o">+</span><span class="n">omegai</span><span class="p">:</span>
                <span class="n">maxi</span><span class="o">=</span><span class="n">j</span>
                <span class="k">break</span>
          <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">mini</span><span class="p">),</span><span class="n">maxi</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="n">gamma</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">omegai</span><span class="o">-</span><span class="mi">8</span><span class="o">*</span><span class="n">gamma</span><span class="p">:</span>
                <span class="n">mini</span><span class="o">=</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span>
                <span class="k">break</span>
          <span class="n">spect</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">intens</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">*</span><span class="n">sigma</span><span class="p">)</span><span class="o">*</span>\
-                  <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">sigma</span><span class="o">*</span><span class="n">sigma</span><span class="p">))</span>
-                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mini</span><span class="p">,</span> <span class="n">maxi</span><span class="p">))</span></pre></div>
+                  <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">omegai</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">omegai</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">sigma</span><span class="o">*</span><span class="n">sigma</span><span class="p">))</span>
+                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mini</span><span class="p">,</span> <span class="n">maxi</span><span class="p">))</span>
+         <span class="n">logwrite</span><span class="p">(</span><span class="s">u&quot; {0}  {1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">omegai</span> <span class="p">,</span><span class="n">spect</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
+  <div class='section' id='section-32'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
+        <a class='octothorpe' href='#section-32'>#</a>
       </div>
-      <p>out.write(u" {0}  {1}\n".format(omega[i] ,spect[i]))</p>
+      <p>logwrite(u" %s  %s\n" %omega[i] %spect[i])</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&quot; </span><span class="si">%s</span><span class="s">  </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">%</span><span class="n">spect</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-   <span class="k">else</span><span class="p">:</span>  <span class="c">#shape==&#39;l&#39;:</span>
+      <div class="highlight"><pre>   <span class="k">else</span><span class="p">:</span>  <span class="c">#shape==&#39;l&#39;:</span>
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">omega</span><span class="p">)):</span> 
+         <span class="n">omegai</span><span class="o">=</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
          <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxi</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">5</span><span class="o">*</span><span class="n">gamma</span><span class="o">+</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">25</span><span class="o">*</span><span class="n">gamma</span><span class="o">+</span><span class="n">omegai</span><span class="p">:</span>
                <span class="n">maxi</span><span class="o">=</span><span class="n">j</span>
                <span class="k">break</span>
-         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">mini</span><span class="p">),</span><span class="n">maxi</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="n">gamma</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">mini</span><span class="p">),</span><span class="n">maxi</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">omegai</span><span class="o">-</span><span class="mi">25</span><span class="o">*</span><span class="n">gamma</span><span class="p">:</span>
                <span class="n">mini</span><span class="o">=</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span>
                <span class="k">break</span>
-         <span class="n">spect</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">intens</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">gamma</span><span class="o">/</span><span class="p">((</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">+</span><span class="n">gamma</span><span class="o">*</span><span class="n">gamma</span><span class="p">)</span>
+         <span class="n">spect</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">sum</span><span class="p">(</span><span class="n">intens</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">gamma</span><span class="o">/</span><span class="p">((</span><span class="n">omegai</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">*</span><span class="p">(</span><span class="n">omegai</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="n">k</span><span class="p">])</span><span class="o">+</span><span class="n">gamma</span><span class="o">*</span><span class="n">gamma</span><span class="p">)</span>
                   <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mini</span><span class="p">,</span> <span class="n">maxi</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-38'>
+  <div class='section' id='section-33'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-38'>#</a>
+        <a class='octothorpe' href='#section-33'>#</a>
       </div>
       <p>out.write(u" %s  %s\n" %omega[i] %spect[i])</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">u&quot; {0}  {1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">omega</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">,</span><span class="n">spect</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span></pre></div>
+      <div class="highlight"><pre>         <span class="n">logwrite</span><span class="p">(</span><span class="s">u&quot; {0}  {1}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">omegai</span> <span class="p">,</span><span class="n">spect</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-39'>
+  <div class='section' id='section-34'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-39'>#</a>
+        <a class='octothorpe' href='#section-34'>#</a>
       </div>
       <p>logging[1].write(u" %s  %s\n" %omega[i], %spect[i])</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-<span class="n">version</span><span class="o">=</span><span class="mf">1.3</span></pre></div>
+<span class="n">version</span><span class="o">=</span><span class="mf">1.5</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-40'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       <p>End of broadening.py</p>
     </div>

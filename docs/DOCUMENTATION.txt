@@ -45,9 +45,6 @@ method:        gradient (or written 'Gradient' or "grad"): Use the gradient in e
 print=<level>	specifies, how detailed the output should be printed
 		where level is: all, detailed, medium, important, short ; 
 broaden()	to calculate the broadened spectrum as well, options for this: see Broadening()
-particles: 1, 2 OPA/TPA (if not specified: calculate OPA ##########throw this out!
-	        attention: The TPA-part here is computationally expensive, since all TPA-transitions are taken 
-		into account explicitly. Use broaden(to 2PA) broaden(to nPA:2 ) instead.
 states=<>	max. number of vibrational states (default is 5). Be careful about harmonic approximation!
 T=<number in K> specifies temperature of system (default: 300K)
 method:        gradient (or written 'Gradient' or "grad"): Use the gradient in excited state at ground state geometry
