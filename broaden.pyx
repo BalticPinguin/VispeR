@@ -68,8 +68,6 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    TPAintens:intensities of the nPA-vibrational spectrum     
    """
    append=np.append
-   #def putN(int j, int n, double[:] intens, double[:] freq, double[:,:] mode, double[:] OPAintens, double[:] OPAfreq, double[:,:] oldmode):
-   #def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
    def putN(int j, int n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
       """ This function does the most calculation that is the iteration to the next number of particles
       """
@@ -83,8 +81,9 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
          """
          cdef int s
          try:
-            for s in range(len(foo[0])):
-               if foo[0][s]==0:
+            foo=np.array(foo)
+            for s in range(len(foo)):
+               if foo[s]==0:
                   return False
          except TypeError:
             if foo==0:
@@ -97,7 +96,7 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
             newintens=append(newintens, intensi) #this is OPA-part
             freqi=freq[i]
             newfreq=append(newfreq, freqi)
-            #print intensi, freqi, mode[:].T[i]
+
             if n<=1:
                continue 
                #this saves creating new objects and running through loops without having results
@@ -110,32 +109,33 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
                if tempmode==[0]:
                   # that means, if mode[:].T[k] contains 0-0 transition
                   continue
-               tmpmode=np.array(mode[:].T[i])
+               #tmpmode=np.array(mode[:].T[i])
+               tmpmode=mode[:].T[i]
                if tmpmode==[]:
                   continue
                if not allnonzero(tmpmode):
                   continue
                if tempmode in tmpmode:
                   continue
-               try :
-                  tmpmode=tmpmode[0][0]
-                  newmode=append(newmode, tmpmode[0]) #or xmode.T??
-               except IndexError:
-                  newmode=append(newmode, float(tmpmode))
-               nwemode=append(nwemode, tempmode[0])
+               if tmpmode==[]:
+                  continue
+               foo=newmode
+               foo.append(tmpmode)
+               newmode=foo
+               nwemode=append(nwemode, tempmode)
                tmpintens=append(tmpintens, OPAintens[k]*intensi)
                tmpfreq=append(tmpfreq, OPAfreq[k]+freqi)
             if len(tmpintens)>0:
-               xmode=[]
-               xmode=append(xmode,newmode)
-               if len(np.shape(xmode))>2:
-                  xmode=np.matrix(xmode[0]).T
+               xmode=newmode
+               if np.shape(xmode)[1]>=2:
+                  xmode=np.matrix(xmode).T
                   nmode=np.zeros(( len(xmode)+1, len(xmode.T) ))
                   nmode[:-1]=xmode
                   nmode[-1]=nwemode
                else:
-                  xmode=append(xmode, nwemode)
-                  nmode=np.matrix(xmode)
+                  nmode=np.zeros(( 2 , len(xmode) ))
+                  nmode[0]=xmode
+                  nmode[1]=nwemode
                freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode)
                for k in range(len(intens2)):
                   newintens=append(newintens, intens2[k])
@@ -301,7 +301,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
       else:
          n=float(n[0])
          ind=linspect[2].argmin()
-         #                     spectral frequency   0-0 transition      intensities        0-0 intensit.        modes ,
+         #                          spectral frequency   0-0 transition      intensities          0-0 intensit.          modes        
          TPAfreq, TPAintens=OPA2nPA(linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], linspect[1][ind], 
                                                                                              linspect[2][minint:], n)
          index=np.argsort(TPAintens,kind='heapsort')
@@ -389,7 +389,6 @@ def outspect(logging, float T, opt, linspect, float E=0):
             if freq[j]>=omegai-25*gamma:
                mini=j-1
                break
-         print mini, maxi, omegai
          spect[i]=sum(intens[k]/np.pi*gamma/((omegai-freq[k])*(omegai-freq[k])+gamma*gamma)
                   for k in range(mini, maxi))
          #out.write(u" %s  %s\n" %omega[i] %spect[i])

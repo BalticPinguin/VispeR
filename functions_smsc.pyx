@@ -80,9 +80,6 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    assert n>0, "There is no Huang-Rhys factor larger than the respective threshold. No mode to be calculated."
    FC=np.zeros((n,M*N-1))
    uency=np.zeros((n,M*N-1)) #freqUENCY
-   if approx=="TPA":
-      FC2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
-      uency2=np.zeros((1,((n+1)*(n+2)//2)*(M*N-1)*(N*M-1)))
    #calculate 0->0 transition
    FC00=1
    for a in range(n):
@@ -91,13 +88,10 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    #since there are N FC-like progressions, each normalised to 1
    uency00=E*Hartree2cm_1 #zero-zero transition
    if logging[0]<1:
-      if approx=="OPA":
-         logging[1].write("Line-spectrum in One-Particle approximation:\n")
-      elif approx=="TPA":
-         logging[1].write("Line-spectrum in Two-Particle approximation:\n")
+      logging[1].write("Line-spectrum in One-Particle approximation:\n")
       logging[1].write(u"frequency     intensity  \n")
       #logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
-   print "0-0 trans:",FC00
+   #print "0-0 trans:",FC00
    for a in range(n):
       #=first, calculate all FC-factors and finally normalise them (sum over all FC-factors is one)
       HRf0=FCeqf(HR[a], 0, 0)
@@ -109,7 +103,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
             HRf[i]=FCeqf(HR[a], i, j)
             s+=HRf[i]
             i+=1
-         print a,j , HR[a],s, '\n', HRf
+         #print a,j , HR[a],s, '\n', HRf
          i-=1
          for k in range(i):
             if k==0 and j==0: 
@@ -118,13 +112,13 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
             tmp=HRf[k]/HRf0
             FC[a][j*M+k-1]=tmp*FC00*np.exp(-(E0+freq[a]*j)/T)
             uency[a][j*M+k-1]=(E+freq[a]*(j-k))*Hartree2cm_1
-            print FC[a][j*M+k-1], tmp
+            #print FC[a][j*M+k-1], tmp
             if k>=M-1:
                ############# this is due to an old feature; make this more flexible in the future!!
                break
    FC00*=np.exp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
-   print "spectrum (first)\n", spect.T
+   #print "spectrum (first)\n", spect.T
    return spect
 
 def CalculationHR(logging, initial, final, opt):
@@ -196,7 +190,7 @@ def Duschinsky(logging, L, mass, dim, x):
    DeltaX=np.zeros((len(L)-1,dim))
 
    for i in range(dim):
-      M[i][i]=mass[i/3] #square root of masses
+      M[i][i]=mass[i//3] #square root of masses
    for i in range(len(J)):
       J[i]=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) ################ check: use L[i+1] instead L.-T
 
@@ -283,7 +277,7 @@ def GetL(logging, dim, mass, F, D):
 
       M=np.zeros((dim,dim))
       for j in range(0,dim):
-         M[j,j]=1/mass[j/3]
+         M[j,j]=1/mass[j//3]
       #Lcart=np.dot(M,np.dot(D[i],np.real(Ltemp)))
       Lcart=M.dot(np.real(Ltemp)) # there is no need for this projector!!!???
       #Lcart=np.real(Ltemp)
@@ -299,13 +293,13 @@ def GetL(logging, dim, mass, F, D):
       Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T
       L[i]=(Ltemp.T[index].T)[:].T[6:].T
       if logging[0]<1:
-         logging[1].write("Normalized, sorted and truncated Lcart\n"+ repr(L[i]))
+         logging[1].write("Normalized, sorted and truncated Lcart\n"+ repr(L[i])+"\n")
 
       for j in range(len(f[i])):
          f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
       if logging[0]<2:
          logging[1].write("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
-               repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i]))
+               repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i])+"\n")
    return f, Lsorted
 
 def GetProjector(logging, X, dim, m, Coord):
@@ -366,26 +360,32 @@ def gradientHR(logging, initial, final, opt):
    return HR, funi, Energy, K, f
 
 def GradientShift(logging, L, mass, Grad):
-   K=L[1].T.dot(Grad).T
-   for i in range(len(K)):
-     K[i]*=mass[i//3]
+   dim=len(Grad)
+   M=np.zeros((dim,dim))
+   for i in range(dim):
+      M[i][i]=mass[i//3] #square root of masses
+   K=L[1].T.dot(M.dot(Grad)).T
    print "K", K.T
+   #for i in range(len(Grad)):
+   #  Grad[i]*=mass[i//3]
+   #K=L[1].T.dot(Grad).T
+   #print "K", K.T
    return K
 
 def gs(A):
    """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
    code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
    """
-   def proj(v1, v2):
-      return map(lambda x : x *(np.dot(v2,
-               v1) / np.dot(v1, v1)) , v1)
+   #def proj(v1, v2):
+      #return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)
 
    X=A.T # I want to orthogonalize row-wise
    Y = []
    for i in range(len(X)):
       temp_vec = X[i]
       for inY in Y :
-         proj_vec = proj(inY, X[i])
+         #proj_vec = proj(inY, X[i])
+         proj_vec = map(lambda x : x *(np.dot(X[i],inY) / np.dot(inY, inY)) , inY)
          temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)
       Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
    return np.matrix(Y).T # undo transposition in the beginning
@@ -612,7 +612,7 @@ def ReadLog(logging, fileN):
       logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
    for i in range(0,dim):
       for j in range(0,dim):
-         F[i][j]/= (mass[i/3]*mass[j/3]) 
+         F[i][j]/= (mass[i//3]*mass[j//3]) 
 
    Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
    assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
