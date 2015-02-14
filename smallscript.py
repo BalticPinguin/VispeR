@@ -50,7 +50,7 @@ def invokeLogging(logfile, mode="important"):
 
 def main(argv=None):
    assert len(argv)==1, 'exactly one argument required.'
-   pbar = ProgressBar(maxval=10)
+   pbar = ProgressBar(maxval=100)
    #open input-file (if existent and readable) and map it to f
    try:
       infile=open(argv[0], "r")
@@ -96,6 +96,7 @@ def main(argv=None):
    log.write("calculations to be done: {0}\n".format(todo))
    log.close()
 
+   pbar.update(5)
    if np.mod(todo,2)==1: 
       #calculation up to HR-facts needed (FC- or Duschinsky spect)
       #first find in where the options for this task are written in
@@ -130,7 +131,12 @@ def main(argv=None):
       else:
          logging[1].write("method {0} not recognised. Use Shift instead.\n".format(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
+      for i in range(len(HR)):
+         print "HR-fact,    frequency "
+         for j in range(len(HR[0])):
+            print HR[i][j], funi[i][j]*219474.63 
 
+   pbar.update(12)
    if np.mod(todo,4)>=2:
       #calculate FC-spect
       #here exists only one possibility for the options 
@@ -165,7 +171,7 @@ def main(argv=None):
       else:
          T=float(T[0])
       if logging[0]<=1:
-         logging[1].write("temperature of system: "+repr(T))
+         logging[1].write("temperature of system: "+repr(T)+"\n")
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       states=re.findall(r"(?<=states=)[\d ]*", opt, re.I)
       if len(states)==0:
@@ -186,6 +192,7 @@ def main(argv=None):
          if np.mod(todo,16)<8:
             todo+=8
 
+   pbar.update(20)
    if np.mod(todo,8)>=4:
       #calculate Duschinsky-spect
       opt=opts[2][0]
@@ -270,6 +277,7 @@ def main(argv=None):
             k=[0,i]
             linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
 
+   pbar.update(30)
    np.set_printoptions(suppress=True)
    #print 'linespect:', linspect.T
    if np.mod(todo,16)>=8:
@@ -311,7 +319,7 @@ def main(argv=None):
       except NameError:
          linespectrum=re.findall(r"(?<=linspect: )[\w\.]+", f, re.I)
          if linespectrum==[]:
-            linespectrum=re.findall(r"(?<=linespect:)[ \w\.]+", f, re.I)
+            linespectrum=re.findall(r"(?<=linespect: )[\w\.]+", f, re.I)
          assert len(linespectrum)==1, "if no spectrum calculation was done before"+\
                                  ", please specify a file containing line-spectrum."
          freq=[]
@@ -323,23 +331,30 @@ def main(argv=None):
             for i,x in enumerate(lis):        # print the list items 
                freq.append(float(x[0]))
                intens.append(float(x[1]))
-               mode.append(float(x[2]))
+               try:
+                  mode.append(float(x[2]))
+               except IndexError:
+                  mode.append(42)
          linspect=np.zeros((3,len(freq)))
          linspect[0]=np.matrix(freq)
          linspect[1]=np.matrix(intens)
          linspect[2]=np.matrix(mode)
       ################## change this to make it work with multiple files!!
+      pbar.update(50)
       br.outspect(logging, T, opt, linspect)
+      pbar.update(80)
       ###if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
       try:
          # if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...
          secondlinspect
          opt=opts[2][0]
+         pbar.update(50)
          br.outspect(logging, T, opt, linspect)
+         pbar.update(80)
       except NameError:
          opt=opts[0] #do something arbitrary
 
-   logging[1].write("end of calculation reached. Normal exit.")
+   logging[1].write("end of calculation reached. Normal exit.\n")
    logging[1].close()
    pbar.finish()
    

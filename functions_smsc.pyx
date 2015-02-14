@@ -82,16 +82,11 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    uency=np.zeros((n,M*N-1)) #freqUENCY
    #calculate 0->0 transition
    FC00=1
-   for a in range(n):
-      FC00*=FCeqf(HR[a],0,0)
-   FC00/=N*0.97 
    #since there are N FC-like progressions, each normalised to 1
    uency00=E*Hartree2cm_1 #zero-zero transition
    if logging[0]<1:
       logging[1].write("Line-spectrum in One-Particle approximation:\n")
       logging[1].write(u"frequency     intensity  \n")
-      #logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
-   #print "0-0 trans:",FC00
    for a in range(n):
       #=first, calculate all FC-factors and finally normalise them (sum over all FC-factors is one)
       HRf0=FCeqf(HR[a], 0, 0)
@@ -137,7 +132,7 @@ def CalculationHR(logging, initial, final, opt):
       if i is 0:# do only in first run
          F, CartCoord, X, P, Energy=quantity(logging, dim, len(initial)+len(final)) #creates respective quantities (empty)
          if logging[0]==0:
-            logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
+            logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
       X[i],F[i],Energy[i]=B, A, E
       CartCoord[i]=Coord
       P[i]=GetProjector(logging, X[i], dim, mass, CartCoord[i])
@@ -164,9 +159,10 @@ def CalculationHR(logging, initial, final, opt):
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
    #Gauf=gaussianfreq(logging, initial, final, dim) 
    
-   print K.T
+   print "K",K.T
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f)
+   print opt
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
       for i in range(len(initial)): #### this needs to be enhanced
          replace(logging, initial[i], f[i], Lsorted[i])
@@ -199,14 +195,16 @@ def Duschinsky(logging, L, mass, dim, x):
       if logging[0] <1:
          logging[1].write('changes of Cartesian coordinates:(state'+repr(i)+')\n'+repr(DeltaX[i])+'\n')
       K[i]=np.dot(L[i+1].T.dot(M),DeltaX[i].T) #at the moment: mass-weighted
-
+   
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=5, linewidth=138)
+   print "Delta x", DeltaX[i]
    if logging[0]<2:
       for i in range(len(J)):
          logging[1].write('Duschinsky rotation matrix, state '+repr(i)+\
                '  :\n'+ repr(J[i])+'  :\n'+ repr(J[i][:4].T[11:25])+\
                '\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
+   print 'Duschinsky-Matrix:', J
    return J, K 
 
 def gaussianfreq(logging, initial, final , dim):
@@ -295,6 +293,7 @@ def GetL(logging, dim, mass, F, D):
       if logging[0]<1:
          logging[1].write("Normalized, sorted and truncated Lcart\n"+ repr(L[i])+"\n")
 
+      #the frequencies are square root of the eigen values of F
       for j in range(len(f[i])):
          f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
       if logging[0]<2:
@@ -349,7 +348,7 @@ def gradientHR(logging, initial, final, opt):
 
    #Calculate Frequencies and normal modes
    f, Lsorted=GetL(logging, dim, mass,F, P)
-   K=GradientShift(logging, Lsorted, mass, Grad)
+   K=GradientShift(logging, Lsorted, mass, Grad, f[0])
       ##################################################
    
    #calculate HR-spect
@@ -359,17 +358,19 @@ def gradientHR(logging, initial, final, opt):
          replace(logging, initial[i], f[i], Lsorted[i])
    return HR, funi, Energy, K, f
 
-def GradientShift(logging, L, mass, Grad):
-   dim=len(Grad)
-   M=np.zeros((dim,dim))
-   for i in range(dim):
-      M[i][i]=mass[i//3] #square root of masses
-   K=L[1].T.dot(M.dot(Grad)).T
+def GradientShift(logging, L, mass, Grad, Freq):
+   for i in range(len(Grad)):
+     Grad[i]*=mass[i//3]
+   invFreq=np.linalg.pinv(L[1].T)
+   foo=invFreq.dot(Freq).T
+   np.set_printoptions(suppress=True)
+   np.set_printoptions(precision=5, linewidth=138)
+   for i in range(len(Grad)):
+      Grad[i]/=foo[i]
+   print "Delta X:", Grad
+   K=L[1].T.dot(Grad).T
+   #K/=np.sqrt(Freq)
    print "K", K.T
-   #for i in range(len(Grad)):
-   #  Grad[i]*=mass[i//3]
-   #K=L[1].T.dot(Grad).T
-   #print "K", K.T
    return K
 
 def gs(A):
@@ -415,8 +416,7 @@ def HuangR(logging, K, f): #what is with different frequencies???
       sortuni[i]=unif[index]
       funi[i]=f[i+1][index]
       if np.any(funi)<0:
-         if logging[0]<4:
-            logging[1].write('ATTENTION: some HR-factors are <0.\
+         logging[1].write('ATTENTION: some HR-factors are <0.\
                   In the following their absolute value is used.')
          funi[i]=np.abs(funi[i])
       uniHR=[]
@@ -556,7 +556,7 @@ def ReadLog(logging, fileN):
          else:
             moi[j][k]=np.sum(mass*mass*(Coord[j]*Coord[k]))
    if logging[0]<1:
-      logging[1].write("Moments of intertia as read from log file\n,{0}".format(moi))
+      logging[1].write("Moments of intertia as read from log file\n,{0}\n".format(moi))
    diagI,X=np.linalg.eig(moi) # this can be shortened of course!
    index=np.argsort(diagI, kind="heapsort")
    #X=np.matrix(X[index]) #sorting by eigenvalues
