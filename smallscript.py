@@ -124,7 +124,6 @@ def main(argv=None):
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
       elif method[0] in ["gradient", "Gradient", 'grad', "gradient ", "grad "]:
          ## test whether Duschinsky-rotation is needed
-         print "gradient-method"
          HR, funi, Energy, K, f=of.gradientHR(logging, initial, final, opt)
       elif method[0] in ["shift", "SHIFT", "Shift"]:
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)

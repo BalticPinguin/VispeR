@@ -361,14 +361,12 @@ def gradientHR(logging, initial, final, opt):
 def GradientShift(logging, L, mass, Grad, Freq):
    for i in range(len(Grad)):
      Grad[i]*=mass[i//3]
-   invFreq=np.linalg.pinv(L[1].T)
-   foo=invFreq.dot(Freq).T
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=5, linewidth=138)
-   for i in range(len(Grad)):
-      Grad[i]/=foo[i]
    print "Delta X:", Grad
    K=L[1].T.dot(Grad).T
+   for i in range(len(Grad)):
+      Grad[i]/=Freq[i]/2
    #K/=np.sqrt(Freq)
    print "K", K.T
    return K

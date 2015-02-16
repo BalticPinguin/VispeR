@@ -132,19 +132,25 @@ def simpleFCfOPA(logging, J, K, f, double Energy, int N, float T, float E0):
 
       #quantities for the iterative spectrum-calculation
       Gamma=np.diag(f[0])               # in atomic units. It is equivalent to 4pi^2/h f_i
-      Gammap=np.diag(f[1])              # for final state
+      Gammap=np.diag(f[0])              # for final state
       sqGamma=np.diag(np.sqrt(f[0]))   
-      sqGammap=np.diag(np.sqrt(f[1]))  
+      sqGammap=np.diag(np.sqrt(f[0]))
       unity=np.eye(len(Gamma))
    
+      C=np.linalg.inv(J.T.dot(J).dot(Gammap)+Gamma) #C is only temporary matrix here
+      print "test:\n", C
       C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
-      A=J.dot(np.dot(C,J.T)) 
+      print "inv :\n", C
+      A=J.dot(np.dot(C,J.T))
       A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
       TMP=J.dot(C).dot(J.T).dot(Gammap)
       b=2*(sqGammap.dot((unity-TMP).dot(K)))
       d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
       E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
       C=2*sqGamma.dot(C).dot(sqGamma)-unity             #this is 'real' C-matrix
+      print "JTJ", J, Gamma
+      print "matrices:"
+      print A, '\n', b, '\n', C, '\n', d, "\n", E
    
       #initialize new OPA-object
       alpha=len(b)
@@ -209,7 +215,7 @@ def simpleFCfOPA(logging, J, K, f, double Energy, int N, float T, float E0):
                    Gamma[indi][indi]*(n-ex[i]+0.5)+E)*Hartree2cm_1
          F[i][1]=intens[i]*intens[i]*np.exp(-(Gamma[indi][indi]*ex[i]+E0)/T)
          logging[1].write(u"{1}   {0}    {2}\n".format(F[i][1], F[i][0], indi))
-      return np.matrix(F)
+      return F
    
    cdef int dimen=0
    cdef int i
@@ -307,6 +313,7 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
    f[1]=resort.dot(f[1].T)
    spect2=[]
    spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
+   print simpleFCfOPA(logging, J, K, f, Energy, N, T,E0).T
 
    resort=np.eye(len(resort))
    if threshold>len(resort)/2:
@@ -327,7 +334,9 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
       K=resort.dot(Ka.T)
       f[1]=resort.dot(f1.T)
       f[0]=resort.dot(f0.T)
+      print "J", J,"\n"
       spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
+      print (simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)[:].T[1:])
 
    resort=np.eye(len(resort))
    for i in range(threshold):
@@ -340,7 +349,9 @@ def distFCfOPA(logging, J, K, f, Energy, N, T,E0, threshold):
       K=resort.dot(Ka.T)
       f[1]=resort.dot(f1.T)
       f[0]=resort.dot(f0.T)
+      print "J", J,"\n"
       spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T, E0))
+      print (simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)[:].T[1:])
 
    dim=0
    for i in range(len(spect2)):

@@ -9,19 +9,19 @@ Threshold=3e-10
 
 def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
    """This function 
-      **PARAMETERS**
-      logging: object having as first element the mode and as second the (already opened) log-file
-      J:        Duschisky-matrix
-      K:        Displacement-Vector
-      f:        frequency: two-dim array (freq_initial, freq_final)
-      Energy:   Energy-difference of minima
-      N:        Max. number of excitation quanta state considered
-      T:        Temperature of the system
-      E0:       frequency of the purely electronic transition
-      m:        number of vibrational modes taken into account for the spectum calculation
+   **PARAMETERS**
+   logging: object having as first element the mode and as second the (already opened) log-file
+   J:        Duschisky-matrix
+   K:        Displacement-Vector
+   f:        frequency: two-dim array (freq_initial, freq_final)
+   Energy:   Energy-difference of minima
+   N:        Max. number of excitation quanta state considered
+   T:        Temperature of the system
+   E0:       frequency of the purely electronic transition
+   m:        number of vibrational modes taken into account for the spectum calculation
 
-      **RETURNS**
-      linespectrum: vibrational line-spectrum
+   **RETURNS**
+   linespectrum: vibrational line-spectrum
    """
    #first: resort the elements of J, K, f to make J most closely to unity
    resort=np.zeros(np.shape(J))
@@ -29,7 +29,7 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
       j=np.argmax(J[i])
       k=np.argmin(J[i])
       if J[i][j]>-J[i][k]:
-         resort[i][j]=1
+        resort[i][j]=1
       else:
          resort[i][k]=-1
    J=resort.dot(J.T)
@@ -118,7 +118,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       sqGammap=np.diag(np.sqrt(f[1]))  
       unity=np.eye(len(Gamma))
    
-      C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
+      C=np.linalg.inv(J.T.dot(J).dot(Gammap)+Gamma) #C is only temporary matrix here
       A=J.dot(np.dot(C,J.T)) 
       A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
       TMP=J.dot(C).dot(J.T).dot(Gammap)
@@ -126,6 +126,8 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
       E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
       C=2*sqGamma.dot(C).dot(sqGamma)-unity             #this is 'real' C-matrix
+      print "matrices:"
+      print A, '\n', b, '\n', C, '\n', d, "\n", E
 
       #initialize new tree
       alpha=2*len(b)
@@ -179,7 +181,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                n[m]-=1
                Ps=L1.getState(n)[0]
                if not math.isnan(Ps) and abs(Ps)>1e-8:
-                  I_nn+=np.sqrt(2*(n_m-1))*A[m][m]*Ps           # second term
+                  I_nn+=np.sqrt(2.0*(n_m-1))*A[m][m]*Ps           # second term
                n[m]+=1
             for i in range(m+1, leng):
                if n[i]>0:
@@ -190,7 +192,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                   n[i]+=1
 
             for i in range(mp+leng, len(n)):                    # sum over respective final states
-               if mp>len(n)//2:                                 # that means: there are no excited vibrations
+               if mp>leng:                                 # that means: there are no excited vibrations
                   break
                if n[i]>0:
                   n[i]-=1
@@ -210,34 +212,32 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                n[mp+leng]-=1
                Ps=L1.getState(n)[0]
                if not math.isnan(Ps) and abs(Ps)>1e-8:
-                  I_nn+=np.sqrt(2*(n_m-1))*C[mp][mp]*Ps         # second term
+                  I_nn+=np.sqrt(2*(n_m-1.0))*C[mp][mp]*Ps         # second term
+               n[mp+leng]+=1
             for i in range(mp+1+leng, len(n)):
                if n[i]>0:
                   n[i]-=1
                   Ps=L1.getState(n)[0]
-                  n[i]+=1
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
-                     I_nn+=np.sqrt(n[i]/2)*(C[mp][i-leng]+ # second term
+                     I_nn+=np.sqrt(n[i]*0.5)*(C[mp][i-leng]+ # second term
                               C[i-leng][mp])*Ps 
+                  n[i]+=1
             for i in range(m, leng):                            #sum over respective final states
-               if m>len(n)//2:                                  # that means: there are no excited vibrations
+               if m>leng:                                  # that means: there are no excited vibrations
                   break                                         #actually not needed, right?
                if n[i]>0:
                   n[i]-=1
                   Ps=L1.getState(n)[0]
                   n[i]+=1
                   if not math.isnan(Ps) and abs(Ps)>1e-8:
-                     I_nn+=np.sqrt(n[i]*0.5)*(E[mp][i-len(n)//2])*Ps # second term
+                     I_nn+=np.sqrt(n[i]*0.5)*(E[mp][i-leng])*Ps # second term
             n[mp+leng]+=1
          I_nn/=np.sqrt(2*n_m)
          #threshold for insertion: saves memory, since int insead of float is used
          if np.abs(I_nn)>1e-8:
-            try:
-               L3.insert(n, [ I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]), freq(0, 0, f[1]*n[leng:]) ])
-            except MemoryError: 
-               logging[1].write('memory-error by inserting data. Finishing calculation.')
-               logging[1].writelines("%s\n" % item  for item in L2.extract())
-               return 0,0, 0
+            L3.insert(n, [ I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]), freq(0, 0, f[1]*n[leng:]) ])
+            if I_nn>=10:
+               print n, I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:])
       return L2, L3
 
    def states(alpha, n): 
