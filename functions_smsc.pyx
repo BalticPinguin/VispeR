@@ -81,7 +81,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    FC=np.zeros((n,M*N-1))
    uency=np.zeros((n,M*N-1)) #freqUENCY
    #calculate 0->0 transition
-   FC00=1
+   FC00=10
    #since there are N FC-like progressions, each normalised to 1
    uency00=E*Hartree2cm_1 #zero-zero transition
    if logging[0]<1:
@@ -90,13 +90,17 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    for a in range(n):
       #=first, calculate all FC-factors and finally normalise them (sum over all FC-factors is one)
       HRf0=FCeqf(HR[a], 0, 0)
-      for j in range(N):
+      for j in range(1,N):
          HRf=np.zeros( int((HR[a]+1)*(M+j)) )
          s=0
          i=0
          while s<=0.96:
-            HRf[i]=FCeqf(HR[a], i, j)
-            s+=HRf[i]
+            if j-i>=0:
+               HRf[2*i]=FCeqf(HR[a], j-i, j)
+               s+=HRf[2*i]
+            if i!=0:
+               HRf[2*i-1]=FCeqf(HR[a], j+i, j)
+               s+=HRf[2*i-1]
             i+=1
          #print a,j , HR[a],s, '\n', HRf
          i-=1
@@ -135,14 +139,12 @@ def CalculationHR(logging, initial, final, opt):
             logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
       X[i],F[i],Energy[i]=B, A, E
       CartCoord[i]=Coord
-      P[i]=GetProjector(logging, X[i], dim, mass, CartCoord[i])
       if logging[0]<2:
          logging[1].write('Projector onto internal coordinate subspace\n{0}\n'.format(P[i]))
    for i in range(len(final)):
       dim, Coord, mass, B, A, E=ReadLog(logging, final[i]) 
       X[len(initial)+i], F[len(initial)+i], Energy[len(initial)+i]=B, A, E
       CartCoord[len(initial)+i]=Coord
-      P[len(initial)+i]=GetProjector(logging, X[len(initial)+i], dim, mass, CartCoord[len(initial)+i])
       if logging[0]<2:
          logging[1].write('Projector onto internal coordinate subspace\n{0}\n'.format(P[len(initial)+i]))
    if logging[0]<3:
@@ -155,17 +157,28 @@ def CalculationHR(logging, initial, final, opt):
          logging[1].write('final state: \n {0}\n'.format(F[1]))
 
    #Calculate Frequencies and normal modes
-   f, Lsorted=GetL(logging, dim, mass,F, P)
+   f, Lsorted, Lcart=GetL(logging, dim, mass,F)
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
-   #Gauf=gaussianfreq(logging, initial, final, dim) 
+   extra=re.findall(r"g09Vectors",opt, re.I)
+   if extra!=[]:
+      g09L=getGaussianL(final, mass, dim)
+   elif re.search(r"g09Vector",opt, re.I) is not None:
+      g09L=getGaussianL(final, mass, dim)
+   extra=re.findall(r"g09freqs",opt, re.I)
+   if extra!=[]:
+      g09f=getGaussianf(final,dim)
+      #replace(logging, initial[0], g09f, g09L)
+   elif re.search(r"g09freq",opt, re.I) is not None:
+      g09f=getGaussianf(final,dim)
+      #replace(logging, initial[0], g09f, g09L)
+
+   #comparet  f, g09f  and Lsorted/Lcart with g09L --> which is which??
    
-   print "K",K.T
+   ##print "K",K.T
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f)
-   print opt
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-      for i in range(len(initial)): #### this needs to be enhanced
-         replace(logging, initial[i], f[i], Lsorted[i])
+      replace(logging, initial[0], f[0], Lsorted[0])
    return HR, funi, Energy, J, K, f
 
 def Duschinsky(logging, L, mass, dim, x):
@@ -194,11 +207,13 @@ def Duschinsky(logging, L, mass, dim, x):
       DeltaX[i]=np.array(x[0]-x[i+1]).flatten('F')
       if logging[0] <1:
          logging[1].write('changes of Cartesian coordinates:(state'+repr(i)+')\n'+repr(DeltaX[i])+'\n')
-      K[i]=np.dot(L[i+1].T.dot(M),DeltaX[i].T) #at the moment: mass-weighted
+      #K[i]=np.dot(L[i].T.dot(M),DeltaX[i].T) #at the moment: mass-weighted
+      K[i]=(DeltaX[i].dot(M)).dot(L[i])/1.63 ##what factor is this??
    
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=5, linewidth=138)
-   print "Delta x", DeltaX[i]
+   ##print "Delta x", DeltaX[i]
+   print "K",K.T
    if logging[0]<2:
       for i in range(len(J)):
          logging[1].write('Duschinsky rotation matrix, state '+repr(i)+\
@@ -207,35 +222,71 @@ def Duschinsky(logging, L, mass, dim, x):
    print 'Duschinsky-Matrix:', J
    return J, K 
 
-def gaussianfreq(logging, initial, final , dim):
-   """Extraction of the frequencies from g09-log file"""
-   ##read frequencies calculated by g09 from file
-   #Gauf=of.gaussianfreq(ContntInfo, dim) 
-   #Gauf/=Hartree2cm_1  #convert to atomic units
-   f=np.zeros((len(initial)+len(final), dim-6))
-   for i in range(len(initial)): 
-      files=open(initial[i], "r") #open file and map it for better working
-      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
-      files.close
+def getGaussianf(final, dim):
+   files=open(final[0], "r") #open file and map it for better working
+   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
+   files.close
+   #if file is of type 'Freq'
+   if re.search(r" Frequencies -- ", mapedlog, re.M) is not None:
       f1=re.findall(r" Frequencies -- [\d .-]+", mapedlog, re.M)# 
       f2=[re.findall(r"[- ]\d+.\d+", f1[j]) for j in range(len(f1))]
       s=0
+      f=np.zeros((1,dim-6))
       for j in range(len(f2)):
-         f[i][s:s+len(f2[j])]=f2[j]
+         f[s:s+len(f2[j])]=np.sqrt(f2[j])*2590.839/Hartree2cm_1
          s+=len(f2[j])
-   for i in range(len(final)): 
-      files=open(final[i], "r") #open file and map it for better working
-      mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
-      files.close
-      f1=re.findall(r" Frequencies -- [\d .-]+", mapedlog, re.M)# 
-      f2=[re.findall(r"[- ]\d+.\d+", f1[j]) for j in range(len(f1))]
+   #if file is of type 'Force'
+   elif re.search(r" Eigenvectors of the second derivative matrix:", mapedlog, re.M) is not None:
+      f2=re.findall(r"(?<=Eigenvectors of the second derivative matrix:)[\d\n\-\. XYZ Eigenvalues]+", mapedlog, re.M)
+      f1=re.findall(r" Eigenvalues -- [\d .]+", f2[0], re.M)# 
+      f2=[re.findall(r"\d.\d+", f1[j]) for j in range(len(f1))]
       s=0
-      for j in range(len(f2)):
-         f[i][s:s+len(f2[j])]=f2[j]
+      f=np.zeros((1,dim-6))
+      for j in range(0,len(f2)):
+         for i in range(len(f2[j])):
+            f[0][s+i]=np.sqrt(float(f2[j][i]))*2590.839/Hartree2cm_1
          s+=len(f2[j])
+   print "gaussian freq"
+   for i in range(len(f[0])):
+      print f[0][i]*Hartree2cm_1 
    return f
 
-def GetL(logging, dim, mass, F, D):
+def getGaussianL(final, mass, dim):
+   #first, check in which format they are present
+   files=open(final[0], "r") #open file and map it for better working
+   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
+   files.close
+   b=0
+   L=np.zeros((dim, dim-6))
+   #if file is of type 'Freq'
+   if re.search(r" Eigenvectors of the second derivative matrix:", mapedlog, re.M) is not None:
+      f1=re.findall(r"(?<=Eigenvalues --)  [\d .\n XYZ\-]+", mapedlog, re.M)
+      # to remove the lines with 'Eigenvalues':
+      for k in range(len(f1)):
+         f2=re.findall(r"[- ]\d\.[\d]+", f1[k]) 
+         #print f2
+         s=len(f2)//dim 
+         #s should be 5 but not in last line
+         for j in range(dim):
+            for i in range(s):
+               L[j][b+i]=f2[i+s*(j+1)]
+         b+=s
+      M=np.zeros((dim,dim))
+      for j in range(0,dim):
+         M[j,j]=mass[j//3]
+      Lcart=M.dot(L)
+      #renormalise L
+      for j in range(dim): 
+         # normalise like this or its transposed?
+         norm=np.sum(Lcart[j]*Lcart[j])
+         if np.abs(norm)>1e-12:
+            Lcart[j]/=np.sqrt(norm)
+   else:
+      print "there is no other method implemented until now!"
+   
+   return Lcart
+
+def GetL(logging, dim, mass, F):
    """ Function that calculates the frequencies and normal modes from force constant matrix 
    with and without projection onto internal degrees of freedom
 
@@ -243,7 +294,6 @@ def GetL(logging, dim, mass, F, D):
    1. The dimensions of force-constant matrix
    2. square-root of masses dim/3-dimensional array
    3. force-constant matrix
-   4. projection-matrix onto vibrations
 
    **return**
    1. matrix of all normal modes (including global modes) 
@@ -276,9 +326,8 @@ def GetL(logging, dim, mass, F, D):
       M=np.zeros((dim,dim))
       for j in range(0,dim):
          M[j,j]=1/mass[j//3]
-      #Lcart=np.dot(M,np.dot(D[i],np.real(Ltemp)))
-      Lcart=M.dot(np.real(Ltemp)) # there is no need for this projector!!!???
-      #Lcart=np.real(Ltemp)
+      #Lcart=M.dot(np.real(Ltemp)) # there is no need for this projector!!!???
+      Lcart=np.real(Ltemp)
       for j in range(0,dim):
          norm=np.sum(Lcart.T[j]*Lcart.T[j])
          if np.abs(norm)>1e-12:
@@ -299,27 +348,10 @@ def GetL(logging, dim, mass, F, D):
       if logging[0]<2:
          logging[1].write("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
                repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i])+"\n")
-   return f, Lsorted
-
-def GetProjector(logging, X, dim, m, Coord):
-   D=np.zeros((dim,6))
-   for k in range(3):# first three rows in D: The translational vectors
-      for j in range(dim/3):
-         D[3*j+k][k]=m[j]
-   for k in range(dim):# next three rows in D: The rotational vectors
-      D[k][3:6]=(np.cross(np.dot(X,Coord)[:].T[k/3],X[:].T[k%3]))*m[k/3]
-   if logging[0]<1:
-      logging[1].write("Original translational and rotational displacement vectors:\n{0}\n".format(D[3:13].T))
-   AOE=gs(np.array(D)) #orhogonalize it
-   ones=np.identity(dim)
-   one_P=ones-np.dot(AOE,AOE.T)
-   prob_vec=(AOE.T[1]+AOE.T[4]+AOE.T[0]+AOE.T[5]).T #what is this actually??
-   assert not np.any(np.abs(prob_vec-np.dot(np.dot(AOE,AOE.T),prob_vec))>0.00001), \
-            'Translations and rotations are affected by projection operator.'+\
-            repr(np.abs(prob_vec-np.dot(np.dot(AOE,AOE.T),prob_vec)))
-   assert not  np.any(np.abs(np.dot(one_P,prob_vec))>0.00001), \
-            "Projecting out translations and rotations from probe vector"
-   return one_P
+   print "my frequencies"
+   for i in range(len(f[0])):
+      print f[0][i]*Hartree2cm_1
+   return f, Lsorted, Lcart
 
 def gradientHR(logging, initial, final, opt):
    """ This function gathers most essential parts for calculation of HR-factors from g09-files"""
@@ -346,29 +378,41 @@ def gradientHR(logging, initial, final, opt):
       if logging[0]<2:
          logging[1].write('initial state: \n{0}\n'.format(F[0]))
 
+   np.set_printoptions(suppress=True)
+   np.set_printoptions(precision=9, linewidth=138)
    #Calculate Frequencies and normal modes
-   f, Lsorted=GetL(logging, dim, mass,F, P)
+   f, Lsorted, Lcart=GetL(logging, dim, mass,F)
    K=GradientShift(logging, Lsorted, mass, Grad, f[0])
       ##################################################
+   extra=re.findall(r"g09Vectors",opt, re.I)
+   if extra!=[]:
+      g09L=getGaussianL([initial], mass, dim)
+      print "g09L "
+      for i in range(len(g09L.T)):
+         for j in range(len(g09L.T[i])):
+            print g09L.T[i][j]
+         print
+   elif re.search(r"g09Vector",opt, re.I) is not None:
+      g09L=getGaussianL([final], mass, dim)
+   extra=re.findall(r"g09freqs",opt, re.I)
+   if extra!=[]:
+      g09f=getGaussianf([final],dim)
+      #replace(logging, final, g09f[0], g09L)
+   elif re.search(r"g09freq",opt, re.I) is not None:
+      g09f=getGaussianf(final,dim)
+      #replace(logging, initial, g09f[0], g09L)
    
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-      for i in range(len(initial)): #### this needs to be enhanced
-         replace(logging, initial[i], f[i], Lsorted[i])
+      replace(logging, final, f[0], Lsorted[0])
    return HR, funi, Energy, K, f
 
 def GradientShift(logging, L, mass, Grad, Freq):
    for i in range(len(Grad)):
-     Grad[i]*=mass[i//3]
-   np.set_printoptions(suppress=True)
-   np.set_printoptions(precision=5, linewidth=138)
-   print "Delta X:", Grad
-   K=L[1].T.dot(Grad).T
-   for i in range(len(Grad)):
-      Grad[i]/=Freq[i]/2
-   #K/=np.sqrt(Freq)
-   print "K", K.T
+      Grad[i]/=mass[i//3]/np.sqrt(AMU2au)
+   K=Grad.T.dot(L[0])
+   K*=3.915*np.sqrt(0.18892)*1e+6/(Freq*Freq*Hartree2cm_1*np.sqrt(Hartree2cm_1))
    return K
 
 def gs(A):
@@ -404,31 +448,36 @@ def HuangR(logging, K, f): #what is with different frequencies???
    4. respecivp frequencies of initial state for 3 (same order)
    5. respecivp frequencies of final state for 3 (same order)
    """
-   sortuni=np.zeros((len(K),len(K[0])))
-   funi=np.zeros((len(K),len(K[0])))
+   sortHR=np.zeros(len(K[0]))
+   HR=np.zeros(len(K[0]))
+   fsort=np.zeros(len(K[0]))
    uniHRall=[]
    uniFall=[]
-   for i in range(len(K)):
-      unif=K[i]*K[i]*f[i+1]*0.5
-      index=np.argsort(unif, kind='heapsort')
-      sortuni[i]=unif[index]
-      funi[i]=f[i+1][index]
-      if np.any(funi)<0:
-         logging[1].write('ATTENTION: some HR-factors are <0.\
-                  In the following their absolute value is used.')
-         funi[i]=np.abs(funi[i])
-      uniHR=[]
-      uniF=[]
+   print(u'HR-fact           freq\n')
+   for j in range(len(K[0])):
+      HR[j]=K[0][j]*K[0][j]*0.5*f[0][j]
+      print HR[j], f[0][j]*Hartree2cm_1
+   index=np.argsort(HR, kind='heapsort')
+   sortHR=HR[index]
+   fsort=f[0][index]
+   if np.any(fsort)<0:
+      logging[1].write('ATTENTION: some HR-factors are <0.\
+               In the following their absolute value is used.')
+      fsort=np.abs(fsort)
+   uniHR=[]
+   uniF=[]
 
-      logging[1].write(u'HR-fact           freq\n')
-      for j in range(len(sortuni[i])):
-         #select all 'big' HR-factors 
-         if sortuni[i][-j]>0.001:
-            uniHR.append(sortuni[i][-j])
-            uniF.append(funi[i][-j])
-            logging[1].write(u"{0}   {1}\n".format(sortuni[i][-j], funi[i][-j]*Hartree2cm_1))
-      uniHRall.append(uniHR)
-      uniFall.append(uniF)
+   logging[1].write(u'HR-fact           freq\n')
+   #print(u'HR-fact           freq\n')
+   for j in range(len(sortHR)):
+      #select all 'big' HR-factors 
+      if sortHR[-j]>=0.00001:
+         uniHR.append(sortHR[-j])
+         uniF.append(fsort[-j])
+         # print uniHR[-1], uniF[-1]*Hartree2cm_1
+         logging[1].write(u"{0}   {1}\n".format(sortHR[-j], fsort[-j]*Hartree2cm_1))
+   uniHRall.append(uniHR)
+   uniFall.append(uniF)
    return uniHRall, uniFall
 
 def quantity(logging, dim, num_of_files):
@@ -535,10 +584,12 @@ def ReadLog(logging, fileN):
       MassCenter[j]/=np.sum(mass) #now it is cartesian center of mass
    if logging[0]<2:
       logging[1].write("Cartesian (Angstrom) coordinates before alignment to center of "
-                       "mass\n {0} \nCenter of mass coordinates (Angstrom):\n{1}\n".format(Coord.T, MassCenter))
+                       "mass\n {0} \nCenter of mass coordinates (Angstrom):\n{1}\n"
+                       .format(Coord.T, MassCenter))
    
    for j in range(3):#displacement of molecule into center of mass:
-      Coord[j]-=MassCenter[j] # if commented we get rotational constants in agreement with Gaussian log
+      Coord[j]-=MassCenter[j] # if commented we get rotational constants 
+                              #in agreement with Gaussian log
    Coord*=Angs2Bohr
    if logging[0]<2:
       logging[1].write("Cartesian coordinates (a.u.) in center of mass system\n{0}\n".format(Coord.T))
@@ -583,7 +634,7 @@ def ReadLog(logging, fileN):
             #these are those lines where no forces are written to
             k=i-1
             n+=1
-            line=n
+            line=n*5
             continue
          elements=lines[i].split()[1:] #don't use the first element
          #line=int(re.findall(r"[\d]+", lines[i].split()[0])[0])+(i-2-n)
