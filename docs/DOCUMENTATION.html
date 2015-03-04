@@ -78,11 +78,13 @@ Further, the line-spectrum can be calculated in a <a href="#FC">Franck-Condon</a
 		where level is: <tt>all</tt>, <tt>detailed</tt>, <tt>medium</tt>, <tt>important</tt>, <tt>short</tt>   </TD> <TR>
 <TR> <TD> <tt>g09Vectors </tt></TD> <TD> read transformation matrix from the Gaussian-file, e.g. for comparison. This option is only possible, if the G09-file was created with the option <tt>Opt(CalcFC...</tt>. To check whether the file contains the needed information, search for "Eigenvectors". </TD> <TR>
 <TR> <TD> <tt>g09freqs </tt></TD>   <TD> read the frequencies from the Gaussian-file, e.g. for comparison. This option is only possible, if the G09-file was created with the option <tt>Opt(CalcFC...</tt>. To check whether the file contains the needed information, search for "Eigenvalues". </TD> <TR>
-<TR> <TD><tt>method:</tt>  </TD> <TD>    <tt>gradient</tt> (or written <tt>Gradient</tt> or <tt>grad</tt>): Use the gradient in excited state at ground state geometry 
-and assume non-changing frequencies to calculate the shift of normal modes and HR-factors respectively
-need: a g09-file containing gradient of final state at ground state geometry (use option <tt>Force</tt>). 
-This method is valid only if no DR-spectrum is to be calculated.</TD> <TR>
-<TR> <TD> </TD> <TD> <tt> shift </tt>(or written <tt>SHIFT </tt>or <tt>Shift</tt>): Calculate the change of normal modes by the shift of equilibrium positions; needs force constant matrix and optimised geometries in both states default procedure is shift </TD> <TR>
+<TR> <TD><tt>method:</tt>  </TD> <TD>    
+         <tt><a href="models.html#HR-m,g">gradient</a></tt> (or written <tt>Gradient</tt> or <tt>grad</tt>): Use the gradient in excited state at ground state geometry 
+                       and assume non-changing frequencies to calculate the shift of normal modes and HR-factors respectively
+                       need: a g09-file containing gradient of final state at ground state geometry (use option <tt>Force</tt>). 
+                       This method is valid only if no DR-spectrum is to be calculated.</TD> <TR>
+<TR> <TD> </TD> <TD> <tt> <a href="models.html#HR-m,s">shift </a></tt>(or written <tt>SHIFT </tt>or <tt>Shift</tt>): Calculate the change of normal modes 
+                       by the shift of equilibrium positions; needs force constant matrix and optimised geometries in both states default procedure is shift </TD> <TR>
 </TABLE>
 
 <h3 id="FC">2: FC-spect()</h3>
@@ -95,11 +97,13 @@ This method is valid only if no DR-spectrum is to be calculated.</TD> <TR>
 <TR> <TD> <tt>g09Vectors </tt></TD> <TD> read transformation matrix from the Gaussian-file, e.g. for comparison </TD> <TR>
 <TR> <TD> <tt>g09freqs </tt></TD>   <TD> read the frequencies from the Gaussian-file, e.g. for comparison </TD> <TR>
 
-<TR> <TD><tt>method:</tt>  </TD> <TD>    <tt>gradient</tt> (or written <tt>Gradient</tt> or <tt>grad</tt>): Use the gradient in excited state at ground state geometry 
-and assume non-changing frequencies to calculate the shift of normal modes and HR-factors respectively
-need: a g09-file containing gradient of final state at ground state geometry. 
-This method is valid only if no DR-spectrum is to be calculated.</TD> <TR>
-<TR> <TD> </TD> <TD>  <tt>shift</tt> (or written <tt>SHIFT</tt> or <tt>Shift</tt>): Calculate the change of normal modes by the shift of equilibrium positions; needs force constant matrix and optimised geometries in both states default procedure is shift </TD> <TR>
+<TR> <TD><tt>method:</tt>  </TD> <TD>    
+         <tt><a href="models.html#HR-m,g">gradient</a></tt> (or written <tt>Gradient</tt> or <tt>grad</tt>): Use the gradient in excited state at ground state geometry 
+                       and assume non-changing frequencies to calculate the shift of normal modes and HR-factors respectively
+                       need: a g09-file containing gradient of final state at ground state geometry (use option <tt>Force</tt>). 
+                       This method is valid only if no DR-spectrum is to be calculated.</TD> <TR>
+<TR> <TD> </TD> <TD> <tt> <a href="models.html#HR-m,s">shift </a></tt>(or written <tt>SHIFT </tt>or <tt>Shift</tt>): Calculate the change of normal modes 
+                       by the shift of equilibrium positions; needs force constant matrix and optimised geometries in both states default procedure is shift </TD> <TR>
 </TABLE>
 
 <h3 id="DR">3: Duschinsky-spect()</h3>
@@ -111,7 +115,7 @@ This method is valid only if no DR-spectrum is to be calculated.</TD> <TR>
 <TR> <TD><tt>T=</tt> </TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
 </TABLE>
 <TABLE>
-<TR> <TD><tt>model=</tt>	</TD><TD> specify, which </TD><TD>model should be used within Duschinsky-picture:</TD> <TR>
+<TR> <TD><tt><a href="models.html#DR-m">model=</a></tt>	</TD><TD> specify, which </TD><TD>model should be used within Duschinsky-picture:</TD> <TR>
 <TR> <TD>  </TD> <TD> <tt> Simple </tt> </TD> <TD> simple model uses OPA and no resorting of modes; this is assumed 
                             to have very big errors  (don't use it)</TD> <TR>
 <TR> <TD>  </TD> <TD> <tt>Resort</tt>  </TD> <TD> here the normal modes are resorted and all highest transitions are 

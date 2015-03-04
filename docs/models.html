@@ -1,0 +1,37 @@
+<h1 id="HR-m">Method for determining the shift</h1>
+Assuming harmonic approximation, there are two methods for deterining the shift of the two coordinates.
+<p style="text-align: center;"><IMG SRC="HR.png" ALT="graphical clarification of the two concepts"  HEIGHT=420> </p>
+<h2 id="HR-m,s">shift</h2>
+<p>This method needs the two electronic states to be each in their respective equilibrium geometry and determines the shift by the shift of cartesian coordinates. This is than converted into internal coordinates using the L-matrix (whose line-vectors are the eigenvalues of the PES's hessian). Than the Huang-Rhys factors can be calculated as
+<p> advantages of this method
+<ul class="navbar">
+   <li> Due to the different optimisations of geometries also multiple excited states can be investigated
+</ul>
+
+<h2 id="HR-m,g">gradient</h2>
+<p>In this method the from the excited state only the gradient of the PES at the equilibrium geometry of the ground state is known. 
+<p> advantages of this method:
+<ul class="navbar">
+   <li> Since the geometry is calculated only once, there is no chance of reorienation of the molecule or false equilibration of the geometry
+   <li> The calculations need not that much time since only one geometry-optimisation is needed
+</ul>
+Further the comparison of the two methods can be used to estimate if the harmonic approximation is still valid.
+
+
+<h1 id="DR-m">Models in the Duschinsky-rotated picture</h1>
+Taking Duschinsky-rotation into account leads to some problems by applying further approximations such as the one-particle approximation (OPA); but the full calculation is not feasible (or at least not wanted) for some molecules. 
+It turned out that the main problem is that one can not simply assingn the vibrational modes to each other since the modes in excited state are different from those in ground state
+Therefore smallscript has four models with differently strong approximations:
+<h2 id="DR-m,s">Simple</h2>
+In this simples model, one simply neglects that the modes do not coincide, but also that the order of modes may have changed and applies OPA to it.
+This can lead to unreasonable results and hence this method should never be used.
+<h2 id="DR-m,r">Resort</h2>
+In this model, the modes are sorted such that the modes that are closest to each other will get the same number and after this OPA is applied.
+This leads to results that will look like the Franck-Condon progressions in most cases but only small corrections on the amplitudes will be found.
+<h2 id="DR-m,d">Distributing</h2>
+In this model, besides the resorting of the modes, also OPA-transitions to other modes are allowed.
+It is not clear whether this model is valid..?
+<h2 id="DR-m,u">Unrestricted</h2>
+Here no one-particle approximation is applied. Instead the number of normal modes taken into account is truncated as it is done in the Franck-Condon scheme.
+As in the Franck-Condon scheme, the modes taken into account explicitly are chosen by the size of the respecive shift. But for these modes, the sub-system is
+calculated in full scheme.
