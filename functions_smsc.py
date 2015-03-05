@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# filename: functions_smsc.pyx
+# filename: functions_smsc.py
 import numpy as np, re, mmap, os.path, math, sys
 from scipy.linalg.lapack import dsyev as dsyev #is this faster?
 #import scipy.linalg.lapack as LA
@@ -31,7 +31,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    # M,N are maximal numbers of vibrational modes (+1, since they should be arrived really; count from 0)
    N+=1
    M+=1
-   def FCeqf( float Deltag, int M, int N):
+   def FCeqf( Deltag, M, N):
       """Calculate Franck-Condon factors under assumption of equal frequencies 
       for only one vibrational mode
 
@@ -43,9 +43,9 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       RETURNS:
       Franck-Condon factor of the respective transition
       """
-      cdef float exg=np.exp(-Deltag/2) #actually Deltag should be >0, but is not always due to negative frequencies
-      cdef float faktNM=math.factorial(M)*math.factorial(N)
-      cdef float FC=0
+      exg=np.exp(-Deltag/2) #actually Deltag should be >0, but is not always due to negative frequencies
+      faktNM=math.factorial(M)*math.factorial(N)
+      FC=0
       for x in range(int(min(N,M))+1):
          FC+=exg*math.pow(-1,N-x)*math.pow(np.abs(Deltag),(M+N)*0.5-x)/(math.factorial(M-x)*math.factorial(N-x))*\
                math.sqrt(faktNM)/math.factorial(x)
@@ -86,38 +86,21 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    uency00=E*Hartree2cm_1 #zero-zero transition
    if logging[0]<1:
       logging[1].write("Line-spectrum in One-Particle approximation:\n")
-      logging[1].write(u"frequency     intensity  \n")
+      logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
    for a in range(n):
-      #=first, calculate all FC-factors and finally normalise them (sum over all FC-factors is one)
-      HRf0=FCeqf(HR[a], 0, 0)
-      for j in range(1,N):
-         HRf=np.zeros( int((HR[a]+1)*(M+j)) )
-         s=0
-         i=0
-         while s<=0.96:
-            if j-i>=0:
-               HRf[2*i]=FCeqf(HR[a], j-i, j)
-               s+=HRf[2*i]
-            if i!=0:
-               HRf[2*i-1]=FCeqf(HR[a], j+i, j)
-               s+=HRf[2*i-1]
-            i+=1
-         #print a,j , HR[a],s, '\n', HRf
-         i-=1
-         for k in range(i):
-            if k==0 and j==0: 
-               #skip 0-0 transitions
+      temp=FCeqf(HR[a],0,0)
+      for j in range(N):
+         for i in range(M):
+            if i==0 and j==0:
+               ##skip 0-0 transitions
                continue
-            tmp=HRf[k]/HRf0
-            FC[a][j*M+k-1]=tmp*FC00*np.exp(-(E0+freq[a]*j)/T)
-            uency[a][j*M+k-1]=(E+freq[a]*(j-k))*Hartree2cm_1
-            #print FC[a][j*M+k-1], tmp
-            if k>=M-1:
-               ############# this is due to an old feature; make this more flexible in the future!!
-               break
+            tmp=FCeqf(HR[a], i, j)/temp
+            FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
+            uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
+            #if logging[0]<1:
+               #logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+" "+repr(FC[a][j*M+i-1])+" "+repr(a)))
    FC00*=np.exp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
-   #print "spectrum (first)\n", spect.T
    return spect
 
 def CalculationHR(logging, initial, final, opt):
@@ -173,7 +156,7 @@ def CalculationHR(logging, initial, final, opt):
          logging[1].write('final state: \n {0}\n'.format(F[1]))
 
    #Calculate Frequencies and normal modes
-   f, Lsorted, Lcart=GetL(logging, dim, mass,F)
+   f, Lsorted, Lcart=GetL(logging, dim, mass, F)
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
@@ -232,7 +215,7 @@ def Duschinsky(logging, L, mass, dim, x):
    np.set_printoptions(suppress=True)
    np.set_printoptions(precision=5, linewidth=138)
    ##print "Delta x", DeltaX[i]
-   print "K",K.T
+   #print "K",K.T
    if logging[0]<2:
       for i in range(len(J)):
          logging[1].write('Duschinsky rotation matrix, state '+repr(i)+\
@@ -251,7 +234,7 @@ def getGaussianf(final, dim):
       s=0
       f=np.zeros((1,dim-6))
       for j in range(len(f2)):
-         f[i][s:s+len(f2[j])]=f2[j]
+         f[0][s:s+len(f2[j])]=f2[j]
          s+=len(f2[j])
    #if file is of type 'Force'
    elif re.search(r" Eigenvectors of the second derivative matrix:", mapedlog, re.M) is not None:
@@ -264,9 +247,9 @@ def getGaussianf(final, dim):
          for i in range(len(f2[j])):
             f[0][s+i]=np.sqrt(float(f2[j][i]))*2590.839/Hartree2cm_1*1.15
          s+=len(f2[j])
-   print "gaussian freq"
-   for i in range(len(f[0])):
-      print f[0][i]*Hartree2cm_1 
+   #print "gaussian freq"
+   #for i in range(len(f[0])):
+   #   print f[0][i]*Hartree2cm_1 
    return f
 
 def getGaussianL(final, dim):
@@ -282,7 +265,6 @@ def getGaussianL(final, dim):
       # to remove the lines with 'Eigenvalues':
       for k in range(len(f1)):
          f2=re.findall(r"[- ]\d\.[\d]+", f1[k]) 
-         #print f2
          s=len(f2)//dim 
          #s should be 5 but not in last line
          for j in range(dim):
@@ -290,10 +272,10 @@ def getGaussianL(final, dim):
                L[j][b+i]=f2[i+s*(j+1)]
          b+=s
       #renormalise L
-      #for j in range(dim): 
-         #norm=L[j].dot(L[j].T)
-         #if norm>1e-12:
-            #L[j]/=np.sqrt(norm)
+      for j in range(dim): 
+         norm=L[j].dot(L[j].T)
+         if norm>1e-12:
+            L[j]/=np.sqrt(norm)
    else:
       print "there is no other method implemented until now!"
    
@@ -328,17 +310,6 @@ def GetL(logging, dim, mass, F):
       #ftemp,Ltemp=np.linalg.eigh(F[i])
       ftemp,Ltemp,info=dsyev(F[i]) #this seems to be the best function
 
-      #assert np.any(ftemp< 0) or np.any(np.imag(ftemp)!=0),\
-#       'Frequencies smaller than 0 occured. Please check the input-file!! {0}'.format(ftemp)
-      if np.any(ftemp<0):
-         if logging[0]<4:
-            logging[1].write('Frequencies smaller than 0 occured. The absolute'
-                        ' values are used in the following.\n{0}\n'.format(ftemp))
-         ftemp=np.abs(ftemp)
-
-      M=np.zeros((dim,dim))
-      for j in range(0,dim):
-         M[j,j]=1/mass[j//3]
       #Lcart=M.dot(np.real(Ltemp)) ## 
       Lcart=np.real(Ltemp)
       for j in range(0,dim):
@@ -358,12 +329,14 @@ def GetL(logging, dim, mass, F):
       #the frequencies are square root of the eigen values of F
       for j in range(len(f[i])):
          f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
+
+      if np.any(f[i]<0):
+         logging[1].write('imaginary frequencies occured. The absolute'
+                        ' values are used in the following.\n{0}\n'.format(f[i]))
+         f[i]=np.abs(f[i])
       if logging[0]<2:
          logging[1].write("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
                repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i])+"\n")
-   print "my frequencies"
-   for i in range(len(f[0])):
-      print f[0][i]*Hartree2cm_1
    return f, Lsorted, Lcart
 
 def gradientHR(logging, initial, final, opt):
@@ -398,16 +371,6 @@ def gradientHR(logging, initial, final, opt):
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
       g09L=getGaussianL([initial], dim)
-      np.set_printoptions(precision=5, linewidth=120)
-      np.set_printoptions(suppress=True)
-      print "g09L "
-      for i in range(len(g09L.T)):
-         for j in range(len(g09L.T[i])):
-            if g09L.T[i][j]==0.0:
-               print g09L.T[i][j],"\t\t", -Ls[j][i]*6000
-            else:
-               print g09L.T[i][j],"\t", -Ls[j][i]*6000
-         print
    elif re.search(r"g09Vector",opt, re.I) is not None:
       g09L=getGaussianL([initial], dim)
    extra=re.findall(r"g09freqs",opt, re.I)
@@ -476,10 +439,8 @@ def HuangR(logging, K, f): #what is with different frequencies???
    fsort=np.zeros(len(K[0]))
    uniHRall=[]
    uniFall=[]
-   print(u'HR-fact           freq\n')
    for j in range(len(K[0])):
       HR[j]=K[0][j]*K[0][j]*0.5*f[0][j]
-      print HR[j], f[0][j]*Hartree2cm_1
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
    fsort=f[0][index]
@@ -662,7 +623,6 @@ def ReadLog(logging, fileN):
    if f==[]:
       #if Freq was not specified in Gaussian-file:
       f=re.findall(r"The second derivative matrix:[XYZ\n\d .-]+", log, re.M)
-      print "second deriv"
       #try to find matrix from option "Force"
       assert f!=[], 'The input-file does not contain information on the force-constants!'
       #else: error message. The matrix is really needed...
@@ -826,4 +786,4 @@ def replace(logging, files, freq, L):
       out.close()
 
 version=1.2
-# End of functions_smsc.pyx
+# End of functions_smsc.py

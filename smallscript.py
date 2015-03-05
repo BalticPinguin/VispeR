@@ -130,10 +130,6 @@ def main(argv=None):
       else:
          logging[1].write("method {0} not recognised. Use Shift instead.\n".format(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
-      for i in range(len(HR)):
-         print "HR-fact,    frequency "
-         for j in range(len(HR[0])):
-            print HR[i][j], funi[i][j]*219474.63 
 
    pbar.update(12)
    if np.mod(todo,4)>=2:
