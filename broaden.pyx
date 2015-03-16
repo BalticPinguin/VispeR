@@ -73,6 +73,8 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
       """
       cdef int i
       cdef int k
+      cdef double intensi
+      cdef double freqi
       newintens=[]
       newfreq=[]
       
@@ -152,7 +154,6 @@ def OPA2nPA(OPAfreq,freq00, OPAintens, intens00, mode, n):
    if n>x:
       n=x
       #save complexity, that it does not try to make more combinations than actually possible...
-   #np.set_printoptions(precision=5, linewidth=138)
    TPAfreq, TPAintens=putN(-1, n, OPAintens, OPAfreq, newmode, OPAintens, OPAfreq, newmode)
    for i in range(len(TPAfreq)):
       TPAfreq[i]+=freq00
@@ -238,6 +239,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
    linspect[2]=linspect[2][index] #mode
    linspect[0]=linspect[0][index] #frequency
    #find transition with minimum intensity to be respected
+   print "linspect\n",linspect.T[-10:]
 
    #truncate all transitions having less than 0.0001% of
    for i in range(len(linspect[1])):

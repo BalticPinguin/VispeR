@@ -18,7 +18,7 @@ class Tree:
    """
    #all possible attributes; it saves memory especially for huge trees, (saves about 1/3)
    #see http://tech.oyster.com/save-ram-with-python-slots/
-   __slots__=['data', 'data2', 'left','right','alpha'] #why is 'type' not neccesary?
+   __slots__=['data', 'left','right','alpha'] #why is 'type' not neccesary?
 
    def __init__(self,alph):
       """ initializes the tree root of a (sub-) tree
@@ -33,11 +33,10 @@ class Tree:
       assert self.alpha!=0, 'There must be at least 1 vibrational mode!!'
       assert n>=0, 'The dimensionality of a tree can not be smaller 0'
       if n==0:
-         self.data2=[0, 0] #this is extra-tree
+         self.data=[0, 0] #this is extra-tree
          self.type='_'
       elif n==1 and self.alpha==1:
          self.data=np.array([0, 0],dtype=np.int8) #saves memory
-         self.data2=np.array([0, 3],dtype=np.int8)
          self.type='u'
       elif self.alpha==1:
          self.data=np.array([0, 2],dtype=np.int8)
@@ -105,13 +104,8 @@ class Tree:
             self.data=np.array(FC, dtype=np.float32) 
             break
          else:# self.type=='u' or '_'
-            if N[i]+n==m:
-               self.data=np.array(FC, dtype=np.float32) 
-               break
-            else:
-               ############################################### never reached!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-               self.data2=np.array(FC, dtype=np.float32) 
-               break
+            self.data=np.array(FC, dtype=np.float32) 
+            break
          n+=int(N[i])
 
    def extract(self): #extract all elements 
@@ -147,8 +141,6 @@ class Tree:
          elif self.type=='u':
             if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
                result.append(self.data)
-            if self.data2[0]>DATATHRESHOLD or self.data2[0]<-DATATHRESHOLD:
-               result.append(self.data2)
          else:
             if self.data[0]>DATATHRESHOLD or self.data[0]<-DATATHRESHOLD:
                result.append(self.data)
@@ -174,35 +166,31 @@ class Tree:
             total+=n
          return total
 
-      cdef double n=0
-      cdef int i
-      #m=np.sum([N[i] for i in range(len(N))])
-      cdef double m=summ(N)
+      cdef int n=0
+      cdef int i, N_i
+      cdef int m=int(summ(N))
       for i in range(len(N)): #self.alpha==alpha since this is root-n
+         N_i=N[i]
          if self.type=='n':
-            for j in range(N[i]):
+            for j in range(N_i):
                self=self.right
-               if self.type=='l' and N[i]+n==m:
+               if self.type=='l' and N_i+n==m:
                   break
-            if n+N[i]==m:
+            if n+N_i==m:
                return self.data
             else:
                self=self.left
          elif self.type=='l':
-            if n+N[i]==m:
+            if n+N_i==m:
                return self.data
             else:
                self=self.left
-               n+=int(N[i])
+               n+=int(N_i)
          elif self.type=='r':
             return self.data
          else:# self.type=='u' or '_'
-            if N[i]+n==m:
-               return self.data
-            else:
-               return 'error!!' #I think, this is never reached.
-               #Than this can be remevod as well as the attribute data2
-         n+=N[i]
+            return self.data
+         n+=N_i
 
    def size(self):
       """ function that returns the size of the tree (number of data-points). 

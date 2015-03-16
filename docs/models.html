@@ -1,8 +1,31 @@
 <h1 id="HR-m">Method for determining the shift</h1>
 Assuming harmonic approximation, there are two methods for deterining the shift of the two coordinates.
 <p style="text-align: center;"><IMG SRC="HR.png" ALT="graphical clarification of the two concepts"  HEIGHT=420> </p>
+Both methods implemented calculate the Huang-Rhys factors<SPAN CLASS="MATH"><IMG
+ WIDTH="34" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img9.png"
+ ALT="$ HR$"></SPAN> from the shift as <!-- MATH
+ $HR=\frac 12 \Delta^2 f$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="100" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img10.png"
+ ALT="$ HR=\frac 12 \Delta^2 f$"></SPAN> where <SPAN CLASS="MATH"><IMG
+ WIDTH="19" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="$ \Delta$"></SPAN> is the shift of the modes in normal coordinates.
+
 <h2 id="HR-m,s">shift</h2>
-<p>This method needs the two electronic states to be each in their respective equilibrium geometry and determines the shift by the shift of cartesian coordinates. This is than converted into internal coordinates using the L-matrix (whose line-vectors are the eigenvalues of the PES's hessian). Than the Huang-Rhys factors can be calculated as
+<p>This method needs the two electronic states to be each in their respective equilibrium geometry and determines the shift by the shift of Cartesian coordinates.
+The Cartesian shift is converted into internal coordinates as
+<!-- MATH
+ $\vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$
+ -->
+<SPAN CLASS="MATH"><IMG
+ WIDTH="167" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img17.png"
+ ALT="$ \vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$"></SPAN>
+ using the L-matrix (whose line-vectors are the eigenvalues of the PES's hessian).
 <p> advantages of this method
 <ul class="navbar">
    <li> Due to the different optimisations of geometries also multiple excited states can be investigated
@@ -10,6 +33,10 @@ Assuming harmonic approximation, there are two methods for deterining the shift 
 
 <h2 id="HR-m,g">gradient</h2>
 <p>In this method the from the excited state only the gradient of the PES at the equilibrium geometry of the ground state is known. 
+<SPAN CLASS="MATH"><IMG
+ WIDTH="111" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+ SRC="img16.png"
+ ALT="$ \Delta=F_{nm}\frac{1}{f^2\sqrt{2}}$"></SPAN> 
 <p> advantages of this method:
 <ul class="navbar">
    <li> Since the geometry is calculated only once, there is no chance of reorienation of the molecule or false equilibration of the geometry

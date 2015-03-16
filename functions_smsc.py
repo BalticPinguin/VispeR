@@ -90,17 +90,21 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    for a in range(n):
       temp=FCeqf(HR[a],0,0)
       for j in range(N):
+         s=0
          for i in range(M):
             if i==0 and j==0:
                ##skip 0-0 transitions
                continue
             tmp=FCeqf(HR[a], i, j)/temp
+            s+=tmp*tmp
             FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
             uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-            #if logging[0]<1:
-               #logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+" "+repr(FC[a][j*M+i-1])+" "+repr(a)))
+            if s>=0.97:
+               #nearly all transitions from j-th state are in it.
+               break
    FC00*=np.exp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
+   print "line spectrum:\n", spect.T
    return spect
 
 def CalculationHR(logging, initial, final, opt):
