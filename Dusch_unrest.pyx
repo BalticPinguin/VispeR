@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # filename: Dusch_unrest.pyx
-import numpy as np, math, sys
+import numpy as np, math
+cimport numpy as np
 #include [[Btree.pyx]]
 import Btree as bt
 
@@ -25,7 +26,7 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
    """
    #first: resort the elements of J, K, f to make J most closely to unity
    resort=np.zeros(np.shape(J))
-   for i in range(len(J)):
+   for i in xrange(len(J)):
       j=np.argmax(J[i])
       k=np.argmin(J[i])
       if J[i][j]>-J[i][k]:
@@ -34,7 +35,7 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
          resort[i][k]=-1
    J=resort.dot(J.T)
    K=resort.dot(K.T)
-   for i in range(len(resort)):
+   for i in xrange(len(resort)):
       k=np.argmin(resort[i])
       if resort[i][k]==-1:
          resort[i][k]=1 #use absolute value only.
@@ -115,10 +116,11 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       cdef int leng, m, mp, alpha
       cdef double I_nn, Ps
       #quantities for the iterative spectrum-calculation
-      Gamma=np.diag(f[1])               # in atomic units. It is equivalent to 4pi^2/h f_i
-      Gammap=np.diag(f[0])              # for final state
-      sqGamma=np.diag(np.sqrt(f[1]))   
-      sqGammap=np.diag(np.sqrt(f[0]))
+      npdiag=np.diag
+      Gamma=npdiag(f[1])               # in atomic units. It is equivalent to 4pi^2/h f_i
+      Gammap=npdiag(f[0])              # for final state
+      sqGamma=npdiag(np.sqrt(f[1]))   
+      sqGammap=npdiag(np.sqrt(f[0]))
       unity=np.eye(len(Gamma))
    
       S=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma)
@@ -187,36 +189,36 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
                   n[i]-=1
                   Ps=L1.getState(n)[0]
                   n[i]+=1
-                  I_nn+=npsqrt(n[i]*0.5)*(A[m][i]+A[i][m])*Ps        # second term
+                  I_nn+=npsqrt(n[i]*0.5)*(A[m][i]+A[i][m])*Ps   # second term
             for i in range(mp+leng, len(n)):                    # sum over respective final states
-               if mp>leng:                                 # that means: there are no excited vibrations
+               if mp>leng:                                      # that means: there are no excited vibrations
                   break
                if n[i]>0:
                   n[i]-=1
                   Ps=L1.getState(n)[0]
                   n[i]+=1
-                  I_nn+=npsqrt(n[i]*0.5)*E[i-leng][m]*Ps           # second term
+                  I_nn+=npsqrt(n[i]*0.5)*E[i-leng][m]*Ps        # second term
             n[m]+=1
          #else: need the other iteration-formula
          else: 
             n_m=n[mp+leng]
             n[mp+leng]-=1
             Ps=L2.getState(n)[0]
-            I_nn=d[mp]*Ps                                    # first term 
+            I_nn=d[mp]*Ps                                       # first term 
             if n[mp+leng]>0:
                n[mp+leng]-=1
                Ps=L1.getState(n)[0]
-               I_nn+=npsqrt(2*(n_m-1.0))*C[mp][mp]*Ps         # second term
+               I_nn+=npsqrt(2*(n_m-1.0))*C[mp][mp]*Ps           # second term
                n[mp+leng]+=1
             for i in range(mp+1+leng, len(n)):
                if n[i]>0:
                   n[i]-=1
                   Ps=L1.getState(n)[0]
                   n[i]+=1
-                  I_nn+=npsqrt(n[i]*0.5)*(C[mp][i-leng]+ # second term
+                  I_nn+=npsqrt(n[i]*0.5)*(C[mp][i-leng]+        # second term
                               C[i-leng][mp])*Ps 
             for i in range(m, leng):                            #sum over respective final states
-               if m>leng:                                  # that means: there are no excited vibrations
+               if m>leng:                                       # that means: there are no excited vibrations
                   break                                         #actually not needed, right?
                if n[i]>0:
                   n[i]-=1
@@ -230,11 +232,11 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          #threshold for insertion: saves memory, since int insead of float is used
          if np.abs(I_nn)>1e-8:
             L3.insert(n, [I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:]), freq(0, 0, f[1]*n[leng:]) ])
-            if I_nn>=10:
-               print n, I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:])
+            #if I_nn>=10:
+               #print n, I_nn, freq(Energy, f[0]*n[:leng], f[1]*n[leng:])
       return L2, L3
 
-   def states(alpha, n): 
+   def states(int alpha,int  n): 
       """This function creates all possible states having a total number of n excitations in alpha different states
    
       *PARAMETERS:*
@@ -368,18 +370,22 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          #only by assert: MemoryError
          break # kill calculation
       spect=L2.extract()
-      for j in range(len(spect)):
+      for j in xrange(len(spect)):
          lineapp(spect[j][0])
          freqapp(spect[j][1])
          initapp(spect[j][2])
    result=np.zeros((3, len(lines) ))
    result[0]=freqs
    T*=Hartree2cm_1
-   for i in range(len(result[0])):
-      #arbitrary but constant number for mode
-      result[2][i]=42
-      # intensities are proportional to square of the transition rates
-      result[1][i]=lines[i]*lines[i]*np.exp(-initF[i]/T)/10  # devide by ten since I_00 is 10 not 100 (should be square)
+   result[2]=[42 for i in range(len(result[2]))]
+   #result[2]=map(42, result[1]) # this may be even faster 
+   #result[2]=42 #does this work? how fast is it??
+   result[1]=[lines[i]*lines[i]*np.exp(-initF[i]/T)/10 for i in range(len(result[1]))]  # devide by ten since I_00 is 10 not 100 (should be square)
+   #for i in range(len(result[0])):
+      ##arbitrary but constant number for mode
+      #result[2][i]=42
+      ## intensities are proportional to square of the transition rates
+      #result[1][i]=lines[i]*lines[i]*np.exp(-initF[i]/T)/10  # devide by ten since I_00 is 10 not 100 (should be square)
    return result
 
 version=0.5

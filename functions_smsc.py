@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
-import numpy as np, re, mmap, os.path, math, sys
+import numpy as np
+import re, mmap, os.path, math, sys
 from scipy.linalg.lapack import dsyev as dsyev #is this faster?
 #import scipy.linalg.lapack as LA
 #for python-3 compatibility
@@ -62,16 +63,14 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       **RETURNS**
       a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
       """
-      if logging[0]<1:
-         logging[1].write('Spectrum\n {0}  {1}  {2}  {3}\n'.format(N, M, len(intens), len(intens[0])))
       J=len(intens[0])
-      spect=np.zeros((3,len(intens)*len(intens[0])+1))
+      spect=np.zeros((3,len(intens)*J+1))
       #first transition: 0-0 transition. 
       spect[1][0]=FC00 #0->0 transition
       spect[0][0]=E
       spect[2][0]=0
       for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
-         for j in range(J):
+         for j in xrange(J):
             spect[2][i*J+j+1]=i+1
             spect[1][i*J+j+1]=intens[i][j]
             spect[0][i*J+j+1]=freqs[i][j]
@@ -84,27 +83,26 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    #calculate 0->0 transition
    FC00=10
    uency00=E*Hartree2cm_1 #zero-zero transition
+   loggingwrite=logging[1].write #avoid dots!
    if logging[0]<1:
-      logging[1].write("Line-spectrum in One-Particle approximation:\n")
-      logging[1].write(u" {0}\n".format(repr(E*Hartree2cm_1)+" "+repr(FC00)))
-   for a in range(n):
+      loggingwrite("Line-spectrum in One-Particle approximation:\n")
+      loggingwrite(u" %f   %f  %f\n"%(E*Hartree2cm_1, FC00, 0))
+   npexp=np.exp #avoiding dots accelerates python quite a lot
+   #loop goes over all modes
+   for a in xrange(n):
       temp=FCeqf(HR[a],0,0)
       for j in range(N):
-         s=0
          for i in range(M):
             if i==0 and j==0:
                ##skip 0-0 transitions
                continue
             tmp=FCeqf(HR[a], i, j)/temp
-            s+=tmp*tmp
             FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
             uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-            if s>=0.97:
-               #nearly all transitions from j-th state are in it.
-               break
-   FC00*=np.exp(-E0/T)
+            #if logging[0]<1:
+               #logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+" "+repr(FC[a][j*M+i-1])+" "+repr(a)))
+   FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
-   print "line spectrum:\n", spect.T
    return spect
 
 def CalculationHR(logging, initial, final, opt):
@@ -309,12 +307,12 @@ def GetL(logging, dim, mass, F):
    ftemp=np.zeros(len(F[0]-6))
 
    for i in range(len(F)):
-      #### the condition number of F[i] is some millions...
+      # here one can choose between the methods: result is more or less independent
       #ftemp,Ltemp=np.linalg.eig(F[i])
       #ftemp,Ltemp=np.linalg.eigh(F[i])
       ftemp,Ltemp,info=dsyev(F[i]) #this seems to be the best function
 
-      #Lcart=M.dot(np.real(Ltemp)) ## 
+      #renormalise L, is not needed probably?
       Lcart=np.real(Ltemp)
       for j in range(0,dim):
          norm=np.sum(Lcart.T[j]*Lcart.T[j])
@@ -370,8 +368,7 @@ def gradientHR(logging, initial, final, opt):
 
    #Calculate Frequencies and normal modes
    f, Lsorted, Lcart=GetL(logging, dim, mass,F)
-   K=GradientShift(logging, Lsorted, mass, Grad, f[0])
-      ##################################################
+   K, J=GradientShift(logging, Lsorted, mass, Grad, f[0])
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
       g09L=getGaussianL([initial], dim)
@@ -389,7 +386,7 @@ def gradientHR(logging, initial, final, opt):
    HR, funi= HuangR(logging, K, f)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
       replace(logging, final, f[0], Lsorted[0])
-   return HR, funi, Energy, K, f
+   return HR, funi, Energy, J, K, f
 
 def GradientShift(logging, L, mass, Grad, Freq):
    """ This function calculates the 'shift' between excited state and ground state from the gradient of the excited state 
@@ -403,7 +400,10 @@ def GradientShift(logging, L, mass, Grad, Freq):
    K=Grad.T.dot(L[0])
    #K/=Freq*0.5
    K/=Freq*Freq*np.sqrt(2)  ##??? wtf
-   return K
+   for i in range(len(J)):
+      J[i]=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
+
+   return K, J
 
 def gs(A):
    """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
@@ -443,6 +443,7 @@ def HuangR(logging, K, f): #what is with different frequencies???
    fsort=np.zeros(len(K[0]))
    uniHRall=[]
    uniFall=[]
+   #HR=[K[0][j]*K[0][j]*0.5*f[0][j] for j in range(len(K[0]))]
    for j in range(len(K[0])):
       HR[j]=K[0][j]*K[0][j]*0.5*f[0][j]
    index=np.argsort(HR, kind='heapsort')
@@ -454,16 +455,17 @@ def HuangR(logging, K, f): #what is with different frequencies???
       fsort=np.abs(fsort)
    uniHR=[]
    uniF=[]
+   loggingwrite=logging[1].write
 
-   logging[1].write(u'HR-fact           freq\n')
+   loggingwrite(u'HR-fact           freq\n')
    #print(u'HR-fact           freq\n')
-   for j in range(len(sortHR)):
+   for j in xrange(len(sortHR)):
       #select all 'big' HR-factors 
       if sortHR[-j]>=0.00001:
          uniHR.append(sortHR[-j])
          uniF.append(fsort[-j])
          # print uniHR[-1], uniF[-1]*Hartree2cm_1
-         logging[1].write(u"{0}   {1}\n".format(sortHR[-j], fsort[-j]*Hartree2cm_1))
+         loggingwrite(u"%f   %f\n"%(sortHR[-j], fsort[-j]*Hartree2cm_1))
    uniHRall.append(uniHR)
    uniFall.append(uniF)
    return uniHRall, uniFall
@@ -636,7 +638,7 @@ def ReadLog(logging, fileN):
       n=0
       k=0
       line=0
-      for i in range(2,len(lines)):
+      for i in xrange(2,len(lines)):
          if i == dim+k-5*n+2: 
             #these are those lines where no forces are written to
             k=i-1
@@ -655,7 +657,7 @@ def ReadLog(logging, fileN):
       F=np.zeros((dim,dim))
       n=0
       k=0
-      for i in range(2,len(lines)):
+      for i in xrange(2,len(lines)):
          if i == dim+k-5*n+2: 
             k=i-1
             n+=1
@@ -707,17 +709,10 @@ def ReadLog2(logging, final):
       logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
    E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
   
-   #grad=re.findall(r"Final forces over variables, Energy=[\-\+ :\.\d D\n]+", log)
-   #Grad=re.findall(r"(?<=\:\n)[\-\+\.\d D\n]+", grad[0])
-   #Grad=re.findall(r"[\-\d\.]+D[-+][\d]{2}", Grad[0])
-   #grad=np.zeros((len(Grad),1))
-   #for i in range(len(Grad)):
-      #element=Grad[i].replace('D','e')
-      #grad[i]=float(element)
    grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
    Grad=re.findall(r"[\-\d\.]+[\d]{9}", grad[0])
    grad=np.zeros((len(Grad),1))
-   for i in range(len(Grad)):
+   for i in xrange(len(Grad)):
       grad[i]=float(Grad[i])
    return grad, E
 

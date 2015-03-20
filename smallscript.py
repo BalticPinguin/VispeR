@@ -62,7 +62,7 @@ def main(argv=None):
       return 2
    #opts is an array containing all options of respective sub-tasks, which are evaluated in the respective part
    opts=[]
-   # todo specifies the sub-tasks to be done in numerical values (powers of 2).
+   # todo specifies the sub-tasks to be done in numeral values (powers of 2).
    todo=0
    # here: evaluate the file with respect to the tasks to be done
    if (re.search(r"HR-fact",f, re.I) is not None) is True:
@@ -84,23 +84,25 @@ def main(argv=None):
    if (re.search(r"Broadening",f, re.I) is not None) is True:
       todo+=8
    opts.append(re.findall(r"(?<=Broadening)[\w\d\.,:\(\)\= -]+",f,re.I))
+   #error: This should never be true but due to unconvenient option-combinations it may be
    if todo>=16 or todo==0 or todo in [4,6,9]:
       print "options for calculation don't make sense. Please check the input-file!"
       print opts
       return 0
+   #invoke logging (write results into file specified by 'out: ' or into 'calculation.log'
    logfile=re.findall(r"(?<=out: )[\.\-_ \w]+",f, re.I)
    if logfile==[]:
       log=open("calculation.log", "a")
    else:
       log=open(logfile[0], "a")
-   log.write("calculations to be done: {0}\n".format(todo))
+   log.write("calculations to be done: %s\n"%(todo))
    log.close()
-
+   
+   #update the process-bar. (This gives not that satisfying resutls but better than none)
    pbar.update(5)
    if np.mod(todo,2)==1: 
       #calculation up to HR-facts needed (FC- or Duschinsky spect)
       #first find in where the options for this task are written in
-      #print "start HR"
       if opts[0]!=[]:
          opt=opts[0][0]
       elif opts[1]!=[]:
@@ -118,17 +120,19 @@ def main(argv=None):
          logging=invokeLogging(logfile,loglevel[0])
       initial=re.findall(r"(?<=initial: )[\w.]+",f, re.I)
       final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
-      ## the calculation of all needed quantities is done in this function
+      # the calculation of all needed quantities is done in this function
       method=re.findall(r"(?<=method: )[ \w]+",opt, re.I)
       if method==[]:
+         logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
       elif method[0] in ["gradient", "Gradient", 'grad', "gradient ", "grad "]:
-         ## test whether Duschinsky-rotation is needed
-         HR, funi, Energy, K, f=of.gradientHR(logging, initial, final, opt)
+         logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
+         HR, funi, Energy, J, K, f=of.gradientHR(logging, initial, final, opt)
       elif method[0] in ["shift", "SHIFT", "Shift"]:
+         logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
       else:
-         logging[1].write("method {0} not recognised. Use Shift instead.\n".format(method))
+         logging[1].write("method %s not recognised. Use Shift instead.\n"%(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
 
    pbar.update(12)
@@ -174,15 +178,16 @@ def main(argv=None):
       else:
 	 try:
 	    states=int(states[0])
-	    logging[1].write("number of states: {0}\n".format(states))
+	    logging[1].write("number of states: %d \n"%(states))
 	 except ValueError:
 	    logging[1].write("number of vibrational states {0} is not an integer. Use default instead.\n".format(states))
 	    states=5
       for i in range(len(initial)):
+         logging[1].write("Calculate the line-spectrum in FC-picture with %s excitations."%states )
          linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T)
       if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
          if opts[2]!=[]:
-            ## i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated
+            # i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated
             secondlinspect=linspect
          if np.mod(todo,16)<8:
             todo+=8
@@ -229,7 +234,8 @@ def main(argv=None):
 	    states=int(states[0])
 	    logging[1].write("number of states: {0}\n".format(states))
 	 except ValueError:
-	    logging[1].write("number of vibrational states {0} is not an integer. Use default instead.\n".format(states))
+	    logging[1].write("number of vibrational states {0} is not an integer. "
+                              "Use default instead.\n".format(states))
 	    states=5
       model=re.findall(r"(?<=model\=)[\w]+",opt, re.I)
       try:
@@ -237,23 +243,29 @@ def main(argv=None):
       except IndexError:
          for i in range(len(initial)): 
             k=[0,i]
+            logging[1].write("\n Use the model 'resort' since none has been specified.\n")
             linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
       if model in ['Simple', 'simple', 'SIMPLE']:
          for i in range(len(initial)):
             k=[0,i]
-            ############# make linspect to append; at the moment it will be replaced!!!
+            logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
             linspect=OPA.simpleFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
       elif model in ['Resort', 'resort', 'RESORT']:
          for i in range(len(initial)): #calculate separate line-spects for different states
             k=[0,i]
+            logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
             linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
       elif model in ['Distributing', 'distributing', 'DISTRIBUTING', 'dist', 'DIST', 'Dist']:
          for i in range(len(initial)): #calculate separate line-spects for different states
             k=[0,i]
             shifts=re.findall(r"(?<=maxshift\=)[\d]+",opt, re.I)
             if len(shifts)==1:
+               logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
+                                "Number of shifts taken into account: %d \n"%(model,int(shifts[0])))
                linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, int(shifts[0]))
             else:
+               logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
+                                "Number of shifts not specified, use 6 as default.\n"%(model) )
                linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, 6)
             # the threshold (4) can be made to be a parameter as well
       elif model in ["Unrestricted", 'UNRESTRITED', 'unrestricted', 'unrest']:
@@ -262,8 +274,12 @@ def main(argv=None):
             #make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters
             modes=re.findall(r"(?<=maxmodes\=)[\d]+",opt, re.I)
             if len(modes)==1:
+               logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
+                                "Number of modes to be taken into account:  %s .\n"%(model,int(modes[0])))
                linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, int(modes[0]))
             else:
+               logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
+                                "Number of modes to be taken into account not specified, use 10 as default.\n"%(model))
                linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, 10)
       else:
          logging[1].write('An error occured. The option of "model" is not known! Please check the spelling,'\
@@ -308,10 +324,11 @@ def main(argv=None):
       else:
          T=float(T[0])
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
-
+      #test if there exists a line-spectrum already (calculated above
       try:
          linspect 
       except NameError:
+         #if not, than extract it from the input-file specified by 'linspect: ' or 'linespect: '
          linespectrum=re.findall(r"(?<=linspect: )[\w\.]+", f, re.I)
          if linespectrum==[]:
             linespectrum=re.findall(r"(?<=linespect: )[\w\.]+", f, re.I)
@@ -321,9 +338,8 @@ def main(argv=None):
          intens=[]
          mode=[]
          with open(linespectrum[0]) as lines:
-            ##### handel: also files containing further information!
             lis=[line.split() for line in lines]  # create a list of lists
-            for i,x in enumerate(lis):        # print the list items 
+            for i,x in enumerate(lis):            # print the list items 
                freq.append(float(x[0]))
                intens.append(float(x[1]))
                try:
@@ -334,11 +350,11 @@ def main(argv=None):
          linspect[0]=np.matrix(freq)
          linspect[1]=np.matrix(intens)
          linspect[2]=np.matrix(mode)
-      ################## change this to make it work with multiple files!!
       pbar.update(50)
+      #this is real purpuse of this method; here the broadened spectrum is calculated.
       br.outspect(logging, T, opt, linspect)
       pbar.update(80)
-      ###if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
+      #if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
       try:
          # if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...
          secondlinspect
@@ -356,4 +372,4 @@ def main(argv=None):
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-version=1.3
+version=1.4

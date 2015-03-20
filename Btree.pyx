@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # filename: Btree.py
-import numpy as np, math
+import numpy as np 
+cimport numpy as np
 #contstant is important for [[Btree.pyx#extract]]
 DATATHRESHOLD=1e-6
 
@@ -82,7 +83,7 @@ class Tree:
       cdef int n=0
       cdef int i
       m=summ(N)
-      for i in range(len(N)): #self.alpha==alpha since this is root-n
+      for i in xrange(len(N)): #self.alpha==alpha since this is root-n
          if self.type=='n':
             for j in range(N[i]):
                self=self.right
@@ -169,7 +170,7 @@ class Tree:
       cdef int n=0
       cdef int i, N_i
       cdef int m=int(summ(N))
-      for i in range(len(N)): #self.alpha==alpha since this is root-n
+      for i in xrange(len(N)): #self.alpha==alpha since this is root-n
          N_i=N[i]
          if self.type=='n':
             for j in range(N_i):
