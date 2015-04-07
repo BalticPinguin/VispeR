@@ -19,6 +19,10 @@
 </nav>
 
 <h1 id="#main">General information</h1>
+The output is written in a file specified by  <tt> out: </tt> in the <a href="DOCUMENTATION.html#input">input</a> file. Most of the information (except the final information asked by the options in the input-file) is printed only if the logging-level is low enough. For details about the possible levels see <a href="DOCUMENTATIO.html#HR">print=...</a>.
+<p>If a file with the name of the log-file exists already, the information will be appended to it. This has the advantage that no old information is lost accidentally, but can lead to large files if several tests were run with the same input-file. </p>
+<p>The output of every run starts with the string <tt>calculations to be done:</tt> followed by a number which encodes the options set. Here 1 denotes the calculation of Huang-Rhys-factors (and Duschinsky-matrix), 2 denotes the calculation of a line-spectrum in FC-scheme, 4 is the calculation of a line-spectrum with Duschinsky-rotation and 8 means that a broadened spectrum has to be calculated. Number printed is the sum of these numbers and determines uniquely, what has to be done. </p>
+<p> Further, each of these tasks has it's own logging-flag (how detailed the print-out is).</p>
 <h1 id="#HR">Output from the calculation of Huang-Rhys factors</h1>
    This part will be introduced by the line <tt>Use method ... for the calculation of all quantities.</tt> in any case.
 <h1 id="#FC">spectrum in Franck-Condon picture</h1>

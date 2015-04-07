@@ -48,22 +48,22 @@ def main(argv=None):
             elif re.search(r'[ ]+\d+[ ]+\d+[ -]+\d.\d\d[ -]+\d.\d\d+[ \d.-]+', line) is not None:
                if len(L[t][u:].T)> 2: # there are at least three more modes
                   out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                     '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
-                        str("%.6f" % L[t+2][u+0])+
-                     '  '+str("%.6f" % L[t+0][u+1])+'  '+str("%.6f" % L[t+1][u+1])+' '+
-                        str("%.6f" % L[t+2][u+1])+
-                     '  '+str("%.6f" % L[t+0][u+2])+'  '+str("%.6f" % L[t+1][u+2])+' '+
-                        str("%.6f" % L[t+2][u+2]), line))
+                     '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
+                        str("%.2f" % L[t+2][u+0])+
+                     '  '+str("%.2f" % L[t+0][u+1])+'  '+str("%.2f" % L[t+1][u+1])+' '+
+                        str("%.2f" % L[t+2][u+1])+
+                     '  '+str("%.2f" % L[t+0][u+2])+'  '+str("%.2f" % L[t+1][u+2])+' '+
+                        str("%.2f" % L[t+2][u+2]), line))
                elif len(L[t][u:].T)== 2:
                   out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                     '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
-                        str("%.6f" % L[t+2][u+0])+
-                     '  '+str("%.6f" % L[t+0][u+1])+'  '+str("%.6f" % L[t+1][u+1])+' '+
-                        str("%.6f" % L[t+2][u+1]), line))
+                     '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
+                        str("%.2f" % L[t+2][u+0])+
+                     '  '+str("%.2f" % L[t+0][u+1])+'  '+str("%.2f" % L[t+1][u+1])+' '+
+                        str("%.2f" % L[t+2][u+1]), line))
                elif len(L[t][u:].T)== 1:
                   out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                     '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
-                        str("%.6f" % L[t+2][u+0]), line))
+                     '  '+str("%.2f" % L[t+0][u+0])+'  '+str("%.2f" % L[t+1][u+0])+' '+
+                        str("%.2f" % L[t+2][u+0]), line))
                t+=3 # 
             else: 
                out.write(re.sub('replace nothing','by nothing', line)) #just write line as it is
@@ -93,10 +93,12 @@ def main(argv=None):
             mass[(k+foonum)*3+2][(k+foonum)*3+2]=np.sqrt(float(mtemp[j][k]))
          foonum+=len(mtemp[j])
       L=mass.dot(L)
+      L=L.T
       for i in range(len(L)):
          #renormalise matrix
          norm=L[i].T.dot(L[i])
          L[i]/=norm
+      L=L.T
       return L[6:].T
 
    assert len(argv)==3, 'exactly one argument required.'

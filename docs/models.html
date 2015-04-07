@@ -45,6 +45,13 @@ The Cartesian shift is converted into internal coordinates as
 Further the comparison of the two methods can be used to estimate if the harmonic approximation is still valid.
 
 
+<h1 id="FC-n">Particle-approximations (Franck-Condon scheme)</h1>
+In the Franck-Condon picture, the intensity is determined by the Franck-Condon factor which is, besides some factors,
+
+.
+Hence the spectrum can be calculated easily from a one-particle spectrum, if one knows all the intensity, frequency and changing mode for all transitions in one-particle approximation.
+<p> The full FC-spectrum can be calculated exactly, if the option <tt> to nPA: m </tt> is set with <tt> m </tt> is not lower than 3*N-6 and the threshold for the HR-factors is set to <tt>0</tt>.
+
 <h1 id="DR-m">Models in the Duschinsky-rotated picture</h1>
 Taking Duschinsky-rotation into account leads to some problems by applying further approximations such as the one-particle approximation (OPA); but the full calculation is not feasible (or at least not wanted) for some molecules. 
 It turned out that the main problem is that one can not simply assingn the vibrational modes to each other since the modes in excited state are different from those in ground state

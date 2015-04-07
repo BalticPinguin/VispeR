@@ -122,18 +122,23 @@ def main(argv=None):
       final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
       # the calculation of all needed quantities is done in this function
       method=re.findall(r"(?<=method: )[ \w]+",opt, re.I)
+      HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",opt,re.I)
+      if HRthresh==[]:
+         HRthresh=0.0001
+      else:
+         HRthresh=float(HRthresh[0])
       if method==[]:
          logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
-         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
+         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
       elif method[0] in ["gradient", "Gradient", 'grad', "gradient ", "grad "]:
          logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
-         HR, funi, Energy, J, K, f=of.gradientHR(logging, initial, final, opt)
+         HR, funi, Energy, J, K, f=of.gradientHR(logging, initial, final, opt, HRthresh)
       elif method[0] in ["shift", "SHIFT", "Shift"]:
          logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
-         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
+         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
       else:
          logging[1].write("method %s not recognised. Use Shift instead.\n"%(method))
-         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt)
+         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
 
    pbar.update(12)
    if np.mod(todo,4)>=2:

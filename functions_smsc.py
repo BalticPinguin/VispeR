@@ -105,7 +105,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
 
-def CalculationHR(logging, initial, final, opt):
+def CalculationHR(logging, initial, final, opt, HRthresh):
    """ This function gathers most essential parts for calculation of HR-factors from g09-files.
    That is: read neccecary information from the  g09-files and calculate HR-factors as well as the 
    Duschinsky-rotation matrix and the shift between minima (needed later if the option Duschinsky is specified)
@@ -117,6 +117,7 @@ def CalculationHR(logging, initial, final, opt):
    final:   name of the file containing the initial state's geometry
    opt:     options that are given to this calculation; especially it is of interest, whether there should be frequencies and/or normal
             modes to be read from the g09-files.
+   HRthresh threshold for HR-factors (only those larger than this are taken into account)
 
    **RETURNS**
    HR:      Huang-Rhys factors, sorted by size
@@ -137,16 +138,16 @@ def CalculationHR(logging, initial, final, opt):
             final[i]+' is not a valid file name or not readable.'
    for i in range(len(initial)):
       #read coordinates, force constant, binding energies from log-files and calculate needed quantities
-      dim, Coord, mass, B, A, E=ReadLog(logging, initial[i])
+      dim, Coord, mass, A, E=ReadLog(logging, initial[i])
       if i is 0:# do only in first run
-         F, CartCoord, X, P, Energy=quantity(logging, dim, len(initial)+len(final)) #creates respective quantities (empty)
+         F, CartCoord, P, Energy=quantity(logging, dim, len(initial)+len(final)) #creates respective quantities (empty)
          if logging[0]==0:
             logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
-      X[i],F[i],Energy[i]=B, A, E
+      F[i],Energy[i]=A, E
       CartCoord[i]=Coord
    for i in range(len(final)):
-      dim, Coord, mass, B, A, E=ReadLog(logging, final[i]) 
-      X[len(initial)+i], F[len(initial)+i], Energy[len(initial)+i]=B, A, E
+      dim, Coord, mass, A, E=ReadLog(logging, final[i]) 
+      F[len(initial)+i], Energy[len(initial)+i]=A, E
       CartCoord[len(initial)+i]=Coord
    if logging[0]<3:
       logging[1].write('difference of minimum energy between states:'
@@ -158,7 +159,7 @@ def CalculationHR(logging, initial, final, opt):
          logging[1].write('final state: \n {0}\n'.format(F[1]))
 
    #Calculate Frequencies and normal modes
-   f, Lsorted, Lcart=GetL(logging, dim, mass, F)
+   f, Lsorted, Lmassw=GetL(logging, dim, mass, F)
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
@@ -176,7 +177,7 @@ def CalculationHR(logging, initial, final, opt):
    #comparet  f, g09f  and Lsorted/Lcart with g09L --> which is which??
    
    #calculate HR-spect
-   HR, funi= HuangR(logging, K, f)
+   HR, funi= HuangR(logging, K, f, HRthresh)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
       replace(logging, initial[0], f[0], Lsorted[0])
    return HR, funi, Energy, J, K, f
@@ -288,20 +289,23 @@ def GetL(logging, dim, mass, F):
    with and without projection onto internal degrees of freedom
 
    **argumets**
-   1. The dimensions of force-constant matrix
-   2. square-root of masses dim/3-dimensional array
-   3. force-constant matrix
+   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   dim      The dimensions of force-constant matrix
+   mass     square-root of masses dim/3-dimensional array
+   F        force-constant matrix
 
    **return**
-   1. matrix of all normal modes (including global modes) 
-   2. matrix of vibr. normal modes (including global modes) 
-   3. frequencies 
-   4. massweighted L for comparison with the respective matrix from the g09 log-file
+   return f, Lsorted, Lcart
+   f        two vertors (f[0] and f[1]) with the frequencies
+   Lsorted  matrix of vibr. normal modes (transformation matrix)
+   Lcart    massweighted L for comparison with the respective matrix from the g09 log-file
    """
    # Defining arrays
    L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
    Ltest=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
    Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 ))
+   Lmass=np.zeros(( len(F), len(F[0]), len(F[0])-6 ))
    f=np.zeros(( len(F), len(F[0])-6 ))
    Ltemp=np.zeros(( len(F[0]), len(F[0])-6 ))
    ftemp=np.zeros(len(F[0]-6))
@@ -312,21 +316,17 @@ def GetL(logging, dim, mass, F):
       #ftemp,Ltemp=np.linalg.eigh(F[i])
       ftemp,Ltemp,info=dsyev(F[i]) #this seems to be the best function
 
-      #renormalise L, is not needed probably?
+      ##renormalise L, is not needed probably?
       Lcart=np.real(Ltemp)
-      for j in range(0,dim):
-         norm=np.sum(Lcart.T[j]*Lcart.T[j])
-         if np.abs(norm)>1e-12:
-            Lcart.T[j]/=np.sqrt(norm)
+      #for j in range(0,dim):
+      #   norm=np.sum(Lcart.T[j]*Lcart.T[j])
+      #   if np.abs(norm)>1e-12:
+      #      Lcart.T[j]/=np.sqrt(norm)
 
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
-      if logging[0]<1:
-         logging[1].write("Frequencies (cm-1) \n"+ repr(np.sqrt(np.abs(ftemp[index]))*Hartree2cm_1))
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T
       L[i]=(Ltemp.T[index].T)[:].T[6:].T
-      if logging[0]<1:
-         logging[1].write("Normalized, sorted and truncated Lcart\n"+ repr(L[i])+"\n")
 
       #the frequencies are square root of the eigen values of F
       for j in range(len(f[i])):
@@ -337,12 +337,41 @@ def GetL(logging, dim, mass, F):
                         ' values are used in the following.\n{0}\n'.format(f[i]))
          f[i]=np.abs(f[i])
       if logging[0]<2:
-         logging[1].write("After projecting onto internal coords subspace\n"+"Frequencies (cm-1)\n"+\
+         logging[1].write("Frequencies (cm-1)\n"+\
                repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i])+"\n")
-   return f, Lsorted, Lcart
 
-def gradientHR(logging, initial, final, opt):
-   """ This function gathers most essential parts for calculation of HR-factors from g09-files"""
+      M=np.eye(dim)
+      for j in range(0,dim):
+         M[j,j]/=mass[j//3]
+      Lmass[i]=M.dot(Lsorted[i])
+      #renormalise
+      for j in range(0,dim-6):
+         norm=np.sum(Lmass.T[j]*Lmass.T[j])
+         if np.abs(norm)>1e-12:
+            Lmass.T[j]/=np.sqrt(norm)
+   return f, Lsorted, Lmass
+
+def gradientHR(logging, initial, final, opt, HRthresh):
+   """ This function gathers most essential parts for calculation of HR-factors from g09-files
+
+   **PARAMETERS**
+   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   initial: name of the file containing the initial state's geometry
+   final:   name of the file containing the initial state's geometry
+   opt:     options that are given to this calculation; especially it is of interest, whether there should be frequencies and/or normal
+            modes to be read from the g09-files.
+   HRthresh threshold for HR-factors (only those larger than this are taken into account)
+
+   **RETURNS**
+   HR:      Huang-Rhys factors, sorted by size
+   funi:    vibrational frequencies sorted same as HR 
+   Energy:  Energy difference between the two states
+   J:       Duschinsky-rotation matrix
+   K:       shift between the states (in normal coordinates)
+   f:       frequencies of the vibrational modes, sorted by size of the frequencies
+
+   """
    assert len(initial)>0, 'no initial state found!'
    assert len(final)>0, 'no final state found!'
    initial=initial[0]
@@ -351,11 +380,11 @@ def gradientHR(logging, initial, final, opt):
             initial+' is not a valid file name or not readable.'
    assert os.path.isfile(final) and os.access(final, os.R_OK),\
             final+' is not a valid file name or not readable.'
-   dim, Coord, mass, B, A, E=ReadLog(logging, initial)
-   F, CartCoord, X, P, Energy=quantity(logging, dim, 2 ) #creates respective quantities (empty)
+   dim, Coord, mass, A, E=ReadLog(logging, initial)
+   F, CartCoord, P, Energy=quantity(logging, dim, 2 ) #creates respective quantities (empty)
    if logging[0]==0:
       logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
-   X[0],F[0],Energy[0]=B, A, E
+   F[0],Energy[0]=A, E
    F[1]=F[0] #force constant matrix in both states coincides
    Grad, E=ReadLog2(logging, final) 
    Energy[1]=E
@@ -372,20 +401,15 @@ def gradientHR(logging, initial, final, opt):
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
       g09L=getGaussianL([initial], dim)
+      replace(logging, final, g09f[0], g09L)
    elif re.search(r"g09Vector",opt, re.I) is not None:
       g09L=getGaussianL([initial], dim)
-   extra=re.findall(r"g09freqs",opt, re.I)
-   if extra!=[]:
-      g09f=getGaussianf([initial],dim)
-      #replace(logging, final, g09f[0], g09L)
-   elif re.search(r"g09freq",opt, re.I) is not None:
-      g09f=getGaussianf([initial],dim)
-      #replace(logging, initial, g09f[0], g09L)
+      replace(logging, final, g09f[0], g09L)
    
    #calculate HR-spect
-   HR, funi= HuangR(logging, K, f)
+   HR, funi= HuangR(logging, K, f, HRthresh)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-      replace(logging, final, f[0], Lsorted[0])
+      replace(logging, initial, f[0], Lcart[0])
    return HR, funi, Energy, J, K, f
 
 def GradientShift(logging, L, mass, Grad, Freq):
@@ -393,16 +417,15 @@ def GradientShift(logging, L, mass, Grad, Freq):
    at ground state geometry assuming coinciding frequencies and harmonic potentials.
    """
    dim=len(mass)*3
+   J=np.zeros(( len(L)-1,dim-6,dim-6 ))
    M=np.zeros((dim,dim))
    for j in range(0,dim):
       M[j,j]=1/mass[j//3]
-   L[0]=M.dot(L[0])
-   K=Grad.T.dot(L[0])
+   K=Grad.T.dot(M).dot(L[0])
    #K/=Freq*0.5
    K/=Freq*Freq*np.sqrt(2)  ##??? wtf
    for i in range(len(J)):
       J[i]=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
-
    return K, J
 
 def gs(A):
@@ -414,16 +437,17 @@ def gs(A):
 
    X=A.T # I want to orthogonalize row-wise
    Y = []
+   npdot=np.dot
    for i in range(len(X)):
       temp_vec = X[i]
       for inY in Y :
          #proj_vec = proj(inY, X[i])
-         proj_vec = map(lambda x : x *(np.dot(X[i],inY) / np.dot(inY, inY)) , inY)
+         proj_vec = map(lambda x : x *(npdot(X[i],inY) / npdot(inY, inY)) , inY)
          temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)
       Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
    return np.matrix(Y).T # undo transposition in the beginning
 
-def HuangR(logging, K, f): #what is with different frequencies???
+def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    """ Function that calculates the Huang-Rhys factors for all vibrational states
 
    **Arguments**
@@ -461,7 +485,7 @@ def HuangR(logging, K, f): #what is with different frequencies???
    #print(u'HR-fact           freq\n')
    for j in xrange(len(sortHR)):
       #select all 'big' HR-factors 
-      if sortHR[-j]>=0.00001:
+      if sortHR[-j]>=HRthresh:
          uniHR.append(sortHR[-j])
          uniF.append(fsort[-j])
          # print uniHR[-1], uniF[-1]*Hartree2cm_1
@@ -476,10 +500,9 @@ def quantity(logging, dim, num_of_files):
    """
    F=np.zeros((num_of_files, dim, dim)) 
    CartCoord=np.zeros((num_of_files, 3, dim/3))
-   X=np.zeros((num_of_files, 3,3))
    P=np.zeros((num_of_files, dim,dim))
    Energy=np.zeros(num_of_files)
-   return F, CartCoord, X, P, Energy
+   return F, CartCoord, P, Energy
 
 def ReadHR(logging, HRfile):
    """ This function reads the HR-factors and electronic transition energy from a given file and brings them into a 
@@ -536,7 +559,6 @@ def ReadLog(logging, fileN):
    dim:         dimension of the problem (3*number of atoms)
    Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
    mass:        square root of masses of the atoms in atomi units
-   X:           something with the moment of inertia; not needed actually
    F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
    E:           binding energy of the respective state/geometry in Hartree
    """
@@ -582,48 +604,16 @@ def ReadLog(logging, fileN):
    assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
    if logging[0]<2:
       logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                        "modes: {1} Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
+                        "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
    # Reading Cartesian coordinates
    Coord=np.zeros((3, dim/3))
-   MassCenter=np.zeros(3)
    for j in range(len(tmp)):
       Coord[j%3][j/3]=tmp[j]
-   for j in range(3):
-      MassCenter[j]=np.sum(Coord[j]*mass)
-      MassCenter[j]/=np.sum(mass) #now it is cartesian center of mass
-   if logging[0]<2:
-      logging[1].write("Cartesian (Angstrom) coordinates before alignment to center of "
-                       "mass\n {0} \nCenter of mass coordinates (Angstrom):\n{1}\n"
-                       .format(Coord.T, MassCenter))
-   
-   for j in range(3):#displacement of molecule into center of mass:
-      Coord[j]-=MassCenter[j] # if commented we get rotational constants 
-                              #in agreement with Gaussian log
-   Coord*=Angs2Bohr
-   if logging[0]<2:
-      logging[1].write("Cartesian coordinates (a.u.) in center of mass system\n{0}\n".format(Coord.T))
 
-   # Getting tensor of inertia, transforming to principlas axes
-   moi=np.zeros((3,3))# this is Moment Of Inertia
-   for j in range(3):
-      for k in range(3):
-         if k is j:
-            moi[j][k]=np.sum(mass*mass*(Coord[0]*Coord[0]+\
-                     Coord[1]*Coord[1]+Coord[2]*Coord[2]-\
-                     Coord[j]*Coord[k]))
-         else:
-            moi[j][k]=np.sum(mass*mass*(Coord[j]*Coord[k]))
+   Coord*=Angs2Bohr
    if logging[0]<1:
-      logging[1].write("Moments of intertia as read from log file\n,{0}\n".format(moi))
-   diagI,X=np.linalg.eig(moi) # this can be shortened of course!
-   index=np.argsort(diagI, kind="heapsort")
-   #X=np.matrix(X[index]) #sorting by eigenvalues
-   X=np.matrix(X) #sorting by eigenvalues
-   diagI=diagI[index]
-   if logging[0]<2:
-      logging[1].write("Moments of inertia (a.u.) in principle axes\n {0}\nRotational "
-                       "constants (GHz) in principle axes\n {1} Rotation matrix\n{2}"
-                       .format(diagI.T,1/(2*diagI.T)*Hartree2GHz, X))
+      logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
+
    # Reading of Cartesian force constant matrix  
    f=re.findall(r"Force constants in Cartesian coordinates: [\n\d .+-D]+", log, re.M)
    if f==[]:
@@ -679,7 +669,7 @@ def ReadLog(logging, fileN):
    if logging[0]<=1:
       logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
    E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
-   return dim, Coord, mass, X, F, E
+   return dim, Coord, mass, F, E
 
 def ReadLog2(logging, final):
    """ This function reads the required quantities from the gaussian-files
@@ -687,19 +677,14 @@ def ReadLog2(logging, final):
    **PARAMETERS**
    logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
                 and 4- only main information) and logging[1] is the file, already opened, to write the information in.
-   fileN:       specifies the name of the g09-file
+   final:       specifies the name of the g09-file
 
    **RETURNS**
-   dim:         dimension of the problem (3*number of atoms)
-   Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
-   mass:        square root of masses of the atoms in atomi units
-   X:           something with the moment of inertia; not needed actually
-   F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+   grad:        gradient of the PES of excited state at ground state equilibrium-geometry
    E:           binding energy of the respective state/geometry in Hartree
    """
    files=open(final, "r")
    log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
-   print "in readlog2"
    files.close
    Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
    assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'

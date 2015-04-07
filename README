@@ -1,16 +1,16 @@
 The smallscript is a python-programme to calculate the vibronic spectra of molecules using G09-log files.
-There are several options (as the picture to calculate it) and further parameters as temperature to set and so on.
-For details about the syntax see docs/DOCUMENTATION.txt.
+There are several options (for instance approximations to be used) and further parameters such as temperature
+to be set. For details about the syntax and options availible see the documentation in docs/DOCUMENTATION.html.
 
 The purpose of this programme is to enhance the theoretical investigation of molecular spectra by taking into account vibrational transitions in addition to the electronic ones as well for larger molecules. 
-In addition to the Franck-Condon (FC) picture, Duschinsky-rotated (DR) spectra can be calculated. There are the following models implemented:
+In addition to the Franck-Condon (FC) picture, Duschinsky-rotated (DR) spectra can be calculated by the smallscript.
+There are the following models implemented:
 
 FC-SPECTRA: In smallscript the vibrational spectrum is calculated in one-particle approximation (OPA). Since the vibrational mode changing is saved in this calculation, further combination bands can be calculated using combinatorics (see option nPA). 
 
 DR-SPECTRA: Duschinsky-rotation is taken into account only very seldom, especially for larger molecules. In smallscript two distinct types of approximation are implemented: One using OPA (where three different ways are used differing in calculational time) and one restricting the number of modes taken into account (refered to as unrestricted).
 
-
 for a full list of packages involved see requirements.txt. (This list is mostly for debugging-purpuses)
-The non-standard python-packages used are numpy, scipy (and matplotlib)
+The non-standard python-packages used are numpy, scipy 
 
-for installation of smallscript: run 'python setup.py install'
+Since smallscript is using C-elements in the code to speed the calculations up, it needs to be compiled. To do so, run 'python setup.py install'.
