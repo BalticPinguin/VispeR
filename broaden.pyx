@@ -197,6 +197,9 @@ def OPA2TPA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
          ##not only same mode but all modes with lower number should not be taken into account here!?
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
             continue
+         if OPAintens[i]*OPAintens[j]/intens00<intens00*0.00001:
+            #save memory by not saving low-intensity-modes
+            continue
          TPAintens[ind]=OPAintens[i]*OPAintens[j]/intens00
          TPAfreq[ind]=OPAfreq[i]+OPAfreq[j]-freq00
          ind+=1
@@ -226,6 +229,9 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       for j in range(i+1,length):
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
             continue
+         if OPAintens[i]*OPAintens[j]/intens00<intens00*0.00001:
+            #save memory by not saving low-intensity-modes
+            continue
          TPAintens.append(OPAintens[i]*OPAintens[j]/intens00)
          TPAfreq.append(OPAfreq[i]+OPAfreq[j]-freq00)
          if stick:
@@ -234,6 +240,9 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
             if mode[k]==mode[j] or mode[j]==0: #both have same mode...
                continue
             if mode[k]==mode[i]:
+               continue
+            if OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00)<intens00*0.00001:
+               #save memory by not saving low-intensity-modes
                continue
             TPAintens.append(OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00))
             TPAfreq.append(OPAfreq[i]+OPAfreq[k]+OPAfreq[j]-2*freq00)
@@ -307,7 +316,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
          TPAfreq=TPAf[minint:]
       elif n[0]=='3':
          ind=linspect[2].argmin()
-         TPAfreq, TPAintens=OPA2TPA(logwrite, linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], 
+         TPAfreq, TPAintens=OPA23PA(logwrite, linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], 
                               linspect[1][ind], linspect[2][minint:], stick)
          minint=0
          index=np.argsort(TPAintens,kind='heapsort')
@@ -399,8 +408,8 @@ def outspect(logging, float T, opt, linspect, float E=0):
    intens=TPAintens[index]
 
    if logging[0]<1:
-      logwrite('truncated and sorted stick-spectrum "
-                     "(this is what will be taken into account for broadening):\n')
+      logwrite('truncated and sorted stick-spectrum '
+                     '(this is what will be taken into account for broadening):\n')
       logwrite('intensity   frequency\n')
       for i in range(len(intens)):
          logwrite(u"%f   %f\n"%(intens[i], freq[i]))
