@@ -13,4 +13,5 @@ DR-SPECTRA: Duschinsky-rotation is taken into account only very seldom, especial
 for a full list of packages involved see requirements.txt. (This list is mostly for debugging-purpuses)
 The non-standard python-packages used are numpy, scipy 
 
-Since smallscript is using C-elements in the code to speed the calculations up, it needs to be compiled. To do so, run 'python setup.py install'.
+Since smallscript is using C-elements in the code to speed the calculations up (cython), it needs to be compiled. To do so, run 'python setup.py install'.
+If cython is not availible or leads to problems, you can use the pure-python version in the respectiv folder. At the moment it does not comprise Duschinsky-rotation (which has nevertheless problems at the moment).

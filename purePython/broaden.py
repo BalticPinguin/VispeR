@@ -83,7 +83,6 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
    def allnonzero(foo):
       """ a more efficient version of np.all(foo!=0), made for arrays and integers...
       """
-      cdef int s
       try:
          foo=np.array(foo)
          for s in range(len(foo)):
@@ -94,13 +93,9 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
             return False
       return True
      
-   def putN(int j, int n, intens, freq, mode, OPAintens, OPAfreq, oldmode, stick, logwrite):
+   def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode, stick, logwrite):
       """ This function does the most calculation that is the iteration to the next number of particles
       """
-      cdef int i
-      cdef int k
-      cdef double intensi
-      cdef double freqi
       newintens=[]
       newfreq=[]
       
@@ -259,7 +254,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
         intens[i]=TPAintens[i]
    return freq, intens
 
-def outspect(logging, float T, opt, linspect, float E=0):
+def outspect(logging, T, opt, linspect, E=0):
    """This function calculates the broadened spectrum given the line spectrum, 
    frequency-rage and output-file whose name is first argument. 
    As basis-function a Lorentzian is assumed with a common width.
@@ -272,8 +267,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
    gamma:     broadening constant for the Lorentzians. It is the same for all peaks
    
    """
-   cdef float minint=0
-   cdef int i
+   minint=0
 
    omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape , stick=handel_input(opt)
    #read file in format of linspect
@@ -441,6 +435,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
             if freq[j]>=10*gamma+omegai:
                maxi=j
                break
+            # do I need an exception here as well? I don't think so...
          for j in range(max(0,mini),maxi):
             if freq[j]>=omegai-8*gamma:
                mini=j-1
