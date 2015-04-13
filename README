@@ -1,17 +1,41 @@
-The smallscript is a python-programme to calculate the vibronic spectra of molecules using G09-log files.
-There are several options (for instance approximations to be used) and further parameters such as temperature
-to be set. For details about the syntax and options availible see the documentation in docs/DOCUMENTATION.html.
+smallscript is a python-programme to calculate the vibronic spectra 
+of molecules on the basis of calculations in G09, NWChem or GAMESS.
+(it needs frequency-calculations to be done; more detailed information
+on this will be provided in the documentations)
 
-The purpose of this programme is to enhance the theoretical investigation of molecular spectra by taking into account vibrational transitions in addition to the electronic ones as well for larger molecules. 
-In addition to the Franck-Condon (FC) picture, Duschinsky-rotated (DR) spectra can be calculated by the smallscript.
-There are the following models implemented:
+There are several options (for instance approximations to be used) 
+and further parameters such as temperature which can be specified by
+an input-file which is required for the calculations.
+For details about the syntax and options availible see the 
+documentation in docs/DOCUMENTATION.html.
 
-FC-SPECTRA: In smallscript the vibrational spectrum is calculated in one-particle approximation (OPA). Since the vibrational mode changing is saved in this calculation, further combination bands can be calculated using combinatorics (see option nPA). 
+The purpose of this programme is to enhance the theoretical investigation 
+of molecular spectra by taking into account vibrational transitions in 
+addition to the electronic ones as well for larger molecules. 
+In addition to the common Franck-Condon (FC) picture, 
+Duschinsky-rotated (DR) spectra can be calculated by the smallscript.
+ATTENTION: THE DUSCHINSKY-SPECTRA DON'T WORK AT THE MOMENT
 
-DR-SPECTRA: Duschinsky-rotation is taken into account only very seldom, especially for larger molecules. In smallscript two distinct types of approximation are implemented: One using OPA (where three different ways are used differing in calculational time) and one restricting the number of modes taken into account (refered to as unrestricted).
+At the moment there are the following calculations availible:
+1)  read the force constant matrix and geometries from output-files 
+  provided by GAMESS- or G09- output files and calculate the Huang-Rhys
+  factors form it
+2)  read quantities as in 1) but calculate Franck-Condon-spectra
+  in one-particle approximation or many-particle approximations up to
+  full spectrum
+3)  read quantitios as in 1) and calculate a Duschinsky-rotated spectrum
+  in one-particle approximation or full spectrum. For details see documentation.
 
-for a full list of packages involved see requirements.txt. (This list is mostly for debugging-purpuses)
-The non-standard python-packages used are numpy, scipy 
+for a full list of packages involved see requirements.txt. 
+(lhis list is mostly for debugging-purpuses). 
+The non-standard python-packages used are numpy and scipy 
 
-Since smallscript is using C-elements in the code to speed the calculations up (cython), it needs to be compiled. To do so, run 'python setup.py install'.
-If cython is not availible or leads to problems, you can use the pure-python version in the respectiv folder. At the moment it does not comprise Duschinsky-rotation (which has nevertheless problems at the moment).
+Be aware that there are two branches:
+a) The master-branch comprises full functionallity and uses 
+  C-elements (cython). Hence this code needs to be compiled and has 
+  more dependencies what can make it more complicated to install the code.
+  Nevertheless it is faster.
+
+b) the smallpythonscript-branch uses pure python (including numpy) 
+  and does not have the Duschinsky-rotated spectra as options 
+  (which don't work at the moment ).

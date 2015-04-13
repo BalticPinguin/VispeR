@@ -3,6 +3,8 @@
 import numpy as np
 import re, mmap
 AMU2au=1822.88839                                          
+Angs2Bohr=1/0.52917721092                                  
+Hartree2GHz=6.579684e6                                     
 Hartree2cm_1=219474.63 
 
 def ReadG09(logging, fileN):
@@ -286,7 +288,7 @@ def replace(logging, files, freq, L): # this is G09-method
       out.close()
 
 def ReadGAMESS(logging, fileN):
-   """ This function reads the required quantities from the gaussian-files
+   """ This function reads the required quantities from the GAMESS-log-files
 
    **PARAMETERS**
    logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
@@ -342,7 +344,6 @@ def ReadGAMESS(logging, fileN):
    s=0
    F=np.zeros((dim,dim))
    for i in xrange(len(lines)):
-      print lines[i+s]
       f=re.findall(r"[ -]\d\.[\d]+", lines[i+s], re.M) #this is one number each
       if len(f)!=6:
          n+=6
@@ -357,17 +358,14 @@ def ReadGAMESS(logging, fileN):
          #some numbers will be counted twice but this shouldn't matter
          F[k][n+j]=F[n+j][k]=f[j]
       k+=1
-   print F
 
    if logging[0]<1:
       logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
-##########  is this correct?? Probably F is already mass-weighted?
    for i in range(0,dim):
       for j in range(0,dim):
          F[i][j]/= (mass[i//3]*mass[j//3]) 
 
    #get energy of the state
-#         TOTAL ENERGY =    
    Etemp=re.findall(r'(?<=TOTAL ENERGY =)[\-\d. ]+', log, re.M)
    assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
    if logging[0]<=1:
@@ -376,7 +374,7 @@ def ReadGAMESS(logging, fileN):
    return dim, Coord, mass, F, E
 
 def ReadGAMESS2(logging, final):
-   """ This function reads the required quantities from the gaussian-files
+   """ This function reads the required quantities from the GAMESS-log-files
 
    **PARAMETERS**
    logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
@@ -402,8 +400,42 @@ def ReadGAMESS2(logging, final):
       #grad[i]=float(Grad[i])
    return grad, E
 
+def getGamessLf(final, dim):
+   files=open(final[0], "r") #open file and map it for better working
+   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
+   files.close
+   b=0
+   L=np.zeros((dim, dim-6))
+   # this is end of heading for the frequencies. Don't wonder about this text.
+   if re.search(r"     REDUCED MASSES IN AMU.\n", mapedlog, re.M) is not None:
+      f1=re.findall(r"(?<=  IR INTENSITY:   )  [\d .\-\w]+", mapedlog, re.M)
+      #now the whole matrix L is within f1  (each until ':' of next 'frequency'
+      for k in range(len(f1)):
+         f2=re.findall(r"[- ]\d\.[\d]+", f1[k]) 
+         s=len(f2)//dim 
+         #s should be 5 but not in last line
+         for j in range(dim):
+            for i in range(s):
+               L[j][b+i]=f2[i+s*(j+1)]
+         b+=s
+      #renormalise L
+      for j in range(dim): 
+         norm=L[j].dot(L[j].T)
+         if norm>1e-12:
+            L[j]/=np.sqrt(norm)
+   else:
+      print "there is no other method implemented until now!"
+   f1=re.findall(r"(?<=FREQUENCY:       )  [\d .]+", mapedlog, re.M)
+   f2=[re.findall(r"\d+.\d+", f1[j]) for j in range(len(f1))]
+   s=0
+   f=np.zeros((1,dim-6))
+   for j in range(len(f2)):
+      f[0][s:s+len(f2[j])]=f2[j]
+      s+=len(f2[j])
+   return f, L
+
 def ReadNWChem(logging, fileN):
-   """ This function reads the required quantities from the gaussian-files
+   """ This function reads the required quantities from the NWChem-files
 
    **PARAMETERS**
    logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
@@ -471,7 +503,7 @@ def ReadNWChem(logging, fileN):
       logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
 
    #get energy of the state
-   Etemp=re.findall(r'(?<=Total energy =)[\-\d. ]+', log, re.M)
+   Etemp=re.findall(r'(?<=Total DFT energy =)[\-\d. ]+', log, re.M)
    assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
    if logging[0]<=1:
       logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
@@ -479,7 +511,7 @@ def ReadNWChem(logging, fileN):
    return dim, Coord, mass, F, E
 
 def ReadNWChem2(logging, final):
-   """ This function reads the required quantities from the gaussian-files
+   """ This function reads the required quantities from the NWChem-files
 
    **PARAMETERS**
    logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
@@ -505,5 +537,37 @@ def ReadNWChem2(logging, final):
       #grad[i]=float(Grad[i])
    return grad, E
 
-version=0.2
+def getNwchemLf(final, dim):
+   files=open(final[0], "r") #open file and map it for better working
+   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
+   files.close
+   b=0
+   L=np.zeros((dim, dim-6))
+   # get L-matrix
+   f1=re.findall(r"(?<=P.Frequency  )  [\d .\-\n]+", mapedlog, re.M)
+   #now the whole matrix L is within f1  (each until ':' of next 'frequency'
+   for k in range(1,len(f1)): #start from 1 to skip transl./rotation
+      f2=re.findall(r"[- ]\d\.[\d]{5}", f1[k])  # in this scheme I throw frequencyes out
+      s=len(f2)//dim 
+      #s should be 6 but not in last line
+      for j in range(dim):
+         for i in range(s):
+            L[j][b+i]=f2[i+s*(j+1)]
+      b+=s
+   #renormalise L
+   for j in range(dim): 
+      norm=L[j].dot(L[j].T)
+      if norm>1e-12:
+         L[j]/=np.sqrt(norm)
+   #get frequency
+   f1=re.findall(r"(?<= P.Frequency   )  [\d .\-]+", mapedlog, re.M)
+   f2=[re.findall(r"\d+.\d+", f1[j]) for j in range(1,len(f1))] #start from 1 to skip first 6 modes
+   s=0
+   f=np.zeros((1,dim-6))
+   for j in range(len(f2)):
+      f[0][s:s+len(f2[j])]=f2[j]
+      s+=len(f2[j])
+   return f, L
+
+version=0.3
 # End of readLogs.py
