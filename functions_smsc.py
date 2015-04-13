@@ -2,8 +2,7 @@
 # filename: functions_smsc.py
 import numpy as np
 import re, mmap, os.path, math, sys
-#from scipy.linalg.lapack import dsyev as dsyev #is this faster?
-#import scipy.linalg.lapack as LA
+import readLogs as rl
 #for python-3 compatibility
 from io import open 
 # Below are the conversion factors and fundamental constant
@@ -129,27 +128,56 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
    f:       frequencies of the vibrational modes, sorted by size of the frequencies
 
    """                                                                                             
-   assert len(initial)>0, 'no initial state found!'
-   assert len(final)>0, 'no final state found!'
-   for i in range(len(initial)):
-      assert os.path.isfile(initial[i]) and os.access(initial[i], os.R_OK),\
-            initial[i]+' is not a valid file name or not readable.'
-   for i in range(len(final)):
-      assert os.path.isfile(final[i]) and os.access(final[i], os.R_OK),\
-            final[i]+' is not a valid file name or not readable.'
-   for i in range(len(initial)):
-      #read coordinates, force constant, binding energies from log-files and calculate needed quantities
-      dim, Coord, mass, A, E=ReadLog(logging, initial[i])
-      if i is 0:# do only in first run
-         F, CartCoord, P, Energy=quantity(logging, dim, len(initial)+len(final)) #creates respective quantities (empty)
-         if logging[0]==0:
-            logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
-      F[i],Energy[i]=A, E
-      CartCoord[i]=Coord
-   for i in range(len(final)):
-      dim, Coord, mass, A, E=ReadLog(logging, final[i]) 
-      F[len(initial)+i], Energy[len(initial)+i]=A, E
-      CartCoord[len(initial)+i]=Coord
+   assert len(initial)==1, 'there must be one initial state'
+   assert len(final)==1, 'there must be one final state'
+   assert os.path.isfile(initial[0]) and os.access(initial[0], os.R_OK),\
+            initial[0]+' is not a valid file name or not readable.'
+   assert os.path.isfile(final[0]) and os.access(final[0], os.R_OK),\
+            final[0]+' is not a valid file name or not readable.'
+   #test, what kind of file was given: G09, GAMESS or NWChem
+   with open(initial[0], "r+b") as f: #open file as mmap
+      mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+      for line in iter(mapping.readline, ""): #go through every line and test characteristic part
+         if "GAMESS" in line: #if it is found: read important quantities from file
+            print "GAMESS-file"
+            dim, Coord, mass, A, E=rl.ReadGAMESS(logging, initial[0])
+            F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+            if logging[0]==0:
+               logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+            F[0],Energy[0]=A, E
+            CartCoord[0]=Coord
+            dim, Coord, mass, A, E=rl.ReadGAMESS(logging, final[0]) 
+            F[1], Energy[1]=A, E
+            CartCoord[1]=Coord
+            break
+         elif "Gaussian(R)" in line:
+            print "Gaussian-file"
+            dim, Coord, mass, A, E=rl.ReadG09(logging, initial[0])
+            F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+            if logging[0]==0:
+               logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+            F[0],Energy[0]=A, E
+            CartCoord[0]=Coord
+            dim, Coord, mass, A, E=rl.ReadG09(logging, final[0]) 
+            F[1], Energy[1]=A, E
+            CartCoord[1]=Coord
+            break
+         elif "Northwest Computational Chemistry Package (NWChem)" in line:
+            print "nwchem-file"
+            dim, Coord, mass, A, E=rl.ReadNWChem(logging, initial[0])
+            F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+            if logging[0]==0:
+               logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+            F[0],Energy[0]=A, E
+            CartCoord[0]=Coord
+            dim, Coord, mass, A, E=rl.ReadNWChem(logging, final[0]) 
+            F[1], Energy[1]=A, E
+            CartCoord[1]=Coord
+            break
+      else: 
+         print "file type not recognised"
+
+   #read coordinates, force constant, binding energies from log-files and calculate needed quantities
    if logging[0]<3:
       logging[1].write('difference of minimum energy between states:'
                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
@@ -165,13 +193,10 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
       g09L=getGaussianL(final, mass, dim)
-   elif re.search(r"g09Vector",opt, re.I) is not None:
-      g09L=getGaussianL(final, mass, dim)
-   extra=re.findall(r"g09freqs",opt, re.I)
-   if extra!=[]:
       g09f=getGaussianf(final,dim)
       #replace(logging, initial[0], g09f, g09L)
-   elif re.search(r"g09freq",opt, re.I) is not None:
+   elif re.search(r"g09Vector",opt, re.I) is not None:
+      g09L=getGaussianL(final, mass, dim)
       g09f=getGaussianf(final,dim)
       #replace(logging, initial[0], g09f, g09L)
 
@@ -381,13 +406,13 @@ def gradientHR(logging, initial, final, opt, HRthresh):
             initial+' is not a valid file name or not readable.'
    assert os.path.isfile(final) and os.access(final, os.R_OK),\
             final+' is not a valid file name or not readable.'
-   dim, Coord, mass, A, E=ReadLog(logging, initial)
+   dim, Coord, mass, A, E=rl.ReadG09(logging, initial)
    F, CartCoord, P, Energy=quantity(logging, dim, 2 ) #creates respective quantities (empty)
    if logging[0]==0:
       logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
    F[0],Energy[0]=A, E
    F[1]=F[0] #force constant matrix in both states coincides
-   Grad, E=ReadLog2(logging, final) 
+   Grad, E=rl.ReadG092(logging, final) 
    Energy[1]=E
    #read coordinates, force constant, binding energies from log-files and calculate needed quantities
    if logging[0]<3:
@@ -547,160 +572,6 @@ def ReadHR(logging, HRfile):
    freqm=np.zeros((1,len(HR)))
    freqm[0]=funi
    return initial, HRm, freqm, Energy
-
-def ReadLog(logging, fileN):
-   """ This function reads the required quantities from the gaussian-files
-
-   **PARAMETERS**
-   logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                and 4- only main information) and logging[1] is the file, already opened, to write the information in.
-   fileN:       specifies the name of the g09-file
-
-   **RETURNS**
-   dim:         dimension of the problem (3*number of atoms)
-   Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
-   mass:        square root of masses of the atoms in atomi units
-   F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
-   E:           binding energy of the respective state/geometry in Hartree
-   """
-   # Mapping the log file
-   files=open(fileN, "r")
-   log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
-   files.close
-
-   # Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
-   temp=[]
-   temp=re.findall(r' Number     Number       Type             X           Y           Z[\n -.\d]+', log)
-   tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
-
-   atmwgt=re.findall(r"AtmWgt= [\d .]+",log)
-   mtemp=[]
-   foonum=0
-   for j in range(len(atmwgt)/2): # because atomic masses are printed twize in log-files...
-      mtemp.append(re.findall(r'[\d.]+',atmwgt[j]))
-   dim=0
-   for j in range(len(mtemp)):
-         dim+=len(mtemp[j]) # dim will be sum over all elements of temp
-   dim*=3
-   if dim!=len(tmp):
-      # this is necessary since they are not always printed twice...
-      atmwgt=re.findall(r"AtmWgt= [\d .]+",log)
-      mtemp=[]
-      foonum=0
-      for j in range(len(atmwgt)): 
-         mtemp.append(re.findall(r'[\d.]+',atmwgt[j]))
-      dim=0
-      for j in range(len(mtemp)):
-            # dim will be sum over all elements of temp
-            dim+=len(mtemp[j]) 
-      dim*=3
-   #if still something is wrong with the dimensionality:
-   assert len(tmp)==dim, 'Not all atoms were found! Something went wrong...{0}, {1}'.format(len(tmp),dim)
-
-   mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
-   for j in range(len(mtemp)):
-      for k in range(len(mtemp[j])):
-         mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
-      foonum+=len(mtemp[j])
-   assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
-   if logging[0]<2:
-      logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                        "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
-   # Reading Cartesian coordinates
-   Coord=np.zeros((3, dim/3))
-   for j in range(len(tmp)):
-      Coord[j%3][j/3]=tmp[j]
-
-   Coord*=Angs2Bohr
-   if logging[0]<1:
-      logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
-
-   # Reading of Cartesian force constant matrix  
-   f=re.findall(r"Force constants in Cartesian coordinates: [\n\d .+-D]+", log, re.M)
-   if f==[]:
-      #if Freq was not specified in Gaussian-file:
-      f=re.findall(r"The second derivative matrix:[XYZ\n\d .-]+", log, re.M)
-      #try to find matrix from option "Force"
-      assert f!=[], 'The input-file does not contain information on the force-constants!'
-      #else: error message. The matrix is really needed...
-      f_str=str([f[-1]])#[2:-2]
-      lines=f_str.strip().split("\\n")
-      F=np.zeros((dim,dim))
-      n=0
-      k=0
-      line=0
-      for i in xrange(2,len(lines)):
-         if i == dim+k-5*n+2: 
-            #these are those lines where no forces are written to
-            k=i-1
-            n+=1
-            line=n*5 
-            continue
-         elements=lines[i].split()[1:] #don't use the first element
-         #line=int(re.findall(r"[\d]+", lines[i].split()[0])[0])+(i-2-n)
-         line+=1
-         for j in range(len(elements)):
-            F[line-1][j+5*n]=float(elements[j])
-            F[j+5*n][line-1]=float(elements[j])
-   else:
-      f_str=str([f[-1]])#[2:-2]
-      lines=f_str.strip().split("\\n")
-      F=np.zeros((dim,dim))
-      n=0
-      k=0
-      for i in xrange(2,len(lines)):
-         if i == dim+k-5*n+2: 
-            k=i-1
-            n+=1
-            continue
-         elements=lines[i].replace('D','e').split()
-         for j in range(1,len(elements)):
-            F[int(elements[0])-1][j-1+5*n]=float(elements[j])
-            F[j-1+5*n][int(elements[0])-1]=float(elements[j])
-   if logging[0]<1:
-      logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
-   for i in range(0,dim):
-      for j in range(0,dim):
-         F[i][j]/= (mass[i//3]*mass[j//3]) 
-
-   Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
-   assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-   if re.search(r'\n ', Etemp[-1]) is not None:
-      Etemp[-1]=Etemp[-1].replace("\n ", "") 
-   if logging[0]<=1:
-      logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
-   E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
-   return dim, Coord, mass, F, E
-
-def ReadLog2(logging, final):
-   """ This function reads the required quantities from the gaussian-files
-
-   **PARAMETERS**
-   logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                and 4- only main information) and logging[1] is the file, already opened, to write the information in.
-   final:       specifies the name of the g09-file
-
-   **RETURNS**
-   grad:        gradient of the PES of excited state at ground state equilibrium-geometry
-   E:           binding energy of the respective state/geometry in Hartree
-   """
-   files=open(final, "r")
-   log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
-   files.close
-   Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
-   assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-   if re.search(r'\n ', Etemp[-1]) is not None:
-      Etemp[-1]=Etemp[-1].replace("\n ", "") 
-   if logging[0]<=1:
-      logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
-   E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
-  
-   grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
-   Grad=re.findall(r"[\-\d\.]+[\d]{9}", grad[0])
-   grad=np.zeros((len(Grad),1))
-   for i in xrange(len(Grad)):
-      grad[i]=float(Grad[i])
-   return grad, E
 
 def replace(logging, files, freq, L):
    """ This function creates a new file (determined by files, ending with 

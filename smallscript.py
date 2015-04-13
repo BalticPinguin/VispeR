@@ -118,8 +118,8 @@ def main(argv=None):
          logging=invokeLogging(logfile)
       else:
          logging=invokeLogging(logfile,loglevel[0])
-      initial=re.findall(r"(?<=initial: )[\w.]+",f, re.I)
-      final=re.findall(r"(?<=final: )[\w.]+",f, re.I)
+      initial=re.findall(r"(?<=initial: )[\w.\-]+",f, re.I)
+      final=re.findall(r"(?<=final: )[\w.\-]+",f, re.I)
       # the calculation of all needed quantities is done in this function
       method=re.findall(r"(?<=method: )[ \w]+",opt, re.I)
       HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",opt,re.I)
