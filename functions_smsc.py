@@ -192,20 +192,20 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
    J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
-      g09L=getGaussianL(final, mass, dim)
-      g09f=getGaussianf(final,dim)
-      #replace(logging, initial[0], g09f, g09L)
+      g09L=rl.getGaussianL(final, mass, dim)
+      g09f=rl.getGaussianf(final,dim)
+      #rl.replace(logging, initial[0], g09f, g09L)
    elif re.search(r"g09Vector",opt, re.I) is not None:
-      g09L=getGaussianL(final, mass, dim)
-      g09f=getGaussianf(final,dim)
-      #replace(logging, initial[0], g09f, g09L)
+      g09L=rl.getGaussianL(final, mass, dim)
+      g09f=rl.getGaussianf(final,dim)
+      #rl.replace(logging, initial[0], g09f, g09L)
 
    #comparet  f, g09f  and Lsorted/Lcart with g09L --> which is which??
    
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f, HRthresh)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-      replace(logging, initial[0], f[0], Lsorted[0])
+      rl.replace(logging, initial[0], f[0], Lsorted[0])
    return HR, funi, Energy, J, K, f
 
 def Duschinsky(logging, L, mass, dim, x):
@@ -251,64 +251,6 @@ def Duschinsky(logging, L, mass, dim, x):
                '  :\n'+ repr(J[i])+'  :\n'+ repr(J[i][:4].T[11:25])+\
                '\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
    return J, K 
-
-def getGaussianf(final, dim):
-   files=open(final[0], "r") #open file and map it for better working
-   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
-   files.close
-   #if file is of type 'Freq'
-   if re.search(r" Freque ncies -- ", mapedlog, re.M) is not None:
-      f1=re.findall(r" Frequencies -- [\d .-]+", mapedlog, re.M)# 
-      f2=[re.findall(r"[- ]\d+.\d+", f1[j]) for j in range(len(f1))]
-      s=0
-      f=np.zeros((1,dim-6))
-      for j in range(len(f2)):
-         f[0][s:s+len(f2[j])]=f2[j]
-         s+=len(f2[j])
-   #if file is of type 'Force'
-   elif re.search(r" Eigenvectors of the second derivative matrix:", mapedlog, re.M) is not None:
-      f2=re.findall(r"(?<=Eigenvectors of the second derivative matrix:)[\d\n\-\. XYZ Eigenvalues]+", mapedlog, re.M)
-      f1=re.findall(r" Eigenvalues -- [\d .]+", f2[0], re.M)# 
-      f2=[re.findall(r"\d.\d+", f1[j]) for j in range(len(f1))]
-      s=0
-      f=np.zeros((1,dim-6))
-      for j in range(0,len(f2)):
-         for i in range(len(f2[j])):
-            f[0][s+i]=np.sqrt(float(f2[j][i]))*2590.839/Hartree2cm_1*1.15
-         s+=len(f2[j])
-   #print "gaussian freq"
-   #for i in range(len(f[0])):
-   #   print f[0][i]*Hartree2cm_1 
-   return f
-
-def getGaussianL(final, dim):
-   #first, check in which format they are present
-   files=open(final[0], "r") #open file and map it for better working
-   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
-   files.close
-   b=0
-   L=np.zeros((dim, dim-6))
-   #if file is of type 'Freq'
-   if re.search(r" Eigenvectors of the second derivative matrix:", mapedlog, re.M) is not None:
-      f1=re.findall(r"(?<=Eigenvalues --)  [\d .\n XYZ\-]+", mapedlog, re.M)
-      # to remove the lines with 'Eigenvalues':
-      for k in range(len(f1)):
-         f2=re.findall(r"[- ]\d\.[\d]+", f1[k]) 
-         s=len(f2)//dim 
-         #s should be 5 but not in last line
-         for j in range(dim):
-            for i in range(s):
-               L[j][b+i]=f2[i+s*(j+1)]
-         b+=s
-      #renormalise L
-      for j in range(dim): 
-         norm=L[j].dot(L[j].T)
-         if norm>1e-12:
-            L[j]/=np.sqrt(norm)
-   else:
-      print "there is no other method implemented until now!"
-   
-   return L
 
 def GetL(logging, dim, mass, F):
    """ Function that calculates the frequencies and normal modes from force constant matrix 
@@ -427,15 +369,15 @@ def gradientHR(logging, initial, final, opt, HRthresh):
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
       g09L=getGaussianL([initial], dim)
-      replace(logging, final, g09f[0], g09L)
+      rl.replace(logging, final, g09f[0], g09L)
    elif re.search(r"g09Vector",opt, re.I) is not None:
       g09L=getGaussianL([initial], dim)
-      replace(logging, final, g09f[0], g09L)
+      rl.replace(logging, final, g09f[0], g09L)
    
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f, HRthresh)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-      replace(logging, initial, f[0], Lcart[0])
+      rl.replace(logging, initial, f[0], Lcart[0])
    return HR, funi, Energy, J, K, f
 
 def GradientShift(logging, L, mass, Grad, Freq):
@@ -573,73 +515,5 @@ def ReadHR(logging, HRfile):
    freqm[0]=funi
    return initial, HRm, freqm, Energy
 
-def replace(logging, files, freq, L):
-   """ This function creates a new file (determined by files, ending with 
-   ".rep" and copies the log-file (files) into it, replacing the frequencies and 
-   normal modes by those calculated by smallscript.
-   The function is suited to test, whether these results coincide qualitatively with the gaussian's.
-
-   ** PARAMETERS: **
-   logging:This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-           and 4- only main information) and logging[1] is the file, already opened, to write the information in.
-   log:    i
-   files:  file taken as basis ('.rep' added to be used for replacements)
-   freq:   frequencies to be inserted
-   L:      normal modes to be inserted  
-
-   no return-statements (results are written to file)
-
-   **NOTE:**
-   The code is based on a function from stevaha (http://stackoverflow.com/questions/1597649/replace-strings-in-files-by-python)
-   """
-   freq*=Hartree2cm_1
-   with open(files) as f:
-      out_fname = files + ".rep"
-      out = open(out_fname, "w")
-      s=0
-      t=0
-      u=-3
-      for line in f:
-         if re.search(r'Frequencies -- [\d .-]+', line) is not None:
-            t=0 #reset t, when frequencies occur
-            u+=3 #
-          #  if logging[0]<1:
-          #     logging[1].write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
-            if len(freq[s:].T)> 2: # there are at least three more frequencies
-               out.write(re.sub(r'Frequencies -- [\d .-]+',
-                     'Frequencies --'+'    '+str("%.4f" % freq[s])+'              '\
-                     +str("%.4f" % freq[s+1])+'               '+str("%.4f" % freq[s+2]), line))
-            elif len(freq[s:].T)== 2: # there are only two frequencies left
-               out.write(re.sub(r'Frequencies -- [\d .-]+',
-                     'Frequencies --'+'    '+str("%.4f" % freq[s])+'               '\
-                     +str("%.4f" % freq[s+1]), line))
-            elif len(freq[s:].T)== 1: # there is just one additional freq
-               out.write(re.sub(r'Frequencies -- [\d .-]+',
-                     'Frequencies --'+'   '+str("%.4f" % freq[s]), line))
-            s+=3
-         elif re.search(r'[ ]+\d+[ ]+\d+[ -]+\d.\d\d[ -]+\d.\d\d+[ \d.-]+', line) is not None:
-            if len(L[t][u:].T)> 2: # there are at least three more frequencies
-               out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                  '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
-                       str("%.6f" % L[t+2][u+0])+
-                  '  '+str("%.6f" % L[t+0][u+1])+'  '+str("%.6f" % L[t+1][u+1])+' '+
-                       str("%.6f" % L[t+2][u+1])+
-                  '  '+str("%.6f" % L[t+0][u+2])+'  '+str("%.6f" % L[t+1][u+2])+' '+
-                       str("%.6f" % L[t+2][u+2]), line))
-            elif len(L[t][u:].T)== 2:
-               out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                  '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
-                       str("%.6f" % L[t+2][u+0])+
-                  '  '+str("%.6f" % L[t+0][u+1])+'  '+str("%.6f" % L[t+1][u+1])+' '+
-                       str("%.6f" % L[t+2][u+1]), line))
-            elif len(L[t][u:].T)== 1:
-               out.write(re.sub(r'[\d .-]+', '     '+repr(t/3+1)+'    '+repr(s)+'   '+
-                  '  '+str("%.6f" % L[t+0][u+0])+'  '+str("%.6f" % L[t+1][u+0])+' '+
-                       str("%.6f" % L[t+2][u+0]), line))
-            t+=3 # 
-         else: 
-            out.write(re.sub('replace nothing','by nothing', line)) #just write line as it is
-      out.close()
-
-version=1.2
+version=1.3
 # End of functions_smsc.py
