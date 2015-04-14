@@ -3,6 +3,7 @@
 import readLogs as rl
 #include further dicts
 import sys, re, mmap, numpy as np, os
+Hartree2cm_1=219474.63 
 
 def main(argv=None):
    numfiles=len(argv) #check, how many files are availible
@@ -52,8 +53,12 @@ def main(argv=None):
       else:
          print "                       norm(f[i]-f[j])     norm(L[i]-L[j]) i   j "
          for i in range(numfiles):
-            print "norm of difference:", np.linalg.norm(np.matrix(f[i])-np.matrix(f[j])),\
-                     np.linalg.norm(np.matrix(L[i])-np.matrix(L[j])), i, j
+            for j in range(i+1,numfiles):
+               print "norm of difference:", np.linalg.norm(np.matrix(freq[i])-np.matrix(freq[j])),"\t",\
+                     np.linalg.norm(np.matrix(L[i])-np.matrix(L[j])),"\t", i, j
+               print 'directly compare frequencies:'
+               for k in range(len(freq[i])):
+                  print freq[i][k],"\t", freq[j][k]
 
 def ReadF(infile):
    assert os.path.isfile(infile) and os.access(infile, os.R_OK),\
@@ -91,15 +96,18 @@ def readLfreq(infile):
       for line in iter(mapping.readline, ""): #go through every line and test characteristic part
          if "GAMESS" in line: #if it is found: read important quantities from file
             print "GAMESS-file"
-            return rl.getGamessLf([infile], dim)
+            f,L=rl.getGamessLf([infile], dim)
+            f=f[0][6:]
+            return f,L
          elif "Gaussian(R)" in line:
             print "Gaussian-file"
             L=rl.getGaussianL([infile], dim)
             freq=rl.getGaussianf([infile], dim)
-            return L,freq
+            return freq[0]*Hartree2cm_1,L
          elif "Northwest Computational Chemistry Package (NWChem)" in line:
             print "nwchem-file"
-            return rl.getNwchemLf([infile], dim)
+            f, L=rl.getNwchemLf([infile], dim)
+            return f[0], L
       else: 
          print "file type not recognised"
          return 0,0

@@ -139,7 +139,6 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
       mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
       for line in iter(mapping.readline, ""): #go through every line and test characteristic part
          if "GAMESS" in line: #if it is found: read important quantities from file
-            print "GAMESS-file"
             dim, Coord, mass, A, E=rl.ReadGAMESS(logging, initial[0])
             F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
             if logging[0]==0:
@@ -151,7 +150,6 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
             CartCoord[1]=Coord
             break
          elif "Gaussian(R)" in line:
-            print "Gaussian-file"
             dim, Coord, mass, A, E=rl.ReadG09(logging, initial[0])
             F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
             if logging[0]==0:
@@ -163,7 +161,6 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
             CartCoord[1]=Coord
             break
          elif "Northwest Computational Chemistry Package (NWChem)" in line:
-            print "nwchem-file"
             dim, Coord, mass, A, E=rl.ReadNWChem(logging, initial[0])
             F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
             if logging[0]==0:

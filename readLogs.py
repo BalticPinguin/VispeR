@@ -425,10 +425,10 @@ def getGamessLf(final, dim):
             L[j]/=np.sqrt(norm)
    else:
       print "there is no other method implemented until now!"
-   f1=re.findall(r"(?<=FREQUENCY:       )  [\d .]+", mapedlog, re.M)
+   f1=re.findall(r"(?<=FREQUENCY:    )  [\d .]+", mapedlog, re.M)
    f2=[re.findall(r"\d+.\d+", f1[j]) for j in range(len(f1))]
    s=0
-   f=np.zeros((1,dim-6))
+   f=np.zeros((1,dim))
    for j in range(len(f2)):
       f[0][s:s+len(f2[j])]=f2[j]
       s+=len(f2[j])
@@ -552,7 +552,7 @@ def getNwchemLf(final, dim):
       #s should be 6 but not in last line
       for j in range(dim):
          for i in range(s):
-            L[j][b+i]=f2[i+s*(j+1)]
+            L[j][b+i]=f2[i+s*(j)]
       b+=s
    #renormalise L
    for j in range(dim): 
