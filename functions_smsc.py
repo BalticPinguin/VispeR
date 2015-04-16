@@ -148,18 +148,6 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
             dim, Coord, mass, A, E=rl.ReadGAMESS(logging, final[0]) 
             F[1], Energy[1]=A, E
             CartCoord[1]=Coord
-            break
-         elif "Gaussian(R)" in line:
-            dim, Coord, mass, A, E=rl.ReadG09(logging, initial[0])
-            F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
-            if logging[0]==0:
-               logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
-            F[0],Energy[0]=A, E
-            CartCoord[0]=Coord
-            dim, Coord, mass, A, E=rl.ReadG09(logging, final[0]) 
-            F[1], Energy[1]=A, E
-            CartCoord[1]=Coord
-            break
          elif "Northwest Computational Chemistry Package (NWChem)" in line:
             dim, Coord, mass, A, E=rl.ReadNWChem(logging, initial[0])
             F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
@@ -170,7 +158,16 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
             dim, Coord, mass, A, E=rl.ReadNWChem(logging, final[0]) 
             F[1], Energy[1]=A, E
             CartCoord[1]=Coord
-            break
+         elif "Gaussian(R)" in line:
+            dim, Coord, mass, A, E=rl.ReadG09(logging, initial[0])
+            F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+            if logging[0]==0:
+               logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+            F[0],Energy[0]=A, E
+            CartCoord[0]=Coord
+            dim, Coord, mass, A, E=rl.ReadG09(logging, final[0]) 
+            F[1], Energy[1]=A, E
+            CartCoord[1]=Coord
       else: 
          print "file type not recognised"
 
@@ -179,8 +176,8 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
       logging[1].write('difference of minimum energy between states:'
                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
       if logging[0]<2:
-         logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( CartCoord[0].T))
-         logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( CartCoord[1].T))
+         logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( CartCoord[0].T/Angs2Bohr))
+         logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( CartCoord[1].T/Angs2Bohr))
          logging[1].write('initial state: \n{0}\n'.format(F[0]))
          logging[1].write('final state: \n {0}\n'.format(F[1]))
 
@@ -244,9 +241,22 @@ def Duschinsky(logging, L, mass, dim, x):
    #print "K",K.T
    if logging[0]<2:
       for i in range(len(J)):
-         logging[1].write('Duschinsky rotation matrix, state '+repr(i)+\
-               '  :\n'+ repr(J[i])+'  :\n'+ repr(J[i][:4].T[11:25])+\
-               '\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
+         logging[1].write('Duschinsky rotation matrix, state '+repr(i)+':\n')
+         k=range(0,dim)
+         s=0
+         t=min(s+5,dim)
+         while s<dim:
+            for temp in range(s,t):
+               logging[1].write("               %d "%(k[temp]+1))
+            logging[1].write("\n")
+            for j in range(len(J[i])):
+               logging[1].write(" %03d"%(j+1))
+               for temp in range(s,t):
+                  logging[1].write("    %+.6e"%(J[i][j][k[temp]]))
+               logging[1].write("\n")
+            s+=t
+            t=min(s+5,dim-6)
+         logging[1].write('\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
    return J, K 
 
 def GetL(logging, dim, mass, F):
@@ -381,14 +391,17 @@ def GradientShift(logging, L, mass, Grad, Freq):
    """ This function calculates the 'shift' between excited state and ground state from the gradient of the excited state 
    at ground state geometry assuming coinciding frequencies and harmonic potentials.
    """
+   #get dimensionality of the problem and initialise quantitios
    dim=len(mass)*3
    J=np.zeros(( len(L)-1,dim-6,dim-6 ))
-   M=np.zeros((dim,dim))
+   M=np.zeros((dim,dim)) 
    for j in range(0,dim):
       M[j,j]=1/mass[j//3]
+   #K becomes now gradient in massweighted internal coordinates
    K=Grad.T.dot(M).dot(L[0])
-   #K/=Freq*0.5
+   # scale consistently: Now it is really the shift in terms of normal modes
    K/=Freq*Freq*np.sqrt(2)  ##??? wtf
+   #calculate Duschinsky-matrix
    for i in range(len(J)):
       J[i]=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
    return K, J
@@ -453,7 +466,6 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
       if sortHR[-j]>=HRthresh:
          uniHR.append(sortHR[-j])
          uniF.append(fsort[-j])
-         # print uniHR[-1], uniF[-1]*Hartree2cm_1
          loggingwrite(u"%f   %f\n"%(sortHR[-j], fsort[-j]*Hartree2cm_1))
    uniHRall.append(uniHR)
    uniFall.append(uniF)

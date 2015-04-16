@@ -196,7 +196,7 @@ def OPA2TPA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       TPAfreq[ind]=OPAfreq[i]
       ind+=1
       if stick:
-         logwrite(u" %f  %e\n"%(OPAintens[i], OPAfreq[i]))
+         logwrite(u" %.7f  %e\n"%(OPAintens[i], OPAfreq[i]))
       for j in range(i+1,length):
          ##not only same mode but all modes with lower number should not be taken into account here!?
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
@@ -208,7 +208,7 @@ def OPA2TPA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
          TPAfreq[ind]=OPAfreq[i]+OPAfreq[j]-freq00
          ind+=1
          if stick:
-            logwrite(u" %f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
+            logwrite(u" %.8f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
    index=np.argsort(TPAfreq,kind='heapsort')
    TPAfreq=TPAfreq[index]
    TPAintens=TPAintens[index]
@@ -229,7 +229,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       TPAintens.append(OPAintens[i]) #this is OPA-part
       TPAfreq.append(OPAfreq[i])
       if stick:
-         logwrite(u" %f  %e\n"%(OPAintens[i], OPAfreq[i]))
+         logwrite(u" %.7f  %e\n"%(OPAintens[i], OPAfreq[i]))
       for j in range(i+1,length):
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
             continue
@@ -239,7 +239,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
          TPAintens.append(OPAintens[i]*OPAintens[j]/intens00)
          TPAfreq.append(OPAfreq[i]+OPAfreq[j]-freq00)
          if stick:
-            logwrite(u" %f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
+            logwrite(u" %.6f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
          for k in range(j+1,length):
             if mode[k]==mode[j] or mode[j]==0: #both have same mode...
                continue
@@ -251,7 +251,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
             TPAintens.append(OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00))
             TPAfreq.append(OPAfreq[i]+OPAfreq[k]+OPAfreq[j]-2*freq00)
             if stick:
-               logwrite(u" %f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
+               logwrite(u" %.5f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
    freq=np.zeros(len(TPAfreq))
    intens=np.zeros(len(TPAintens))
    for i in xrange(len(freq)): #this can not be done by np.matrix() due to dimensionality...
@@ -390,9 +390,9 @@ def outspect(logging, float T, opt, linspect, float E=0):
    #the range of frequency ( should be greater than the transition-frequencies)
    if omega==None:
       if minfreq==0:
-         minfreq=np.min(TPAfreq)-20-gamma
+         minfreq=np.min(TPAfreq)-20-gamma*15
       if maxfreq==0:
-         maxfreq=np.max(TPAfreq)+20+gamma
+         maxfreq=np.max(TPAfreq)+20+gamma*15
    else:
       minfreq=omega[0]
       maxfreq=omega[-1]
@@ -469,7 +469,9 @@ def outspect(logging, float T, opt, linspect, float E=0):
                   for k in range(mini, maxi))
          outwrite(u" %f   %e\n" %(omegai, spect[i]))
          #logwrite(u" %f  %e\n"%(omegai ,spect[i]))
-   out.close()
+   if spectfile!=None:
+      #only close file if it was opened here
+      out.close()
 
 version=1.5
 # End of broadening.py

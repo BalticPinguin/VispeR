@@ -481,8 +481,9 @@ def ReadNWChem(logging, fileN):
    if logging[0]<1:
       logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
 
-   # Reading of Cartesian force constant matrix  
-   f=re.findall(r"(?<=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
+   # Reading of Cartesian force constant matrix (projected or not)
+   #f=re.findall(r"(?<=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
+   f=re.findall(r"(?<=MASS-WEIGHTED NUCLEAR HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
    f_str=str([f[-1]])
    lines=f_str.strip().split("\\n")
    F=np.zeros((dim,dim))
@@ -499,6 +500,7 @@ def ReadNWChem(logging, fileN):
       for j in range(1,len(elements)):
          F[int(elements[0])-1][j-1+10*n]=float(elements[j])
          F[j-1+10*n][int(elements[0])-1]=float(elements[j])
+   F/=1923260 ## this is an experimental conversion factor. ~9.Hartree2cm_1 (if it helps)
    if logging[0]<1:
       logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
 
