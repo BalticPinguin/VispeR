@@ -43,12 +43,13 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       RETURNS:
       Franck-Condon factor of the respective transition
       """
-      exg=np.exp(-Deltag/2) #actually Deltag should be >0, but is not always due to negative frequencies
-      faktNM=math.factorial(M)*math.factorial(N)
+      exg=np.exp(-Deltag/2) 
+      fact=math.factorial
+      faktNM=fact(M)*fact(N)
       FC=0
       for x in range(int(min(N,M))+1):
-         FC+=exg*math.pow(-1,N-x)*math.pow(np.abs(Deltag),(M+N)*0.5-x)/(math.factorial(M-x)*math.factorial(N-x))*\
-               math.sqrt(faktNM)/math.factorial(x)
+         FC+=exg*math.pow(-1,N-x)*math.pow(Deltag,(M+N)*0.5-x)/(fact(M-x)*fact(N-x))*\
+               math.sqrt(faktNM)/fact(x)
       return FC*FC
    
    def unifSpect(intens, freqs, E, FC00):
@@ -87,17 +88,21 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       loggingwrite("Line-spectrum in One-Particle approximation:\n")
       loggingwrite(u" %f   %f  %f\n"%(E*Hartree2cm_1, FC00, 0))
    npexp=np.exp #avoiding dots accelerates python quite a lot
-   #loop goes over all modes
+   #here a goes over all modes
    for a in xrange(n):
-      ############### this can be changed to save more memory  -------------------------------<<<<<<<<<<<<<<<<<<<<<--
       temp=FCeqf(HR[a],0,0)
       for j in range(N):  
+         s=0 # this is a temp variable for effinciency purpose
          for i in range(M):
             if i==0 and j==0:
                ##skip 0-0 transitions
                continue
             tmp=FCeqf(HR[a], i, j)/temp
-            FC[a][j*M+i-1]=tmp*tmp*FC00*np.exp(-(E0+freq[a]*i)/T)
+            s+=tmp*temp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
+            if s>=0.96:
+               # than all transitions contributing in intensity are done
+               break
+            FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*i)/T)
             uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
             #if logging[0]<1:
                #logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+" "+repr(FC[a][j*M+i-1])+" "+repr(a)))
@@ -168,7 +173,7 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
             dim, Coord, mass, A, E=rl.ReadG09(logging, final[0]) 
             F[1], Energy[1]=A, E
             CartCoord[1]=Coord
-      else: 
+      else: # is there some error??  probably this message is printed also if files were recognised
          print "file type not recognised"
 
    #read coordinates, force constant, binding energies from log-files and calculate needed quantities
@@ -199,7 +204,7 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f, HRthresh)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-      rl.replace(logging, initial[0], f[0], Lsorted[0])
+      rl.replace(logging, initial[0], f[0], Lmassw[0])
    return HR, funi, Energy, J, K, f
 
 def Duschinsky(logging, L, mass, dim, x):
@@ -226,19 +231,18 @@ def Duschinsky(logging, L, mass, dim, x):
    for i in range(dim):
       M[i][i]=mass[i//3] #square root of masses
    for i in range(len(J)):
-      J[i]=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) ################ check: use L[i+1] instead L.-T
+      #Jtemp=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) ################ check: use L[i+1] instead L.-T
+      J[i]=np.dot(L[0].T, L[i+1]) 
 
-   for i in range(len(DeltaX)):
-      DeltaX[i]=np.array(x[0]-x[i+1]).flatten('F')
-      if logging[0] <1:
-         logging[1].write('changes of Cartesian coordinates:(state'\
-               +repr(i)+')\n'+repr(DeltaX[i])+'\n')
-      K[i]=(DeltaX[i].dot(M)).dot(L[i])/1.63 ##what factor is this??
+   DeltaX[0]=np.array(x[0]-x[1]).flatten('F')
+   if logging[0] <1:
+      logging[1].write('changes of Cartesian coordinates:\n'\
+            +repr(DeltaX[0])+'\n')
+   K[0]=(DeltaX[0].dot(M)).dot(L[0])/1.63 ##what factor is this??
+   #K[0]=L[0].T.dot(M).dot(DeltaX[0])
    
-   np.set_printoptions(suppress=True)
-   np.set_printoptions(precision=5, linewidth=138)
-   ##print "Delta x", DeltaX[i]
-   #print "K",K.T
+   #np.set_printoptions(suppress=True)
+   #np.set_printoptions(precision=5, linewidth=138)
    if logging[0]<2:
       for i in range(len(J)):
          logging[1].write('Duschinsky rotation matrix, state '+repr(i)+':\n')
@@ -256,7 +260,12 @@ def Duschinsky(logging, L, mass, dim, x):
                logging[1].write("\n")
             s+=t
             t=min(s+5,dim-6)
-         logging[1].write('\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
+         logging[1].write('\nDuschinsky displacement vector:\n')
+
+         for j in range(len(K[i])):
+            logging[1].write("  %d    %e\n"%(j+1, K[i][j]))
+         #logging[1].write('\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
+
    return J, K 
 
 def GetL(logging, dim, mass, F):
@@ -278,12 +287,8 @@ def GetL(logging, dim, mass, F):
    """
    # Defining arrays
    L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
-   Ltest=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
-   Lsorted=np.zeros(( len(F), len(F[0]), len(F[0])-6 ))
    Lmass=np.zeros(( len(F), len(F[0]), len(F[0])-6 ))
    f=np.zeros(( len(F), len(F[0])-6 ))
-   Ltemp=np.zeros(( len(F[0]), len(F[0])-6 ))
-   ftemp=np.zeros(len(F[0]-6))
 
    for i in range(len(F)):
       # here one can choose between the methods: result is more or less independent
@@ -291,16 +296,8 @@ def GetL(logging, dim, mass, F):
       ftemp,Ltemp=np.linalg.eigh(F[i])
       #ftemp,Ltemp,info=dsyev(F[i]) #this seems to be the best function
 
-      ##renormalise L, is not needed probably?
-      Lcart=np.real(Ltemp)
-      #for j in range(0,dim):
-      #   norm=np.sum(Lcart.T[j]*Lcart.T[j])
-      #   if np.abs(norm)>1e-12:
-      #      Lcart.T[j]/=np.sqrt(norm)
-
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
-      Lsorted[i]=(Lcart.T[index].T)[:].T[6:].T
       L[i]=(Ltemp.T[index].T)[:].T[6:].T
 
       #the frequencies are square root of the eigen values of F
@@ -318,13 +315,13 @@ def GetL(logging, dim, mass, F):
       M=np.eye(dim)
       for j in range(0,dim):
          M[j,j]/=mass[j//3]
-      Lmass[i]=M.dot(Lsorted[i])
+      Lmass[i]=M.dot(L[i])
       #renormalise
       for j in range(0,dim-6):
          norm=np.sum(Lmass.T[j]*Lmass.T[j])
          if np.abs(norm)>1e-12:
             Lmass.T[j]/=np.sqrt(norm)
-   return f, Lsorted, Lmass
+   return f, L, Lmass
 
 def gradientHR(logging, initial, final, opt, HRthresh):
    """ This function gathers most essential parts for calculation of HR-factors from g09-files
@@ -447,10 +444,10 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniFall=[]
    #HR=[K[0][j]*K[0][j]*0.5*f[0][j] for j in range(len(K[0]))]
    for j in range(len(K[0])):
-      HR[j]=K[0][j]*K[0][j]*0.5*f[0][j]
+      HR[j]=K[0][j]*K[0][j]*0.5*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
-   fsort=f[0][index]
+   fsort=f[1][index]
    if np.any(fsort)<0:
       logging[1].write('ATTENTION: some HR-factors are <0.\
                In the following their absolute value is used.')

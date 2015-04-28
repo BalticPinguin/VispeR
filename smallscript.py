@@ -50,7 +50,7 @@ def invokeLogging(logfile, mode="important"):
 
 def main(argv=None):
    assert len(argv)==1, 'exactly one argument required.'
-   pbar = ProgressBar(maxval=100)
+   #pbar = ProgressBar(maxval=100)
    #open input-file (if existent and readable) and map it to f
    try:
       infile=open(argv[0], "r")
@@ -81,11 +81,12 @@ def main(argv=None):
       else:
          todo+=4
    opts.append(re.findall(r"(?<=Duschinsky-spect)[\w:\d\=.\(\), -]+",f,re.I))
-   if (re.search(r"Broadening",f, re.I) is not None) is True:
+   if ((re.search(r"Broadening",f, re.I) is not None) is True) or\
+       ((re.search(r"broaden",f, re.I) is not None) is True):
       todo+=8
    opts.append(re.findall(r"(?<=Broadening)[\w\d\.,:\(\)\= -]+",f,re.I))
    #error: This should never be true but due to unconvenient option-combinations it may be
-   if todo>=16 or todo==0 or todo in [4,6,9]:
+   if todo>=16 or todo in [0,4,6,9]: 
       print "options for calculation don't make sense. Please check the input-file!"
       print opts
       return 0
@@ -99,7 +100,7 @@ def main(argv=None):
    log.close()
    
    #update the process-bar. (This gives not that satisfying resutls but better than none)
-   pbar.update(5)
+   #pbar.update(5)
    if np.mod(todo,2)==1: 
       #calculation up to HR-facts needed (FC- or Duschinsky spect)
       #first find in where the options for this task are written in
@@ -140,7 +141,7 @@ def main(argv=None):
          logging[1].write("method %s not recognised. Use Shift instead.\n"%(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
 
-   pbar.update(12)
+   #pbar.update(12)
    if np.mod(todo,4)>=2:
       #calculate FC-spect
       #here exists only one possibility for the options 
@@ -197,7 +198,7 @@ def main(argv=None):
          if np.mod(todo,16)<8:
             todo+=8
 
-   pbar.update(20)
+   #pbar.update(20)
    if np.mod(todo,8)>=4:
       #calculate Duschinsky-spect
       opt=opts[2][0]
@@ -293,7 +294,7 @@ def main(argv=None):
             k=[0,i]
             linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
 
-   pbar.update(30)
+   #pbar.update(30)
    np.set_printoptions(suppress=True)
    #print 'linespect:', linspect.T
    if np.mod(todo,16)>=8:
@@ -355,24 +356,24 @@ def main(argv=None):
          linspect[0]=np.matrix(freq)
          linspect[1]=np.matrix(intens)
          linspect[2]=np.matrix(mode)
-      pbar.update(50)
+      #pbar.update(50)
       #this is real purpuse of this method; here the broadened spectrum is calculated.
       br.outspect(logging, T, opt, linspect)
-      pbar.update(80)
+      #pbar.update(80)
       #if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
       try:
          # if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...
          secondlinspect
          opt=opts[2][0]
-         pbar.update(50)
+         #pbar.update(50)
          br.outspect(logging, T, opt, linspect)
-         pbar.update(80)
+         #pbar.update(80)
       except NameError:
          opt=opts[0] #do something arbitrary
 
    logging[1].write("end of calculation reached. Normal exit.\n")
    logging[1].close()
-   pbar.finish()
+   #pbar.finish()
    
 if __name__ == "__main__":
    main(sys.argv[1:])

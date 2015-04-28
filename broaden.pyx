@@ -63,6 +63,8 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
    """ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.
 
    **PARAMETERS**
+   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
    OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
              array of lenght n
    freq00:   frequency of purely electronic transition
@@ -71,6 +73,7 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
              array of lenght n
    mode:     number of vibrational states changing
              array of lenght n
+   stick:    a boolean variable, stating whether to print the stick-spectrum or not
 
    **RETURNS**
    TPAfreq:  
@@ -96,6 +99,7 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
      
    def putN(int j, int n, intens, freq, mode, OPAintens, OPAfreq, oldmode, stick, logwrite):
       """ This function does the most calculation that is the iteration to the next number of particles
+          therefor it is highly optimised into C
       """
       cdef int i
       cdef int k
@@ -106,7 +110,7 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
       
       for i in xrange(len(intens)):
          intensi=intens[i]
-         if intensi>1e-9: #######
+         if intensi>1e-7: # only use this if the intensity is reasonably high
             newintens=append(newintens, intensi) #this is OPA-part
             freqi=freq[i]
             newfreq=append(newfreq, freqi)
@@ -215,6 +219,25 @@ def OPA2TPA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
    return TPAfreq, TPAintens
 
 def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
+   """ This function calculates  a Three-particle spectra using one-particle spectra.
+
+   **PARAMETERS**
+   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
+             array of lenght n
+   freq00:   frequency of purely electronic transition
+   OPAintens:intensities of the respective transitions in same order as OPAfreq
+   intens00: intensity of the purely electronic transition
+             array of lenght n
+   mode:     number of vibrational states changing
+             array of lenght n
+   stick:    a boolean variable, stating whether to print the stick-spectrum or not
+
+   **RETURNS**
+   freq:  frequencies of the 3PA-vibrational spectrum
+   intens:intensities of the 3PA-vibrational spectrum     
+   """
    length=len(OPAfreq)
    TPAfreq=[]#np.zeros((((length+1)*(length+2)+3)*(length+3))//6+length+1) #this is overestimation of size...
    TPAintens=[]
@@ -222,6 +245,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       logwrite(u"stick-spectrum in 3-particle approximation:\n  intensity   frequency")
    TPAintens.append(intens00) #this is OPA-part
    TPAfreq.append(freq00)
+   # go through the whole spectrum (besides 0-0) and compute all combinations besides self-combination
    for i in range(length):
       if mode[i]==0:
          #0-0 transition is included, but only once!
@@ -230,6 +254,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       TPAfreq.append(OPAfreq[i])
       if stick:
          logwrite(u" %.7f  %e\n"%(OPAintens[i], OPAfreq[i]))
+      # here the combination part starts
       for j in range(i+1,length):
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
             continue
@@ -240,6 +265,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
          TPAfreq.append(OPAfreq[i]+OPAfreq[j]-freq00)
          if stick:
             logwrite(u" %.6f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
+         # look for all combinations of combinations for three-particle approx.
          for k in range(j+1,length):
             if mode[k]==mode[j] or mode[j]==0: #both have same mode...
                continue
@@ -252,6 +278,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
             TPAfreq.append(OPAfreq[i]+OPAfreq[k]+OPAfreq[j]-2*freq00)
             if stick:
                logwrite(u" %.5f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
+   # save the spectrum into numpy-matrices
    freq=np.zeros(len(TPAfreq))
    intens=np.zeros(len(TPAintens))
    for i in xrange(len(freq)): #this can not be done by np.matrix() due to dimensionality...
@@ -265,11 +292,18 @@ def outspect(logging, float T, opt, linspect, float E=0):
    As basis-function a Lorentzian is assumed with a common width.
    
    **PARAMETERS:**
-   spectfile: file, the result is written in (ascii-table). 
-   In addition a graph is created and shown on the fly. This graph is not saved.
-   gridpt:    number of grid-points to be used for the calculation
-   linspect:  line-spectrum list (frequency, intensity) 
-   gamma:     broadening constant for the Lorentzians. It is the same for all peaks
+   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   T:       temperature of the system
+   opt:     a string that contains all options that were given for this part in the input-file. See documentation 
+            for details of it's allowed/used content
+   linspect:The line-spectrum that has to be broadened: A array/matrix with 3(!!) rows: 
+            Frequency, intentensity and mode number (last one is important for making multiple-particle spectra 
+   E:       energy-shift of the 0-0 transition. Important if the excited state is not the lowest and
+            thermal equilibration with the lower states should be considered
+
+   **RETURNS:**
+   nothing; the key values (broadened spectra/ many-particle-app. linespectra) are printed into log-files.
    
    """
    cdef float minint=0
@@ -296,13 +330,13 @@ def outspect(logging, float T, opt, linspect, float E=0):
       if logging[0]<2:
          logging[1].write('minimal and maximal intensities:\n'+repr(linspect[1][minint])+' '+repr(linspect[1][-1])+"\n")
 
-   logwrite=logging[1].write
+   logwrite=logging[1].write  #important for later loops: avoiding '.'s speeds python-codes up!!
    #make nPA from OPA:
    if (re.search(r"to [\d]PA", opt, re.I) is not None) is True:
       n=re.findall(r"(?<=to )[\d](?=PA)", opt, re.I)
       if n[0]=='2':
          ind=linspect[2].argmin()
-         #                          spectral frequency   0-0 transition      intensities          0-0 intensit.          modes        
+         #  spectral frequency   0-0 transition   intensities      0-0 intensit.          modes        
          TPAf, TPAi=OPA2TPA(logwrite, linspect[0][minint:],linspect[0][ind] ,
                             linspect[1][minint:], linspect[1][ind], linspect[2][minint:], stick)
          index=np.argsort(TPAi,kind='heapsort')
@@ -449,7 +483,6 @@ def outspect(logging, float T, opt, linspect, float E=0):
                   npexp(-(omegai-freq[j])*(omegai-freq[j])/(sigmasigma))
                   for j in range(mini, maxi))
          outwrite(u" %f  %e\n" %(omegai, spect[i]))
-         #logwrite(u" %f  %e\n"%(omegai ,spect[i]))
    else:  #shape=='l':
       gammagamma=gamma*gamma
       for i in xrange(len(omega)): 
@@ -468,7 +501,6 @@ def outspect(logging, float T, opt, linspect, float E=0):
          spect[i]=gamma*sum(intens[k]/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
                   for k in range(mini, maxi))
          outwrite(u" %f   %e\n" %(omegai, spect[i]))
-         #logwrite(u" %f  %e\n"%(omegai ,spect[i]))
    if spectfile!=None:
       #only close file if it was opened here
       out.close()
