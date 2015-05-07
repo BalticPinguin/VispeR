@@ -5,6 +5,7 @@ import numpy as np, re
 # Below are the conversion factors and fundamental constant
 
 def handel_input(opt):
+   #set default values (to have all variables set)
    gridfile=None
    gamma=1 #by default: only slight broadening
    gridpt=5000
@@ -19,11 +20,13 @@ def handel_input(opt):
       # i.e. if grid is specified
       grid=re.findall(r"[\w\.]+", tmpgrid[0], re.M)
       if len(grid)==1:
+         #that means, if either one number (# of gridpoints or a file) is given
          try:
             gridpt=float(grid[0])
          except ValueError: # if grid is no a number
             gridfile=grid[0]
       elif len(grid)==3:
+         # that means there is the number of gridpoints, min- and max frequency given
          gridpt=float(grid[0])
          minfreq=float(grid[1])
          maxfreq=float(grid[2])
@@ -37,17 +40,22 @@ def handel_input(opt):
          omega=np.zeros(len(grid))
          for i in range(len(grid)):
             omega[i]=grid[i]
+   #see, whether a broadening is given
    if (re.search(r"(?<=gamma=)[ \d\.,]+", opt, re.I) is not None)  is True:
       gamma=re.findall(r"(?<=gamma=)[ \d\.]+", opt, re.I)
       gamma=float(gamma[0])
+
    shape=re.findall(r"(?<=shape=)[ \w]+", opt, re.I)
    if len(shape)>0:
+      # there are several options each
       if shape[0] in ["lorentzian", "Lorentzian", "L", "l"]:
          shape="l"
       elif shape[0] in ["gaussian", "Gaussian", "G", "g"]:
          shape="g"
+
    if (re.search(r"stick", opt, re.I) is not None) is True:
       stick=True
+
    spectfile=re.findall(r"(?<=spectfile=)[\w.]+", opt, re.I)
    if spectfile==[]:
       spectfile=re.findall(r"(?<=spectfile= )[\w.]+", opt, re.I)
@@ -73,6 +81,7 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
              array of lenght n
    mode:     number of vibrational states changing
              array of lenght n
+   n:        number of maximal changing vibrations simultanously
    stick:    a boolean variable, stating whether to print the stick-spectrum or not
 
    **RETURNS**
@@ -189,6 +198,27 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
    return TPAfreq, TPAintens
 
 def OPA2TPA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
+   """ This function calculates  a Two-particle spectra using one-particle spectra.
+
+   **PARAMETERS**
+   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
+             array of lenght n
+   freq00:   frequency of purely electronic transition
+   OPAintens:intensities of the respective transitions in same order as OPAfreq
+   intens00: intensity of the purely electronic transition
+             array of lenght n
+   mode:     number of vibrational states changing
+             array of lenght n
+   stick:    a boolean variable, stating whether to print the stick-spectrum or not
+
+   **RETURNS**
+   TPAfreq:  
+
+   TPAfreq:  frequencies of the nPA-vibrational spectrum
+   TPAintens:intensities of the nPA-vibrational spectrum     
+   """
    length=len(OPAfreq)
    TPAfreq=np.zeros((length+1)*(length+2)//2+length+1) #this is overestimation of size...
    TPAintens=np.zeros((length+1)*(length+2)//2+length+1)
@@ -200,7 +230,7 @@ def OPA2TPA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       TPAfreq[ind]=OPAfreq[i]
       ind+=1
       if stick:
-         logwrite(u" %.7f  %e\n"%(OPAintens[i], OPAfreq[i]))
+         logwrite(u" %f  %e\n"%(OPAintens[i], OPAfreq[i]))
       for j in range(i+1,length):
          ##not only same mode but all modes with lower number should not be taken into account here!?
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
@@ -212,7 +242,7 @@ def OPA2TPA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
          TPAfreq[ind]=OPAfreq[i]+OPAfreq[j]-freq00
          ind+=1
          if stick:
-            logwrite(u" %.8f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
+            logwrite(u" %f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
    index=np.argsort(TPAfreq,kind='heapsort')
    TPAfreq=TPAfreq[index]
    TPAintens=TPAintens[index]
@@ -235,8 +265,10 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
    stick:    a boolean variable, stating whether to print the stick-spectrum or not
 
    **RETURNS**
-   freq:  frequencies of the 3PA-vibrational spectrum
-   intens:intensities of the 3PA-vibrational spectrum     
+   TPAfreq:  
+
+   TPAfreq:  frequencies of the nPA-vibrational spectrum
+   TPAintens:intensities of the nPA-vibrational spectrum     
    """
    length=len(OPAfreq)
    TPAfreq=[]#np.zeros((((length+1)*(length+2)+3)*(length+3))//6+length+1) #this is overestimation of size...
@@ -253,7 +285,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       TPAintens.append(OPAintens[i]) #this is OPA-part
       TPAfreq.append(OPAfreq[i])
       if stick:
-         logwrite(u" %.7f  %e\n"%(OPAintens[i], OPAfreq[i]))
+         logwrite(u" %f  %e\n"%(OPAintens[i], OPAfreq[i]))
       # here the combination part starts
       for j in range(i+1,length):
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
@@ -264,10 +296,10 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
          TPAintens.append(OPAintens[i]*OPAintens[j]/intens00)
          TPAfreq.append(OPAfreq[i]+OPAfreq[j]-freq00)
          if stick:
-            logwrite(u" %.6f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
+            logwrite(u" %f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
          # look for all combinations of combinations for three-particle approx.
          for k in range(j+1,length):
-            if mode[k]==mode[j] or mode[j]==0: #both have same mode...
+            if mode[k]==mode[j] or mode[k]==0: #both have same mode...
                continue
             if mode[k]==mode[i]:
                continue
@@ -277,7 +309,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
             TPAintens.append(OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00))
             TPAfreq.append(OPAfreq[i]+OPAfreq[k]+OPAfreq[j]-2*freq00)
             if stick:
-               logwrite(u" %.5f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
+               logwrite(u" %f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
    # save the spectrum into numpy-matrices
    freq=np.zeros(len(TPAfreq))
    intens=np.zeros(len(TPAintens))
@@ -445,6 +477,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
    freq=TPAfreq[index]
    intens=TPAintens[index]
 
+
    if logging[0]<1:
       logwrite('truncated and sorted stick-spectrum '
                      '(this is what will be taken into account for broadening):\n')
@@ -477,11 +510,11 @@ def outspect(logging, float T, opt, linspect, float E=0):
                break
          for j in range(max(0,mini),maxi):
             if freq[j]>=omegai-8*gamma:
-               mini=j-1
+               mini=max(j-1,0) # else it becomes -1 and hence the spectrum is wrong
                break
          spect[i]=1/(sigma)*sum(intens[j]*\
                   npexp(-(omegai-freq[j])*(omegai-freq[j])/(sigmasigma))
-                  for j in range(mini, maxi))
+                  for j in range(mini, maxi+1))
          outwrite(u" %f  %e\n" %(omegai, spect[i]))
    else:  #shape=='l':
       gammagamma=gamma*gamma

@@ -161,6 +161,96 @@ def ReadG092(logging, final):
       grad[i]=float(Grad[i])
    return grad, E
 
+def ReadGO9_fchk(logging, fileN):
+   """ This function reads the required quantities from the gaussian-files
+
+   **PARAMETERS**
+   logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
+                and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   fileN:       specifies the name of the g09-file
+
+   **RETURNS**
+   dim:         dimension of the problem (3*number of atoms)
+   Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+   mass:        square root of masses of the atoms in atomi units
+   F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+   E:           binding energy of the respective state/geometry in Hartree
+   """
+   #####
+   #####
+   ##### get normal modes: Vib-Modes 
+   # Mapping the log file
+   files=open(fileN, "r")
+   log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
+   files.close
+
+   #get geometry of the molecule
+   temp=[]
+   temp=re.findall(r'Current cartesian coordinates  [RN\=\n \-\+.\d E]+', log)
+   tmp=re.findall(r'[ -][\d.]+E[+-][\d]+', temp[0])
+
+   # Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
+   atmwgt=re.findall(r"(?<=Real atomic weights     )[RN\=\-\+\d \.E\n]+",log)
+   mtemp=[]
+   foonum=0
+   mtemp.append(re.findall(r'[\d.]+E[+-][\d]+',atmwgt[0]))
+   dim=int(re.findall("(?<=N\= )[\d ]+", atmwgt[0])[0])
+   dim*=3
+   #if something is wrong with the dimensionality:
+   assert len(tmp)==dim, 'Not all atoms were found! Something went wrong...{0}, {1}'.format(len(tmp),dim)
+
+   mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
+   for j in range(len(mtemp)):
+      for k in range(len(mtemp[j])):
+         mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
+      foonum+=len(mtemp[j])
+   assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
+   if logging[0]<2:
+      logging[1].write("Number of atoms: {0}\nNumber of vibrational "
+                        "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
+   # Reading Cartesian coordinates
+   Coord=np.zeros((3, dim/3))
+   for j in range(len(tmp)):
+      Coord[j%3][j/3]=float(tmp[j].replace('E','e')) # need to convert by some factor!!
+
+   #Coord*=Angs2Bohr
+   if logging[0]<1:
+      logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
+
+   # Reading of Cartesian force constant matrix  
+   f=re.findall(r"(?<=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+", log, re.M)
+   f_str=str([f[-1]])#[2:-2]
+   lines=f_str.strip().split("\\n")
+   F=np.zeros((dim,dim))
+   k=0
+   m=0
+   for i in xrange(1,len(lines)): # the first line is not part of the matrix
+      elements=lines[i].replace('E','e').split()
+      if m==len(F): # break this outer loop if inner is broken
+         break
+      for j in range(len(elements)):
+         print k,m,elements[j]
+         F[k][m]=F[m][k]=float(elements[j])
+         if k==m:
+            m+=1
+            if m==len(F): # matrix is full; there will be only waste
+               break
+            k=0
+         else:
+            k+=1
+   if logging[0]<1:
+      logging[1].write('F matrix as read from formcheck-file\n{0} \n'.format(F))
+   for i in range(0,dim):
+      for j in range(0,dim):
+         F[i][j]/= (mass[i//3]*mass[j//3]) 
+
+   Etemp=re.findall(r'(?<=Total Energy                               R  )[ \-\d.E\+]+', log, re.M)
+   assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
+   Etemp=float(Etemp[0].replace('E','e'))
+   if logging[0]<=1:
+      logging[1].write('temporary energy of state: {0}\n'.format(Etemp))
+   return dim, Coord, mass, F, Etemp
+
 def getGaussianf(final, dim):
    files=open(final[0], "r") #open file and map it for better working
    mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
@@ -481,9 +571,8 @@ def ReadNWChem(logging, fileN):
    if logging[0]<1:
       logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
 
-   # Reading of Cartesian force constant matrix (projected or not)
-   #f=re.findall(r"(?<=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
-   f=re.findall(r"(?<=MASS-WEIGHTED NUCLEAR HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
+   # Reading of Cartesian force constant matrix  
+   f=re.findall(r"(?<=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
    f_str=str([f[-1]])
    lines=f_str.strip().split("\\n")
    F=np.zeros((dim,dim))
@@ -500,7 +589,6 @@ def ReadNWChem(logging, fileN):
       for j in range(1,len(elements)):
          F[int(elements[0])-1][j-1+10*n]=float(elements[j])
          F[j-1+10*n][int(elements[0])-1]=float(elements[j])
-   F/=1923260 ## this is an experimental conversion factor. ~9.Hartree2cm_1 (if it helps)
    if logging[0]<1:
       logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
 

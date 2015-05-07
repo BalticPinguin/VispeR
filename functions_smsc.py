@@ -98,7 +98,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
                ##skip 0-0 transitions
                continue
             tmp=FCeqf(HR[a], i, j)/temp
-            s+=tmp*temp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
+            s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
             if s>=0.96:
                # than all transitions contributing in intensity are done
                break
@@ -139,43 +139,57 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
             initial[0]+' is not a valid file name or not readable.'
    assert os.path.isfile(final[0]) and os.access(final[0], os.R_OK),\
             final[0]+' is not a valid file name or not readable.'
-   #test, what kind of file was given: G09, GAMESS or NWChem
-   with open(initial[0], "r+b") as f: #open file as mmap
-      mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
-      for line in iter(mapping.readline, ""): #go through every line and test characteristic part
-         if "GAMESS" in line: #if it is found: read important quantities from file
-            dim, Coord, mass, A, E=rl.ReadGAMESS(logging, initial[0])
-            F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
-            if logging[0]==0:
-               logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
-            F[0],Energy[0]=A, E
-            CartCoord[0]=Coord
-            dim, Coord, mass, A, E=rl.ReadGAMESS(logging, final[0]) 
-            F[1], Energy[1]=A, E
-            CartCoord[1]=Coord
-         elif "Northwest Computational Chemistry Package (NWChem)" in line:
-            dim, Coord, mass, A, E=rl.ReadNWChem(logging, initial[0])
-            F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
-            if logging[0]==0:
-               logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
-            F[0],Energy[0]=A, E
-            CartCoord[0]=Coord
-            dim, Coord, mass, A, E=rl.ReadNWChem(logging, final[0]) 
-            F[1], Energy[1]=A, E
-            CartCoord[1]=Coord
-         elif "Gaussian(R)" in line:
-            dim, Coord, mass, A, E=rl.ReadG09(logging, initial[0])
-            F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
-            if logging[0]==0:
-               logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
-            F[0],Energy[0]=A, E
-            CartCoord[0]=Coord
-            dim, Coord, mass, A, E=rl.ReadG09(logging, final[0]) 
-            F[1], Energy[1]=A, E
-            CartCoord[1]=Coord
-      else: # is there some error??  probably this message is printed also if files were recognised
-         print "file type not recognised"
-
+   # if the input-files are G09-formcheck-files (recognised by ending):
+   if ( ".fchk" in final[0]) and (".fchk" in initial[0]):
+      dim, Coord, mass, A, E=rl.ReadGO9_fchk(logging, initial[0])
+      F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+      if logging[0]==0:
+         logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+      F[0],Energy[0]=A, E
+      CartCoord[0]=Coord
+      dim, Coord, mass, A, E=rl.ReadGO9_fchk(logging, final[0]) 
+      F[1], Energy[1]=A, E
+      CartCoord[1]=Coord
+   #else, test what kind of file was given: G09, GAMESS or NWChem
+   else:
+      with open(initial[0], "r+b") as f: #open file as mmap
+         mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+         for line in iter(mapping.readline, ""): #go through every line and test characteristic part
+            if "GAMESS" in line: #if it is found: read important quantities from file
+               dim, Coord, mass, A, E=rl.ReadGAMESS(logging, initial[0])
+               F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+               if logging[0]==0:
+                  logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+               F[0],Energy[0]=A, E
+               CartCoord[0]=Coord
+               dim, Coord, mass, A, E=rl.ReadGAMESS(logging, final[0]) 
+               F[1], Energy[1]=A, E
+               CartCoord[1]=Coord
+               break
+            elif "Northwest Computational Chemistry Package (NWChem)" in line:
+               dim, Coord, mass, A, E=rl.ReadNWChem(logging, initial[0])
+               F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+               if logging[0]==0:
+                  logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+               F[0],Energy[0]=A, E
+               CartCoord[0]=Coord
+               dim, Coord, mass, A, E=rl.ReadNWChem(logging, final[0]) 
+               F[1], Energy[1]=A, E
+               CartCoord[1]=Coord
+               break
+            elif "Gaussian(R)" in line:
+               dim, Coord, mass, A, E=rl.ReadG09(logging, initial[0])
+               F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+               if logging[0]==0:
+                  logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+               F[0],Energy[0]=A, E
+               CartCoord[0]=Coord
+               dim, Coord, mass, A, E=rl.ReadG09(logging, final[0]) 
+               F[1], Energy[1]=A, E
+               CartCoord[1]=Coord
+               break
+         else: # is there some error??  probably this message is printed also if files were recognised
+            print "file type not recognised"
    #read coordinates, force constant, binding energies from log-files and calculate needed quantities
    if logging[0]<3:
       logging[1].write('difference of minimum energy between states:'
@@ -444,7 +458,8 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniFall=[]
    #HR=[K[0][j]*K[0][j]*0.5*f[0][j] for j in range(len(K[0]))]
    for j in range(len(K[0])):
-      HR[j]=K[0][j]*K[0][j]*0.5*f[1][j]
+      #HR[j]=K[0][j]*K[0][j]*0.5*f[1][j]
+      HR[j]=K[0][j]*K[0][j]*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
    fsort=f[1][index]
@@ -521,5 +536,5 @@ def ReadHR(logging, HRfile):
    freqm[0]=funi
    return initial, HRm, freqm, Energy
 
-version=1.3
+version=1.5
 # End of functions_smsc.py

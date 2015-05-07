@@ -67,24 +67,24 @@ def main(argv=None):
    # here: evaluate the file with respect to the tasks to be done
    if (re.search(r"HR-fact",f, re.I) is not None) is True:
       todo+=1
-   opts.append(re.findall(r"(?<=HR-fact)[\w.,\(\) \=:\-]+", f, re.I))
+   opts.append(re.findall(r"(?<=HR-fact)[\w.,\(\) \=;:-]+", f, re.I))
    if (re.search(r"FC-spect",f, re.I) is not None) is True:
       if (re.search(r"HR-file: ",f, re.I) is not None) is True:
          #calculation of HR-facts not neccecary
          todo+=2
       else: #if 
          todo=3
-   opts.append(re.findall(r"(?<=FC-spect)[\w\d\.\=,\(\): -]+",f,re.I))
+   opts.append(re.findall(r"(?<=FC-spect)[\w\d\.\=,\(\):; -]+",f,re.I))
    if (re.search(r"Duschinsky-spect",f, re.I) is not None) is True:
       if todo==0:
          todo=5
       else:
          todo+=4
-   opts.append(re.findall(r"(?<=Duschinsky-spect)[\w:\d\=.\(\), -]+",f,re.I))
+   opts.append(re.findall(r"(?<=Duschinsky-spect)[\w:\d\=.\(\),; -]+",f,re.I))
    if ((re.search(r"Broadening",f, re.I) is not None) is True) or\
        ((re.search(r"broaden",f, re.I) is not None) is True):
       todo+=8
-   opts.append(re.findall(r"(?<=Broadening)[\w\d\.,:\(\)\= -]+",f,re.I))
+   opts.append(re.findall(r"(?<=Broadening)[\w\d\.,:\(\)\=; -]+",f,re.I))
    #error: This should never be true but due to unconvenient option-combinations it may be
    if todo>=16 or todo in [0,4,6,9]: 
       print "options for calculation don't make sense. Please check the input-file!"
