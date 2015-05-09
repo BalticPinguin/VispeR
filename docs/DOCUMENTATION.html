@@ -5,14 +5,24 @@
 </head>
 
 <body>
-
+<center>
+<h1>Welcome on the DOC-page of smallscript!</h1>
+</center>
+<p>This is the main-page, intending to give an overview of the structure and features of smallscript as well as providing a reference for the options availible.
+For the detailed technical documentation and all the code of this programme, see the pages listed directly below this text.
+Further, you might stumble over some abbreviations on these pages. The most often used are:
+</p> <p>
+OPA: one-particle approximation --
+FC: Franc-Condon --
+HR: Huang-Rhys --
+DR: Duschinsky-rotated (i.e. including Duschinsky-effect)
 <h2>the code with some documetation strings is listed in the following pages:</h2>
 <!-- Site navigation menu -->
-OPA: one-particle approximation
 <ul class="navbar">
    <li><a href="smallscript.html">main program code</a>
    <li><a href="setup.html">setup-file</a>
    <li><a href="functions_smsc.html">most functions for general</a>
+   <li><a href="readLogs.html">all functions that read quantities from files of ext. programms</a>
    <li><a href="OPA.html">class for Duschisky-rotated spectrum with OPA </a>
    <li><a href="Dusch_unrest.html">code for Duschinsky-rotated spectrum without OPA </a>
    <li><a href="Btree.html">class for Duschinsky-rotated spectrum (not OPA) </a>
@@ -41,8 +51,9 @@ for explanations of the output of the calculations, see <a href="output.html">ou
 <h1 id="main">Main:</h1>
 The smallscript is a python-script for the calculation of vibronic spectra. There are different models available for it and different sub-tasks can be calculated separately.
 First, smallscript can just calculate the Huang-Rhys (HR)-factors (see option  <a href="#HR"><tt>HR-fact()</tt></a> ).
-Further, the line-spectrum can be calculated in a <a href="#FC">Franck-Condon</a> (FC) or <a href="#DR">Duschinsky-rotated</a> model using different approximations. Finally, the smallscript can be used to calculate a broadened spectrum as an option for the calculation of line spectra or using an externally given line spectrum. The spectra in FC-scheme can be computed given HR-factors and corresponding frequencies as well.
-<p>For the content and format of the input-files see <a href="#source">below</a>. 
+Further, they can be used to calculate a line-spectrum (or one uses HR-factors that are obtained in an other way).
+The line-spectrum can be calculated in a <a href="#FC">Franck-Condon</a> (FC) or <a href="#DR">Duschinsky-rotated</a> model, using different approximations. Finally, the smallscript can be used to calculate a <a href="#broaden"> broadened</a> spectrum as an option for the calculation of line spectra or using an externally given stick spectrum. The spectra in FC-scheme can be computed given HR-factors and corresponding frequencies as well.
+<p>For the content and format of the input-files, which are used to determine these parameters, see <a href="#source">below</a>. 
 <h2 id="call">calling the script </h2>
 <p> if the script is located in the current folder  ./smallscript.py "input"
 <p> if the script is located in a executable folder smallscript.py "input"
@@ -58,17 +69,19 @@ Further, the line-spectrum can be calculated in a <a href="#FC">Franck-Condon</a
 
 <p>where the G09-files need to include geometry and force-constant matrix for different electronic states. Further, the sources are specified as:
 <TABLE>
-<TR> <TD><tt>initial: </tt>  </TD>  <TD> specifies G09-log files for initial electronic states geometries (multiple files separated by ',')</TD> </TR>
-<TR> <TD><tt>final:  </tt>   </TD>    <TD> specifies G09-log files for final electronic states geomitries</TD> </TR>
+<TR> <TD><tt>initial: </tt>  </TD>  <TD> specifies a file for initial electronic states geometries (multiple files separated by ',')</TD> </TR>
+<TR> <TD><tt>final:  </tt>   </TD>    <TD> specifies a file for final electronic states geomitries</TD> </TR>
 <TR> <TD><tt> HR-file:  </tt> </TD>  <TD> specifies file containing HR-factors (1. column) and frequencies (second column) </TD> </TR>
 <TR> <TD><tt> linespect: </tt> </TD><TD> specifies file containing line-spectrum (intensity  frequency  [mode-number])</TD> </TR>
 <TR> <TD><tt> out: </tt>    </TD> <TD> specify file the output should be saved in; default is 'calculation.log'.
 		            If the file already exists, the logging-information will be appended.</TD> </TR>
 
 </TABLE>
-<p>The order of the arguments is not important; further they are read case-insensitive.
-<p>If HR-fact() and FC-spect() are both specified in the same file, the newly calculated HR-factors are taken, even if HR-file is specified.
 <p>
+The files specifying the initial and final state can be either log-files from GAMESS, NWChem or Gaussian (tested 
+with g09 only) as well as fchk-files (checkpoint-files in non-binary format) from Gaussian.</p>
+<p>The order of the arguments is not important; further they are read (mostly) case-insensitive.
+<p>If HR-fact() and FC-spect() are both specified in the same file, the newly calculated HR-factors are taken, even if HR-file is specified.
 <p>
 <h2 id="options">OPTIONS</h2>
 
