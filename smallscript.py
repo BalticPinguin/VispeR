@@ -233,24 +233,29 @@ def main(argv=None):
          logging[1].write("temperature of system: {0}\n".format(T))
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       states=re.findall(r"(?<=states=)[ \d]+", opt, re.I)
-      if len(states)==0:
+      if len(states)==0: # i.e. there was no specification by user
 	 states=5
-      else:
+      else: 
+         # try to read it
 	 try:
 	    states=int(states[0])
 	    logging[1].write("number of states: {0}\n".format(states))
-	 except ValueError:
+         # if unreadable: take default, but write some comment
+	 except ValueError: 
 	    logging[1].write("number of vibrational states {0} is not an integer. "
                               "Use default instead.\n".format(states))
 	    states=5
       model=re.findall(r"(?<=model\=)[\w]+",opt, re.I)
-      try:
+      # test, if there is a model specified
+      try: 
          model=model[0]
       except IndexError:
+         #if not, than calculate in resort-model (default).
          for i in range(len(initial)): 
             k=[0,i]
             logging[1].write("\n Use the model 'resort' since none has been specified.\n")
             linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
+      #else: try to find the model, the user wants to use
       if model in ['Simple', 'simple', 'SIMPLE']:
          for i in range(len(initial)):
             k=[0,i]
@@ -288,6 +293,7 @@ def main(argv=None):
                                 "Number of modes to be taken into account not specified, use 10 as default.\n"%(model))
                linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, 10)
       else:
+         # i.e.: the model was specified but not found. (give warning and do default)
          logging[1].write('An error occured. The option of "model" is not known! Please check the spelling,'\
                ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".\n')
          for i in range(len(initial)):
@@ -378,4 +384,4 @@ def main(argv=None):
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-version=1.4
+version=1.5

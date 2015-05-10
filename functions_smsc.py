@@ -98,7 +98,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
                ##skip 0-0 transitions
                continue
             tmp=FCeqf(HR[a], i, j)/temp
-            s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
+            s+=tmp*temp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
             if s>=0.96:
                # than all transitions contributing in intensity are done
                break
@@ -252,7 +252,8 @@ def Duschinsky(logging, L, mass, dim, x):
    if logging[0] <1:
       logging[1].write('changes of Cartesian coordinates:\n'\
             +repr(DeltaX[0])+'\n')
-   K[0]=(DeltaX[0].dot(M)).dot(L[0])/1.63 ##what factor is this??
+   K[0]=(DeltaX[0].dot(M)).dot(L[0])*0.8676157 ##what factor is this??
+   #K[0]=(DeltaX[0].dot(M)).dot(L[0])/1.63 ##what factor is this??
    #K[0]=L[0].T.dot(M).dot(DeltaX[0])
    
    #np.set_printoptions(suppress=True)
@@ -458,8 +459,8 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniFall=[]
    #HR=[K[0][j]*K[0][j]*0.5*f[0][j] for j in range(len(K[0]))]
    for j in range(len(K[0])):
-      #HR[j]=K[0][j]*K[0][j]*0.5*f[1][j]
-      HR[j]=K[0][j]*K[0][j]*f[1][j]
+      HR[j]=K[0][j]*K[0][j]*f[1][j]*.5
+      #HR[j]=K[0][j]*K[0][j]*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
    fsort=f[1][index]

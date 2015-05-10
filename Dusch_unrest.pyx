@@ -41,8 +41,8 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
          resort[i][k]=1 #use absolute value only.
    F[1]=resort.dot(F[1].T)
 
-   ## change the following: not size of K but off-diagonal-elements of J!!! 
-   ## if J[i][j] is large, add indices i and j to ind if they are not contained already...
+   # --> change the following: not size of K but off-diagonal-elements of J!!! 
+   # --> if J[i][j] is large, add indices i and j to ind if they are not contained already...
    if m<len(J): #this model might be more realistic!!
       index=np.argsort(np.abs(K), kind="heapsort")
       ind=index[:m]
@@ -89,7 +89,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       Tree.insert(Zero, np.array([10, (E+sum(sum(Gammap-Gamma))*0.5)*Hartree2cm_1, 0]) ) #sum(sum()) due to matrix
       #I_00 transition-probability [[Btree.py#extract]]
       #linespect=np.array(Tree.extract())
-      ### this is done using implicit side effects
+      #this is done using implicit side effects
       lines.append(10)
       freqs.append((E+sum(sum(Gammap-Gamma))*0.5)*Hartree2cm_1)
       initF.append(0) #needed for boltzmann-weighing

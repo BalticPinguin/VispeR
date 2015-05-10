@@ -485,8 +485,8 @@ def outspect(logging, float T, opt, linspect, float E=0):
       for i in range(len(intens)):
          logwrite(u"%f   %f\n"%(intens[i], freq[i]))
    mini=0
-   maxi=len(freq) #just in case Gamma is too big or frequency-range too low
-   for i in range(0,len(freq)):
+   maxi=len(freq)-1 #just in case Gamma is too big or frequency-range too low
+   for i in range(0,len(freq)-1):
       if freq[i]>=10*gamma+freq[0]:
          maxi=i
          break
@@ -504,7 +504,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
       npexp=np.exp
       for i in xrange(len(omega)): 
          omegai=omega[i]
-         for j in range(maxi,len(freq)):
+         for j in range(maxi,len(freq)-1):
             if freq[j]>=10*gamma+omegai:
                maxi=j
                break
@@ -512,15 +512,14 @@ def outspect(logging, float T, opt, linspect, float E=0):
             if freq[j]>=omegai-8*gamma:
                mini=max(j-1,0) # else it becomes -1 and hence the spectrum is wrong
                break
-         spect[i]=1/(sigma)*sum(intens[j]*\
-                  npexp(-(omegai-freq[j])*(omegai-freq[j])/(sigmasigma))
-                  for j in range(mini, maxi+1))
+         for j in range(mini,maxi+1):
+            spect[i]+=intens[j]*npexp(-(omegai-freq[j])*(omegai-freq[j])/(sigmasigma))
          outwrite(u" %f  %e\n" %(omegai, spect[i]))
    else:  #shape=='l':
       gammagamma=gamma*gamma
       for i in xrange(len(omega)): 
          omegai=omega[i]
-         for j in xrange(maxi,len(freq)):
+         for j in xrange(maxi,len(freq)-1):
             if freq[j]>=20*gamma+omegai:
                maxi=j
                break
@@ -528,11 +527,11 @@ def outspect(logging, float T, opt, linspect, float E=0):
             maxi=len(freq) 
          for j in xrange(max(0,mini),maxi):
             if freq[j]>=omegai-20*gamma:
-               mini=j-1
+               mini=max(j-1,0)
                break
                #this should always be reached somewhen
-         spect[i]=gamma*sum(intens[k]/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
-                  for k in range(mini, maxi))
+         for k in range(mini,maxi+1):
+            spect[i]+=intens[k]/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
          outwrite(u" %f   %e\n" %(omegai, spect[i]))
    if spectfile!=None:
       #only close file if it was opened here

@@ -1,6 +1,5 @@
 #!/usr/bin/python
-import numpy as np, math
-cimport numpy as np
+import math, numpy as np
 from copy import deepcopy
 
 Hartree2cm_1=219474.63 
@@ -271,6 +270,7 @@ def resortFCfOPA(logging, J, K, f, Energy,int N,float T,float E0):
       else:
          resort[i][k]=-1
    J=resort.dot(J)
+   #J=np.identity(len(J))
    K=resort.dot(K)
    for i in range(len(resort)):
       k=np.argmin(resort[i])

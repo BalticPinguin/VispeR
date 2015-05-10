@@ -229,7 +229,6 @@ def ReadGO9_fchk(logging, fileN):
       if m==len(F): # break this outer loop if inner is broken
          break
       for j in range(len(elements)):
-         print k,m,elements[j]
          F[k][m]=F[m][k]=float(elements[j])
          if k==m:
             m+=1
