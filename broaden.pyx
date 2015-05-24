@@ -119,7 +119,7 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
       
       for i in xrange(len(intens)):
          intensi=intens[i]
-         if intensi>1e-7: # only use this if the intensity is reasonably high
+         if intensi>1e-9: # only use this if the intensity is reasonably high
             newintens=append(newintens, intensi) #this is OPA-part
             freqi=freq[i]
             newfreq=append(newfreq, freqi)
@@ -152,12 +152,6 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
                nwemode=append(nwemode, tempmode)
                tmpintens=append(tmpintens, OPAintens[k]*intensi)
                tmpfreq=append(tmpfreq, OPAfreq[k]+freqi)
-            #if n==2: # no further combinations required
-               #saves time since the function doesn't need to be entered again
-               #for k in range(len(tmpintens)):
-                  #newintens=append(newintens, tmpintens[k])
-                  #newfreq=append(newfreq, tmpfreq[k])
-               #return np.array(newfreq), np.array(newintens)
             if len(tmpintens)>0:
                xmode=newmode
                if np.shape(xmode)[1]>=2:
@@ -170,8 +164,6 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
                   nmode[0]=xmode
                   nmode[1]=nwemode
                freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode, stick, logwrite)
-               #newintens=append(newintens, [intens2[k] for j in xrange(len(intens2))])
-               #newfreq=append(newfreq, [freq2[k] for j in range(len(intens2))])
                for k in range(len(intens2)):
                   newintens=append(newintens, intens2[k])
                   newfreq=append(newfreq, freq2[k])
@@ -278,6 +270,8 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
    TPAintens.append(intens00) #this is OPA-part
    TPAfreq.append(freq00)
    # go through the whole spectrum (besides 0-0) and compute all combinations besides self-combination
+   if stick:
+      logwrite(u" %f  %e\n"%(TPAintens[0], TPAfreq[0]))
    for i in range(length):
       if mode[i]==0:
          #0-0 transition is included, but only once!
@@ -317,6 +311,39 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
         freq[i]=TPAfreq[i]
         intens[i]=TPAintens[i]
    return freq, intens
+
+def concise(intens, freq, broadness):
+   """
+   This function shrinks length of the stick-spectrum to speed-up the calculation of broadened spectrum 
+   (folding with lineshape-function).
+   It puts all transitions within a tenth of the Gaussian-width into one line.
+
+   ==PARAMETERS==
+   intens:      intensity (of stick-spectrum-points) sorted by increasing freq
+   freq:        frequency (of stick-spectrum-points) sorted by increasing freq
+   broadness:   gamma from the Lorentian-courve; specifying, how many lines will be put together
+
+   ==RETURNS==
+   intens2:     shrinked intensity-vector, sorted by increasing frequency
+   freq2:       shrinked frequency-vector, sorted by increasing frequency
+   """
+   # both arrays are frequency-sorted 
+   #initialize arrays
+   intens2=[]
+   freq2=[]
+   mini=0
+   #go through spectrum and sum everything up.
+   for i in range(len(freq)):
+      # index-range, put into one line is broadness/5; this should be enough
+      tempintens=0
+      for j in xrange(mini, len(freq)):
+         tempintens+=intens[j]
+         if freq[j]>=freq[mini]+broadness/5.:
+            mini=j # set mini to its new value
+            intens2.append(tempintens)
+            freq2.append(freq[j]-broadness/10.)
+            break
+   return intens2, freq2
 
 def outspect(logging, float T, opt, linspect, float E=0):
    """This function calculates the broadened spectrum given the line spectrum, 
@@ -433,7 +460,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
                logwrite(u" %s  %s\n" %TPAintens[k] %TPAfreq[k])
       else:
          n=float(n[0])
-         ind=linspect[2].argmin()
+         ind=linspect[2].argmin() #get position of 0-0 transition
          #                          spectral frequency   0-0 transition      intensities          0-0 intensit.          modes        
          TPAfreq, TPAintens=OPA2nPA(logwrite, linspect[0][minint:],linspect[0][ind] ,
                      linspect[1][minint:], linspect[1][ind], linspect[2][minint:], n, stick)
@@ -485,11 +512,6 @@ def outspect(logging, float T, opt, linspect, float E=0):
       for i in range(len(intens)):
          logwrite(u"%f   %f\n"%(intens[i], freq[i]))
    mini=0
-   maxi=len(freq)-1 #just in case Gamma is too big or frequency-range too low
-   for i in range(0,len(freq)-1):
-      if freq[i]>=10*gamma+freq[0]:
-         maxi=i
-         break
    if spectfile==None:
       out=logging[1]
    else:
@@ -499,8 +521,16 @@ def outspect(logging, float T, opt, linspect, float E=0):
    if spectfile==None: #that means spectrum is printed into log-file
       logwrite("broadened spectrum:\n frequency      intensity\n")
    outwrite=out.write
+   #this shrinks the size of the spectral lines; hopefully accelerates the script.
+   #intens, freq=concise(intens,freq, sigma)
+
+   maxi=len(freq)-1 #just in case Gamma is too big or frequency-range too low
+   for i in range(0,len(freq)-1):
+      if freq[i]>=10*gamma+freq[0]:
+         maxi=i
+         break
    if shape=='g':
-      sigmasigma=2*sigma*sigma
+      sigmasigma=2.*sigma*sigma
       npexp=np.exp
       for i in xrange(len(omega)): 
          omegai=omega[i]
@@ -512,8 +542,8 @@ def outspect(logging, float T, opt, linspect, float E=0):
             if freq[j]>=omegai-8*gamma:
                mini=max(j-1,0) # else it becomes -1 and hence the spectrum is wrong
                break
-         for j in range(mini,maxi+1):
-            spect[i]+=intens[j]*npexp(-(omegai-freq[j])*(omegai-freq[j])/(sigmasigma))
+         for k in range(mini,min(maxi,len(freq))):
+            spect[i]+=intens[k]*npexp(-(omegai-freq[k])*(omegai-freq[k])/(sigmasigma))
          outwrite(u" %f  %e\n" %(omegai, spect[i]))
    else:  #shape=='l':
       gammagamma=gamma*gamma
@@ -530,7 +560,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
                mini=max(j-1,0)
                break
                #this should always be reached somewhen
-         for k in range(mini,maxi+1):
+         for k in range(mini,min(maxi,len(freq))):
             spect[i]+=intens[k]/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
          outwrite(u" %f   %e\n" %(omegai, spect[i]))
    if spectfile!=None:

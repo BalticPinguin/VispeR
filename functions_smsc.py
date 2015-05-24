@@ -261,9 +261,9 @@ def Duschinsky(logging, L, mass, dim, x):
    if logging[0]<2:
       for i in range(len(J)):
          logging[1].write('Duschinsky rotation matrix, state '+repr(i)+':\n')
-         k=range(0,dim)
+         k=range(0,dim-6)
          s=0
-         t=min(s+5,dim)
+         t=min(s+5,dim-6)
          while s<dim:
             for temp in range(s,t):
                logging[1].write("               %d "%(k[temp]+1))
