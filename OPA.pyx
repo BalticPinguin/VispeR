@@ -1,5 +1,6 @@
 #!/usr/bin/python
-import math, numpy as np
+import math
+import numpy as np
 from copy import deepcopy
 
 Hartree2cm_1=219474.63 

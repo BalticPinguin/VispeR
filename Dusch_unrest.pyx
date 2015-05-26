@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # filename: Dusch_unrest.pyx
-import numpy as np, math
+import numpy as np
+import math
 cimport numpy as np
 #include [[Btree.pyx]]
 import Btree as bt
