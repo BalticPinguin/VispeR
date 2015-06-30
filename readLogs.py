@@ -588,7 +588,6 @@ def ReadNWChem(logging, fileN):
       for j in range(1,len(elements)):
          F[int(elements[0])-1][j-1+10*n]=float(elements[j])
          F[j-1+10*n][int(elements[0])-1]=float(elements[j])
-   F/=1923260 ## this is an experimental conversion factor. ~9.Hartree2cm_1 (if it helps)
    if logging[0]<1:
       logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
 

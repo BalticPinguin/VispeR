@@ -96,6 +96,12 @@ def main(argv=None):
       log=open("calculation.log", "a")
    else:
       log=open(logfile[0], "a")
+   log.write("\n==================================================================\n"
+             "===================  output of smallscript  ======================\n"
+             "==================================================================\n\n")
+   log.write("   INPUT-FILE:\n")
+   log.write(f)
+   log.write(" \n   END OF INPUT-FILE \n\n")
    log.write("calculations to be done: %s\n"%(todo))
    log.close()
    
@@ -122,12 +128,12 @@ def main(argv=None):
       initial=re.findall(r"(?<=initial: )[\w.\-]+",f, re.I)
       final=re.findall(r"(?<=final: )[\w.\-]+",f, re.I)
       # the calculation of all needed quantities is done in this function
-      method=re.findall(r"(?<=method: )[ \w]+",opt, re.I)
       HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",opt,re.I)
       if HRthresh==[]:
-         HRthresh=0.0001
+         HRthresh=0.015
       else:
          HRthresh=float(HRthresh[0])
+      method=re.findall(r"(?<=method: )[ \w]+",opt, re.I)
       if method==[]:
          logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
@@ -135,6 +141,9 @@ def main(argv=None):
          logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
          HR, funi, Energy, J, K, f=of.gradientHR(logging, initial, final, opt, HRthresh)
       elif method[0] in ["shift", "SHIFT", "Shift"]:
+         logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
+         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
+      elif method[0] in ["changed", "CHANGED", "Changed"]:
          logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
       else:
@@ -180,17 +189,30 @@ def main(argv=None):
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       states=re.findall(r"(?<=states=)[\d ]*", opt, re.I)
       if len(states)==0:
-	 states=5
+	 states1=5
+         states2=0
       else:
 	 try:
-	    states=int(states[0])
-	    logging[1].write("number of states: %d \n"%(states))
+	    states1=int(states[0])
+	    states2=0
+	    logging[1].write("number of states: %d and %d \n"%(states1, states2))
 	 except ValueError:
-	    logging[1].write("number of vibrational states {0} is not an integer. Use default instead.\n".format(states))
-	    states=5
-      for i in range(len(initial)):
-         logging[1].write("Calculate the line-spectrum in FC-picture with %s excitations."%states )
-         linspect=of.calcspect(logging, HR[i], funi[i], Energy[0]-Energy[1+i], 0, states, states, T)
+            try:
+               states1=int(states[0].split(",")[0])
+               states2=int(states[0].split(",")[1])
+               logging[1].write("number of states: %d and %d \n"%(states1, states2))
+            except ValueError:
+               states1=5
+               states2=0
+               logging[1].write("number of vibrational states {0} is not an integer.",
+                                    " Use default instead.\n".format(states1, states2))
+      if (re.search(r"changed", opt, re.I) is not None):
+         logging[1].write("Calculate the stick-spectrum in FC-picture with %s excitations"\
+            " and changing frequencies\n" %(states1) )
+         linspect=of.changespect(logging, HR[0], funi, Energy[0]-Energy[1], 0, states1, states2, T)
+      else:
+         logging[1].write("Calculate the line-spectrum in FC-picture with %s excitations\n."%states )
+         linspect=of.calcspect(logging, HR[0], funi[1], Energy[0]-Energy[1], 0, states1, states2, T)
       if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
          if opts[2]!=[]:
             # i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated
@@ -302,7 +324,6 @@ def main(argv=None):
 
    #pbar.update(30)
    np.set_printoptions(suppress=True)
-   #print 'linespect:', linspect.T
    if np.mod(todo,16)>=8:
       #calculate Broadening
       opt=0
@@ -364,7 +385,10 @@ def main(argv=None):
          linspect[2]=np.matrix(mode)
       #pbar.update(50)
       #this is real purpuse of this method; here the broadened spectrum is calculated.
-      br.outspect(logging, T, opt, linspect)
+      if re.search(r"broadenparallel", opt, re.I) is not None:
+         br.parallelspect(logging, T, opt, linspect)
+      else:
+         br.outspect(logging, T, opt, linspect)
       #pbar.update(80)
       #if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
       try:

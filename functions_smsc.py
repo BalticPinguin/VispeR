@@ -43,12 +43,11 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       RETURNS:
       Franck-Condon factor of the respective transition
       """
-      exg=np.exp(-Deltag/2) 
       fact=math.factorial
       faktNM=fact(M)*fact(N)
       FC=0
-      for x in range(int(min(N,M))+1):
-         FC+=exg*math.pow(-1,N-x)*math.pow(Deltag,(M+N)*0.5-x)/(fact(M-x)*fact(N-x))*\
+      for x in range(int(min(N,M))+1):# +1: to go to really reach min(M,N).
+         FC+=math.pow(-1,N-x)*math.pow(Deltag,(M+N)*0.5-x)/(fact(M-x)*fact(N-x))*\
                math.sqrt(faktNM)/fact(x)
       return FC*FC
    
@@ -77,35 +76,148 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       return spect
 
    n=len(HR) #=len(freq)
+   setM=False
+   if M==1: 
+      # there was not specified, how many vibr. states in ground-state should be taken into account
+      setM=True
+      M=max(3,int(-1.1*HR[0]*HR[0]+6.4*HR[0]+9.))
+      #i.e. take M following an empirical value as function of the HR-file
    assert n>0, "There is no Huang-Rhys factor larger than the respective threshold. No mode to be calculated."
+   #if setM: the size of these arrays will be overestimated.
    FC=np.zeros((n,M*N-1))
-   uency=np.zeros((n,M*N-1)) #freqUENCY
+   uency=np.zeros((n,M*N-1)) #frequency
    #calculate 0->0 transition
    FC00=10
    uency00=E*Hartree2cm_1 #zero-zero transition
    loggingwrite=logging[1].write #avoid dots!
-   if logging[0]<1:
-      loggingwrite("Line-spectrum in One-Particle approximation:\n")
-      loggingwrite(u" %f   %f  %f\n"%(E*Hartree2cm_1, FC00, 0))
    npexp=np.exp #avoiding dots accelerates python quite a lot
    #here a goes over all modes
    for a in xrange(n):
-      temp=FCeqf(HR[a],0,0)
       for j in range(N):  
+         s=0 # this is a temp variable for effinciency purpose
+         if setM:
+            # set M to fit best to the value at that moment.
+            M=max(3,int(-1.1*HR[a]*HR[a]+6.4*HR[a]+9.))
+         for i in range(M):
+            if i==0 and j==0:
+               ##skip 0-0 transitions
+               continue
+            tmp=FCeqf(HR[a], i, j)
+            s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
+            if s>=0.9999:
+               # than all transitions contributing in intensity are done
+               break
+            FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
+            uency[a][j*M+i-1]=(E+freq[a]*(j-i))*Hartree2cm_1
+   FC00*=npexp(-E0/T)
+   spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
+   return spect
+
+def changespect(logging, HR, freq, E, E0, N, M, T):
+   """This is used to calculate the line spectrum assuming no mode mixing (shift only) 
+   and coinciding frequencies in both electronic states.
+
+   **PARAMETERS:**
+   logging:This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
+           and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   HR:     Huang-Rhys factors
+   n:      number of modes that are considered here (with biggest HR)
+   freq:   frequencies (have to be in the same order as HR
+   E:      energy difference of energy surfaces
+   N,M:    are the numbers of vibrational quanta can be in the modes
+   All arguments are neccesary.
+
+   **RETURNS:**
+   nothing (output into /tmp/linspect)
+   """
+   # M,N are maximal numbers of vibrational modes (+1, since they should be arrived really; count from 0)
+   N+=1
+   M+=1
+
+   def FCchf(HR,N,M,freq):
+      npsqrt=np.sqrt
+      D=npsqrt(2)*npsqrt(HR) # define this to become consistent with given formula
+      delta=npsqrt(freq[1]/freq[0])
+      deltasquare=delta*delta
+      #R00=sqrt(2*delta/(1+delta*delta))*np.exp(-.5*D*D/(1+delta*delta))
+      R=np.zeros( (M,N) )
+      # R_00 is normalisation -> actually calculate FC_ij/FC_00 --> than I can chose FC_00 outside.
+      R[0][0]=1
+      R[0][1]=-npsqrt(2.)*delta*D/(1.+deltasquare) # --> even here different!!!???
+      R[1][0]=npsqrt(2.)*D/(1.+deltasquare)
+      R[1][1]=(D*R[0][1]+delta*npsqrt(2.)*R[0][0])*npsqrt(2.)/(1+deltasquare)
+      for j in range(2,N):
+         R[0][j]=(-2*D*delta*R[0][j-1]-(deltasquare-1)*npsqrt(2.*(j-1))*R[0][j-2])\
+                  /(npsqrt(2.*j)*(1+deltasquare))
+         R[1][j]=(2*delta*npsqrt(2)*R[0][j-1]-2*D*delta*R[1][j-1]-\
+                  (deltasquare-1)*npsqrt(2*(j-1))*R[1][j-2])/(npsqrt(2.*j)*(1.+deltasquare))
+      for j in range(2,M):
+         R[j][0]=(npsqrt(2.*(j-1))*(deltasquare-1)*R[j-2][0]+2.*D*R[j-1][0])\
+                  /(npsqrt(2.*j)*(1.+deltasquare))
+      for i in range(2,M):
+         for j in range(1,N):
+            R[i][j]=((deltasquare-1)*npsqrt(2.*(i-1))*R[i-2][j]+\
+                  2.*D*R[i-1][j]+2.*delta*npsqrt(2.*j)*R[i-1][j-1] )/(npsqrt(2.*i)*(1.+deltasquare))
+      return R # this is matrix with square roots of transition probabilities
+
+   def unifSpect(intens, freqs, E, FC00):
+      """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
+      and assuming coinciding frequencies for initial and final state
+
+      **PARAMETERS:**
+      intens: matrix of intensities of transitions
+      freqs:  matrix of respective energies
+
+      **RETURNS**
+      a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
+      """
+      J=len(intens[0])
+      spect=np.zeros((3,len(intens)*J+1))
+      #first transition: 0-0 transition. 
+      spect[1][0]=FC00 #0->0 transition
+      spect[0][0]=E
+      spect[2][0]=0
+      for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
+         for j in xrange(J):
+            spect[2][i*J+j+1]=i+1
+            spect[1][i*J+j+1]=intens[i][j]
+            spect[0][i*J+j+1]=freqs[i][j]
+      return spect
+
+   n=len(HR) #=len(freq)
+   setM=False
+   if M==1: 
+      # there was not specified, how many vibr. states in ground-state should be taken into account
+      setM=True
+      M=max(3,int(-1.1*HR[0]*HR[0]+6.4*HR[0]+9.))
+   assert n>0, "There is no Huang-Rhys factor larger than the respective threshold. No mode to be calculated."
+   #if setM: the size of these arrays will be overestimated.
+   FC=np.zeros((n,M*N-1))
+   uency=np.zeros((n,M*N-1)) #frequency
+   #calculate 0->0 transition
+   FC00=10
+   uency00=E*Hartree2cm_1 #zero-zero transition
+   loggingwrite=logging[1].write #avoid dots!
+   npexp=np.exp                  #to accelerates python quite a lot
+   #here a goes over all modes
+   for a in xrange(n):
+      if setM:
+         # set M to fit best to the value at that moment.
+         M=max(3,int(-1.1*HR[a]*HR[a]+6.4*HR[a]+9.))
+      R=FCchf(HR[a],N,M,[freq[0][a], freq[1][a]])
+      for j in range(N): 
          s=0 # this is a temp variable for effinciency purpose
          for i in range(M):
             if i==0 and j==0:
                ##skip 0-0 transitions
                continue
-            tmp=FCeqf(HR[a], i, j)/temp
-            s+=tmp*temp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
-            if s>=0.96:
+            tmp=R[i][j]*R[i][j]
+            s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
+            if s>=0.9999:
                # than all transitions contributing in intensity are done
                break
-            FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*i)/T)
-            uency[a][j*M+i-1]=(E+freq[a]*(i-j))*Hartree2cm_1
-            #if logging[0]<1:
-               #logging[1].write(u" {0}\n".format(repr(uency[a][j*M+i-1])+" "+repr(FC[a][j*M+i-1])+" "+repr(a)))
+            FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
+            uency[a][j*M+i-1]=(E+freq[0][a]*j-freq[1][a]*i)*Hartree2cm_1
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
@@ -140,7 +252,8 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
    assert os.path.isfile(final[0]) and os.access(final[0], os.R_OK),\
             final[0]+' is not a valid file name or not readable.'
    # if the input-files are G09-formcheck-files (recognised by ending):
-   if ( ".fchk" in final[0]) and (".fchk" in initial[0]):
+   if (( ".fchk" in final[0]) and (".fchk" in initial[0]))\
+         or (( ".FChk" in final[0]) and (".FChk" in initial[0])): # this is also a valid ending
       dim, Coord, mass, A, E=rl.ReadGO9_fchk(logging, initial[0])
       F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
       if logging[0]==0:
@@ -463,25 +576,29 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
       #HR[j]=K[0][j]*K[0][j]*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
-   fsort=f[1][index]
+   fsort1=f[1][index]
+   fsort0=f[0][index]
    if np.any(fsort)<0:
       logging[1].write('ATTENTION: some HR-factors are <0.\
                In the following their absolute value is used.')
-      fsort=np.abs(fsort)
+      fsort1=np.abs(fsort1)
+      fsort0=np.abs(fsort0)
    uniHR=[]
-   uniF=[]
+   uniF1=[]
+   uniF0=[]
    loggingwrite=logging[1].write
-
    loggingwrite(u'HR-fact           freq\n')
    #print(u'HR-fact           freq\n')
    for j in xrange(len(sortHR)):
       #select all 'big' HR-factors 
       if sortHR[-j]>=HRthresh:
          uniHR.append(sortHR[-j])
-         uniF.append(fsort[-j])
-         loggingwrite(u"%f   %f\n"%(sortHR[-j], fsort[-j]*Hartree2cm_1))
+         uniF1.append(fsort1[-j])
+         uniF0.append(fsort0[-j])
+         loggingwrite(u"%f   %f\n"%(sortHR[-j], fsort1[-j]*Hartree2cm_1))
    uniHRall.append(uniHR)
-   uniFall.append(uniF)
+   uniFall.append(uniF1)
+   uniFall.append(uniF0)
    return uniHRall, uniFall
 
 def quantity(logging, dim, num_of_files):
