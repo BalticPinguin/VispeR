@@ -108,7 +108,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
                # than all transitions contributing in intensity are done
                break
             FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
-            uency[a][j*M+i-1]=(E+freq[a]*(j-i))*Hartree2cm_1
+            uency[a][j*M+i-1]=(E+np.sign(E)*freq[a]*(j-i))*Hartree2cm_1
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
@@ -217,7 +217,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
                # than all transitions contributing in intensity are done
                break
             FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
-            uency[a][j*M+i-1]=(E+freq[0][a]*j-freq[1][a]*i)*Hartree2cm_1
+            uency[a][j*M+i-1]=(E+np.sign(E)*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
@@ -366,8 +366,6 @@ def Duschinsky(logging, L, mass, dim, x):
       logging[1].write('changes of Cartesian coordinates:\n'\
             +repr(DeltaX[0])+'\n')
    K[0]=(DeltaX[0].dot(M)).dot(L[0])*0.8676157 ##what factor is this??
-   #K[0]=(DeltaX[0].dot(M)).dot(L[0])/1.63 ##what factor is this??
-   #K[0]=L[0].T.dot(M).dot(DeltaX[0])
    
    #np.set_printoptions(suppress=True)
    #np.set_printoptions(precision=5, linewidth=138)
