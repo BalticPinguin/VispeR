@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>setup.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  <div class='section'>
+    <div class='docs'><h1>setup.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">from</span> <span class="nn">distutils.core</span> <span class="kn">import</span> <span class="n">setup</span>
+<span class="kn">from</span> <span class="nn">distutils.extension</span> <span class="kn">import</span> <span class="n">Extension</span>
+<span class="kn">from</span> <span class="nn">Cython.Build</span> <span class="kn">import</span> <span class="n">cythonize</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;smallscript&quot;</span><span class="p">,</span>
+      <span class="n">py_modules</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;smallscript&quot;</span><span class="p">,</span> <span class="s">&quot;functions_smsc&quot;</span><span class="p">,</span> <span class="s">&quot;readLogs&quot;</span><span class="p">],</span>
+      <span class="n">ext_modules</span><span class="o">=</span><span class="n">cythonize</span><span class="p">([</span><span class="n">Extension</span><span class="p">(</span><span class="s">&quot;Dusch_unrest&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;Dusch_unrest.pyx&quot;</span><span class="p">]),</span>
+         <span class="n">Extension</span><span class="p">(</span><span class="s">&quot;Btree&quot;</span> <span class="p">,[</span><span class="s">&quot;Btree.pyx&quot;</span><span class="p">]),</span>
+         <span class="n">Extension</span><span class="p">(</span><span class="s">&quot;OPA&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;OPA.pyx&quot;</span><span class="p">]),</span>
+         <span class="n">Extension</span><span class="p">(</span><span class="s">&quot;broaden&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;broaden.pyx&quot;</span><span class="p">])]),</span>
+      <span class="n">author</span><span class="o">=</span><span class="s">&#39;Tobias Moehle &#39;</span><span class="p">,</span>
+      <span class="n">version</span><span class="o">=</span><span class="s">&#39;0.8&#39;</span><span class="p">,</span>
+      <span class="n">description</span><span class="o">=</span><span class="s">&#39;program package to calculate vibronic spectra using g09-log files. Besides the common FC-picture, also several Duschinsky-rotated approaches are implemented.&#39;</span><span class="p">,</span>
+      <span class="n">author_email</span><span class="o">=</span><span class="s">&#39;tobias.moehle@uni-rostock.de&#39;</span><span class="p">,</span>
+      <span class="n">url</span><span class="o">=</span><span class="s">&#39;https://github.com/BalticPinguin/smallscript&#39;</span><span class="p">,</span>
+     <span class="p">)</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

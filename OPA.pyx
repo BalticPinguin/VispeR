@@ -1,6 +1,5 @@
 #!/usr/bin/python
-import math
-import numpy as np
+import math, numpy as np
 from copy import deepcopy
 
 Hartree2cm_1=219474.63 
@@ -85,14 +84,6 @@ def simpleFCfOPA(logging, J, K, double[:,:] f, double Energy, int N, float T, fl
       cdef int i
       opa=OPA(dim,0) #is this clear to be the respective class?
       zeros=np.zeros(2*dim)
-      #explicit calculation of this intensity is important for this part...
-      #unity=np.eye(dim)
-      #inten=Gammap.dot(K)
-      #inten=(Gammap.dot(J).dot(np.linalg.inv(J.T.dot(Gammap.dot(J))+Gamma).dot(J.T)-unity)).dot(inten)
-      #inten=np.exp(K.T.dot(inten))
-      #inten*=np.linalg.det(Gamma)
-      #inten/=np.linalg.det(J.dot(J.T.dot(Gammap.dot(J))+Gamma))
-      #inten*=2^dim*100
       inten=10
       opa.insert(zeros, np.sqrt(inten)) #sum(sum()) due to matrix
 

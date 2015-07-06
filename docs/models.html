@@ -1,71 +1,98 @@
 <h1 id="HR-m">Method for determining the shift</h1>
-Assuming harmonic approximation, there are two methods for deterining the shift of the two coordinates.
-<p style="text-align: center;"><IMG SRC="HR.png" ALT="graphical clarification of the two concepts"  HEIGHT=420> </p>
-Both methods implemented calculate the Huang-Rhys factors<SPAN CLASS="MATH"><IMG
- WIDTH="34" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
- SRC="img9.png"
- ALT="$ HR$"></SPAN> from the shift as <!-- MATH
- $HR=\frac 12 \Delta^2 f$
- -->
-<SPAN CLASS="MATH"><IMG
- WIDTH="100" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
- SRC="img10.png"
- ALT="$ HR=\frac 12 \Delta^2 f$"></SPAN> where <SPAN CLASS="MATH"><IMG
- WIDTH="19" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
- SRC="img11.png"
- ALT="$ \Delta$"></SPAN> is the shift of the modes in normal coordinates.
+   Assuming harmonic approximation, there are two methods for deterining the shift of the two coordinates.
+   <p style="text-align: center;"><IMG SRC="HR.png" ALT="graphical clarification of the two concepts"  HEIGHT=420> </p>
+   Both methods implemented calculate the Huang-Rhys factors<SPAN CLASS="MATH"><IMG
+      WIDTH="34" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+      SRC="img9.png"
+      ALT="$ HR$"></SPAN> from the shift as <!-- MATH
+      $HR=\frac 12 \Delta^2 f$
+      -->
+      <SPAN CLASS="MATH"><IMG
+      WIDTH="100" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+      SRC="img10.png"
+      ALT="$ HR=\frac 12 \Delta^2 f$"></SPAN> where <SPAN CLASS="MATH"><IMG
+      WIDTH="19" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+      SRC="img11.png"
+      ALT="$ \Delta$"></SPAN> 
+   is the shift of the modes in normal coordinates.
 
 <h2 id="HR-m,s">shift</h2>
-<p>This method needs the two electronic states to be each in their respective equilibrium geometry and determines the shift by the shift of Cartesian coordinates.
-The Cartesian shift is converted into internal coordinates as
-<!-- MATH
- $\vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$
- -->
-<SPAN CLASS="MATH"><IMG
- WIDTH="167" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
- SRC="img17.png"
- ALT="$ \vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$"></SPAN>
- using the L-matrix (whose line-vectors are the eigenvalues of the PES's hessian).
-<p> advantages of this method
-<ul class="navbar">
-   <li> Due to the different optimisations of geometries also multiple excited states can be investigated
-</ul>
+   <p>This method needs the two electronic states to be each in their respective equilibrium 
+   geometry and determines the shift by the shift of Cartesian coordinates.
+   The Cartesian shift is converted into internal coordinates as
+   <!-- MATH
+   $\vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$
+   -->
+      <SPAN CLASS="MATH"><IMG
+      WIDTH="167" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+      SRC="img17.png"
+      ALT="$ \vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$"></SPAN>
+   using the L-matrix (whose line-vectors are the eigenvalues of the PES's hessian).
+   <p> advantages of this method
+   <ul class="navbar">
+      <li> Due to the different optimisations of geometries also multiple excited states can be investigated
+   </ul>
+
+<h2 id="HR-m,c">changed</h2>
+   <p> This method works similar to that shown <a href="HR-m,s">above</a> but takes explicitly into account
+    that the frequencies of electronic states don't coincide and hence the overlap is different.</p>
+   <p> advantages of this method
+   <ul class="navbar">
+      <li> more exact results since additional effects are taken into account
+      <li> structure of the spectrum can change due to lifted degeneracies
+   </ul>
+   <p> disadvantages of this method
+   <ul class="navbar">
+      <li> For larger molecules this method can take longer because the HR-factors are calculated iteratively
+      <li> for many (large) systems the frequencies are expected to be very close to each other
+   </ul>
 
 <h2 id="HR-m,g">gradient</h2>
-<p>In this method the from the excited state only the gradient of the PES at the equilibrium geometry of the ground state is known. 
-<SPAN CLASS="MATH"><IMG
- WIDTH="111" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
- SRC="img16.png"
- ALT="$ \Delta=F_{nm}\frac{1}{f^2\sqrt{2}}$"></SPAN> 
-<p> advantages of this method:
-<ul class="navbar">
-   <li> Since the geometry is calculated only once, there is no chance of reorienation of the molecule or false equilibration of the geometry
+   <p>In this method the from the excited state only the gradient of the PES 
+      at the equilibrium geometry of the ground state is known. 
+   <SPAN CLASS="MATH"><IMG
+      WIDTH="111" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+      SRC="img16.png"
+      ALT="$ \Delta=F_{nm}\frac{1}{f^2\sqrt{2}}$"></SPAN> 
+   <p> advantages of this method:
+   <ul class="navbar">
+   <li> Since the geometry is calculated only once, there is no chance of reorienation 
+     of the molecule or false equilibration of the geometry
    <li> The calculations need not that much time since only one geometry-optimisation is needed
-</ul>
-Further the comparison of the two methods can be used to estimate if the harmonic approximation is still valid.
-
+   </ul>
+   Further the comparison of the two methods can be used to estimate if the harmonic approximation is still valid.
 
 <h1 id="FC-n">Particle-approximations (Franck-Condon scheme)</h1>
-In the Franck-Condon picture, the intensity is determined by the Franck-Condon factor which is, besides some factors,
-
-.
-Hence the spectrum can be calculated easily from a one-particle spectrum, if one knows all the intensity, frequency and changing mode for all transitions in one-particle approximation.
-<p> The full FC-spectrum can be calculated exactly, if the option <tt> to nPA: m </tt> is set with <tt> m </tt> is not lower than 3*N-6 and the threshold for the HR-factors is set to <tt>0</tt>.
+   In the Franck-Condon picture, the intensity is determined by the Franck-Condon 
+   factor which is, besides some factors,
+   .
+   Hence the spectrum can be calculated easily from a one-particle spectrum, if one 
+   knows all the intensity, frequency and changing mode for all transitions in one-particle approximation.
+   <p> The full FC-spectrum can be calculated exactly, if the option <tt> to nPA: m </tt> 
+   is set with <tt> m </tt> is not lower than 3*N-6 and the threshold for the HR-factors is set to <tt>0</tt>.
 
 <h1 id="DR-m">Models in the Duschinsky-rotated picture</h1>
-Taking Duschinsky-rotation into account leads to some problems by applying further approximations such as the one-particle approximation (OPA); but the full calculation is not feasible (or at least not wanted) for some molecules. 
-It turned out that the main problem is that one can not simply assingn the vibrational modes to each other since the modes in excited state are different from those in ground state
-Therefore smallscript has four models with differently strong approximations:
+   Taking Duschinsky-rotation into account leads to some problems by applying further 
+   approximations such as the one-particle approximation (OPA); but the full calculation is 
+   not feasible (or at least not wanted) for some molecules. 
+   It turned out that the main problem is that one can not simply assingn the vibrational modes 
+   to each other since the modes in excited state are different from those in ground state
+   Therefore smallscript has four models with differently strong approximations:
 <h2 id="DR-m,s">Simple</h2>
-In this simples model, one simply neglects that the modes do not coincide, but also that the order of modes may have changed and applies OPA to it.
-This can lead to unreasonable results and hence this method should never be used.
+   In this simples model, one simply neglects that the modes do not coincide, but also that 
+   the order of modes may have changed and applies OPA to it.
+   This can lead to unreasonable results and hence this method should never be used.
 <h2 id="DR-m,r">Resort</h2>
-In this model, the modes are sorted such that the modes that are closest to each other will get the same number and after this OPA is applied.
-This leads to results that will look like the Franck-Condon progressions in most cases but only small corrections on the amplitudes will be found.
+   In this model, the modes are sorted such that the modes that are closest to each other will 
+   get the same number and after this OPA is applied.
+   This leads to results that will look like the Franck-Condon progressions in most cases but only small 
+   corrections on the amplitudes will be found.
 <h2 id="DR-m,d">Distributing</h2>
-In this model, besides the resorting of the modes, also OPA-transitions to other modes are allowed.
-It is not clear whether this model is valid..?
+   In this model, besides the resorting of the modes, also OPA-transitions to other modes are allowed.
+   It is not clear whether this model is valid..?
 <h2 id="DR-m,u">Unrestricted</h2>
-Here no one-particle approximation is applied. Instead the number of normal modes taken into account is truncated as it is done in the Franck-Condon scheme.
-As in the Franck-Condon scheme, the modes taken into account explicitly are chosen by the size of the respecive shift. But for these modes, the sub-system is
-calculated in full scheme.
+   Here no one-particle approximation is applied. Instead the number of normal modes taken into 
+   account is truncated as it is done in the Franck-Condon scheme.
+   As in the Franck-Condon scheme, the modes taken into account explicitly are chosen by the size 
+   of the respecive shift. But for these modes, the sub-system is
+   calculated in full scheme.

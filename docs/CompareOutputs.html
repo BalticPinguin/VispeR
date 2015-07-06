@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>CompareOutputs.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  <div class='section'>
+    <div class='docs'><h1>CompareOutputs.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>include <a href="readLogs.html">readLogs.py</a></p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">readLogs</span> <span class="kn">as</span> <span class="nn">rl</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>include further dicts</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">os</span>
+<span class="n">Hartree2cm_1</span><span class="o">=</span><span class="mf">219474.63</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+   <span class="n">numfiles</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="c">#check, how many files are availible</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>ask, what should be done:
+1:  Get Hessian of all and compare them
+2:  Get Frequencies and eigenvectors and compare them
+3: both</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">print</span> <span class="s">&quot;Please type the actions to be done:</span><span class="se">\n</span><span class="s">&quot;</span>\
+         <span class="s">&quot; 1:  Get Hessian of all and compare them</span><span class="se">\n</span><span class="s"> 2:  Get Frequencies&quot;</span>\
+         <span class="s">&quot; and eigenvectors and compare them</span><span class="se">\n</span><span class="s"> 3: both</span><span class="se">\n</span><span class="s">&quot;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>get user-input:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="n">todo</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">&quot;your choise: &quot;</span><span class="p">)</span>
+   <span class="n">todo</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">todo</span><span class="p">)</span>
+
+   <span class="k">if</span> <span class="n">todo</span><span class="o">==</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">todo</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+      <span class="n">F</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">coord</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">E</span><span class="o">=</span><span class="p">[]</span>
+      <span class="k">print</span> <span class="s">&quot;get Hessian&quot;</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numfiles</span><span class="p">):</span>
+         <span class="k">print</span> <span class="n">i</span><span class="p">,</span><span class="s">&quot;:&quot;</span>
+         <span class="n">f</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="n">e</span><span class="o">=</span><span class="n">ReadF</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+         <span class="n">F</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+         <span class="n">coord</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+         <span class="n">E</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+      <span class="k">print</span> <span class="s">&quot;have all&quot;</span><span class="p">,</span><span class="n">numfiles</span><span class="p">,</span><span class="s">&quot; Hessians&quot;</span>
+      <span class="k">if</span> <span class="n">numfiles</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+         <span class="k">print</span> <span class="s">&quot;nothing to compare&quot;</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">print</span> <span class="s">&quot;                       norm(F[i]-F[j])     E[i]-E[j]   norm(coord[i]-coord[j]) i   j &quot;</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numfiles</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">numfiles</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>print "norm of difference:", np.linalg.norm(F[i]-F[j]), E[i]-E[j], np.linalg.norm(coord[i]-coord[j]), i,j</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>               <span class="k">print</span> <span class="s">&quot;norm of difference:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">F</span><span class="p">[</span><span class="n">j</span><span class="p">])),</span> <span class="n">E</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="n">E</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>\
+                     <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">coord</span><span class="p">[</span><span class="n">j</span><span class="p">])),</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>print F[i],"\n", F[j]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">print</span> <span class="s">&quot;done&quot;</span>
+
+   <span class="k">if</span> <span class="n">todo</span><span class="o">==</span><span class="mi">2</span> <span class="ow">or</span> <span class="n">todo</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+      <span class="n">L</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">freq</span><span class="o">=</span><span class="p">[]</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numfiles</span><span class="p">):</span>
+         <span class="n">f</span><span class="p">,</span><span class="n">Lmat</span><span class="o">=</span><span class="n">readLfreq</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+         <span class="n">freq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+         <span class="n">L</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Lmat</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">numfiles</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+         <span class="k">print</span> <span class="s">&quot;nothing to compare&quot;</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">print</span> <span class="s">&quot;                       norm(f[i]-f[j])     norm(L[i]-L[j]) i   j &quot;</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numfiles</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">numfiles</span><span class="p">):</span>
+               <span class="k">print</span> <span class="s">&quot;norm of difference:&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">])),</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">,</span>\
+                     <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">L</span><span class="p">[</span><span class="n">j</span><span class="p">])),</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+               <span class="k">print</span> <span class="s">&#39;directly compare frequencies:&#39;</span>
+               <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+                  <span class="k">print</span> <span class="n">freq</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">],</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">freq</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">ReadF</span><span class="p">(</span><span class="n">infile</span><span class="p">):</span>
+   <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">),</span>\
+            <span class="n">initial</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s">&#39; is not a valid file name or not readable.&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>test, what kind of file was given: G09, GAMESS or NWChem</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="n">log</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;calculation&quot;</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+   <span class="n">logging</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="n">log</span> <span class="p">]</span>
+   <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s">&quot;r+b&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span> <span class="c">#open file as mmap</span>
+      <span class="n">mapping</span> <span class="o">=</span> <span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">readline</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">):</span> <span class="c">#go through every line and test characteristic part</span>
+         <span class="k">if</span> <span class="s">&quot;GAMESS&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span> <span class="c">#if it is found: read important quantities from file</span>
+            <span class="k">print</span> <span class="s">&quot;GAMESS-file&quot;</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">rl</span><span class="o">.</span><span class="n">ReadGAMESS</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">E</span> <span class="c">#A is force constant matrix</span>
+         <span class="k">elif</span> <span class="s">&quot;Gaussian(R)&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Gaussian-file&quot;</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">rl</span><span class="o">.</span><span class="n">ReadG09</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">E</span> <span class="c">#A is force constant matrix</span>
+         <span class="k">elif</span> <span class="s">&quot;Northwest Computational Chemistry Package (NWChem)&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;nwchem-file&quot;</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="n">rl</span><span class="o">.</span><span class="n">ReadNWChem</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">infile</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">A</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">E</span> <span class="c">#A is force constant matrix</span>
+      <span class="k">else</span><span class="p">:</span> 
+         <span class="k">print</span> <span class="s">&quot;file type not recognised&quot;</span>
+         <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">readLfreq</span><span class="p">(</span><span class="n">infile</span><span class="p">):</span>
+   <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">),</span>\
+            <span class="n">infile</span><span class="o">+</span><span class="s">&#39; is not a valid file name or not readable.&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>test, what kind of file was given: G09, GAMESS or NWChem</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">infile</span><span class="p">,</span> <span class="s">&quot;r+b&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span> <span class="c">#open file as mmap</span>
+      <span class="n">mapping</span> <span class="o">=</span> <span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">dim</span><span class="o">=</span><span class="mi">114</span>
+      <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">readline</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">):</span> <span class="c">#go through every line and test characteristic part</span>
+         <span class="k">if</span> <span class="s">&quot;GAMESS&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span> <span class="c">#if it is found: read important quantities from file</span>
+            <span class="k">print</span> <span class="s">&quot;GAMESS-file&quot;</span>
+            <span class="n">f</span><span class="p">,</span><span class="n">L</span><span class="o">=</span><span class="n">rl</span><span class="o">.</span><span class="n">getGamessLf</span><span class="p">([</span><span class="n">infile</span><span class="p">],</span> <span class="n">dim</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">6</span><span class="p">:]</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">,</span><span class="n">L</span>
+         <span class="k">elif</span> <span class="s">&quot;Gaussian(R)&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;Gaussian-file&quot;</span>
+            <span class="n">L</span><span class="o">=</span><span class="n">rl</span><span class="o">.</span><span class="n">getGaussianL</span><span class="p">([</span><span class="n">infile</span><span class="p">],</span> <span class="n">dim</span><span class="p">)</span>
+            <span class="n">freq</span><span class="o">=</span><span class="n">rl</span><span class="o">.</span><span class="n">getGaussianf</span><span class="p">([</span><span class="n">infile</span><span class="p">],</span> <span class="n">dim</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">Hartree2cm_1</span><span class="p">,</span><span class="n">L</span>
+         <span class="k">elif</span> <span class="s">&quot;Northwest Computational Chemistry Package (NWChem)&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">&quot;nwchem-file&quot;</span>
+            <span class="n">f</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="n">rl</span><span class="o">.</span><span class="n">getNwchemLf</span><span class="p">([</span><span class="n">infile</span><span class="p">],</span> <span class="n">dim</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">L</span>
+      <span class="k">else</span><span class="p">:</span> 
+         <span class="k">print</span> <span class="s">&quot;file type not recognised&quot;</span>
+         <span class="k">return</span> <span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+   <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+<span class="n">version</span><span class="o">=</span><span class="mf">0.2</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

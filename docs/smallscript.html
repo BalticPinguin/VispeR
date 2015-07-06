@@ -147,8 +147,7 @@ og:         opened file to write in</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-   <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;exactly one argument required.&#39;</span>
-   <span class="n">pbar</span> <span class="o">=</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="n">maxval</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span></pre></div>
+   <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s">&#39;exactly one argument required.&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -157,7 +156,8 @@ og:         opened file to write in</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-9'>#</a>
       </div>
-      <p>open input-file (if existent and readable) and map it to f</p>
+      <p>pbar = ProgressBar(maxval=100)
+open input-file (if existent and readable) and map it to f</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">try</span><span class="p">:</span>
@@ -205,7 +205,7 @@ og:         opened file to write in</p>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;HR-fact&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
       <span class="n">todo</span><span class="o">+=</span><span class="mi">1</span>
-   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=HR-fact)[\w.,\(\) \=:\-]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
+   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=HR-fact)[\w.,\(\) \=;:-]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
    <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;FC-spect&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
       <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;HR-file: &quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span></pre></div>
     </div>
@@ -222,16 +222,17 @@ og:         opened file to write in</p>
       <div class="highlight"><pre>         <span class="n">todo</span><span class="o">+=</span><span class="mi">2</span>
       <span class="k">else</span><span class="p">:</span> <span class="c">#if </span>
          <span class="n">todo</span><span class="o">=</span><span class="mi">3</span>
-   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=FC-spect)[\w\d\.\=,\(\): -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
+   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=FC-spect)[\w\d\.\=,\(\):; -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
    <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;Duschinsky-spect&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">todo</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
          <span class="n">todo</span><span class="o">=</span><span class="mi">5</span>
       <span class="k">else</span><span class="p">:</span>
          <span class="n">todo</span><span class="o">+=</span><span class="mi">4</span>
-   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=Duschinsky-spect)[\w:\d\=.\(\), -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
-   <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;Broadening&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=Duschinsky-spect)[\w:\d\=.\(\),; -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span>
+   <span class="k">if</span> <span class="p">((</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;Broadening&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">)</span> <span class="ow">or</span>\
+       <span class="p">((</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;broaden&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">):</span>
       <span class="n">todo</span><span class="o">+=</span><span class="mi">8</span>
-   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=Broadening)[\w\d\.,:\(\)\= -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span></pre></div>
+   <span class="n">opts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=Broadening)[\w\d\.,:\(\)\=; -]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -243,7 +244,7 @@ og:         opened file to write in</p>
       <p>error: This should never be true but due to unconvenient option-combinations it may be</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">todo</span><span class="o">&gt;=</span><span class="mi">16</span> <span class="ow">or</span> <span class="n">todo</span><span class="o">==</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">todo</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">9</span><span class="p">]:</span>
+      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">todo</span><span class="o">&gt;=</span><span class="mi">16</span> <span class="ow">or</span> <span class="n">todo</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">9</span><span class="p">]:</span> 
       <span class="k">print</span> <span class="s">&quot;options for calculation don&#39;t make sense. Please check the input-file!&quot;</span>
       <span class="k">print</span> <span class="n">opts</span>
       <span class="k">return</span> <span class="mi">0</span></pre></div>
@@ -263,6 +264,12 @@ og:         opened file to write in</p>
       <span class="n">log</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;calculation.log&quot;</span><span class="p">,</span> <span class="s">&quot;a&quot;</span><span class="p">)</span>
    <span class="k">else</span><span class="p">:</span>
       <span class="n">log</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">&quot;a&quot;</span><span class="p">)</span>
+   <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">==================================================================</span><span class="se">\n</span><span class="s">&quot;</span>
+             <span class="s">&quot;===================  output of smallscript  ======================</span><span class="se">\n</span><span class="s">&quot;</span>
+             <span class="s">&quot;==================================================================</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">)</span>
+   <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;   INPUT-FILE:</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+   <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+   <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot; </span><span class="se">\n</span><span class="s">   END OF INPUT-FILE </span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">)</span>
    <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;calculations to be done: </span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">todo</span><span class="p">))</span>
    <span class="n">log</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
     </div>
@@ -273,11 +280,11 @@ og:         opened file to write in</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-16'>#</a>
       </div>
-      <p>update the process-bar. (This gives not that satisfying resutls but better than none)</p>
+      <p>update the process-bar. (This gives not that satisfying resutls but better than none)
+pbar.update(5)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -328,12 +335,12 @@ first find in where the options for this task are written in</p>
       <p>the calculation of all needed quantities is done in this function</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">method</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=method: )[ \w]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
-      <span class="n">HRthresh</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=HRthreshold=)[ \d.]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <div class="highlight"><pre>      <span class="n">HRthresh</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=HRthreshold=)[ \d.]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">HRthresh</span><span class="o">==</span><span class="p">[]:</span>
-         <span class="n">HRthresh</span><span class="o">=</span><span class="mf">0.0001</span>
+         <span class="n">HRthresh</span><span class="o">=</span><span class="mf">0.015</span>
       <span class="k">else</span><span class="p">:</span>
          <span class="n">HRthresh</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">HRthresh</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">method</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=method: )[ \w]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">method</span><span class="o">==</span><span class="p">[]:</span>
          <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Use method </span><span class="si">%s</span><span class="s"> for the calculation of all quantities.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
          <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">CalculationHR</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">HRthresh</span><span class="p">)</span>
@@ -343,12 +350,12 @@ first find in where the options for this task are written in</p>
       <span class="k">elif</span> <span class="n">method</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;shift&quot;</span><span class="p">,</span> <span class="s">&quot;SHIFT&quot;</span><span class="p">,</span> <span class="s">&quot;Shift&quot;</span><span class="p">]:</span>
          <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Use method </span><span class="si">%s</span><span class="s"> for the calculation of all quantities.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
          <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">CalculationHR</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">HRthresh</span><span class="p">)</span>
+      <span class="k">elif</span> <span class="n">method</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;changed&quot;</span><span class="p">,</span> <span class="s">&quot;CHANGED&quot;</span><span class="p">,</span> <span class="s">&quot;Changed&quot;</span><span class="p">]:</span>
+         <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">Use method </span><span class="si">%s</span><span class="s"> for the calculation of all quantities.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
+         <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">CalculationHR</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">HRthresh</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
          <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;method </span><span class="si">%s</span><span class="s"> not recognised. Use Shift instead.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">method</span><span class="p">))</span>
-         <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">CalculationHR</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">HRthresh</span><span class="p">)</span>
-
-   <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
-   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">2</span><span class="p">:</span></pre></div>
+         <span class="n">HR</span><span class="p">,</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">CalculationHR</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">HRthresh</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -356,6 +363,18 @@ first find in where the options for this task are written in</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p>pbar.update(12)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">2</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
       </div>
       <p>calculate FC-spect
 here exists only one possibility for the options </p>
@@ -379,10 +398,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-21'>
+  <div class='section' id='section-22'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-21'>#</a>
+        <a class='octothorpe' href='#section-22'>#</a>
       </div>
       <p>test, whether HR-facts were calculated above</p>
     </div>
@@ -392,10 +411,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-22'>
+  <div class='section' id='section-23'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-22'>#</a>
+        <a class='octothorpe' href='#section-23'>#</a>
       </div>
       <p>otherwise they have to be extracted from file</p>
     </div>
@@ -416,36 +435,32 @@ here exists only one possibility for the options </p>
       <span class="n">T</span><span class="o">*=</span><span class="mf">8.6173324e-5</span><span class="o">/</span><span class="mf">27.21138386</span> <span class="c"># multiplied by k_B in hartree/K</span>
       <span class="n">states</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=states=)[\d ]*&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
       <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
-	 <span class="n">states</span><span class="o">=</span><span class="mi">5</span>
+	 <span class="n">states1</span><span class="o">=</span><span class="mi">5</span>
+         <span class="n">states2</span><span class="o">=</span><span class="mi">0</span>
       <span class="k">else</span><span class="p">:</span>
 	 <span class="k">try</span><span class="p">:</span>
-	    <span class="n">states</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;number of states: </span><span class="si">%d</span><span class="s"> </span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">states</span><span class="p">))</span>
+	    <span class="n">states1</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	    <span class="n">states2</span><span class="o">=</span><span class="mi">0</span>
+	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;number of states: </span><span class="si">%d</span><span class="s"> and </span><span class="si">%d</span><span class="s"> </span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">states1</span><span class="p">,</span> <span class="n">states2</span><span class="p">))</span>
 	 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;number of vibrational states {0} is not an integer. Use default instead.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">states</span><span class="p">))</span>
-	    <span class="n">states</span><span class="o">=</span><span class="mi">5</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
-         <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Calculate the line-spectrum in FC-picture with </span><span class="si">%s</span><span class="s"> excitations.&quot;</span><span class="o">%</span><span class="n">states</span> <span class="p">)</span>
-         <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+               <span class="n">states1</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+               <span class="n">states2</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;,&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+               <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;number of states: </span><span class="si">%d</span><span class="s"> and </span><span class="si">%d</span><span class="s"> </span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">states1</span><span class="p">,</span> <span class="n">states2</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+               <span class="n">states1</span><span class="o">=</span><span class="mi">5</span>
+               <span class="n">states2</span><span class="o">=</span><span class="mi">0</span>
+               <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;number of vibrational states {0} is not an integer.&quot;</span><span class="p">,</span>
+                                    <span class="s">&quot; Use default instead.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">states1</span><span class="p">,</span> <span class="n">states2</span><span class="p">))</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;changed&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+         <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Calculate the stick-spectrum in FC-picture with </span><span class="si">%s</span><span class="s"> excitations&quot;</span>\
+            <span class="s">&quot; and changing frequencies</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">states1</span><span class="p">)</span> <span class="p">)</span>
+         <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">changespect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HR</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">funi</span><span class="p">,</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">states1</span><span class="p">,</span> <span class="n">states2</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Calculate the line-spectrum in FC-picture with </span><span class="si">%s</span><span class="s"> excitations</span><span class="se">\n</span><span class="s">.&quot;</span><span class="o">%</span><span class="n">states</span> <span class="p">)</span>
+         <span class="n">linspect</span><span class="o">=</span><span class="n">of</span><span class="o">.</span><span class="n">calcspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">HR</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">funi</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">states1</span><span class="p">,</span> <span class="n">states2</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
       <span class="k">if</span> <span class="p">((</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;broaden&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">)</span> <span class="ow">and</span> <span class="n">todo</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">:</span>
          <span class="k">if</span> <span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">!=</span><span class="p">[]:</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-23'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-23'>#</a>
-      </div>
-      <p>i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>            <span class="n">secondlinspect</span><span class="o">=</span><span class="n">linspect</span>
-         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">:</span>
-            <span class="n">todo</span><span class="o">+=</span><span class="mi">8</span>
-
-   <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
-   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">8</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">4</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -453,6 +468,32 @@ here exists only one possibility for the options </p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      <p>i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="n">secondlinspect</span><span class="o">=</span><span class="n">linspect</span>
+         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">8</span><span class="p">:</span>
+            <span class="n">todo</span><span class="o">+=</span><span class="mi">8</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>pbar.update(20)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">8</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">4</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       <p>calculate Duschinsky-spect</p>
     </div>
@@ -489,25 +530,80 @@ here exists only one possibility for the options </p>
          <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;temperature of system: {0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
       <span class="n">T</span><span class="o">*=</span><span class="mf">8.6173324e-5</span><span class="o">/</span><span class="mf">27.21138386</span> <span class="c"># multiplied by k_B in hartree/K</span>
       <span class="n">states</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=states=)[ \d]+&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
-      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="c"># i.e. there was no specification by user</span>
 	 <span class="n">states</span><span class="o">=</span><span class="mi">5</span>
-      <span class="k">else</span><span class="p">:</span>
-	 <span class="k">try</span><span class="p">:</span>
+      <span class="k">else</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>try to read it</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	 <span class="k">try</span><span class="p">:</span>
 	    <span class="n">states</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;number of states: {0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">states</span><span class="p">))</span>
-	 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;number of states: {0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">states</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>if unreadable: take default, but write some comment</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> 
 	    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;number of vibrational states {0} is not an integer. &quot;</span>
                               <span class="s">&quot;Use default instead.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">states</span><span class="p">))</span>
 	    <span class="n">states</span><span class="o">=</span><span class="mi">5</span>
-      <span class="n">model</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=model\=)[\w]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
-      <span class="k">try</span><span class="p">:</span>
+      <span class="n">model</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&quot;(?&lt;=model\=)[\w]+&quot;</span><span class="p">,</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+      <p>test, if there is a model specified</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">try</span><span class="p">:</span> 
          <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-      <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span> 
+      <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      <p>if not, than calculate in resort-model (default).</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span> 
             <span class="n">k</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
             <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s"> Use the model &#39;resort&#39; since none has been specified.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-            <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">resortFCfOPA</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">states</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-      <span class="k">if</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Simple&#39;</span><span class="p">,</span> <span class="s">&#39;simple&#39;</span><span class="p">,</span> <span class="s">&#39;SIMPLE&#39;</span><span class="p">]:</span>
+            <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">resortFCfOPA</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">states</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>else: try to find the model, the user wants to use</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;Simple&#39;</span><span class="p">,</span> <span class="s">&#39;simple&#39;</span><span class="p">,</span> <span class="s">&#39;SIMPLE&#39;</span><span class="p">]:</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
             <span class="n">k</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
             <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s"> Use the model </span><span class="si">%s</span><span class="s"> for the calculation of linespectrum.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
@@ -532,10 +628,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-32'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-32'>#</a>
       </div>
       <p>the threshold (4) can be made to be a parameter as well</p>
     </div>
@@ -546,10 +642,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-33'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-33'>#</a>
       </div>
       <p>make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters</p>
     </div>
@@ -563,34 +659,43 @@ here exists only one possibility for the options </p>
                <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s"> Use the model </span><span class="si">%s</span><span class="s"> for the calculation of linespectrum.</span><span class="se">\n</span><span class="s">&quot;</span>
                                 <span class="s">&quot;Number of modes to be taken into account not specified, use 10 as default.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
                <span class="n">linspect</span><span class="o">=</span><span class="n">DR</span><span class="o">.</span><span class="n">unrestricted</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">states</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>
-         <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;An error occured. The option of &quot;model&quot; is not known! Please check the spelling,&#39;</span>\
+      <span class="k">else</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>i.e.: the model was specified but not found. (give warning and do default)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&#39;An error occured. The option of &quot;model&quot; is not known! Please check the spelling,&#39;</span>\
                <span class="s">&#39; meanwile the Duschinsky-rotated spectrum is calculated using &quot;resort&quot;.</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)):</span>
             <span class="n">k</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">resortFCfOPA</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">states</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-   <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
-   <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></pre></div>
+            <span class="n">linspect</span><span class="o">=</span><span class="n">OPA</span><span class="o">.</span><span class="n">resortFCfOPA</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">K</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">states</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
-      <p>print 'linespect:', linspect.T</p>
+      <p>pbar.update(30)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">8</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">suppress</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">todo</span><span class="p">,</span><span class="mi">16</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">8</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-36'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-36'>#</a>
       </div>
       <p>calculate Broadening</p>
     </div>
@@ -629,10 +734,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-29'>
+  <div class='section' id='section-37'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
+        <a class='octothorpe' href='#section-37'>#</a>
       </div>
       <p>test if there exists a line-spectrum already (calculated above</p>
     </div>
@@ -643,10 +748,10 @@ here exists only one possibility for the options </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-30'>
+  <div class='section' id='section-38'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-30'>#</a>
+        <a class='octothorpe' href='#section-38'>#</a>
       </div>
       <p>if not, than extract it from the input-file specified by 'linspect: ' or 'linespect: '</p>
     </div>
@@ -671,60 +776,93 @@ here exists only one possibility for the options </p>
          <span class="n">linspect</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)))</span>
          <span class="n">linspect</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
          <span class="n">linspect</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">intens</span><span class="p">)</span>
-         <span class="n">linspect</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
-      <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span></pre></div>
+         <span class="n">linspect</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-31'>
+  <div class='section' id='section-39'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-31'>#</a>
+        <a class='octothorpe' href='#section-39'>#</a>
       </div>
-      <p>this is real purpuse of this method; here the broadened spectrum is calculated.</p>
+      <p>pbar.update(50)
+this is real purpuse of this method; here the broadened spectrum is calculated.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">br</span><span class="o">.</span><span class="n">outspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">)</span>
-      <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;broadenparallel&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+         <span class="n">br</span><span class="o">.</span><span class="n">parallelspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">br</span><span class="o">.</span><span class="n">outspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-32'>
+  <div class='section' id='section-40'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
+        <a class='octothorpe' href='#section-40'>#</a>
       </div>
-      <p>if to nPA is specified: #### need energy-difference -&gt; need to read it, if spectrum is taken from file...</p>
+      <p>pbar.update(80)
+if to nPA is specified: #### need energy-difference -&gt; need to read it, if spectrum is taken from file...</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="k">try</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-33'>
+  <div class='section' id='section-41'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       <p>if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>         <span class="n">secondlinspect</span>
-         <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-         <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
-         <span class="n">br</span><span class="o">.</span><span class="n">outspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">)</span>
-         <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span>
-      <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+         <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      <p>pbar.update(50)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">br</span><span class="o">.</span><span class="n">outspect</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">linspect</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      <p>pbar.update(80)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
          <span class="n">opt</span><span class="o">=</span><span class="n">opts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c">#do something arbitrary</span>
 
    <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;end of calculation reached. Normal exit.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
-   <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-   <span class="n">pbar</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
-   
+   <span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>pbar.finish()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
    <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
-<span class="n">version</span><span class="o">=</span><span class="mf">1.4</span>
+<span class="n">version</span><span class="o">=</span><span class="mf">1.5</span>
 
 </pre></div>
     </div>
