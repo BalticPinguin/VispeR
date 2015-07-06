@@ -280,20 +280,17 @@ def parallelOPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stic
       #save complexity, that it does not try to make more combinations than actually possible...
 
    #save OPA-spect:
- #  opa=open("1PA.stick", "wb")
- #  for i in xrange(len(OPAintens)):
- #     opa.write(u"%s    %s     %s\n" %(OPAintens[i], OPAfreq[i], mode[i]))
- #  opa.close()
+   opa=open("1PA.stick", "wb")
+   for i in xrange(len(OPAintens)):
+      opa.write(u"%s    %s     %s\n" %(OPAintens[i], OPAfreq[i], mode[i]))
+   opa.close()
    
    #write binary(?) file containing all levels of interest:
-   #files=["1PA.stick"]
-   files=["4PA_50.stick","4PA_51.stick","4PA_52.stick","4PA_53.stick","4PA_54.stick","4PA_55.stick","4PA_56.stick", "4PA_57.stick", "4PA_58.stick", "4PA_59.stick"]
-#   for j in range(2,n+1): #go through all levels of approximation:
-   for j in range(5,n+1): #go through all levels to come
+   files=["1PA.stick"]
+   for j in range(2,n+1): #go through all levels of approximation:
       #if needed, divide spectrum in several parts 
       # therefore, take  part ... from the j-1-file and combine with full 1-Part to new:
-      filenr=200
-      #filenr=0
+      filenr=0
       newfiles=[]
       for k in range(len(files)):
          new=putN(j,k,files[k], OPAfreq, OPAintens, mode, logging, filenr)
@@ -339,8 +336,9 @@ def OPA2TPA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       if stick:
          logwrite(u" %f  %e\n"%(OPAintens[i], OPAfreq[i]))
       for j in range(i+1,length):
-         ##not only same mode but all modes with lower number should not be taken into account here!?
-         if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
+         #not only same mode but all modes with lower number should not be taken into account here!?
+         if mode[i]<=mode[j] or mode[j]==0: 
+            #both have same mode... or mode[j] is 0-0 transition
             continue
          if OPAintens[i]*OPAintens[j]/intens00<intens00*0.0001:
             #save memory by not saving low-intensity-modes
@@ -386,13 +384,13 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
    TPAfreq.append(freq00)
    # go through the whole spectrum (besides 0-0) and compute all combinations besides self-combination
    for i in range(length):
+      if stick:
+         logwrite(u" %f  %e\n"%(OPAintens[i], OPAfreq[i]))
       if mode[i]==0:
          #0-0 transition is included, but only once!
          continue
       TPAintens.append(OPAintens[i]) #this is OPA-part
       TPAfreq.append(OPAfreq[i])
-      if stick:
-         logwrite(u" %f  %e\n"%(OPAintens[i], OPAfreq[i]))
       # here the combination part starts
       for j in range(i+1,length):
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
@@ -624,6 +622,10 @@ def outspect(logging, float T, opt, linspect, float E=0):
          logging[1].write("omega is equally spaced\n")
 
    sigma=gamma*2/2.355 #if gaussian used: same FWHM
+
+   if gamma<=5*gridpt:
+      logging[1].write("\n !WARNING!\n THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
+           "THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!")
 
    index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
    freq=TPAfreq[index]

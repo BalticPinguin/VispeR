@@ -205,6 +205,7 @@ def simpleFCfOPA(logging, J, K, double[:,:] f, double Energy, int N, float T, fl
          I_nn/=npsqrt(2*n_m)
          assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn: {0}\n, n:{1}\n:".format(I_nn, n)
          L3.insert(n, I_nn)
+         print n, I_nn
       return L2, L3
 
    #def makeLine(logging, double[:] intens, double E0,float T, int[:] index, int[:] ex, double[:,:] Gamma, double[:,:] Gammap,float E,int  n):
@@ -217,7 +218,7 @@ def simpleFCfOPA(logging, J, K, double[:,:] f, double Energy, int N, float T, fl
          F[i][0]=(Gammap[indi][indi]*(ex[i]+0.5)-
                    Gamma[indi][indi]*(n-ex[i]+0.5)+E)*Hartree2cm_1
          F[i][1]=intens[i]*intens[i]*np.exp(-(Gamma[indi][indi]*ex[i]+E0)/T) 
-         logging[1].write(u"%f   %f    %f\n"%(F[i][1], F[i][0], indi))
+   #      logging[1].write(u"%f   %f    %f\n"%(F[i][1], F[i][0], indi))
       return F
    
    cdef int dimen=0
@@ -227,7 +228,7 @@ def simpleFCfOPA(logging, J, K, double[:,:] f, double Energy, int N, float T, fl
    cdef double[:,:] Gammap=np.diag(f[1]) # for final state
 
    linspect=[]
-   logging[1].write("frequency,           intensity ,      mode\n")
+   #logging[1].write("frequency,           intensity ,      mode\n")
    L2=CalcI00(len(K), Energy, Gamma, Gammap, J)
    #this is already extracted to linspect (using side-effects)
    L1=L2 

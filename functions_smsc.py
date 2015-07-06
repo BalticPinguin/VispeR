@@ -88,11 +88,13 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    uency=np.zeros((n,M*N-1)) #frequency
    #calculate 0->0 transition
    FC00=10
+   print 0,0,0, 10
    uency00=E*Hartree2cm_1 #zero-zero transition
    loggingwrite=logging[1].write #avoid dots!
    npexp=np.exp #avoiding dots accelerates python quite a lot
    #here a goes over all modes
    for a in xrange(n):
+      print a, HR[a]
       for j in range(N):  
          s=0 # this is a temp variable for effinciency purpose
          if setM:
@@ -104,11 +106,9 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
                continue
             tmp=FCeqf(HR[a], i, j)
             s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
-            if s>=0.9999:
-               # than all transitions contributing in intensity are done
-               break
             FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
             uency[a][j*M+i-1]=(E+np.sign(E)*freq[a]*(j-i))*Hartree2cm_1
+            print a,i,j, tmp*FC00
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
@@ -196,6 +196,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
    uency=np.zeros((n,M*N-1)) #frequency
    #calculate 0->0 transition
    FC00=10
+   print 0,0,0, 10
    uency00=E*Hartree2cm_1 #zero-zero transition
    loggingwrite=logging[1].write #avoid dots!
    npexp=np.exp                  #to accelerates python quite a lot
@@ -204,6 +205,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
       if setM:
          # set M to fit best to the value at that moment.
          M=max(3,int(-1.1*HR[a]*HR[a]+6.4*HR[a]+9.))
+      print a, HR[a]
       R=FCchf(HR[a],N,M,[freq[0][a], freq[1][a]])
       for j in range(N): 
          s=0 # this is a temp variable for effinciency purpose
@@ -213,11 +215,9 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
                continue
             tmp=R[i][j]*R[i][j]
             s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
-            if s>=0.9999:
-               # than all transitions contributing in intensity are done
-               break
             FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
             uency[a][j*M+i-1]=(E+np.sign(E)*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
+            print a,i,j,tmp*FC00
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect

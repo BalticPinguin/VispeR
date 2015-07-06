@@ -219,7 +219,10 @@ def ReadGO9_fchk(logging, fileN):
 
    # Reading of Cartesian force constant matrix  
    f=re.findall(r"(?<=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+", log, re.M)
-   f_str=str([f[-1]])#[2:-2]
+   try:
+      f_str=str([f[-1]])
+   except IndexError:
+      assert 1==2, "the intput-file %s has no information about coordinates\nsorry. I can't work like this!" %(fileN)
    lines=f_str.strip().split("\\n")
    F=np.zeros((dim,dim))
    k=0
