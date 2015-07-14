@@ -136,8 +136,8 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
 
    def FCchf(HR,N,M,freq):
       npsqrt=np.sqrt
-      D=npsqrt(2)*npsqrt(HR) # define this to become consistent with given formula
-      delta=npsqrt(freq[1]/freq[0])
+      D=npsqrt(2*HR) # define this to become consistent with given formula
+      delta=npsqrt(freq[0]/freq[1]) 
       deltasquare=delta*delta
       #R00=sqrt(2*delta/(1+delta*delta))*np.exp(-.5*D*D/(1+delta*delta))
       R=np.zeros( (M,N) )
@@ -192,20 +192,20 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
       M=max(3,int(-1.1*HR[0]*HR[0]+6.4*HR[0]+9.))
    assert n>0, "There is no Huang-Rhys factor larger than the respective threshold. No mode to be calculated."
    #if setM: the size of these arrays will be overestimated.
-   FC=np.zeros((n,M*N-1))
-   uency=np.zeros((n,M*N-1)) #frequency
    #calculate 0->0 transition
    FC00=10
-   print 0,0,0, 10
+   #print 0,0,0, 10
    uency00=E*Hartree2cm_1 #zero-zero transition
    loggingwrite=logging[1].write #avoid dots!
    npexp=np.exp                  #to accelerates python quite a lot
+   FC=np.zeros((n,M*N-1))
+   uency=np.zeros((n,M*N-1)) #frequency
    #here a goes over all modes
    for a in xrange(n):
       if setM:
          # set M to fit best to the value at that moment.
          M=max(3,int(-1.1*HR[a]*HR[a]+6.4*HR[a]+9.))
-      print a, HR[a]
+      #print a, HR[a]
       R=FCchf(HR[a],N,M,[freq[0][a], freq[1][a]])
       for j in range(N): 
          s=0 # this is a temp variable for effinciency purpose
@@ -217,7 +217,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
             s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
             FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
             uency[a][j*M+i-1]=(E+np.sign(E)*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
-            print a,i,j,tmp*FC00
+            #print a,i,j,tmp*FC00
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
@@ -365,7 +365,9 @@ def Duschinsky(logging, L, mass, dim, x):
    if logging[0] <1:
       logging[1].write('changes of Cartesian coordinates:\n'\
             +repr(DeltaX[0])+'\n')
-   K[0]=(DeltaX[0].dot(M)).dot(L[0])*0.8676157 ##what factor is this??
+   #K[0]=(DeltaX[0].dot(M)).dot(L[0])*0.8676157 ##what factor is this??
+   K[0]=(DeltaX[0].dot(M)).dot(L[0]) ##what factor is this??
+   #*sqrt(pi) /sqrt(2*pi)
    
    #np.set_printoptions(suppress=True)
    #np.set_printoptions(precision=5, linewidth=138)
@@ -568,9 +570,9 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    fsort=np.zeros(len(K[0]))
    uniHRall=[]
    uniFall=[]
-   #HR=[K[0][j]*K[0][j]*0.5*f[0][j] for j in range(len(K[0]))]
    for j in range(len(K[0])):
-      HR[j]=K[0][j]*K[0][j]*f[1][j]*.5
+      HR[j]=K[0][j]*K[0][j]*f[1][j]*0.5*np.pi*0.25
+      #HR[j]=K[0][j]*K[0][j]*f[1][j]*.5 # /2pi
       #HR[j]=K[0][j]*K[0][j]*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
@@ -585,6 +587,10 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniF1=[]
    uniF0=[]
    loggingwrite=logging[1].write
+   if sortHR[-1]>=10: 
+      #if larges HR-factor is too large
+      loggingwrite(u'\n!! ATTENTION!! THE HUANG-RHYS FACTOR SEEMS TO BE TOO LARGE !!\n')
+      loggingwrite(u'the spectrum will be calculated, but most probably the input-stat is inconsistent.\n')
    loggingwrite(u'HR-fact           freq\n')
    #print(u'HR-fact           freq\n')
    for j in xrange(len(sortHR)):

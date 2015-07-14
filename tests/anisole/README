@@ -1,0 +1,8 @@
+This test case of Anisole consists of test-calculations for the three methods:
+.shift (as one type of FC-progression spectrum)
+.changed( as a more enhanced type of FC-progression spectrum)
+.DR (as a simple type of duschinsky-rotated spectrum)
+
+The graphics in ref+spect3.png are calculated with smallscript (red curves) and directly with Gaussian.
+The latter ones, as well as the experimental data, are taken from:
+Julien Bloino et. al., THE JOURNAL OF CHEMICAL PHYSICS 128, 244105, 2008

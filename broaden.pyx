@@ -622,8 +622,8 @@ def outspect(logging, float T, opt, linspect, float E=0):
          logging[1].write("omega is equally spaced\n")
 
    sigma=gamma*2/2.355 #if gaussian used: same FWHM
-
-   if gamma<=5*gridpt:
+   
+   if gamma*2<=(maxfreq-minfreq)/gridpt:
       logging[1].write("\n !WARNING!\n THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
            "THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!")
 
