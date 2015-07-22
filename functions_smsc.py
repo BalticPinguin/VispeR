@@ -88,13 +88,13 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    uency=np.zeros((n,M*N-1)) #frequency
    #calculate 0->0 transition
    FC00=10
-   print 0,0,0, 10
+   #print 0,0,0, 10
    uency00=E*Hartree2cm_1 #zero-zero transition
    loggingwrite=logging[1].write #avoid dots!
    npexp=np.exp #avoiding dots accelerates python quite a lot
    #here a goes over all modes
    for a in xrange(n):
-      print a, HR[a]
+      #print a, HR[a]
       for j in range(N):  
          s=0 # this is a temp variable for effinciency purpose
          if setM:
@@ -108,7 +108,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
             s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
             FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
             uency[a][j*M+i-1]=(E+np.sign(E)*freq[a]*(j-i))*Hartree2cm_1
-            print a,i,j, tmp*FC00
+            #print a,i,j, tmp*FC00
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
@@ -216,8 +216,11 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
             tmp=R[i][j]*R[i][j]
             s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
             FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
+            y=tmp*FC00
             uency[a][j*M+i-1]=(E+np.sign(E)*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
-            #print a,i,j,tmp*FC00
+            x=(np.sign(E)*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
+            #if FC[a][j*M+i-1]>0.1:
+               #print FC[a][j*M+i-1],y, x, a,i,j
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
@@ -571,8 +574,8 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniHRall=[]
    uniFall=[]
    for j in range(len(K[0])):
-      HR[j]=K[0][j]*K[0][j]*f[1][j]*0.5*np.pi*0.25
-      #HR[j]=K[0][j]*K[0][j]*f[1][j]*.5 # /2pi
+      #HR[j]=K[0][j]*K[0][j]*f[1][j]*0.5*np.pi*0.25
+      HR[j]=K[0][j]*K[0][j]*f[1][j]*.5 # /2pi
       #HR[j]=K[0][j]*K[0][j]*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
