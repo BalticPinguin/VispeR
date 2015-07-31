@@ -108,7 +108,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
             s+=tmp # s+=FCeqf(HR[a], i, j) but more efficient than calling it twice
             FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
             uency[a][j*M+i-1]=(E+np.sign(E)*freq[a]*(j-i))*Hartree2cm_1
-            #print a,i,j, tmp*FC00
+            print a,i,j, tmp
    FC00*=npexp(-E0/T)
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
@@ -193,7 +193,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
    assert n>0, "There is no Huang-Rhys factor larger than the respective threshold. No mode to be calculated."
    #if setM: the size of these arrays will be overestimated.
    #calculate 0->0 transition
-   FC00=10
+   FC00=1
    #print 0,0,0, 10
    uency00=E*Hartree2cm_1 #zero-zero transition
    loggingwrite=logging[1].write #avoid dots!
@@ -574,8 +574,8 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniHRall=[]
    uniFall=[]
    for j in range(len(K[0])):
-      #HR[j]=K[0][j]*K[0][j]*f[1][j]*0.5*np.pi*0.25
-      HR[j]=K[0][j]*K[0][j]*f[1][j]*.5 # /2pi
+      HR[j]=K[0][j]*K[0][j]*f[1][j]*0.5*np.pi*0.25
+      #HR[j]=K[0][j]*K[0][j]*f[1][j]*.5 # /2pi
       #HR[j]=K[0][j]*K[0][j]*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
@@ -594,7 +594,7 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
       #if larges HR-factor is too large
       loggingwrite(u'\n!! ATTENTION!! THE HUANG-RHYS FACTOR SEEMS TO BE TOO LARGE !!\n')
       loggingwrite(u'the spectrum will be calculated, but most probably the input-stat is inconsistent.\n')
-   loggingwrite(u'HR-fact           freq\n')
+   loggingwrite(u'HR-fact           freq     delta\n')
    #print(u'HR-fact           freq\n')
    for j in xrange(len(sortHR)):
       #select all 'big' HR-factors 
@@ -602,7 +602,7 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
          uniHR.append(sortHR[-j])
          uniF1.append(fsort1[-j])
          uniF0.append(fsort0[-j])
-         loggingwrite(u"%f   %f\n"%(sortHR[-j], fsort1[-j]*Hartree2cm_1))
+         loggingwrite(u"%f   %f   %f\n"%(sortHR[-j], fsort1[-j]*Hartree2cm_1, np.sqrt(fsort0[-j]/fsort1[-j]) ))
    uniHRall.append(uniHR)
    uniFall.append(uniF1)
    uniFall.append(uniF0)

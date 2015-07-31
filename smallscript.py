@@ -133,9 +133,9 @@ def main(argv=None):
          HRthresh=0.015
       else:
          HRthresh=float(HRthresh[0])
-      method=re.findall(r"(?<=method: )[ \w]+",opt, re.I)
+      method=re.findall(r"(?<=method:)[ \w]+",opt, re.I)
       if method==[]:
-         logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
+         logging[1].write("\nUse default method for the calculation of all quantities.\n")
          HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
       elif method[0] in ["gradient", "Gradient", 'grad', "gradient ", "grad "]:
          logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
@@ -284,10 +284,8 @@ def main(argv=None):
             logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
             linspect=OPA.simpleFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
       elif model in ['Resort', 'resort', 'RESORT']:
-         for i in range(len(initial)): #calculate separate line-spects for different states
-            k=[0,i]
-            logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
-            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
+         logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
+         linspect=OPA.resortFCfOPA(logging, J[0], K[0], f, Energy[0]-Energy[1], states, T, 0)
       elif model in ['Distributing', 'distributing', 'DISTRIBUTING', 'dist', 'DIST', 'Dist']:
          for i in range(len(initial)): #calculate separate line-spects for different states
             k=[0,i]

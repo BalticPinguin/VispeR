@@ -4,6 +4,15 @@
   <meta http-equiv="content-type" content="text/html;charset=utf-8">
   <title>Documentation for smallscript</title>
   <link rel="stylesheet" href="pycco.css">
+  <style>
+  table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+   }
+   th, td {
+      padding: 15px;
+   }
+   </style>
 </head>
 
 <body>
@@ -16,7 +25,7 @@
       <nav role="navigation" class="table-of-contents">
          <h2>List of contents:</h2>
          <ul>
-            <li><a href="#main">Options of the stript</a></li>
+            <li><a href="#main">Options of the script</a></li>
             <li><a href="#call">Calling the script</a></li>
             <li><a href="#input">Input</a></li>
             <li><a href="#options">Options</a></li>
@@ -80,7 +89,8 @@ for explanations of the output of the calculations, see <a href="output.html">ou
    <p> In any case, the files need to include geometry and force-constant matrix as well as 
    atomic masses and binding energy.
    Further, the sources are specified as:
-  <TABLE>
+   <center>
+  <TABLE  style="width:90%">
    <TR> <TD><tt>initial:  </tt>   </TD>    <TD> specifies file for initial electronic state geomitry</TD> </TR>
    <TR> <TD><tt>final:  </tt>   </TD>    <TD> specifies file for final electronic state geomitry</TD> </TR>
    <TR> <TD><tt> HR-file:  </tt> </TD>  <TD> specifies file containing HR-factors (1. column) 
@@ -90,6 +100,7 @@ for explanations of the output of the calculations, see <a href="output.html">ou
    <TR> <TD><tt> out: </tt>    </TD> <TD> specify file the output should be saved in; default is 'calculation.log'.
       If the file already exists, the logging-information will be appended.</TD> </TR>
   </TABLE>
+   </center>
    <p>The order of the arguments is not important; further they are read case-insensitive.
    <p>If HR-fact() and FC-spect() are both specified in the same file, the newly 
     calculated HR-factors are taken, even if HR-file is specified.
@@ -98,7 +109,8 @@ for explanations of the output of the calculations, see <a href="output.html">ou
 <h2 id="options">OPTIONS</h2>
 
 <h3 id="HR">1: HR-fact()</h3>
-  <TABLE>
+   <center>
+  <TABLE  style="width:90%" >
    <TR> <TD> <tt>makeLog </tt></TD> <TD>  to create file in style of G09-log files; 
             this option copies the final state's file and replaces the frequencies and 
             eigenvectors (transformation matrix) given with the calculated values. 
@@ -126,9 +138,11 @@ for explanations of the output of the calculations, see <a href="output.html">ou
          by the shift of equilibrium positions; needs force constant matrix and optimised 
          geometries in both states default procedure is shift </TD> <TR>
   </TABLE>
+  </center>
 
 <h3 id="FC">2: FC-spect()</h3>
-  <TABLE>
+   <center>
+  <TABLE  style="width:90%" >
    <TR> <TD><tt>print=level&nbsp</tt> </TD> <TD> specifies, how detailed the output should be printed
          where level is: <tt>all</tt>, <tt>detailed</tt>, <tt>medium</tt>, <tt>important</tt>, 
          <tt>short</tt> . Alternatively, the numbers <tt>4</tt> (instead of <tt>all</tt>) 
@@ -150,20 +164,24 @@ for explanations of the output of the calculations, see <a href="output.html">ou
          Use the gradient in excited state at ground state geometry 
          and assume non-changing frequencies to calculate the shift of normal modes and HR-factors respectively
          need: a g09-file containing gradient of final state at ground state geometry (use option <tt>Force</tt>). 
-         This method is valid only if no DR-spectrum is to be calculated.</TD> <TR>
+         This method is valid only if no DR-spectrum is to be calculated.</p>
+         THIS IS ONLY EVALUATED, IF HR-FACT IS NOT GIVEN.</TD> <TR>
    <TR> <TD> </TD> <TD> <tt> <a href="models.html#HR-m,s">shift </a></tt>(or written <tt>SHIFT </tt>or 
          <tt>Shift</tt>): Calculate the change of normal modes 
          by the shift of equilibrium positions; needs force constant matrix and optimised 
-         geometries in both states default procedure is shift </TD> <TR>
+         geometries in both states default procedure is shift </p>
+         THIS IS ONLY EVALUATED, IF HR-FACT IS NOT GIVEN.</TD> <TR>
    <TR> <TD> </TD> <TD> <tt> <a href="models.html#HR-m,c">changed </a></tt>
          Calculate the change of normal modes by the shift of equilibrium positions as above,
          with the same requirements, but take explicitly chaning freqeuncies into account.
          This may become especially important for smaller molecules and those changing stronger
          in structure. </TD> <TR>
   </TABLE>
+   </center>
 
 <h3 id="DR">3: Duschinsky-spect()</h3>
-  <TABLE>
+   <center>
+  <TABLE  style="width:90%" >
    <TR> <TD><tt>print=level&nbsp</tt> </TD> <TD> specifies, how detailed the output should be printed
       where level is: <tt>all</tt>, <tt>detailed</tt>, <tt>medium</tt>, <tt>important</tt>, <tt>short</tt>  </TD><TR>
    <TR> <TD><tt>broaden()</tt></TD> <TD> 	to calculate the broadened spectrum as well, options for this:
@@ -172,7 +190,7 @@ for explanations of the output of the calculations, see <a href="output.html">ou
       Be careful about harmonic approximation!  </TD> <TR>
    <TR> <TD><tt>T=</tt> </TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
   </TABLE>
-  <TABLE>
+  <TABLE  style="width:90%" >
    <TR> <TD><tt><a href="models.html#DR-m">model=</a></tt>	</TD><TD> specify, which </TD><TD>model 
       should be used within Duschinsky-picture:</TD> <TR>
    <TR> <TD>  </TD> <TD> <tt> Simple </tt> </TD> <TD> simple model uses OPA and no resorting of modes; this is assumed 
@@ -196,9 +214,11 @@ for explanations of the output of the calculations, see <a href="output.html">ou
       normal modes, assuming this is a valid 
       quantity for coupling strength as well.</TD> <TR>
   </TABLE>
+   </center>
 
 <h3 id="broaden">4: Broadening() /broaden()</h3>
-  <TABLE>
+   <center>
+  <TABLE  style="width:90%" >
    <TR> <TD> <tt>T=</tt> </TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
    <TR> <TD> <tt>gamma= </tt></TD> <TD> broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM)
    <TR> <TD> <tt>grid=</tt> </TD> <TD> specify grid: either a file (containing list of gridpoints) or 
@@ -223,6 +243,7 @@ for explanations of the output of the calculations, see <a href="output.html">ou
       spectrum out of that files created by the option parallel.
       </TD> <TR>
   </TABLE>
+  </center>
 
 <h2 id="source">Syntax of the source-files </h2>
 <h3> HR-file:</h3>

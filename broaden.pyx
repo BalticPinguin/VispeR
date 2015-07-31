@@ -485,9 +485,9 @@ def outspect(logging, float T, opt, linspect, float E=0):
 
    #sort spectrum with respect to size of elements
    index=np.argsort(linspect[1], kind='heapsort')
+   linspect[0]=linspect[0][index] #frequency
    linspect[1]=linspect[1][index] #intensity
    linspect[2]=linspect[2][index] #mode
-   linspect[0]=linspect[0][index] #frequency
    #find transition with minimum intensity to be respected
 
    #truncate all transitions having less than 0.0001% of
@@ -631,12 +631,6 @@ def outspect(logging, float T, opt, linspect, float E=0):
    freq=TPAfreq[index]
    intens=TPAintens[index]
 
-   if logging[0]<1:
-      logwrite('truncated and sorted stick-spectrum '
-                     '(this is what will be taken into account for broadening):\n')
-      logwrite('intensity   frequency\n')
-      for i in range(len(intens)):
-         logwrite(u"%f   %f\n"%(intens[i], freq[i]))
    mini=0
    if spectfile==None:
       out=logging[1]
