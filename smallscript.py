@@ -125,8 +125,8 @@ def main(argv=None):
          logging=invokeLogging(logfile)
       else:
          logging=invokeLogging(logfile,loglevel[0])
-      initial=re.findall(r"(?<=initial: )[\w.\-]+",f, re.I)
       final=re.findall(r"(?<=final: )[\w.\-]+",f, re.I)
+      initial=re.findall(r"(?<=initial: )[\w.\-]+",f, re.I)
       # the calculation of all needed quantities is done in this function
       HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",opt,re.I)
       if HRthresh==[]:
@@ -276,49 +276,41 @@ def main(argv=None):
          for i in range(len(initial)): 
             k=[0,i]
             logging[1].write("\n Use the model 'resort' since none has been specified.\n")
-            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
+            linspect=OPA.resortFCfOPA(logging, J, K, f[k], Energy[0]-Energy[1], states, T, 0)
       #else: try to find the model, the user wants to use
       if model in ['Simple', 'simple', 'SIMPLE']:
-         for i in range(len(initial)):
-            k=[0,i]
-            logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
-            linspect=OPA.simpleFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
+         logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
+         linspect=OPA.simpleFCfOPA(logging, J, K, f, Energy[0]-Energy[1], states, T, 0)
       elif model in ['Resort', 'resort', 'RESORT']:
          logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
-         linspect=OPA.resortFCfOPA(logging, J[0], K[0], f, Energy[0]-Energy[1], states, T, 0)
+         linspect=OPA.resortFCfOPA(logging, J, K, f, Energy[0]-Energy[1], states, T, 0)
       elif model in ['Distributing', 'distributing', 'DISTRIBUTING', 'dist', 'DIST', 'Dist']:
-         for i in range(len(initial)): #calculate separate line-spects for different states
-            k=[0,i]
-            shifts=re.findall(r"(?<=maxshift\=)[\d]+",opt, re.I)
-            if len(shifts)==1:
-               logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
-                                "Number of shifts taken into account: %d \n"%(model,int(shifts[0])))
-               linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, int(shifts[0]))
-            else:
-               logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
-                                "Number of shifts not specified, use 6 as default.\n"%(model) )
-               linspect=OPA.distFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, 6)
-            # the threshold (4) can be made to be a parameter as well
+         shifts=re.findall(r"(?<=maxshift\=)[\d]+",opt, re.I)
+         if len(shifts)==1:
+            logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
+                              "Number of shifts taken into account: %d \n"%(model,int(shifts[0])))
+            linspect=OPA.distFCfOPA(logging, J, K, f, Energy[0]-Energy[1], states, T, 0, int(shifts[0]))
+         else:
+            logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
+                              "Number of shifts not specified, use 6 as default.\n"%(model) )
+            linspect=OPA.distFCfOPA(logging, J, K, f, Energy[0]-Energy[1], states, T, 0, 6)
+         # the threshold (4) can be made to be a parameter as well
       elif model in ["Unrestricted", 'UNRESTRITED', 'unrestricted', 'unrest']:
-         for i in range(len(initial)): #calculate separate line-spects for different states
-            k=[0,i]
-            #make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters
-            modes=re.findall(r"(?<=maxmodes\=)[\d]+",opt, re.I)
-            if len(modes)==1:
-               logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
-                                "Number of modes to be taken into account:  %s .\n"%(model,int(modes[0])))
-               linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, int(modes[0]))
-            else:
-               logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
-                                "Number of modes to be taken into account not specified, use 10 as default.\n"%(model))
-               linspect=DR.unrestricted(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0, 10)
+         #make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters
+         modes=re.findall(r"(?<=maxmodes\=)[\d]+",opt, re.I)
+         if len(modes)==1:
+            logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
+                              "Number of modes to be taken into account:  %s .\n"%(model,int(modes[0])))
+            linspect=DR.unrestricted(logging, J, K, f, Energy[0]-Energy[1], states, T, 0, int(modes[0]))
+         else:
+            logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
+                              "Number of modes to be taken into account not specified, use 10 as default.\n"%(model))
+            linspect=DR.unrestricted(logging, J, K, f, Energy[0]-Energy[1], states, T, 0, 10)
       else:
          # i.e.: the model was specified but not found. (give warning and do default)
          logging[1].write('An error occured. The option of "model" is not known! Please check the spelling,'\
                ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".\n')
-         for i in range(len(initial)):
-            k=[0,i]
-            linspect=OPA.resortFCfOPA(logging, J[i], K[i], f[k], Energy[0]-Energy[1], states, T, 0)
+         linspect=OPA.resortFCfOPA(logging, J, K, f, Energy[0]-Energy[1], states, T, 0)
 
    #pbar.update(30)
    np.set_printoptions(suppress=True)

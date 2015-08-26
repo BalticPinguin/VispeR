@@ -203,11 +203,13 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
             n[m+leng]+=1
          I_nn/=npsqrt(2*n_m)
          assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn: {0}\n, n:{1}\n:".format(I_nn, n)
-         L3.insert(n, I_nn)
          #if m==7 and n[m]>0:
             #print  I_nn*I_nn, sum(Gamma.dot(n[:leng])-Gamma.dot(n[leng:]))*Hartree2cm_1, m
-         T=0.01
          ##print sum(Gamma.dot(n[:leng])-Gamma.dot(n[leng:]))*Hartree2cm_1 ,I_nn*I_nn*np.exp(-sum(Gamma.dot(n[leng:]))/T) 
+         #if m==7:
+        # if abs(I_nn)>1e-3:
+        #    print m, n[m], n[m+leng], I_nn*I_nn , sum(Gamma.dot(n[:leng])-Gammap.dot(n[leng:]))*Hartree2cm_1
+         L3.insert(n, I_nn)
       return L2, L3
 
    def makeLine(logging, intens, E0, T, index, ex, Gamma, Gammap, E, n):
@@ -220,12 +222,8 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
                       -np.sign(E)*Gamma[indi][indi]*(n-ex[i]+0.5)+E)*Hartree2cm_1,
                      intens[i]*intens[i]*np.exp(-(Gamma[indi][indi]*ex[i]+E0)/T) ,
                      0])
-       #  F[i][2]=0
-       #  F[i][0]=(Gammap[indi][indi]*(ex[i]+0.5)-
-       #            Gamma[indi][indi]*(n-ex[i]+0.5)+E)*Hartree2cm_1
-       #  F[i][1]=intens[i]*intens[i]*np.exp(-(Gamma[indi][indi]*ex[i]+E0)/T) 
-         #F[i][1]=intens[i]*intens[i]
-       #  logging[1].write(u"%f   %f    %f\n"%(F[i][1], F[i][0], indi))
+            if F[-1][1]>0.01:
+               print indi, ex[i], n-ex[i], F[-1][1] , F[-1][0]-E*Hartree2cm_1
 
       if F==[]: # no transitions with enough intensity occured.
          F=[0,0,0]
@@ -279,8 +277,9 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
 
    #quantities for the iterative spectrum-calculation
    #f[0], f[1]=f[1], f[0]
-   f[1]=f[0]
+   #f[1]=f[0]
    J=np.eye(len(f[0]))
+   K*=np.sqrt(np.pi)/2 #make it consistent with the HR-model
    K*=np.sqrt(np.pi)/2 #make it consistent with the HR-model
 
    resort=np.zeros(np.shape(J))
@@ -292,7 +291,6 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
       else:
          resort[i][k]=-1
    J=resort.dot(J)
-   #J=np.identity(len(J))
    K=resort.dot(K)
    for i in range(len(resort)):
       k=np.argmin(resort[i])
