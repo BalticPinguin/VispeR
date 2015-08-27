@@ -206,6 +206,10 @@ def main(argv=None):
                states2=0
                logging[1].write("number of vibrational states {0} is not an integer.",
                                     " Use default instead.\n".format(states1, states2))
+      Hartree2cm_1=219474.63 
+      for j in range(len(HR[0])):
+         #print K[j]*K[j]*f[1][j]*0.5*np.pi*0.25, f[1][j]*Hartree2cm_1
+         print HR[0][j], funi[1][j]*Hartree2cm_1
       if (re.search(r"changed", opt, re.I) is not None):
          logging[1].write("Calculate the stick-spectrum in FC-picture with %s excitations"\
             " and changing frequencies\n" %(states1) )

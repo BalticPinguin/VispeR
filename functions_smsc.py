@@ -345,6 +345,7 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
    HR, funi= HuangR(logging, K, f, HRthresh)
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
       rl.replace(logging, initial, f[0], Lmassw[0])
+   #Hartree2cm_1=219474.63 
    return HR, funi, Energy, J, K, f
 
 def Duschinsky(logging, L, mass, dim, x):
@@ -611,16 +612,16 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
       loggingwrite(u'the spectrum will be calculated, but most probably the input-stat is inconsistent.\n')
    loggingwrite(u'HR-fact           freq     delta\n')
    #print(u'HR-fact           freq\n')
-   for j in xrange(len(sortHR)):
+   for j in xrange(len(sortHR)-1,0,-1):
       #select all 'big' HR-factors 
-      if sortHR[-j]>=HRthresh:
-         uniHR.append(sortHR[-j])
-         uniF1.append(fsort1[-j])
-         uniF0.append(fsort0[-j])
-         loggingwrite(u"%f   %f   %f\n"%(sortHR[-j], fsort1[-j]*Hartree2cm_1, np.sqrt(fsort0[-j]/fsort1[-j]) ))
+      if sortHR[j]>=HRthresh:
+         uniHR.append(sortHR[j])
+         uniF1.append(fsort1[j])
+         uniF0.append(fsort0[j])
+         loggingwrite(u"%f   %f   %f\n"%(sortHR[j], fsort1[j]*Hartree2cm_1, np.sqrt(fsort0[j]/fsort1[j]) ))
    uniHRall.append(uniHR)
-   uniFall.append(uniF1)
    uniFall.append(uniF0)
+   uniFall.append(uniF1)
    return uniHRall, uniFall
 
 def quantity(logging, dim, num_of_files):
