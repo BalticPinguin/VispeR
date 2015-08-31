@@ -74,14 +74,14 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
    linespectrum 
    """
 
-   def CalcI00(dim, E, Gamma, Gammap,J):
+   def CalcI00(dim, E):
       """This function calculates the overlap-integral for zero vibrations """
-      opa=OPA(dim,0) #is this clear to be the respective class?
+      opa=OPA(dim,0) #call OPA-class, initialize object for 0->0 trasition.
       zeros=np.zeros(2*dim)
-      inten=1
-      opa.insert(zeros, np.sqrt(inten)) #sum(sum()) due to matrix
+      inten=1.00 #set intensity (scaled arbitrarily
+      opa.insert(zeros, np.sqrt(inten)) # insert the intensity (transition strength)
 
-      linspect.append(np.matrix([E*Hartree2cm_1, inten, 0]))
+      linspect.append(np.matrix([E*Hartree2cm_1, inten, 0])) #append the 0->0 transition to the linspect-array
       return opa
 
    def iterate(L1, L2, Energy,i, f, J, K):
@@ -119,34 +119,43 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
                distributions[i+alpha]=0
          return States
 
-      #K*=np.sqrt(np.pi)/2
+      K*=np.sqrt(np.pi)/2
       #Gamma=np.diag(f[1])*2*np.pi               # in atomic units. It is equivalent to 4pi^2/h f_i
       #Gammap=np.diag(f[0])*2*np.pi              # for final state
       #sqGamma=np.diag(np.sqrt(f[1]))*np.sqrt(2*np.pi)
       #sqGammap=np.diag(np.sqrt(f[0]))*np.sqrt(2*np.pi)
-      #K*=np.sqrt(np.pi)/2
       Gamma=np.diag(f[1])               # in atomic units. It is equivalent to 4pi^2/h f_i
       Gammap=np.diag(f[0])              # for final state
       sqGamma=np.diag(np.sqrt(f[1]))   
       sqGammap=np.diag(np.sqrt(f[0]))
       unity=np.eye(len(Gamma))
    
-      C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
-      A=J.dot(np.dot(C,J.T))
-      A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
-      TMP=J.dot(C).dot(J.T).dot(Gammap)
-      #b=2*sqGammap.dot((unity-TMP).dot((K)))
-      b=sqGammap.dot(K)
-      d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
-      E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
-      C=2*sqGamma.dot(C).dot(sqGamma)-unity             #this is 'real' C-matrix
+   #   C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
+   #   A=J.dot(np.dot(C,J.T))
+   #   A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
+   #   TMP=J.dot(C).dot(J.T).dot(Gammap)
+   #   b=2*sqGammap.dot((unity-TMP).dot((K)))
+   #   d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
+   #   E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
+   #   C=2*sqGamma.dot(C).dot(sqGamma)-unity             #this is 'real' C-matrix
+      TMP=np.linalg.inv(J.T.dot(Gammap).dot(J) + Gamma)
+      A=2.*sqGammap.dot(J).dot(TMP).dot(J.T).dot(sqGammap) -unity
+      b=2.*sqGammap.dot( unity - J.dot(TMP).dot(J.T).dot(Gammap) ).dot(K)
+      C=2.*sqGamma.dot(TMP).dot(Gammap) -unity
+      #d=-2.*sqGamma.dot(TMP).dot(J.T.dot(Gammap.dot(K)))
+      d=-2.*sqGamma.dot(TMP).dot(J.T.dot(Gammap.dot(K)))
+      E=4.*sqGamma.dot(TMP).dot(J.T).dot(sqGammap)
+
       #print "J", J, Gamma
       #print "matrices:"
       #print A, '\n', b, '\n', C, '\n', d, "\n", E
+      #print TMP.dot(Gammap), J
+      A=np.zeros( (len(A),len(A)) )
+      C=np.zeros( (len(A),len(A)) )
+      E=np.ones( (len(A),len(A)) )*2
 
       #for j in range(len(b)):
-      #   print b[j]*b[j]*0.5, Gamma[j][j]*Hartree2cm_1
-      #   print K[j]*K[j]*f[1][j]*0.5, f[1][j]*Hartree2cm_1
+      #   print b[j], d[j], sqGamma[j][j]*K[j], (b[j]+d[j])/b[j]
 
       #initialize new OPA-object
       leng=len(b)
@@ -155,6 +164,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
       npsqrt=np.sqrt
 
       for n in States: #for each possible state, described by n(vector)
+         #print "   ", n
          I_nn=0
          #need first iteration formula
          m=np.argmax(n[:leng])  #if there is no excitation: it returns 0
@@ -168,13 +178,13 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
             Ps=L2.getState(n)
             #if not math.isnan(Ps):
             I_nn=b[m]*Ps                                     # first term 
-            #print " ",b[m],Ps
+            #print "   ", b[m], Ps
             if n[m]>0:
                n[m]-=1
                Ps=L1.getState(n)
                #if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn+=npsqrt(2.0*(n_m-1))*A[m][m]*Ps         # second termA
-               #print " ",npsqrt(2.0*(n_m-1))*A[m][m],Ps 
+               #print "   ",npsqrt(2.0*(n_m-1))*A[m][m], Ps
                n[m]+=1
             if n[m+leng]>0:
                n[m+leng]-=1
@@ -182,7 +192,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
                n[m+leng]+=1
                #if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn+=npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps # second term
-               #print " ",npsqrt(n[m+leng]*0.5)*(E[m][m]), Ps # second term
+               #print "    ",npsqrt(n[m+leng]*0.5)*(E[m][m]), Ps # second term
 
             n[m]+=1
          #else: need the other iteration-formula
@@ -192,13 +202,13 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
             n[m+leng]-=1
             Ps=L2.getState(n)
             I_nn=d[m]*Ps                                    # first term 
-            #print " ", d[m],Ps                                    # first term 
+            #print "   ", b[m], Ps
             if n[m+leng]>0:
                n[m+leng]-=1
                Ps=L1.getState(n)
                #if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn+=npsqrt(2.0*(n_m-1))*C[m][m]*Ps         # second term
-               #print " ", npsqrt(2.0*(n_m-1))*C[m][m], Ps
+               #print "   ", npsqrt(2.0*(n_m-1))*C[m][m], Ps
                n[m+leng]+=1
             n[m+leng]+=1
          I_nn/=npsqrt(2*n_m)
@@ -207,8 +217,9 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
             #print  I_nn*I_nn, sum(Gamma.dot(n[:leng])-Gamma.dot(n[leng:]))*Hartree2cm_1, m
          ##print sum(Gamma.dot(n[:leng])-Gamma.dot(n[leng:]))*Hartree2cm_1 ,I_nn*I_nn*np.exp(-sum(Gamma.dot(n[leng:]))/T) 
          #if m==7:
-        # if abs(I_nn)>1e-3:
-        #    print m, n[m], n[m+leng], I_nn*I_nn , sum(Gamma.dot(n[:leng])-Gammap.dot(n[leng:]))*Hartree2cm_1
+      #   if abs(I_nn)>1e-3:
+      #      print m, n[m], n[m+leng], I_nn*I_nn , (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
+        # print m, n[m], n[m+leng], I_nn, I_nn*I_nn , (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
          L3.insert(n, I_nn)
       return L2, L3
 
@@ -217,12 +228,12 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
       F=[]
       for i in xrange(len(index)):
          indi=index[i]
-         if intens[i]*intens[i]*np.exp(-(Gamma[indi][indi]*ex[i]+E0)/T) >Threshold:
-            F.append([(np.sign(E)*Gammap[indi][indi]*(ex[i]+0.5)
-                      -np.sign(E)*Gamma[indi][indi]*(n-ex[i]+0.5)+E)*Hartree2cm_1,
-                     intens[i]*intens[i]*np.exp(-(Gamma[indi][indi]*ex[i]+E0)/T) ,
+         if intens[i]*intens[i]*np.exp(-(Gamma[indi]*ex[i]+E0)/T) >Threshold:
+            F.append([(-np.sign(E)*Gammap[indi]*(n-ex[i]+0.5)
+                      +np.sign(E)*Gamma[indi]*(ex[i]+0.5)+E)*Hartree2cm_1,
+                     intens[i]*intens[i]*np.exp(-(Gamma[indi]*ex[i]+E0)/T) ,
                      0])
-            if F[-1][1]>0.01:
+            if F[-1][1]>0.00:
                print indi, ex[i], n-ex[i], F[-1][1] , F[-1][0]-E*Hartree2cm_1
 
       if F==[]: # no transitions with enough intensity occured.
@@ -231,12 +242,9 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
    
    dimen=0
 
-   Gamma=np.diag(f[0])
-   Gammap=np.diag(f[1]) # for final state
-
    linspect=[]
    #logging[1].write("frequency,           intensity ,      mode\n")
-   L2=CalcI00(len(K), Energy, Gamma, Gammap, J)
+   L2=CalcI00(len(K), Energy)
    #this is already extracted to linspect (using side-effects)
    L1=L2 
    for i in range(1, N+1):
@@ -247,7 +255,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
       #print N, N, N, N
       #print intens
       #print "\n\n\n\n"
-      linspect.append(makeLine(logging, intens, E0, T, index, excitation, Gamma, Gammap, Energy, i))
+      linspect.append(makeLine(logging, intens, E0, T, index, excitation, f[0], f[1], Energy, i))
       dimen+=len(linspect[i])+1
    spect=np.zeros((dimen,3))
    spect[:len(linspect[0])]=linspect[0]
@@ -274,14 +282,19 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
    *RETURNS:*
    linespectrum 
    """
-
    #quantities for the iterative spectrum-calculation
    #f[0], f[1]=f[1], f[0]
-   #f[1]=f[0]
+   f[0]=f[1]
    J=np.eye(len(f[0]))
-   K*=np.sqrt(np.pi)/2 #make it consistent with the HR-model
-   K*=np.sqrt(np.pi)/2 #make it consistent with the HR-model
+  # K*=np.sqrt(np.pi/4.) #make it consistent with the HR-model
+  # K*=np.sqrt(np.pi/4.) #make it consistent with the HR-model
+  # print
+  # for j in range(len(K)):
+  #    print K[j]*K[j]*f[1][j]*0.5*np.pi*0.25, f[1][j]*Hartree2cm_1
+  # print
+  # print
 
+   spect=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
    resort=np.zeros(np.shape(J))
    for i in range(len(J)):
       j=np.argmax(J[i])
@@ -297,7 +310,6 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
       if resort[i][k]==-1:
          resort[i][k]=1 #use absolute value only.
    f[1]=resort.dot(f[1])
-   spect=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
    return spect
 
 def distFCfOPA(logging, J, K, f, Energy, N, T, E0, threshold):
