@@ -8,6 +8,9 @@ Threshold=3e-10
 class OPA:
    """ This class containes the functions and objects for the calculation of vibronic spectra 
        in Duschinski-rotated systems.
+       ==OBJECTS==
+       L   number of excited states (in total: initial+final)
+       mat matrix containing FC-factors: first index: number of mode being excited, second index is exc. number
    """
    def __init__(self, alpha, L): #should it be __new__?
       """ initializes the class
@@ -16,6 +19,7 @@ class OPA:
       """
       assert alpha>0, "There must be at least one degree of freedom!"
       self.L=L
+      # first index in mat:number of mode, second: excitation number
       self.mat=np.zeros((2*alpha,L+1)) #change elements to some float32 or so...
    
    def insert(self, N, FC):
@@ -119,13 +123,13 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
                distributions[i+alpha]=0
          return States
 
-      K*=np.sqrt(np.pi)/2
+      #K*=np.sqrt(np.pi)/2
       #Gamma=np.diag(f[1])*2*np.pi               # in atomic units. It is equivalent to 4pi^2/h f_i
       #Gammap=np.diag(f[0])*2*np.pi              # for final state
       #sqGamma=np.diag(np.sqrt(f[1]))*np.sqrt(2*np.pi)
       #sqGammap=np.diag(np.sqrt(f[0]))*np.sqrt(2*np.pi)
       Gamma=np.diag(f[1])               # in atomic units. It is equivalent to 4pi^2/h f_i
-      Gammap=np.diag(f[0])              # for final state
+      Gammap=np.diag(f[0])              # for initial state
       sqGamma=np.diag(np.sqrt(f[1]))   
       sqGammap=np.diag(np.sqrt(f[0]))
       unity=np.eye(len(Gamma))
@@ -137,22 +141,24 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
    #   b=2*sqGammap.dot((unity-TMP).dot((K)))
    #   d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
    #   E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
-   #   C=2*sqGamma.dot(C).dot(sqGamma)-unity             #this is 'real' C-matrix
       TMP=np.linalg.inv(J.T.dot(Gammap).dot(J) + Gamma)
       A=2.*sqGammap.dot(J).dot(TMP).dot(J.T).dot(sqGammap) -unity
       b=2.*sqGammap.dot( unity - J.dot(TMP).dot(J.T).dot(Gammap) ).dot(K)
-      C=2.*sqGamma.dot(TMP).dot(Gammap) -unity
-      #d=-2.*sqGamma.dot(TMP).dot(J.T.dot(Gammap.dot(K)))
+      C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
       d=-2.*sqGamma.dot(TMP).dot(J.T.dot(Gammap.dot(K)))
       E=4.*sqGamma.dot(TMP).dot(J.T).dot(sqGammap)
+   
 
       #print "J", J, Gamma
-      #print "matrices:"
-      #print A, '\n', b, '\n', C, '\n', d, "\n", E
       #print TMP.dot(Gammap), J
-      A=np.zeros( (len(A),len(A)) )
-      C=np.zeros( (len(A),len(A)) )
-      E=np.ones( (len(A),len(A)) )*2
+    #simple versions of the above matrices if J=unity and Gamma=Gammap
+    #  A=np.zeros( (len(A),len(A)) )
+    #  C=np.zeros( (len(A),len(A)) )
+    #  E=np.ones( (len(A),len(A)) )*2.
+    #  b=sqGammap.dot(K)
+    #  d=-sqGamma.dot(K)
+    #  print "matrices:"
+    #  print A, '\n', b, '\n', C, '\n', d, "\n", E
 
       #for j in range(len(b)):
       #   print b[j], d[j], sqGamma[j][j]*K[j], (b[j]+d[j])/b[j]
@@ -211,7 +217,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
                #print "   ", npsqrt(2.0*(n_m-1))*C[m][m], Ps
                n[m+leng]+=1
             n[m+leng]+=1
-         I_nn/=npsqrt(2*n_m)
+         I_nn/=npsqrt(2.*n_m)
          assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn: {0}\n, n:{1}\n:".format(I_nn, n)
          #if m==7 and n[m]>0:
             #print  I_nn*I_nn, sum(Gamma.dot(n[:leng])-Gamma.dot(n[leng:]))*Hartree2cm_1, m
@@ -228,13 +234,13 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
       F=[]
       for i in xrange(len(index)):
          indi=index[i]
-         if intens[i]*intens[i]*np.exp(-(Gamma[indi]*ex[i]+E0)/T) >Threshold:
-            F.append([(-np.sign(E)*Gammap[indi]*(n-ex[i]+0.5)
-                      +np.sign(E)*Gamma[indi]*(ex[i]+0.5)+E)*Hartree2cm_1,
-                     intens[i]*intens[i]*np.exp(-(Gamma[indi]*ex[i]+E0)/T) ,
+         if intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) >Threshold:
+            F.append([(-np.sign(E)*Gamma[indi]*(n-ex[i])
+                      +np.sign(E)*Gammap[indi]*(ex[i])+E)*Hartree2cm_1,
+                     intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) ,
                      0])
-            if F[-1][1]>0.00:
-               print indi, ex[i], n-ex[i], F[-1][1] , F[-1][0]-E*Hartree2cm_1
+            if F[-1][1]>=0.00: # > Threshold!!!
+               print indi, ex[i], n-ex[i], F[-1][1] , F[-1][0]-E*Hartree2cm_1, Gammap[indi]*Hartree2cm_1, Gamma[indi]*Hartree2cm_1
 
       if F==[]: # no transitions with enough intensity occured.
          F=[0,0,0]
@@ -255,7 +261,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
       #print N, N, N, N
       #print intens
       #print "\n\n\n\n"
-      linspect.append(makeLine(logging, intens, E0, T, index, excitation, f[0], f[1], Energy, i))
+      linspect.append(makeLine(logging, intens, E0, T, index, excitation, f[1], f[0], Energy, i))
       dimen+=len(linspect[i])+1
    spect=np.zeros((dimen,3))
    spect[:len(linspect[0])]=linspect[0]
@@ -283,9 +289,9 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
    linespectrum 
    """
    #quantities for the iterative spectrum-calculation
-   #f[0], f[1]=f[1], f[0]
    f[0]=f[1]
    J=np.eye(len(f[0]))
+   K*=np.sqrt(np.pi)/2.
   # K*=np.sqrt(np.pi/4.) #make it consistent with the HR-model
   # K*=np.sqrt(np.pi/4.) #make it consistent with the HR-model
   # print

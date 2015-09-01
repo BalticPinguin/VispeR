@@ -105,7 +105,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
                continue
             tmp=FCeqf(HR[a], i, j)
             if tmp*npexp(-(E0+freq[a]*j)/T)>0.001:
-               print a,i,j, tmp*npexp(-(E0+freq[a]*j)/T), (freq[a]*(i-j))*Hartree2cm_1
+               print a,i,j, tmp*npexp(-(E0+freq[a]*j)/T), (freq[a]*(j-i))*Hartree2cm_1
             try:
                FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
                uency[a][j*M+i-1]=(E+np.sign(E)*freq[a]*(j-i))*Hartree2cm_1
@@ -217,7 +217,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
                continue
             tmp=R[i][j]*R[i][j]
             if tmp*npexp(-(E0+freq[0][a]*j)/T)>0.01:
-               print a,i,j, tmp*npexp(-(E0+freq[0][a]*i)/T), (freq[0][a]*i-freq[1][a]*j)*Hartree2cm_1
+               print a,i,j, tmp*npexp(-(E0+freq[0][a]*j)/T), (freq[0][a]*j-freq[1][a]*i)*Hartree2cm_1
             try:
                FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
                uency[a][j*M+i-1]=(E+np.sign(E)*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1

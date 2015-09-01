@@ -623,7 +623,7 @@ def outspect(logging, float T, opt, linspect, float E=0):
 
    sigma=gamma*2/2.355 #if gaussian used: same FWHM
    
-   if gamma*2<=(maxfreq-minfreq)/gridpt:
+   if gamma*1.1<=(maxfreq-minfreq)/gridpt:
       logging[1].write("\n !WARNING!\n THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
            "THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!")
 
