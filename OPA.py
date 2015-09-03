@@ -128,10 +128,10 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
       #Gammap=np.diag(f[0])*2*np.pi              # for final state
       #sqGamma=np.diag(np.sqrt(f[1]))*np.sqrt(2*np.pi)
       #sqGammap=np.diag(np.sqrt(f[0]))*np.sqrt(2*np.pi)
-      Gamma=np.diag(f[1])               # in atomic units. It is equivalent to 4pi^2/h f_i
-      Gammap=np.diag(f[0])              # for initial state
-      sqGamma=np.diag(np.sqrt(f[1]))   
-      sqGammap=np.diag(np.sqrt(f[0]))
+      Gamma=np.diag(f[0])               # in atomic units. It is equivalent to 4pi^2/h f_i
+      Gammap=np.diag(f[1])              # for initial state
+      sqGamma=np.diag(np.sqrt(f[0]))
+      sqGammap=np.diag(np.sqrt(f[1]))
       unity=np.eye(len(Gamma))
    
    #   C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
@@ -239,8 +239,8 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
                       +np.sign(E)*Gammap[indi]*(ex[i])+E)*Hartree2cm_1,
                      intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) ,
                      0])
-            if F[-1][1]>=0.00: # > Threshold!!!
-               print indi, ex[i], n-ex[i], F[-1][1] , F[-1][0]-E*Hartree2cm_1, Gammap[indi]*Hartree2cm_1, Gamma[indi]*Hartree2cm_1
+            if F[-1][1]>0.0001:
+               print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*Hartree2cm_1
 
       if F==[]: # no transitions with enough intensity occured.
          F=[0,0,0]
@@ -249,7 +249,10 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
    dimen=0
 
    linspect=[]
-   #logging[1].write("frequency,           intensity ,      mode\n")
+
+#   print Energy, sum(f[0])-sum(f[1])
+   # correct for vibrational groundstates:
+   Energy+=(sum(f[0])-sum(f[1]))*.5
    L2=CalcI00(len(K), Energy)
    #this is already extracted to linspect (using side-effects)
    L1=L2 
@@ -289,18 +292,10 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
    linespectrum 
    """
    #quantities for the iterative spectrum-calculation
-   f[0]=f[1]
-   J=np.eye(len(f[0]))
-   K*=np.sqrt(np.pi)/2.
-  # K*=np.sqrt(np.pi/4.) #make it consistent with the HR-model
-  # K*=np.sqrt(np.pi/4.) #make it consistent with the HR-model
-  # print
-  # for j in range(len(K)):
-  #    print K[j]*K[j]*f[1][j]*0.5*np.pi*0.25, f[1][j]*Hartree2cm_1
-  # print
-  # print
+   #f[0]=f[1]
+   #J=np.eye(len(f[0]))
+   #K*=np.sqrt(np.pi)/2.  # --> do it in functions_smsc.Duschinsky now.
 
-   spect=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
    resort=np.zeros(np.shape(J))
    for i in range(len(J)):
       j=np.argmax(J[i])
@@ -316,9 +311,10 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
       if resort[i][k]==-1:
          resort[i][k]=1 #use absolute value only.
    f[1]=resort.dot(f[1])
+   spect=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
    return spect
 
-def distFCfOPA(logging, J, K, f, Energy, N, T, E0, threshold):
+def dist_FCfOPA(logging, J, K, f, Energy, N, T, E0, threshold):
    """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
    
    *PARAMETERS:*
@@ -336,6 +332,8 @@ def distFCfOPA(logging, J, K, f, Energy, N, T, E0, threshold):
    linespectrum 
    """
 
+   K*=np.sqrt(np.pi)/2.  
+      
    resort=np.zeros(np.shape(J))
    for i in range(len(J)):
       j=np.argmax(J[i])
@@ -344,15 +342,13 @@ def distFCfOPA(logging, J, K, f, Energy, N, T, E0, threshold):
          resort[i][j]=1
       else:
          resort[i][k]=-1
-   #J=resort.dot(J.T)
-   J=resort
-   K=resort.dot(K.T)
-
+   J=resort.dot(J)
+   K=resort.dot(K)
    for i in range(len(resort)):
       k=np.argmin(resort[i])
       if resort[i][k]==-1:
          resort[i][k]=1 #use absolute value only.
-   f[1]=resort.dot(f[1].T)
+   f[1]=resort.dot(f[1])
    spect2=[]
    spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
    #print simpleFCfOPA(logging, J, K, f, Energy, N, T,E0).T
@@ -371,11 +367,12 @@ def distFCfOPA(logging, J, K, f, Energy, N, T, E0, threshold):
       for j in range(len(resort)-1):
          resort[j]=resort[j+1]
       resort[-1]=vec
+      print resort
 
-      J=resort.dot(Jo.T)
-      K=resort.dot(Ka.T)
-      f[1]=resort.dot(f1.T)
-      f[0]=resort.dot(f0.T)
+      J=resort.dot(Jo)
+      K=resort.dot(Ka)
+      f[1]=resort.dot(f1)
+      f[0]=resort.dot(f0)
       #print "J", J,"\n"
       temp=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
       spect2.append(temp[:].T[1:].T)# do not take the 0-0 transititon a second time

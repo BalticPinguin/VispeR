@@ -301,7 +301,7 @@ def main(argv=None):
          # the threshold (4) can be made to be a parameter as well
       elif model in ["Unrestricted", 'UNRESTRITED', 'unrestricted', 'unrest']:
          #make 5 (number of excitations), 10 (number of vibrational mode taken into account) to parameters
-         modes=re.findall(r"(?<=maxmodes\=)[\d]+",opt, re.I)
+         modes=re.findall(r"(?<=modes\=)[\d]+",opt, re.I)
          if len(modes)==1:
             logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
                               "Number of modes to be taken into account:  %s .\n"%(model,int(modes[0])))
@@ -382,6 +382,7 @@ def main(argv=None):
       if re.search(r"broadenparallel", opt, re.I) is not None:
          br.parallelspect(logging, T, opt, linspect)
       else:
+         print opt
          br.outspect(logging, T, opt, linspect)
       #pbar.update(80)
       #if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...

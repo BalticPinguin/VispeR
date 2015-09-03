@@ -1,0 +1,6 @@
+initial: T.FChk  
+final: S.FChk
+out: changed_full.log
+HR-fact(HRthreshold=0.00001 print=0)
+FC-spect(print=0 T=300.001, states=20,20 method: changed)
+Broadening(print=0, to nPA: 6, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=changed_full.spe shape=g, stick)

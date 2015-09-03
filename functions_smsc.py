@@ -82,7 +82,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       setM=True
       M=max(3,int(-1.1*HR[0]*HR[0]+6.4*HR[0]+9.))
       #i.e. take M following an empirical value as function of the HR-file
-   assert n>0, "There is no Huang-Rhys factor larger than the respective threshold. No mode to be calculated."
+   assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
+                                    "threshold. No mode to be calculated."
    #if setM: the size of these arrays will be overestimated.
    FC=np.zeros((n,M*N-1))
    uency=np.zeros((n,M*N-1)) #frequency
@@ -104,8 +105,6 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
                ##skip 0-0 transitions
                continue
             tmp=FCeqf(HR[a], i, j)
-            if tmp*npexp(-(E0+freq[a]*j)/T)>0.001:
-               print a,i,j, tmp*npexp(-(E0+freq[a]*j)/T), (freq[a]*(j-i))*Hartree2cm_1
             try:
                FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
                uency[a][j*M+i-1]=(E+np.sign(E)*freq[a]*(j-i))*Hartree2cm_1
@@ -117,12 +116,14 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    return spect
 
 def changespect(logging, HR, freq, E, E0, N, M, T):
-   """This is used to calculate the line spectrum assuming no mode mixing (shift only) 
-   and coinciding frequencies in both electronic states.
+   """This is used to calculate the line spectrum assuming no mode mixing 
+   (shift only)  and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
-   logging:This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-           and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging:This variable consists of two parts: logging[0] specifies the 
+       level of print-out (which is between 0- very detailed
+       and 4- only main information) and logging[1] is the file, 
+       already opened, to write the information in.
    HR:     Huang-Rhys factors
    n:      number of modes that are considered here (with biggest HR)
    freq:   frequencies (have to be in the same order as HR
@@ -133,38 +134,44 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
    **RETURNS:**
    nothing (output into /tmp/linspect)
    """
-   # M,N are maximal numbers of vibrational modes (+1, since they should be arrived really; count from 0)
+   # M,N are maximal numbers of vibrational modes (+1, since they should 
+   #      be arrived really; count from 0)
    N+=1
    M+=1
 
    def FCchf(HR,N,M,freq):
       npsqrt=np.sqrt
       D=npsqrt(2.*HR) # define this to become consistent with given formula
-      delta=npsqrt(freq[0]/freq[1]) 
+      delta=npsqrt(freq[1]/freq[0])
       deltasquare=delta*delta
       #R00=sqrt(2*delta/(1+delta*delta))*np.exp(-.5*D*D/(1+delta*delta))
       R=np.zeros( (M,N) )
-      # R_00 is normalisation -> actually calculate FC_ij/FC_00 --> than I can chose FC_00 outside.
+      # R_00 is normalisation -> actually calculate FC_ij/FC_00 --> 
+      #                     than I can chose FC_00 outside.
       R[0][0]=1.00
-      R[0][1]=-npsqrt(2.)*delta*D/(1.+deltasquare) # --> even here different!!!???
+      R[0][1]=-npsqrt(2.)*delta*D/(1.+deltasquare) 
       R[1][0]=npsqrt(2.)*D/(1.+deltasquare)
       R[1][1]=(D*R[0][1]+delta*npsqrt(2.)*R[0][0])*npsqrt(2.)/(1+deltasquare)
       for j in range(2,N):
-         R[0][j]=(-2.*D*delta*R[0][j-1]-(deltasquare-1)*npsqrt(2.*(j-1))*R[0][j-2])\
+         R[0][j]=(-2.*D*delta*R[0][j-1]-
+                  (deltasquare-1)*npsqrt(2.*(j-1))*R[0][j-2])\
                   /(npsqrt(2.*j)*(1+deltasquare))
          R[1][j]=(2.*delta*npsqrt(2)*R[0][j-1]-2*D*delta*R[1][j-1]-\
-                  (deltasquare-1)*npsqrt(2*(j-1))*R[1][j-2])/(npsqrt(2.*j)*(1.+deltasquare))
+                  (deltasquare-1)*npsqrt(2*(j-1))*R[1][j-2])\
+                  /(npsqrt(2.*j)*(1.+deltasquare))
       for j in range(2,M):
          R[j][0]=(npsqrt(2.*(j-1))*(deltasquare-1)*R[j-2][0]+2.*D*R[j-1][0])\
                   /(npsqrt(2.*j)*(1.+deltasquare))
       for i in range(2,M):
          for j in range(1,N):
             R[i][j]=((deltasquare-1)*npsqrt(2.*(i-1))*R[i-2][j]+\
-                  2.*D*R[i-1][j]+2.*delta*npsqrt(2.*j)*R[i-1][j-1] )/(npsqrt(2.*i)*(1.+deltasquare))
+                  2.*D*R[i-1][j]+2.*delta*npsqrt(2.*j)*R[i-1][j-1] )\
+                  /(npsqrt(2.*i)*(1.+deltasquare))
       return R # this is matrix with square roots of transition probabilities
 
    def unifSpect(intens, freqs, E, FC00):
-      """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
+      """ Calculation of the line spectrum respecting only shift of minima 
+      (no Duschinsky rotation) 
       and assuming coinciding frequencies for initial and final state
 
       **PARAMETERS:**
@@ -172,7 +179,8 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
       freqs:  matrix of respective energies
 
       **RETURNS**
-      a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
+      a 2-dimensional array with energies of transition (1. column) and their 
+      rate (2. column)
       """
       J=len(intens[0])
       spect=np.zeros((3,len(intens)*J+1))
@@ -180,7 +188,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
       spect[1][0]=FC00 #0->0 transition
       spect[0][0]=E
       spect[2][0]=0
-      for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
+      for i in range(len(intens)):
          for j in xrange(J):
             spect[2][i*J+j+1]=i+1
             spect[1][i*J+j+1]=intens[i][j]
@@ -189,11 +197,17 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
 
    n=len(HR) #=len(freq)
    setM=False
+
+   # correct for vibrational groundstates:
+   E+=(sum(freq[0])-sum(freq[1]))*.5
+   #print E, freq[0]
    if M==1: 
-      # there was not specified, how many vibr. states in ground-state should be taken into account
+      # there was not specified, how many vibr. states in ground-state 
+      #           should be taken into account
       setM=True
       M=max(3,int(-1.1*HR[0]*HR[0]+6.4*HR[0]+9.))
-   assert n>0, "There is no Huang-Rhys factor larger than the respective threshold. No mode to be calculated."
+   assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
+                " threshold. No mode to be calculated."
    #if setM: the size of these arrays will be overestimated.
    #calculate 0->0 transition
    FC00=1
@@ -216,11 +230,13 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
                ##skip 0-0 transitions
                continue
             tmp=R[i][j]*R[i][j]
-            if tmp*npexp(-(E0+freq[0][a]*j)/T)>0.01:
-               print a,i,j, tmp*npexp(-(E0+freq[0][a]*j)/T), (freq[0][a]*j-freq[1][a]*i)*Hartree2cm_1
+          #  if tmp*npexp(-(E0+freq[0][a]*j)/T)>0.01:
+          #     print a,i,j, tmp*npexp(-(E0+freq[0][a]*j)/T),\
+          #           (freq[0][a]*j-freq[1][a]*i)*Hartree2cm_1
             try:
                FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
-               uency[a][j*M+i-1]=(E+np.sign(E)*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
+               uency[a][j*M+i-1]=(E+np.sign(E)*\
+                   (freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
             except IndexError:
                logging[1].write("truncated spectrum for mode nr. %d"%(a))
                break
@@ -234,18 +250,24 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
    return spect
 
 def CalculationHR(logging, initial, final, opt, HRthresh):
-   """ This function gathers most essential parts for calculation of HR-factors from g09-files.
-   That is: read neccecary information from the  g09-files and calculate HR-factors as well as the 
-   Duschinsky-rotation matrix and the shift between minima (needed later if the option Duschinsky is specified)
+   """ This function gathers most essential parts for calculation of 
+   HR-factors from g09-files. That is: read neccecary information from the  
+   g09-files and calculate HR-factors as well as the  Duschinsky-rotation 
+   matrix and the shift between minima (needed later if the option Duschinsky 
+   is specified)
 
    **PARAMETERS**
-   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
    initial: name of the file containing the initial state's geometry
    final:   name of the file containing the initial state's geometry
-   opt:     options that are given to this calculation; especially it is of interest, whether there should be frequencies and/or normal
+   opt:     options that are given to this calculation; especially it is of 
+            interest, whether there should be frequencies and/or normal
             modes to be read from the g09-files.
-   HRthresh threshold for HR-factors (only those larger than this are taken into account)
+   HRthresh threshold for HR-factors (only those larger than this are taken 
+            into account)
 
    **RETURNS**
    HR:      Huang-Rhys factors, sorted by size
@@ -253,7 +275,8 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
    Energy:  Energy difference between the two states
    J:       Duschinsky-rotation matrix
    K:       shift between the states (in normal coordinates)
-   f:       frequencies of the vibrational modes, sorted by size of the frequencies
+   f:       frequencies of the vibrational modes, sorted by size of the 
+            frequencies
 
    """                                                                                             
    assert len(initial)==1, 'there must be one initial state'
@@ -371,7 +394,7 @@ def Duschinsky(logging, L, mass, dim, x):
 
    for i in range(dim):
       M[i][i]=mass[i//3] #square root of masses
-      #Jtemp=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) ################ check: use L[i+1] instead L.-T
+      #Jtemp=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
    J=np.dot(L[0].T, L[1]) 
 
    DeltaX=np.array(x[0]-x[1]).flatten('F')
@@ -380,38 +403,29 @@ def Duschinsky(logging, L, mass, dim, x):
             +repr(DeltaX)+'\n')
    #K[0]=(DeltaX[0].dot(M)).dot(L[0])*0.8676157 ##what factor is this??
    K=(DeltaX.dot(M)).dot(L[0]) ##what factor is this??
-   #*sqrt(pi) /sqrt(2*pi)
-  
- #  for i in range(len(K)): #for testing-purposes
- #     if i==7:
- #        continue
- #     else:
- #        K[i]=0
-   
-   #np.set_printoptions(suppress=True)
-   #np.set_printoptions(precision=5, linewidth=138)
+   K*=2./np.sqrt(np.pi) #correct for the correction of K
+
    if logging[0]<2:
       logging[1].write('Duschinsky rotation matrix:\n')
       k=range(0,dim-6)
       s=0
       t=min(s+5,dim-6)
-      while s<dim:
+      while s<dim-6:
          for temp in range(s,t):
             logging[1].write("               %d "%(k[temp]+1))
          logging[1].write("\n")
          for j in range(len(J)):
             logging[1].write(" %03d"%(j+1))
             for temp in range(s,t):
-               logging[1].write("    %+.6e"%(J[j][k[temp]]))
+               logging[1].write("   %+.5e"%(J[j][k[temp]]))
             logging[1].write("\n")
-         s+=t
+         s=t
          t=min(s+5,dim-6)
       logging[1].write('\nDuschinsky displacement vector:\n')
 
       for j in range(len(K)):
          logging[1].write("  %d    %e\n"%(j+1, K[j]))
       #logging[1].write('\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
-
    return J, K 
 
 def GetL(logging, dim, mass, F):
@@ -531,8 +545,9 @@ def gradientHR(logging, initial, final, opt, HRthresh):
    return HR, funi, Energy, J, K, f
 
 def GradientShift(logging, L, mass, Grad, Freq):
-   """ This function calculates the 'shift' between excited state and ground state from the gradient of the excited state 
-   at ground state geometry assuming coinciding frequencies and harmonic potentials.
+   """ This function calculates the 'shift' between excited state and ground 
+       state from the gradient of the excited state  at ground state geometry 
+       assuming coinciding frequencies and harmonic potentials.
    """
    #get dimensionality of the problem and initialise quantitios
    dim=len(mass)*3
@@ -543,15 +558,17 @@ def GradientShift(logging, L, mass, Grad, Freq):
    #K becomes now gradient in massweighted internal coordinates
    K=Grad.T.dot(M).dot(L[0])
    # scale consistently: Now it is really the shift in terms of normal modes
-   K/=Freq*Freq*np.sqrt(2)  ##??? wtf
+   K/=Freq*Freq*np.sqrt(2)  ##
    #calculate Duschinsky-matrix
    for i in range(len(J)):
       J[i]=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
    return K, J
 
 def gs(A):
-   """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
-   code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
+   """This function does row-wise Gram-Schmidt orthonormalization of 
+   matrices.
+   code for Gram-Schmidt adapted from iizukak, 
+   see https://gist.github.com/iizukak/1287876
    """
    #def proj(v1, v2):
       #return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)
@@ -563,13 +580,15 @@ def gs(A):
       temp_vec = X[i]
       for inY in Y :
          #proj_vec = proj(inY, X[i])
-         proj_vec = map(lambda x : x *(npdot(X[i],inY) / npdot(inY, inY)) , inY)
+         proj_vec = map(lambda x : x *(npdot(X[i],inY) / 
+             npdot(inY, inY)) , inY)
          temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)
       Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
    return np.matrix(Y).T # undo transposition in the beginning
 
 def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
-   """ Function that calculates the Huang-Rhys factors for all vibrational states
+   """ Function that calculates the Huang-Rhys factors for all 
+   vibrational states
 
    **Arguments**
    1. The displacements of minima in internal coordinates
@@ -579,9 +598,10 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    return sortuni, funi, sortmulti, sortfG, sortfE
    1. HR-factors for coinciding frequencies sorted by size (decreasing)
    2. respective frequencies for 1. (same order)
-   3. HR-factors for different frequencies of involved electronic states sorted by size (decreasing)
-   4. respecivp frequencies of initial state for 3 (same order)
-   5. respecivp frequencies of final state for 3 (same order)
+   3. HR-factors for different frequencies of involved electronic 
+                 states sorted by size (decreasing)
+   4. respecive frequencies of initial state for 3 (same order)
+   5. respecive frequencies of final state for 3 (same order)
    """
    lenK=len(K)
    sortHR=np.zeros(lenK)
@@ -590,8 +610,8 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniHRall=[]
    uniFall=[]
    for j in range(lenK):
-      HR[j]=K[j]*K[j]*f[1][j]*0.5*np.pi*0.25
-      #HR[j]=K[j]*K[j]*f[1][j]*.5 # /2pi
+      #HR[j]=K[j]*K[j]*f[1][j]*0.5*np.pi*0.25
+      HR[j]=K[j]*K[j]*f[1][j]*.5 # /2pi
       #HR[j]=K[j]*K[j]*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
@@ -635,20 +655,26 @@ def quantity(logging, dim, num_of_files):
    return F, CartCoord, P, Energy
 
 def ReadHR(logging, HRfile):
-   """ This function reads the HR-factors and electronic transition energy from a given file and brings them into a 
+   """ This function reads the HR-factors and electronic transition energy 
+   from a given file and brings them into a 
    similar structure as they are used in the 'smallscript'.
 
    **PARAMETERS**
-   logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging:     This variable consists of two parts: logging[0] specifies 
+                the level of print-out (which is between 0- very detailed
+                and 4- only main information) and logging[1] is the file, 
+                already opened, to write the information in.
    HRfile:      the file where the information is found
 
    **RETURNS**
-   initial:     a dummy-array that originally contains information about the inital states. Here at the moment only one
-                is allowed and only its length is relevant in the further programme.
+   initial:     a dummy-array that originally contains information about 
+                the inital states. Here at the moment only one
+                is allowed and only its length is relevant in the further 
+                programme.
    HRm:         a 2-dimensional array containing all Huang-Rhys-factors
    freqm:       analogously to HRm, containing the respective frequencies
-   Energy:      the energy-difference of the electronic states. (in atomic units)
+   Energy:      the energy-difference of the electronic states. 
+                (in atomic units)
 
    """
    assert os.path.isfile(HRfile) and os.access(HRfile, os.R_OK),\
@@ -670,7 +696,8 @@ def ReadHR(logging, HRfile):
       HR.append(float(line[0]))
       funi.append(float(line[1])/Hartree2cm_1)
    initial=['excited']
-   #the following is just to be consistent with structure of HR calculated in first part
+   #the following is just to be consistent with structure of 
+   #                         HR calculated in first part
    HRm=np.zeros((1,len(HR)))
    HRm[0]=HR
    freqm=np.zeros((1,len(HR)))

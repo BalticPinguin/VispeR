@@ -1,5 +1,5 @@
 final: S1.FChk  (input-files)
 initial: S0.FChk
 out: DR.log
-Duschinsky-spect(print=0 T=300.001, states=100, model=resort)
-Broadening(print=2 gamma=0.2, T=300.015  spectfile=DR.spe shape=g, stick)
+Duschinsky-spect(print=0 T=00.001, states=15, model=resort)
+Broadening(print=2 gamma=2.5, T=00.015  spectfile=DR.spe shape=g, stick)

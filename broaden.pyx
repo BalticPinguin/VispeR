@@ -382,6 +382,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       logwrite(u"\nSTICK-SPECTRUM IN 3-PARTICLE APPROXIMATION \n intensity   frequency\n")
    TPAintens.append(intens00) #this is OPA-part
    TPAfreq.append(freq00)
+   print "1 and 0", intens00, freq00
    # go through the whole spectrum (besides 0-0) and compute all combinations besides self-combination
    for i in range(length):
       if stick:
@@ -395,7 +396,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       for j in range(i+1,length):
          if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
             continue
-         if OPAintens[i]*OPAintens[j]/intens00<intens00*0.0002:
+         if OPAintens[i]*OPAintens[j]/intens00<intens00*0.00001:
             #save memory by not saving low-intensity-modes
             continue
          TPAintens.append(OPAintens[i]*OPAintens[j]/intens00)
@@ -408,7 +409,7 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
                continue
             if mode[k]==mode[i]:
                continue
-            if OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00)<intens00*0.0001:
+            if OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00)<intens00*0.00001:
                #save memory by not saving low-intensity-modes
                continue
             TPAintens.append(OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00))
