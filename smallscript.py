@@ -105,7 +105,8 @@ def main(argv=None):
    log.write("calculations to be done: %s\n"%(todo))
    log.close()
    
-   #update the process-bar. (This gives not that satisfying resutls but better than none)
+   #update the process-bar. 
+   #   (This gives not that satisfying resutls but better than none)
    #pbar.update(5)
    if np.mod(todo,2)==1: 
       #calculation up to HR-facts needed (FC- or Duschinsky spect)
@@ -119,7 +120,8 @@ def main(argv=None):
       else:
           print 'You want nothing to be calculated? Here it is:\n \n'
           return 2
-      #invoke logging: take options of HR-fact, if exists, else: from FC-spect, else: from Duschinsky-spect
+      #invoke logging: take options of HR-fact, if exists, 
+      #       else: from FC-spect, else: from Duschinsky-spect
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
          logging=invokeLogging(logfile)
@@ -135,20 +137,26 @@ def main(argv=None):
          HRthresh=float(HRthresh[0])
       method=re.findall(r"(?<=method:)[ \w]+",opt, re.I)
       if method==[]:
-         logging[1].write("\nUse default method for the calculation of all quantities.\n")
-         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
-      elif method[0] in ["gradient", "Gradient", 'grad', "gradient ", "grad "]:
-         logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
-         HR, funi, Energy, J, K, f=of.gradientHR(logging, initial, final, opt, HRthresh)
-      elif method[0] in ["shift", "SHIFT", "Shift"]:
-         logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
-         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
-      elif method[0] in ["changed", "CHANGED", "Changed"]:
-         logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method))
-         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
+         logging[1].write("\nUse default method for the calculation of"+
+                                                  " all quantities.\n")
+         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, 
+                                                 final, opt, HRthresh)
       else:
-         logging[1].write("method %s not recognised. Use Shift instead.\n"%(method))
-         HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, final, opt, HRthresh)
+         method=re.findall(r"[\w]+",method[0], re.I) # clean by spaces
+         if method[0] in ["gradient", "Gradient", 'grad', 
+                                    "gradient ", "grad "]:
+            logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method[0]))
+            HR, funi, Energy, J, K, f=of.gradientHR(logging, initial, 
+                                                final, opt, HRthresh)
+         elif (method[0] in ["shift", "SHIFT", "Shift"]) or\
+              (method[0] in ["changed", "CHANGED", "Changed"]):
+            logging[1].write("\nUse method %s for the calculation of all quantities.\n"%(method[0]))
+            HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, 
+                                                   final, opt, HRthresh)
+         else:
+            logging[1].write("method %s not recognised. Use Shift instead.\n"%(method))
+            HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, 
+                                                   final, opt, HRthresh)
 
    #pbar.update(12)
    if np.mod(todo,4)>=2:

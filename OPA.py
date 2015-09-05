@@ -252,7 +252,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
 
 #   print Energy, sum(f[0])-sum(f[1])
    # correct for vibrational groundstates:
-   Energy+=(sum(f[0])-sum(f[1]))*.5
+   #Energy+=(sum(f[0])-sum(f[1]))*.5
    L2=CalcI00(len(K), Energy)
    #this is already extracted to linspect (using side-effects)
    L1=L2 

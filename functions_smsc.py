@@ -12,23 +12,25 @@ Hartree2GHz=6.579684e6
 Hartree2cm_1=219474.63 
 
 def calcspect(logging, HR, freq, E, E0, N, M, T):
-   """This is used to calculate the line spectrum assuming no mode mixing (shift only) 
+   """This is used to calculate the line spectrum assuming no mode mixing 
+   (shift only) 
    and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
-   logging:This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-           and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging:This variable consists of two parts: logging[0] specifies the level            of print-out (which is between 0- very detailed
+           and 4- only main information) and logging[1] is the file, already 
+           opened, to write the information in.
    HR:     Huang-Rhys factors
    n:      number of modes that are considered here (with biggest HR)
    freq:   frequencies (have to be in the same order as HR
    E:      energy difference of energy surfaces
    N,M:    are the numbers of vibrational quanta can be in the modes
-   All arguments are neccesary.
 
    **RETURNS:**
    nothing (output into /tmp/linspect)
    """
-   # M,N are maximal numbers of vibrational modes (+1, since they should be arrived really; count from 0)
+   # M,N are maximal numbers of vibrational modes 
+   #     (+1, since they should be arrived really; count from 0)
    N+=1
    M+=1
    def FCeqf( Deltag, M, N):
@@ -52,7 +54,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       return FC*FC
    
    def unifSpect(intens, freqs, E, FC00):
-      """ Calculation of the line spectrum respecting only shift of minima (no Duschinsky rotation) 
+      """ Calculation of the line spectrum respecting only shift of minima 
+      (no Duschinsky rotation) 
       and assuming coinciding frequencies for initial and final state
 
       **PARAMETERS:**
@@ -60,7 +63,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       freqs:  matrix of respective energies
 
       **RETURNS**
-      a 2-dimensional array with energies of transition (1. column) and their rate (2. column)
+      a 2-dimensional array with energies of transition (1. column) and their 
+      rate (2. column)
       """
       J=len(intens[0])
       spect=np.zeros((3,len(intens)*J+1))
@@ -78,7 +82,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    n=len(HR) #=len(freq)
    setM=False
    if M==1: 
-      # there was not specified, how many vibr. states in ground-state should be taken into account
+      # there was not specified, how many vibr. states in ground-state 
+      #     should be taken into account
       setM=True
       M=max(3,int(-1.1*HR[0]*HR[0]+6.4*HR[0]+9.))
       #i.e. take M following an empirical value as function of the HR-file
@@ -199,7 +204,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
    setM=False
 
    # correct for vibrational groundstates:
-   E+=(sum(freq[0])-sum(freq[1]))*.5
+   #E+=(sum(freq[0])-sum(freq[1]))*.5
    #print E, freq[0]
    if M==1: 
       # there was not specified, how many vibr. states in ground-state 
@@ -373,11 +378,14 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
 
 def Duschinsky(logging, L, mass, dim, x):
    """
-   This function calculates the shift between two electronic states (whose geometry is known, see x) as well as the
+   This function calculates the shift between two electronic states 
+   (whose geometry is known, see x) as well as the
    Duschinsky-rotation matrix.
    **PARAMETERS:**
-   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
    L:       Matrix having mass-weighted normal modes as column-vectors
    mass:    array of square-roots of nuclear masses (length: N)
    dim:     dimensionality of the problem: 3*N
@@ -401,9 +409,8 @@ def Duschinsky(logging, L, mass, dim, x):
    if logging[0] <1:
       logging[1].write('changes of Cartesian coordinates:\n'\
             +repr(DeltaX)+'\n')
-   #K[0]=(DeltaX[0].dot(M)).dot(L[0])*0.8676157 ##what factor is this??
-   K=(DeltaX.dot(M)).dot(L[0]) ##what factor is this??
-   K*=2./np.sqrt(np.pi) #correct for the correction of K
+   K=(DeltaX.dot(M)).dot(L[0]) 
+   K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
 
    if logging[0]<2:
       logging[1].write('Duschinsky rotation matrix:\n')
@@ -429,12 +436,14 @@ def Duschinsky(logging, L, mass, dim, x):
    return J, K 
 
 def GetL(logging, dim, mass, F):
-   """ Function that calculates the frequencies and normal modes from force constant matrix 
-   with and without projection onto internal degrees of freedom
+   """ Function that calculates the frequencies and normal modes from force 
+   constant matrix with and without projection onto internal degrees of freedom
 
    **argumets**
-   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
    dim      The dimensions of force-constant matrix
    mass     square-root of masses dim/3-dimensional array
    F        force-constant matrix
@@ -443,7 +452,8 @@ def GetL(logging, dim, mass, F):
    return f, Lsorted, Lcart
    f        two vertors (f[0] and f[1]) with the frequencies
    Lsorted  matrix of vibr. normal modes (transformation matrix)
-   Lcart    massweighted L for comparison with the respective matrix from the g09 log-file
+   Lcart    massweighted L for comparison with the respective matrix from 
+            the g09 log-file
    """
    # Defining arrays
    L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
@@ -451,7 +461,8 @@ def GetL(logging, dim, mass, F):
    f=np.zeros(( len(F), len(F[0])-6 ))
 
    for i in range(len(F)):
-      # here one can choose between the methods: result is more or less independent
+      # here one can choose between the methods: result is more or less 
+      #  independent
       #ftemp,Ltemp=np.linalg.eig(F[i])
       ftemp,Ltemp=np.linalg.eigh(F[i])
       #ftemp,Ltemp,info=dsyev(F[i]) #this seems to be the best function
@@ -466,7 +477,7 @@ def GetL(logging, dim, mass, F):
 
       if np.any(f[i]<0):
          logging[1].write('imaginary frequencies occured. The absolute'
-                        ' values are used in the following.\n{0}\n'.format(f[i]))
+                 ' values are used in the following.\n{0}\n'.format(f[i]))
          f[i]=np.abs(f[i])
       if logging[0]<2:
          logging[1].write("Frequencies (cm-1)\n"+\
@@ -484,16 +495,21 @@ def GetL(logging, dim, mass, F):
    return f, L, Lmass
 
 def gradientHR(logging, initial, final, opt, HRthresh):
-   """ This function gathers most essential parts for calculation of HR-factors from g09-files
+   """ This function gathers most essential parts for calculation of 
+       HR-factors from g09-files
 
    **PARAMETERS**
-   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
    initial: name of the file containing the initial state's geometry
    final:   name of the file containing the initial state's geometry
-   opt:     options that are given to this calculation; especially it is of interest, whether there should be frequencies and/or normal
+   opt:     options that are given to this calculation; especially it is of 
+            interest, whether there should be frequencies and/or normal
             modes to be read from the g09-files.
-   HRthresh threshold for HR-factors (only those larger than this are taken into account)
+   HRthresh threshold for HR-factors (only those larger than this are taken 
+            into account)
 
    **RETURNS**
    HR:      Huang-Rhys factors, sorted by size
@@ -501,7 +517,8 @@ def gradientHR(logging, initial, final, opt, HRthresh):
    Energy:  Energy difference between the two states
    J:       Duschinsky-rotation matrix
    K:       shift between the states (in normal coordinates)
-   f:       frequencies of the vibrational modes, sorted by size of the frequencies
+   f:       frequencies of the vibrational modes, sorted by size of the 
+            frequencies
 
    """
    assert len(initial)>0, 'no initial state found!'
@@ -548,6 +565,15 @@ def GradientShift(logging, L, mass, Grad, Freq):
    """ This function calculates the 'shift' between excited state and ground 
        state from the gradient of the excited state  at ground state geometry 
        assuming coinciding frequencies and harmonic potentials.
+   **PARAMETERS**
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
+   L        Eigen-vectors of force-constant matrix (matrix)
+   mass     vector of masses (in a.u.)
+   Grad     gradient vector of final states PES at ground state equilibr.
+   Freq     (2xn -matrix) containing frequencies in initial/final state
    """
    #get dimensionality of the problem and initialise quantitios
    dim=len(mass)*3
@@ -590,18 +616,18 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    """ Function that calculates the Huang-Rhys factors for all 
    vibrational states
 
-   **Arguments**
-   1. The displacements of minima in internal coordinates
-   2. The frequencies of respective modes
+   **PARAMETERS**
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
+   K        The displacements of minima in internal coordinates (n-vector)
+   f        The frequencies of respective modes (2xn-matrix)
+   HRthresh threshold for lowest HR-factor (number)
 
-   **returns**
-   return sortuni, funi, sortmulti, sortfG, sortfE
-   1. HR-factors for coinciding frequencies sorted by size (decreasing)
-   2. respective frequencies for 1. (same order)
-   3. HR-factors for different frequencies of involved electronic 
-                 states sorted by size (decreasing)
-   4. respecive frequencies of initial state for 3 (same order)
-   5. respecive frequencies of final state for 3 (same order)
+   **RETURNS**
+   uniHRall   HR-factors for coinciding frequencies sorted by size (decreasing)
+   uniFall    respective frequencies (same order)
    """
    lenK=len(K)
    sortHR=np.zeros(lenK)
@@ -612,7 +638,6 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    for j in range(lenK):
       #HR[j]=K[j]*K[j]*f[1][j]*0.5*np.pi*0.25
       HR[j]=K[j]*K[j]*f[1][j]*.5 # /2pi
-      #HR[j]=K[j]*K[j]*f[1][j]
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
    fsort1=f[1][index]
@@ -628,8 +653,10 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    loggingwrite=logging[1].write
    if sortHR[-1]>=10: 
       #if larges HR-factor is too large
-      loggingwrite(u'\n!! ATTENTION!! THE HUANG-RHYS FACTOR SEEMS TO BE TOO LARGE !!\n')
-      loggingwrite(u'the spectrum will be calculated, but most probably the input-stat is inconsistent.\n')
+      loggingwrite(u'\n!! ATTENTION!! THE HUANG-RHYS FACTOR SEEMS TO BE'+\
+                                                        ' TOO LARGE !!\n')
+      loggingwrite(u'the spectrum will be calculated, but most probably'+\
+                                     ' the input-stat is inconsistent.\n')
    loggingwrite(u'HR-fact           freq     delta\n')
    #print(u'HR-fact           freq\n')
    for j in xrange(len(sortHR)-1,0,-1):
@@ -638,7 +665,8 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
          uniHR.append(sortHR[j])
          uniF1.append(fsort1[j])
          uniF0.append(fsort0[j])
-         loggingwrite(u"%f   %f   %f\n"%(sortHR[j], fsort1[j]*Hartree2cm_1, np.sqrt(fsort0[j]/fsort1[j]) ))
+         loggingwrite(u"%f   %f   %f\n"%(sortHR[j], fsort1[j]*Hartree2cm_1, 
+                                            np.sqrt(fsort0[j]/fsort1[j]) ))
    uniHRall.append(uniHR)
    uniFall.append(uniF0)
    uniFall.append(uniF1)
@@ -646,10 +674,18 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
 
 def quantity(logging, dim, num_of_files):
    """ Here some frequencies are defined; it is just for clearer code.
-   This function is called by ReadLog only.
+   This function is called by CalculationHR.
+   
+   **PARAMETERS**
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
+   dim      dimension of matrices/vectors
+   num_of_files  second dimension; this is always 1
    """
    F=np.zeros((num_of_files, dim, dim)) 
-   CartCoord=np.zeros((num_of_files, 3, dim/3))
+   CartCoord=np.zeros((num_of_files, 3, dim//3))
    P=np.zeros((num_of_files, dim,dim))
    Energy=np.zeros(num_of_files)
    return F, CartCoord, P, Energy

@@ -357,9 +357,12 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
    """ This function calculates  a Three-particle spectra using one-particle spectra.
 
    **PARAMETERS**
-   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
-   OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
+   logging:  This variable consists of two parts: logging[0] specifies the 
+             level of print-out (which is between 0- very detailed
+             and 4- only main information) and logging[1] is the file, already 
+             opened, to write the information in.
+   OPAfreq:  frequencies of transitions in OPA. 
+             (Frequencies of modes * number of quanta in change)
              array of lenght n
    freq00:   frequency of purely electronic transition
    OPAintens:intensities of the respective transitions in same order as OPAfreq
@@ -367,7 +370,8 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
              array of lenght n
    mode:     number of vibrational states changing
              array of lenght n
-   stick:    a boolean variable, stating whether to print the stick-spectrum or not
+   stick:    a boolean variable, stating whether to print the stick-spectrum 
+             or not
 
    **RETURNS**
    TPAfreq:  
@@ -376,14 +380,16 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
    TPAintens:intensities of the nPA-vibrational spectrum     
    """
    length=len(OPAfreq)
-   TPAfreq=[]#np.zeros((((length+1)*(length+2)+3)*(length+3))//6+length+1) #this is overestimation of size...
+   TPAfreq=[]
    TPAintens=[]
    if stick:
-      logwrite(u"\nSTICK-SPECTRUM IN 3-PARTICLE APPROXIMATION \n intensity   frequency\n")
+      logwrite(u"\nSTICK-SPECTRUM IN 3-PARTICLE APPROXIMATION \n intensity"+\
+                                                   "   frequency\n")
    TPAintens.append(intens00) #this is OPA-part
    TPAfreq.append(freq00)
    print "1 and 0", intens00, freq00
-   # go through the whole spectrum (besides 0-0) and compute all combinations besides self-combination
+   # go through the whole spectrum (besides 0-0) and compute all combinations 
+   #        besides self-combination
    for i in range(length):
       if stick:
          logwrite(u" %f  %e\n"%(OPAintens[i], OPAfreq[i]))
@@ -394,7 +400,8 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
       TPAfreq.append(OPAfreq[i])
       # here the combination part starts
       for j in range(i+1,length):
-         if mode[i]==mode[j] or mode[j]==0: #both have same mode... or mode[j] is 0-0 transition
+         #both have same mode... or mode[j] is 0-0 transition
+         if mode[i]==mode[j] or mode[j]==0: 
             continue
          if OPAintens[i]*OPAintens[j]/intens00<intens00*0.00001:
             #save memory by not saving low-intensity-modes
@@ -409,31 +416,35 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
                continue
             if mode[k]==mode[i]:
                continue
-            if OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00)<intens00*0.00001:
+            if OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00)\
+                                                       <intens00*0.00001:
                #save memory by not saving low-intensity-modes
                continue
-            TPAintens.append(OPAintens[i]*OPAintens[j]*OPAintens[k]/(intens00*intens00))
+            TPAintens.append(OPAintens[i]*OPAintens[j]*OPAintens[k]/
+                                                 (intens00*intens00))
             TPAfreq.append(OPAfreq[i]+OPAfreq[k]+OPAfreq[j]-2*freq00)
             if stick:
                logwrite(u" %f  %e\n"%(TPAintens[-1], TPAfreq[-1]))
    # save the spectrum into numpy-matrices
    freq=np.zeros(len(TPAfreq))
    intens=np.zeros(len(TPAintens))
-   for i in xrange(len(freq)): #this can not be done by np.matrix() due to dimensionality...
+   #this can not be done by np.matrix() due to dimensionality...
+   for i in xrange(len(freq)): 
         freq[i]=TPAfreq[i]
         intens[i]=TPAintens[i]
    return freq, intens
 
 def concise(intens, freq, broadness):
    """
-   This function shrinks length of the stick-spectrum to speed-up the calculation of broadened spectrum 
-   (folding with lineshape-function).
+   This function shrinks length of the stick-spectrum to speed-up the 
+   calculation of broadened spectrum (folding with lineshape-function).
    It puts all transitions within a tenth of the Gaussian-width into one line.
 
    ==PARAMETERS==
    intens:      intensity (of stick-spectrum-points) sorted by increasing freq
    freq:        frequency (of stick-spectrum-points) sorted by increasing freq
-   broadness:   gamma from the Lorentian-courve; specifying, how many lines will be put together
+   broadness:   gamma from the Lorentian-courve; specifying, 
+                how many lines will be put together
 
    ==RETURNS==
    intens2:     shrinked intensity-vector, sorted by increasing frequency
@@ -463,25 +474,32 @@ def outspect(logging, float T, opt, linspect, float E=0):
    As basis-function a Lorentzian is assumed with a common width.
    
    **PARAMETERS:**
-   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
    T:       temperature of the system
-   opt:     a string that contains all options that were given for this part in the input-file. See documentation 
+   opt:     a string that contains all options that were given for this part 
+            in the input-file. See documentation 
             for details of it's allowed/used content
-   linspect:The line-spectrum that has to be broadened: A array/matrix with 3(!!) rows: 
-            Frequency, intentensity and mode number (last one is important for making multiple-particle spectra 
-   E:       energy-shift of the 0-0 transition. Important if the excited state is not the lowest and
+   linspect:The line-spectrum that has to be broadened: A array/matrix 
+            with 3(!!) rows: 
+            Frequency, intentensity and mode number (last one is 
+            important for making multiple-particle spectra 
+   E:       energy-shift of the 0-0 transition. Important if the excited 
+            state is not the lowest and
             thermal equilibration with the lower states should be considered
 
    **RETURNS:**
-   nothing; the key values (broadened spectra/ many-particle-app. linespectra) are printed into log-files.
+   nothing; the key values (broadened spectra/ many-particle-app. 
+            linespectra) are printed into log-files.
    
    """
    cdef float minint=0
    cdef int i
    logging[1].write("\n STARTING TO CALCULATE BROADENED SPECTRUM.\n")
 
-   omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape , stick=handel_input(opt)
+   omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick=handel_input(opt)
    #read file in format of linspect
 
    #sort spectrum with respect to size of elements
@@ -497,20 +515,25 @@ def outspect(logging, float T, opt, linspect, float E=0):
          minint=i
          break
    if logging[0]<3:
-      logging[1].write('neglect '+repr(minint)+' transitions, use only '+repr(len(linspect[1])-minint)+" instead.\n")
+      logging[1].write('neglect '+repr(minint)+' transitions, use only '+
+                             repr(len(linspect[1])-minint)+" instead.\n")
 
       if logging[0]<2:
-         logging[1].write('minimal and maximal intensities:\n'+repr(linspect[1][minint])+' '+repr(linspect[1][-1])+"\n")
+         logging[1].write('minimal and maximal intensities:\n'+
+           repr(linspect[1][minint])+' '+repr(linspect[1][-1])+"\n")
 
-   logwrite=logging[1].write  #important for later loops: avoiding '.'s speeds python-codes up!!
+   #important for later loops: avoiding '.'s speeds python-codes up!!
+   logwrite=logging[1].write  
    #make nPA from OPA:
    if (re.search(r"to [\d]PA", opt, re.I) is not None) is True:
       n=re.findall(r"(?<=to )[\d](?=PA)", opt, re.I)
       if n[0]=='2':
          ind=linspect[2].argmin()
-         #  spectral frequency   0-0 transition   intensities      0-0 intensit.          modes        
+                        #  spectral frequency   0-0 transition   intensities
+                        #      0-0 intensit.          modes        
          TPAf, TPAi=OPA2TPA(logwrite, linspect[0][minint:],linspect[0][ind] ,
-                            linspect[1][minint:], linspect[1][ind], linspect[2][minint:], stick)
+                            linspect[1][minint:], linspect[1][ind], 
+                            linspect[2][minint:], stick)
          index=np.argsort(TPAi,kind='heapsort')
          TPAi=TPAi[index] #resort by intensity
          TPAf=TPAf[index]
@@ -526,7 +549,8 @@ def outspect(logging, float T, opt, linspect, float E=0):
          TPAfreq=TPAf[minint:]
       elif n[0]=='3':
          ind=linspect[2].argmin()
-         TPAfreq, TPAintens=OPA23PA(logwrite, linspect[0][minint:],linspect[0][ind] ,linspect[1][minint:], 
+         TPAfreq, TPAintens=OPA23PA(logwrite, linspect[0][minint:],
+                              linspect[0][ind] ,linspect[1][minint:], 
                               linspect[1][ind], linspect[2][minint:], stick)
          minint=0
          index=np.argsort(TPAintens,kind='heapsort')
@@ -546,7 +570,8 @@ def outspect(logging, float T, opt, linspect, float E=0):
          TPAintens=linspect[1][minint:]
          if stick:
             logwrite=logging[1].write
-            logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION \n intensity   frequency\n")
+            logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION "+
+                                          "\n intensity   frequency\n")
             for k in range(len(TPAfreq)):
                logwrite(u" %s  %s\n" %(TPAintens[k], TPAfreq[k]))
       else:
@@ -555,7 +580,8 @@ def outspect(logging, float T, opt, linspect, float E=0):
          logging[1].write("to <n>PA was given but not recognised.\n")
          if stick:
             logwrite=logging[1].write
-            logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION \n intensity   frequency\n")
+            logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION"+
+                              " \n intensity   frequency\n")
             for k in range(len(TPAfreq)):
                logwrite(u" %s  %s\n" %(TPAintens[k], TPAfreq[k]))
    else:
@@ -565,30 +591,36 @@ def outspect(logging, float T, opt, linspect, float E=0):
          TPAintens=linspect[1][minint:]
          if stick:
             logwrite=logging[1].write
-            logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION \n intensity   frequency\n")
+            logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION \n"+
+                                              " intensity   frequency\n")
             for k in range(len(TPAfreq)):
                logwrite(u" %s  %s\n" %(TPAintens[k], TPAfreq[k]))
       else:
          n=int(n[0])
          ind=linspect[2].argmin() #get position of 0-0 transition
-         #                          spectral frequency   0-0 transition      intensities          0-0 intensit.          modes        
-         #  spectral frequency   0-0 transition      intensities          0-0 intensit.          modes    
          if re.search(r"parallel", opt, re.I) is not None:
-            logging[1].write("\n REACHING OPA TO nPA-PART. DO IT IN PARALELL. MANY FILES WILL BE CREATED. \n")
-            logging[1].write(" ----------------------------------------------------------------------- \n")
-            gotit=parallelOPA2nPA(logwrite, linspect[0][minint:],linspect[0][ind] ,
-                     linspect[1][minint:], linspect[1][ind], linspect[2][minint:], n, stick, logging)
+            logging[1].write("\n REACHING OPA TO nPA-PART. DO IT IN PARALELL."+
+                                    " MANY FILES WILL BE CREATED. \n")
+            logging[1].write(" --------------------------------------------"+
+                                           "--------------------------- \n")
+            gotit=parallelOPA2nPA(logwrite, linspect[0][minint:],
+                     linspect[0][ind], linspect[1][minint:], 
+                     linspect[1][ind], linspect[2][minint:], n, stick, logging)
             if gotit:
                logging[1].write("\n SUCCESSFULLY CALCULATED FULL-nPA SPECTRUM. \n")
                return 0
             else:
-               logging[1].write("\n AN ERROR OCCURED. THE nPA SPECTRUM OR BROADENING DID NOT SUCCEED. \n")
+               logging[1].write("\n AN ERROR OCCURED. THE nPA SPECTRUM OR"+
+                                         " BROADENING DID NOT SUCCEED. \n")
                return 1
          else:
-            logging[1].write("\n REACHING OPA TO NPA-PART. DOING IT NOT PARALELL. \n")
-            logging[1].write(" ------------------------------------------------ \n")
-            TPAfreq, TPAintens=OPA2nPA(logwrite, linspect[0][minint:],linspect[0][ind] ,
-                     linspect[1][minint:], linspect[1][ind], linspect[2][minint:], n, stick)
+            logging[1].write("\n REACHING OPA TO NPA-PART. DOING IT NOT"+
+                                               " PARALELL. \n")
+            logging[1].write(" ----------------------------------------"+
+                                                    "-------- \n")
+            TPAfreq, TPAintens=OPA2nPA(logwrite, linspect[0][minint:],
+                     linspect[0][ind], linspect[1][minint:], 
+                     linspect[1][ind], linspect[2][minint:], n, stick)
          index=np.argsort(TPAintens,kind='heapsort')
          TPAintens=TPAintens[index] #resort by intensity
          TPAfreq=TPAfreq[index]
@@ -694,31 +726,40 @@ def parallelspect(logging, T, opt, linspect, E=0):
    As basis-function a Lorentzian is assumed with a common width.
    
    **PARAMETERS:**
-   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
    T:       temperature of the system
-   opt:     a string that contains all options that were given for this part in the input-file. See documentation 
+   opt:     a string that contains all options that were given for this part 
+            in the input-file. See documentation 
             for details of it's allowed/used content
-   linspect:The line-spectrum that has to be broadened: A array/matrix with 3(!!) rows: 
-            Frequency, intentensity and mode number (last one is important for making multiple-particle spectra 
-   E:       energy-shift of the 0-0 transition. Important if the excited state is not the lowest and
+   linspect:The line-spectrum that has to be broadened: A array/matrix 
+            with 3(!!) rows: 
+            Frequency, intentensity and mode number (last one is 
+            important for making multiple-particle spectra 
+   E:       energy-shift of the 0-0 transition. Important if the excited 
+            state is not the lowest and
             thermal equilibration with the lower states should be considered
 
    **RETURNS:**
-   nothing; the key values (broadened spectra/ many-particle-app. linespectra) are printed into log-files.
+   nothing; the key values (broadened spectra/ many-particle-app. 
+           linespectra) are printed into log-files.
    
    """
    minint=0
 
-   omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape , stick=handel_input(opt)
+   omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick=handel_input(opt)
    #read file in format of linspect
-   logging[1].write("\n STARTING TO CALCULATE BROADENED SPECTRUM USING PREVIOUSLY CALCULATED .stick-FILES.\n")
+   logging[1].write("\n STARTING TO CALCULATE BROADENED SPECTRUM USING"+
+                                 " PREVIOUSLY CALCULATED .stick-FILES.\n")
    logging[1].write("\n reading file:\n")
 
    #look for all files, ending with 'stick'
    listoffiles=glob.glob('./*.stick') 
    for stickfiles in listoffiles:
-      #open all of them one after the other and calculate their broadenend spectrum.
+      #open all of them one after the other and calculate their 
+      #    broadenend spectrum.
       TPAintens=[]
       TPAfreq=[]
       logging[1].write("%s   .....  " %(stickfiles))
@@ -734,11 +775,14 @@ def parallelspect(logging, T, opt, linspect, E=0):
                print line
 
       #find transition with minimum intensity to be respected
-      #the range of frequency ( should be greater than the transition-frequencies)
+      #the range of frequency ( should be greater than the 
+      # transition-frequencies)
       if omega==None:
          if minfreq==0:
-            #make larger range; than it will never change for later calculations.
-            minfreq=np.min(TPAfreq)-20-gamma*15-(np.max(TPAfreq)-np.min(TPAfreq))*.7
+            #make larger range; than it will never change for later 
+            # calculations.
+            minfreq=np.min(TPAfreq)-20-gamma*15-(np.max(TPAfreq)-\
+                                         np.min(TPAfreq))*.7
          if maxfreq==0:
             # this should be a proper range in any case...
             maxfreq=np.max(TPAfreq)+20+gamma*15+(maxfreq-minfreq)*.7
@@ -754,8 +798,9 @@ def parallelspect(logging, T, opt, linspect, E=0):
    
       sigma=gamma*2/2.355 #if gaussian used: same FWHM
 
-      TPAfreq=np.array(TPAfreq)      # need to convert to allow for the index-trick below...
-      TPAintens=np.array(TPAintens)  ########## check, if this is probably faster/more efficient in a loop?
+      # need to convert to allow for the index-trick below...
+      TPAfreq=np.array(TPAfreq)
+      TPAintens=np.array(TPAintens)  
       index=np.argsort(TPAfreq, kind='heapsort') #sort by freq
       freq=TPAfreq[index] 
       intens=TPAintens[index]
@@ -766,18 +811,22 @@ def parallelspect(logging, T, opt, linspect, E=0):
       except NameError:
          #in the first run, define this.
          spect=np.zeros(len(omega))
-      #this shrinks the size of the spectral lines; hopefully accelerates the script.
+      #this shrinks the size of the spectral lines; 
+      #hopefully accelerates the script.
       #intens, freq=concise(intens,freq, sigma)
    
       #intens, freq=concise(intens,freq, sigma)
    
-      maxi=len(freq)-1 #just in case Gamma is too big or frequency-range too low
+      #just in case Gamma is too big or frequency-range too low
+      maxi=len(freq)-1
+
       for i in range(0,len(freq)-1):
          if freq[i]>=10*gamma+freq[0]:
             maxi=i
             break
       if shape=='g':
-         sigmasigma=2.*sigma*sigma # these two lines are to avoid multiple calculations of the same
+         # these two lines are to avoid multiple calculations of the same
+         sigmasigma=2.*sigma*sigma 
          npexp=np.exp
          for i in xrange(len(omega)): 
             omegai=omega[i]
@@ -787,10 +836,12 @@ def parallelspect(logging, T, opt, linspect, E=0):
                   break
             for j in range(max(0,mini),maxi):
                if freq[j]>=omegai-8*gamma:
-                  mini=max(j-1,0) # else it becomes -1 and hence the spectrum is wrong
+                  # else it becomes -1 and hence the spectrum is wrong
+                  mini=max(j-1,0)
                   break
             for k in range(mini,min(maxi,len(freq))):
-               spect[i]+=intens[k]*npexp(-(omegai-freq[k])*(omegai-freq[k])/(sigmasigma))
+               spect[i]+=intens[k]*npexp(-(omegai-freq[k])*(omegai-
+                                              freq[k])/(sigmasigma))
       else:  #shape=='l':
          gammagamma=gamma*gamma
          for i in xrange(len(omega)): 
@@ -807,12 +858,14 @@ def parallelspect(logging, T, opt, linspect, E=0):
                   break
                   #this should always be reached somewhen
             for k in range(mini,min(maxi,len(freq))):
-               spect[i]+=intens[k]/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
+               spect[i]+=intens[k]/((omegai-freq[k])*(omegai-
+                                         freq[k])+gammagamma)
       logging[1].write(" finished.\n") #now, work with next file...
 
-   # this will be done at the very end. 
-   # One could change this, that the spectrum is printed after every n files read. 
-   # this would lead to a more stable run and this step could be devided easily.
+   #this will be done at the very end. 
+   #One could change this, that the spectrum is printed after every n 
+   #files read. 
+   #This would lead to a more stable run and this step could be devided easily.
    if spectfile==None:
       out=logging[1]
    else:

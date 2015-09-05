@@ -60,11 +60,18 @@ for explanations of the output of the calculations, see <a href="output.html">ou
 <h1 id="main">Main:</h1>
    The smallscript is a python-script for the calculation of vibronic spectra. 
    There are different models available for it and different sub-tasks can be calculated separately.
-   First, smallscript can just calculate the Huang-Rhys (HR)-factors (see option  <a href="#HR"><tt>HR-fact()</tt></a> ).
-   Further, the line-spectrum can be calculated in a <a href="#FC">Franck-Condon</a> (FC) or 
-   <a href="#DR">Duschinsky-rotated</a> model using different approximations. Finally, the smallscript 
-   can be used to calculate a broadened spectrum as an option for the calculation of line spectra or using 
-   an externally given line spectrum. The spectra in FC-scheme can be computed given HR-factors and 
+   <ul>
+     <li> with the option  <a href="#HR"><tt>HR-fact()</tt></a> Huang-Rhys (HR) factors
+          are calculated. 
+     <li> Further, the line-spectrum can be calculated in a 
+          <a href="#FC">Franck-Condon</a> (FC) or 
+     <li> <a href="#DR">Duschinsky-rotated</a> model using different approximations. 
+     <li> Finally, the smallscript 
+          can be used to calculate a broadened spectrum as an option for 
+          the calculation of line spectra or using 
+          an externally given line spectrum. 
+   </ul>
+   The spectra in FC-scheme can be computed given HR-factors and 
    corresponding frequencies as well.
    <p>For the content and format of the input-files see <a href="#source">below</a>. 
    <h2 id="call">calling the script </h2>
@@ -74,7 +81,7 @@ for explanations of the output of the calculations, see <a href="output.html">ou
    <p> where "input" is a custom file specifying all calculations to be done (see sect. input)
 
 <h2 id="intut">INPUT</h2>
-   <p>The smallscript can do four different tasks that can be called separately:
+   <p> The available tasks for smallsript are called as follows:
    <p><tt>HR-fact() </tt>         Calculate Huang-Rhys factors using log files
    <p><tt>FC-spect() </tt>        Calculate spectra in FC-picture using log files or HR-factors 
    <p><tt>Duschinsky-spect()</tt> Calculate Duschinsky-rotated spectra using log files

@@ -222,7 +222,7 @@ def ReadGO9_fchk(logging, fileN):
    try:
       f_str=str([f[-1]])
    except IndexError:
-      assert 1==2, "the intput-file %s has no information about coordinates\nsorry. I can't work like this!" %(fileN)
+      assert 1==2, "the intput-file %s has no information about Force-constant\nsorry. I can't work like this!" %(fileN)
    lines=f_str.strip().split("\\n")
    F=np.zeros((dim,dim))
    k=0
