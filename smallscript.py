@@ -50,7 +50,6 @@ def invokeLogging(logfile, mode="important"):
 
 def main(argv=None):
    assert len(argv)==1, 'exactly one argument required.'
-   #pbar = ProgressBar(maxval=100)
    #open input-file (if existent and readable) and map it to f
    try:
       infile=open(argv[0], "r")
@@ -107,7 +106,6 @@ def main(argv=None):
    
    #update the process-bar. 
    #   (This gives not that satisfying resutls but better than none)
-   #pbar.update(5)
    if np.mod(todo,2)==1: 
       #calculation up to HR-facts needed (FC- or Duschinsky spect)
       #first find in where the options for this task are written in
@@ -158,7 +156,6 @@ def main(argv=None):
             HR, funi, Energy, J, K, f=of.CalculationHR(logging, initial, 
                                                    final, opt, HRthresh)
 
-   #pbar.update(12)
    if np.mod(todo,4)>=2:
       #calculate FC-spect
       #here exists only one possibility for the options 
@@ -215,6 +212,8 @@ def main(argv=None):
                logging[1].write("number of vibrational states {0} is not an integer.",
                                     " Use default instead.\n".format(states1, states2))
       Hartree2cm_1=219474.63 
+      print HR[0]
+      assert len(HR)<1, "There must be at least one Huang-Rhys factor larger than 0."
       for j in range(len(HR[0])):
          #print K[j]*K[j]*f[1][j]*0.5*np.pi*0.25, f[1][j]*Hartree2cm_1
          print HR[0][j], funi[1][j]*Hartree2cm_1
@@ -232,7 +231,6 @@ def main(argv=None):
          if np.mod(todo,16)<8:
             todo+=8
 
-   #pbar.update(20)
    if np.mod(todo,8)>=4:
       #calculate Duschinsky-spect
       opt=opts[2][0]
@@ -324,7 +322,6 @@ def main(argv=None):
                ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".\n')
          linspect=OPA.resortFCfOPA(logging, J, K, f, Energy[0]-Energy[1], states, T, 0)
 
-   #pbar.update(30)
    np.set_printoptions(suppress=True)
    if np.mod(todo,16)>=8:
       #calculate Broadening
@@ -385,28 +382,23 @@ def main(argv=None):
          linspect[0]=np.matrix(freq)
          linspect[1]=np.matrix(intens)
          linspect[2]=np.matrix(mode)
-      #pbar.update(50)
       #this is real purpuse of this method; here the broadened spectrum is calculated.
       if re.search(r"broadenparallel", opt, re.I) is not None:
          br.parallelspect(logging, T, opt, linspect)
       else:
          print opt
          br.outspect(logging, T, opt, linspect)
-      #pbar.update(80)
       #if to nPA is specified: #### need energy-difference -> need to read it, if spectrum is taken from file...
       try:
          # if FC- and Dusch-spect were calculated; than probably both spectra need to be calculated in broadening...
          secondlinspect
          opt=opts[2][0]
-         #pbar.update(50)
          br.outspect(logging, T, opt, linspect)
-         #pbar.update(80)
       except NameError:
          opt=opts[0] #do something arbitrary
 
    logging[1].write("end of calculation reached. Normal exit.\n")
    logging[1].close()
-   #pbar.finish()
    
 if __name__ == "__main__":
    main(sys.argv[1:])

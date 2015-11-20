@@ -17,7 +17,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
-   logging:This variable consists of two parts: logging[0] specifies the level            of print-out (which is between 0- very detailed
+   logging:This variable consists of two parts: logging[0] specifies the level            
+           of print-out (which is between 0- very detailed
            and 4- only main information) and logging[1] is the file, already 
            opened, to write the information in.
    HR:     Huang-Rhys factors
@@ -301,9 +302,7 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
          logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
       F[0],Energy[0]=A, E
       CartCoord[0]=Coord
-      dim, Coord, mass, A, E=rl.ReadGO9_fchk(logging, final) 
-      F[1], Energy[1]=A, E
-      CartCoord[1]=Coord
+      dim, CartCoord[1], mass, F[1], Energy[1]=rl.ReadGO9_fchk(logging, final) 
    #else, test what kind of file was given: G09, GAMESS or NWChem
    else:
       with open(initial, "r+b") as f: #open file as mmap
@@ -350,7 +349,7 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
       if logging[0]<2:
          logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( CartCoord[0].T/Angs2Bohr))
-         logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( CartCoord[1].T/Angs2Bohr))
+         logging[1].write('Cartesion coordinates of final state: \n{0}\n Force Constants:\n'.format( CartCoord[1].T/Angs2Bohr))
          logging[1].write('initial state: \n{0}\n'.format(F[0]))
          logging[1].write('final state: \n {0}\n'.format(F[1]))
 
@@ -410,7 +409,7 @@ def Duschinsky(logging, L, mass, dim, x):
       logging[1].write('changes of Cartesian coordinates:\n'\
             +repr(DeltaX)+'\n')
    K=(DeltaX.dot(M)).dot(L[0]) 
-   K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
+   #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
 
    if logging[0]<2:
       logging[1].write('Duschinsky rotation matrix:\n')
@@ -456,9 +455,10 @@ def GetL(logging, dim, mass, F):
             the g09 log-file
    """
    # Defining arrays
-   L=np.zeros(( len(F), len(F[0]), len(F[0])-6 )) 
-   Lmass=np.zeros(( len(F), len(F[0]), len(F[0])-6 ))
-   f=np.zeros(( len(F), len(F[0])-6 ))
+   lenF=len(F[0])
+   L=np.zeros(( len(F), lenF, lenF-6 )) 
+   Lmass=np.zeros(( len(F), lenF, lenF-6 ))
+   f=np.zeros(( len(F), lenF-6 ))
 
    for i in range(len(F)):
       # here one can choose between the methods: result is more or less 
@@ -636,12 +636,11 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniHRall=[]
    uniFall=[]
    for j in range(lenK):
-      #HR[j]=K[j]*K[j]*f[1][j]*0.5*np.pi*0.25
       HR[j]=K[j]*K[j]*f[1][j]*.5 # /2pi
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
-   fsort1=f[1][index]
    fsort0=f[0][index]
+   fsort1=f[1][index]
    if np.any(fsort)<0:
       logging[1].write('ATTENTION: some HR-factors are <0.\
                In the following their absolute value is used.')
@@ -659,16 +658,16 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
                                      ' the input-stat is inconsistent.\n')
    loggingwrite(u'HR-fact           freq     delta\n')
    #print(u'HR-fact           freq\n')
-   for j in xrange(len(sortHR)-1,0,-1):
+   for j in range(len(sortHR)-1,0,-1):
       #select all 'big' HR-factors 
       if sortHR[j]>=HRthresh:
          uniHR.append(sortHR[j])
          uniF1.append(fsort1[j])
          uniF0.append(fsort0[j])
          loggingwrite(u"%f   %f   %f\n"%(sortHR[j], fsort1[j]*Hartree2cm_1, 
-                                            np.sqrt(fsort0[j]/fsort1[j]) ))
+                                            np.sqrt(fsort1[j]/fsort0[j]) ))
    uniHRall.append(uniHR)
-   uniFall.append(uniF0)
+   uniFall.append(uniF0) #keep order from before
    uniFall.append(uniF1)
    return uniHRall, uniFall
 

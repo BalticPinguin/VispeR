@@ -69,12 +69,16 @@ def handel_input(opt):
    return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick
 
 def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
-   """ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.
+   """ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary 
+        particle numbers.
 
    **PARAMETERS**
-   logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-            and 4- only main information) and logging[1] is the file, already opened, to write the information in.
-   OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * number of quanta in change)
+   logging: This variable consists of two parts: logging[0] specifies the 
+            level of print-out (which is between 0- very detailed
+            and 4- only main information) and logging[1] is the file, already 
+            opened, to write the information in.
+   OPAfreq:  frequencies of transitions in OPA. (Frequencies of modes * 
+             number of quanta in change)
              array of lenght n
    freq00:   frequency of purely electronic transition
    OPAintens:intensities of the respective transitions in same order as OPAfreq
@@ -83,7 +87,8 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
    mode:     number of vibrational states changing
              array of lenght n
    n:        number of maximal changing vibrations simultanously
-   stick:    a boolean variable, stating whether to print the stick-spectrum or not
+   stick:    a boolean variable, stating whether to print the 
+             stick-spectrum or not
 
    **RETURNS**
    TPAfreq:  
@@ -106,7 +111,8 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
       return True
      
    def putN(int j, int n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
-      """ This function does the most calculation that is the iteration to the next number of particles
+      """ This function does the most calculation that is the iteration to 
+          the next number of particles
           therefor it is highly optimised into C
       """
       cdef int i
@@ -176,7 +182,8 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
    x=mode.max()
    if n>x:
       n=x
-      #save complexity, that it does not try to make more combinations than actually possible...
+      #save complexity, that it does not try to make more combinations 
+      # than actually possible...
    #np.set_printoptions(precision=5, linewidth=138)
    if stick:
       logwrite("\nSTICK-SPECTRUM IN n-PARTICLE APPROXIMATION \n")
@@ -191,7 +198,8 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
    return TPAfreq, TPAintens
 
 def parallelOPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick, logging):
-   """ This function is a generalisation of OPA2TPA and OPA23PA to arbitrary particle numbers.
+   """ This function is a generalisation of OPA2TPA and OPA23PA to 
+        arbitrary particle numbers.
 
    **PARAMETERS**
    logging: This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
@@ -387,7 +395,6 @@ def OPA23PA(logwrite, OPAfreq,freq00, OPAintens,intens00, mode, stick):
                                                    "   frequency\n")
    TPAintens.append(intens00) #this is OPA-part
    TPAfreq.append(freq00)
-   print "1 and 0", intens00, freq00
    # go through the whole spectrum (besides 0-0) and compute all combinations 
    #        besides self-combination
    for i in range(length):
@@ -501,7 +508,6 @@ def outspect(logging, float T, opt, linspect, float E=0):
 
    omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick=handel_input(opt)
    #read file in format of linspect
-
    #sort spectrum with respect to size of elements
    index=np.argsort(linspect[1], kind='heapsort')
    linspect[0]=linspect[0][index] #frequency
@@ -676,9 +682,9 @@ def outspect(logging, float T, opt, linspect, float E=0):
    outwrite=out.write
    #this shrinks the size of the spectral lines; hopefully accelerates the script.
    #intens, freq=concise(intens,freq, sigma)
-
-   maxi=len(freq)-1 #just in case Gamma is too big or frequency-range too low
-   for i in range(0,len(freq)-1):
+   lenfreq=len(freq)
+   maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too low
+   for i in range(0,lenfreq-1):
       if freq[i]>=10*gamma+freq[0]:
          maxi=i
          break
@@ -687,33 +693,34 @@ def outspect(logging, float T, opt, linspect, float E=0):
       npexp=np.exp
       for i in xrange(len(omega)): 
          omegai=omega[i]
-         for j in range(maxi,len(freq)-1):
+         for j in range(maxi,lenfreq):
             if freq[j]>=10*gamma+omegai:
                maxi=j
                break
-         for j in range(max(0,mini),maxi):
-            if freq[j]>=omegai-8*gamma:
-               mini=max(j-1,0) # else it becomes -1 and hence the spectrum is wrong
+         for j in range(mini,maxi):
+            if freq[j]>=omegai-10*gamma:
+               # else it becomes -1 and hence the spectrum is wrong
+               mini=max(j-1,0) 
                break
-         for k in range(mini,min(maxi,len(freq))):
+         for k in range(mini,maxi+1):
             spect[i]+=intens[k]*npexp(-(omegai-freq[k])*(omegai-freq[k])/(sigmasigma))
          outwrite(u" %f  %e\n" %(omegai, spect[i]))
    else:  #shape=='l':
       gammagamma=gamma*gamma
       for i in xrange(len(omega)): 
          omegai=omega[i]
-         for j in range(maxi,len(freq)-1):
+         for j in range(maxi,lenfreq):
             if freq[j]>=20*gamma+omegai:
                maxi=j
                break
          else: #if it never reached 'break'-statement
             maxi=len(freq) 
-         for j in xrange(max(0,mini),maxi):
+         for j in xrange(mini,maxi):
             if freq[j]>=omegai-20*gamma:
                mini=max(j-1,0)
                break
                #this should always be reached somewhen
-         for k in range(mini,min(maxi,len(freq))):
+         for k in range(mini,maxi+1):
             spect[i]+=intens[k]/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
          outwrite(u" %f   %e\n" %(omegai, spect[i]))
    if spectfile!=None:

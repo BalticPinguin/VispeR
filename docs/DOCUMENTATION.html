@@ -1,25 +1,26 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
 <head>
-  <meta http-equiv="content-type" content="text/html;charset=utf-8">
-  <title>Documentation for smallscript</title>
-  <link rel="stylesheet" href="pycco.css">
-  <style>
-  table, th, td {
-      border: 1px solid black;
+   <meta http-equiv="content-type" content="text/html;charset=utf-8">
+   <title>Documentation for smallscript</title>
+   <link rel="stylesheet" href="pycco.css">
+   <style>
+   table, th, td {
+      border: 1px solid white;
       border-collapse: collapse;
    }
    th, td {
-      padding: 15px;
+      padding: 10px;
    }
    </style>
+   <div style="margit-left: 10%">
 </head>
 
 <body>
 <h1><center>Welcome to the documentation page of smallscript</center></h1>
 <div id='container'>
-  <div class='clearall'>
-  <div class='section' id='section-0'>
+   <div class='clearall'>
+   <div class='section' id='section-0'>
     <div class='docs'>
       <h1>Contents:</h1>
       <nav role="navigation" class="table-of-contents">
@@ -49,17 +50,18 @@
          <li><a href="Btree.html">class for Duschinsky-rotated spectrum (not OPA) </a>
          <li><a href="broaden.html">code for broadening and extending</a>
       </ul>
-  </div>
-  </div>
-  <div class='clearall'></div>
+   </div>
+   </div>
+   <div class='clearall'></div>
 </div>
 
-for explanations of the output of the calculations, see <a href="output.html">output-documentation</a>
+for explanations of the output of the calculations, see <a href="output.html">output-documentation</a><br>
+Moreover, some explanaitions of the models in use are available <a href="models.html">here</a>.
 <!-- Main content -->
 
 <h1 id="main">Main:</h1>
    The smallscript is a python-script for the calculation of vibronic spectra. 
-   There are different models available for it and different sub-tasks can be calculated separately.
+   There are different <a href=models.html>models</a> available for it and different sub-tasks can be calculated separately.
    <ul>
      <li> with the option  <a href="#HR"><tt>HR-fact()</tt></a> Huang-Rhys (HR) factors
           are calculated. 
@@ -214,8 +216,8 @@ for explanations of the output of the calculations, see <a href="output.html">ou
    <TR> <TD>  </TD> <TD> <tt>Unrestricted <tt>&nbsp </TD> <TD>  Don't use OPA but a full particle-picture; 
       restricted by number of modes 
       (at the moment fixed to number of 10)</TD> <TR>
-   <TR> <TD>  </TD> <TD>  </TD> <TD> <tt>modes=</tt>  if <tt> model=unrestricted</tt>, 
-      with this parameter one can set 
+   <TR> <TD>  </TD> <TD>  </TD> <TD> if <tt> model=unrestricted</tt>, 
+      than <tt>modes=nuber </tt> specifies 
       the number of modes that are calculated in
       the spectrum. The truncation is due to the shift of 
       normal modes, assuming this is a valid 
@@ -262,5 +264,6 @@ for explanations of the output of the calculations, see <a href="output.html">ou
 <h3>line-spect:</h3>
    <p> grid: (see broadening) the energies of the grid (in cm^-1) in columns. No further numbers or letters should be contained in the file.
    
+</div>
 </body>
 </html>

@@ -113,7 +113,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
          *RETURNS:*
          """
          States=[]
-         distributions=np.zeros(2*alpha)
+         distributions=np.zeros(2*alpha, dtype=np.int8)
          for i in range(alpha):
             for j in range(n+1):
                distributions[i]=n-j
@@ -184,12 +184,14 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
             Ps=L2.getState(n)
             #if not math.isnan(Ps):
             I_nn=b[m]*Ps                                     # first term 
+            print "1", b[m]*Ps 
             #print "   ", b[m], Ps
             if n[m]>0:
                n[m]-=1
                Ps=L1.getState(n)
                #if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn+=npsqrt(2.0*(n_m-1))*A[m][m]*Ps         # second termA
+               print "2", npsqrt(2.0*(n_m-1))*A[m][m]*Ps
                #print "   ",npsqrt(2.0*(n_m-1))*A[m][m], Ps
                n[m]+=1
             if n[m+leng]>0:
@@ -198,6 +200,7 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
                n[m+leng]+=1
                #if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn+=npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps # second term
+               print "3", npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps 
                #print "    ",npsqrt(n[m+leng]*0.5)*(E[m][m]), Ps # second term
 
             n[m]+=1
@@ -208,16 +211,19 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
             n[m+leng]-=1
             Ps=L2.getState(n)
             I_nn=d[m]*Ps                                    # first term 
+            print "1a", d[m]*Ps
             #print "   ", b[m], Ps
             if n[m+leng]>0:
                n[m+leng]-=1
                Ps=L1.getState(n)
                #if not math.isnan(Ps) and abs(Ps)>1e-8:
                I_nn+=npsqrt(2.0*(n_m-1))*C[m][m]*Ps         # second term
+               print "2a", npsqrt(2.0*(n_m-1.))*C[m][m]*Ps
                #print "   ", npsqrt(2.0*(n_m-1))*C[m][m], Ps
                n[m+leng]+=1
             n[m+leng]+=1
          I_nn/=npsqrt(2.*n_m)
+         print "4", npsqrt(2.*n_m)
          assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn: {0}\n, n:{1}\n:".format(I_nn, n)
          #if m==7 and n[m]>0:
             #print  I_nn*I_nn, sum(Gamma.dot(n[:leng])-Gamma.dot(n[leng:]))*Hartree2cm_1, m
@@ -225,7 +231,8 @@ def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
          #if m==7:
       #   if abs(I_nn)>1e-3:
       #      print m, n[m], n[m+leng], I_nn*I_nn , (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
-        # print m, n[m], n[m+leng], I_nn, I_nn*I_nn , (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
+         print "   ", n
+         print m, n[m], n[m+leng], I_nn, I_nn*I_nn , (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
          L3.insert(n, I_nn)
       return L2, L3
 
@@ -293,6 +300,7 @@ def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
    """
    #quantities for the iterative spectrum-calculation
    #f[0]=f[1]
+
    #J=np.eye(len(f[0]))
    #K*=np.sqrt(np.pi)/2.  # --> do it in functions_smsc.Duschinsky now.
 
