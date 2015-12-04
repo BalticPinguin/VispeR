@@ -1,0 +1,5 @@
+initial: excited.FChk  
+final: ground.FChk
+out: DR_full.log
+Duschinsky-spect(print=0 T=300.001, states=5, model=unrestricted modes=10)
+Broadening(print=0, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=DR_full.spe shape=g)

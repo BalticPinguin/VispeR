@@ -1,0 +1,4 @@
+initial: water_in.nwo
+final: water.nwo
+out: HR-calc.log
+FC-spect(print=0 HRthreshold=0.0 T=00.001 )

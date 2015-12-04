@@ -1,0 +1,172 @@
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: t1-freq.fchk
+final: s0-freq.fchk  
+out: changed.log
+FC-spect( method: changed)
+Broadening(print=0 grid=80000, to nPA: 50 T=3.000 spectfile=changed.spe gamma=50, shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 11
+
+Use method changed for the calculation of all quantities.
+HR-fact           freq     delta
+0.884747   1379.705533   1.041525
+0.595694   558.901781   1.078897
+0.123076   1447.421659   1.014510
+0.032298   996.765927   1.045448
+0.029123   316.541061   1.040972
+0.027041   1019.160506   0.972769
+0.023689   1611.324694   1.036258
+0.021140   1293.311006   1.017871
+0.018279   1165.337025   0.989434
+Calculate the stick-spectrum in FC-picture with 5 excitations and changing frequencies
+use log-level all
+
+ STARTING TO CALCULATE BROADENED SPECTRUM.
+neglect 531.0 transitions, use only 172.0 instead.
+minimal and maximal intensities:
+1.0903122548832224e-06 1.0
+
+ REACHING OPA TO NPA-PART. DOING IT NOT PARALELL. 
+ ------------------------------------------------ 
+for 50PA: again neglect 0.0 
+ transitions, use only 9466.0 instead.
+maximal and minimal frequencies:
+ 23843.9003252 7932.3727554
+omega is equally spaced
+end of calculation reached. Normal exit.
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: t1-freq.fchk
+final: s0-freq.fchk  
+out: changed.log
+FC-spect( method: changed)
+Broadening(print=0 grid=80000, to nPA: 50 T=3.000 spectfile=changed.spe gamma=50, shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 11
+
+Use method changed for the calculation of all quantities.
+HR-fact           freq     delta
+0.884747   1379.705533   1.041525
+0.595694   558.901781   1.078897
+0.123076   1447.421659   1.014510
+0.032298   996.765927   1.045448
+0.029123   316.541061   1.040972
+0.027041   1019.160506   0.972769
+0.023689   1611.324694   1.036258
+0.021140   1293.311006   1.017871
+0.018279   1165.337025   0.989434
+Calculate the stick-spectrum in FC-picture with 5 excitations and changing frequencies
+use log-level all
+
+ STARTING TO CALCULATE BROADENED SPECTRUM.
+neglect 531.0 transitions, use only 172.0 instead.
+minimal and maximal intensities:
+1.0903122548832224e-06 1.0
+
+ REACHING OPA TO NPA-PART. DOING IT NOT PARALELL. 
+ ------------------------------------------------ 
+for 50PA: again neglect 0.0 
+ transitions, use only 9466.0 instead.
+maximal and minimal frequencies:
+ 23843.9003252 7932.3727554
+omega is equally spaced
+end of calculation reached. Normal exit.
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: t1-freq.fchk
+final: s0-freq.fchk  
+out: changed.log
+FC-spect( method: changed)
+Broadening(print=0 grid=80000, to nPA: 50 T=3.000 spectfile=changed.spe gamma=50, shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 11
+
+Use method changed for the calculation of all quantities.
+HR-fact           freq     delta
+0.815604   1379.705533   1.041525
+0.511757   558.901781   1.078897
+0.119581   1447.421659   1.014510
+0.029551   996.765927   1.045448
+0.028576   1019.160506   0.972769
+0.026875   316.541061   1.040972
+0.022061   1611.324694   1.036258
+0.020404   1293.311006   1.017871
+0.018671   1165.337025   0.989434
+Calculate the stick-spectrum in FC-picture with 5 excitations and changing frequencies
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: t1-freq.fchk
+final: s0-freq.fchk  
+out: changed.log
+FC-spect( method: changed)
+Broadening(print=0 grid=80000, to nPA: 50 T=3.000 spectfile=changed.spe gamma=50, shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 11
+
+Use method changed for the calculation of all quantities.
+HR-fact           freq     delta
+0.815604   1379.705533   1.041525
+0.511757   558.901781   1.078897
+0.119581   1447.421659   1.014510
+0.029551   996.765927   1.045448
+0.028576   1019.160506   0.972769
+0.026875   316.541061   1.040972
+0.022061   1611.324694   1.036258
+0.020404   1293.311006   1.017871
+0.018671   1165.337025   0.989434
+Calculate the stick-spectrum in FC-picture with 5 excitations and changing frequencies
+use log-level all
+
+ STARTING TO CALCULATE BROADENED SPECTRUM.
+neglect 532.0 transitions, use only 171.0 instead.
+minimal and maximal intensities:
+1.0759304199883433e-06 1.0
+
+ REACHING OPA TO NPA-PART. DOING IT NOT PARALELL. 
+ ------------------------------------------------ 
+for 50PA: again neglect 0.0 
+ transitions, use only 8120.0 instead.
+maximal and minimal frequencies:
+ 23843.9003252 8753.17650736
+omega is equally spaced
+end of calculation reached. Normal exit.
+use log-level all
+
+ STARTING TO CALCULATE BROADENED SPECTRUM.
+neglect 532.0 transitions, use only 171.0 instead.
+minimal and maximal intensities:
+1.0759304199883433e-06 1.0
+
+ REACHING OPA TO NPA-PART. DOING IT NOT PARALELL. 
+ ------------------------------------------------ 
+for 50PA: again neglect 0.0 
+ transitions, use only 8120.0 instead.
+maximal and minimal frequencies:
+ 23843.9003252 8753.17650736
+omega is equally spaced
+end of calculation reached. Normal exit.

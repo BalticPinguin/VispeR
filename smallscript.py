@@ -9,7 +9,6 @@ import Dusch_unrest as DR
 import broaden as br
 #include further dicts
 import sys, re, mmap, numpy as np
-from progressbar import ProgressBar
 import time
 
 def usage():
@@ -18,8 +17,10 @@ def usage():
 def invokeLogging(logfile, mode="important"):
    """ initialises the logging-functionality
    ==PARAMETERS==
-   logfile      name of file to be used as log-file. It is expected to be an array of length 0 or one.
-   mode:        5 different values are possible (see below); the lowest means: print much, higher values mean 
+   logfile      name of file to be used as log-file. It is expected to be an array of 
+                length 0 or one.
+   mode:        5 different values are possible (see below); the lowest means: print 
+                much, higher values mean 
                 less printing
    ==RETURNS==
    logging:     number of respective mode
@@ -59,7 +60,8 @@ def main(argv=None):
       print "file", inputf, "not found."
       usage()
       return 2
-   #opts is an array containing all options of respective sub-tasks, which are evaluated in the respective part
+   #opts is an array containing all options of respective sub-tasks, which are 
+   # evaluated in the respective part
    opts=[]
    # todo specifies the sub-tasks to be done in numeral values (powers of 2).
    todo=0
@@ -104,18 +106,17 @@ def main(argv=None):
    log.write("calculations to be done: %s\n"%(todo))
    log.close()
    
-   #update the process-bar. 
-   #   (This gives not that satisfying resutls but better than none)
    if np.mod(todo,2)==1: 
-      #calculation up to HR-facts needed (FC- or Duschinsky spect)
-      #first find in where the options for this task are written in
+      #calculation of HR-facts needed (FC- or Duschinsky spect)
+      #first find, where the options for this task is written
       if opts[0]!=[]:
          opt=opts[0][0]
       elif opts[1]!=[]:
          opt=opts[1][0]
       elif opts[2]!=[]:
          opt=opts[2][0]
-      else:
+      else: 
+          # this is just error handling. Comes here only when input is dump
           print 'You want nothing to be calculated? Here it is:\n \n'
           return 2
       #invoke logging: take options of HR-fact, if exists, 
@@ -125,14 +126,16 @@ def main(argv=None):
          logging=invokeLogging(logfile)
       else:
          logging=invokeLogging(logfile,loglevel[0])
+      # get file names
       final=re.findall(r"(?<=final: )[\w.\-]+",f, re.I)
       initial=re.findall(r"(?<=initial: )[\w.\-]+",f, re.I)
-      # the calculation of all needed quantities is done in this function
       HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",opt,re.I)
       if HRthresh==[]:
+         # default threshold. Below this, normally no effects are visible.
          HRthresh=0.015
       else:
          HRthresh=float(HRthresh[0])
+      # chose method that should be used for this
       method=re.findall(r"(?<=method:)[ \w]+",opt, re.I)
       if method==[]:
          logging[1].write("\nUse default method for the calculation of"+
@@ -160,6 +163,7 @@ def main(argv=None):
       #calculate FC-spect
       #here exists only one possibility for the options 
       opt=opts[1][0] 
+      #set up logging
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
          try:
@@ -168,6 +172,7 @@ def main(argv=None):
          except UnboundLocalError:
             logging=invokeLogging(logfile)
       else:
+         #i.e. if not specified: use default
          try:
             logging[1].close()
             logging=invokeLogging(logfile, loglevel[0])
@@ -184,56 +189,68 @@ def main(argv=None):
          Energy=np.zeros(2)
          Energy[0]=E
          Energy[1]=0
+      # get temperature of the system
       T=re.findall(r"(?<=T=)[ \=\s\d\.]+", opt, re.M)
       if len(T)==0:
+         #use default
          T=300
       else:
          T=float(T[0])
       if logging[0]<=1:
          logging[1].write("temperature of system: "+repr(T)+"\n")
       T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
-      states=re.findall(r"(?<=states=)[\d ]*", opt, re.I)
+      #The states of interest can be given in several forms:
+      #   As 1 number (specifying the final-state vibrations that should be scanned
+      #   As 2 numbers specifying the # of modes to be scanned in both states.
+      states=re.findall(r"(?<=states=)[\d ,]*", opt, re.I)
       if len(states)==0:
+         # i.e. no states given
 	 states1=5
          states2=0
       else:
 	 try:
+            #i.e. 1 number given (else, the 'int' will give an error)
 	    states1=int(states[0])
 	    states2=0
 	    logging[1].write("number of states: %d and %d \n"%(states1, states2))
 	 except ValueError:
             try:
+               # two numbers given, try to extract them
                states1=int(states[0].split(",")[0])
                states2=int(states[0].split(",")[1])
                logging[1].write("number of states: %d and %d \n"%(states1, states2))
             except ValueError:
+               #unknown format. Use default and give a respective message.
                states1=5
                states2=0
-               logging[1].write("number of vibrational states {0} is not an integer.",
+               logging[1].write("!!number of vibrational states {0} is not an integer.",
                                     " Use default instead.\n".format(states1, states2))
-      Hartree2cm_1=219474.63 
-      print HR[0]
-      assert len(HR)<1, "There must be at least one Huang-Rhys factor larger than 0."
-      for j in range(len(HR[0])):
-         #print K[j]*K[j]*f[1][j]*0.5*np.pi*0.25, f[1][j]*Hartree2cm_1
-         print HR[0][j], funi[1][j]*Hartree2cm_1
+    
+    #This was for debugging 
+    #  Hartree2cm_1=219474.63 
+    #  for j in range(len(HR[0])):
+    #     #print K[j]*K[j]*f[1][j]*0.5*np.pi*0.25, f[1][j]*Hartree2cm_1
+    #     print HR[0][j], funi[1][j]*Hartree2cm_1
+
+      #Chose the method for calculating the FC-spectrum
+      assert len(HR[0])>0, "There is no Huang-Rhys factor involved in the spectrum. You need at least one shifted mode!"
       if (re.search(r"changed", opt, re.I) is not None):
          logging[1].write("Calculate the stick-spectrum in FC-picture with %s excitations"\
             " and changing frequencies\n" %(states1) )
          linspect=of.changespect(logging, HR[0], funi, Energy[0]-Energy[1], 0, states1, states2, T)
       else:
-         logging[1].write("Calculate the line-spectrum in FC-picture with %s excitations\n."%states )
+         logging[1].write("Calculate the line-spectrum in FC-picture with %s and %s excitations.\n"%(states1,states2) )
          linspect=of.calcspect(logging, HR[0], funi[1], Energy[0]-Energy[1], 0, states1, states2, T)
       if ((re.search(r"broaden",opt, re.I) is not None) is True) and todo<8:
-         if opts[2]!=[]:
-            # i.e.: the FC-spectrum has to be broadened and the Duschinsky-spect to be calculated
-            secondlinspect=linspect
          if np.mod(todo,16)<8:
+            #this is reached, if the option 'broaden' is specified in the FC-part.
             todo+=8
 
    if np.mod(todo,8)>=4:
       #calculate Duschinsky-spect
       opt=opts[2][0]
+
+      #set the logging part here.
       loglevel=re.findall(r"(?<=print\=)[\w]+",opt, re.I)
       if loglevel==[]:
          try:
@@ -247,15 +264,23 @@ def main(argv=None):
             logging=invokeLogging(logfile, loglevel[0])
          except UnboundLocalError:
             logging=invokeLogging(logfile, loglevel[0])
+      
+      # if the option 'broaden' is given in the Duschinsky-part, add it 
+      #     to the todo-list
       if (re.search(r"broaden",opt, re.I) is not None) is True and todo<8: 
          if np.mod(todo,16)<8:
             todo+=8
+     
       try: #test, whether HR-facts were calculated above
          J
       except NameError:
+         # Here, it is not possible to read data from file.
+         # And it is not worth implementing this because nearly no time is saved.
          logging[1].write('fatal error: No calculation of first part. But it is required')
          logging[1].close()
          return 2
+
+      #set temperature of the system
       T=re.findall(r"(?<=T=)[ \=\s\d\.]+", opt, re.M)
       if len(T)==0:
          T=300
@@ -277,8 +302,8 @@ def main(argv=None):
 	    logging[1].write("number of vibrational states {0} is not an integer. "
                               "Use default instead.\n".format(states))
 	    states=5
+
       model=re.findall(r"(?<=model\=)[\w]+",opt, re.I)
-      # test, if there is a model specified
       try: 
          model=model[0]
       except IndexError:
@@ -295,6 +320,7 @@ def main(argv=None):
          logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"%(model))
          linspect=OPA.resortFCfOPA(logging, J, K, f, Energy[0]-Energy[1], states, T, 0)
       elif model in ['Distributing', 'distributing', 'DISTRIBUTING', 'dist', 'DIST', 'Dist']:
+         assert 1==2, "This model turned out to give really wrong results. It is even not good in any approximation Please use an other one."
          shifts=re.findall(r"(?<=maxshift\=)[\d]+",opt, re.I)
          if len(shifts)==1:
             logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
@@ -310,12 +336,12 @@ def main(argv=None):
          modes=re.findall(r"(?<=modes\=)[\d]+",opt, re.I)
          if len(modes)==1:
             logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
-                              "Number of modes to be taken into account:  %s .\n"%(model,int(modes[0])))
+                  "Number of modes to be taken into account:  %s .\n"%(model,int(modes[0])))
             linspect=DR.unrestricted(logging, J, K, f, Energy[0]-Energy[1], states, T, 0, int(modes[0]))
          else:
             logging[1].write("\n Use the model %s for the calculation of linespectrum.\n"
-                              "Number of modes to be taken into account not specified, use 10 as default.\n"%(model))
-            linspect=DR.unrestricted(logging, J, K, f, Energy[0]-Energy[1], states, T, 0, 10)
+                  "Number of modes not specified, use 10 as default.\n"%(model))
+            linspect=DR.unrestricted(logging, J, K, f, Energy[0]-Energy[1], states, T,0, 10)
       else:
          # i.e.: the model was specified but not found. (give warning and do default)
          logging[1].write('An error occured. The option of "model" is not known! Please check the spelling,'\
@@ -396,7 +422,11 @@ def main(argv=None):
          br.outspect(logging, T, opt, linspect)
       except NameError:
          opt=opts[0] #do something arbitrary
-
+   else: #  The broadened spectrum is not calculated: print the line-spectrum!
+      logging[1].write("intensity [arb. u.]    energy [cm^-1]\n")
+      for i in range(len(linspect[0])):
+         logging[1].write("%3.10f    \t%3.10f\n" %(linspect[1][i],linspect[0][i]))
+      
    logging[1].write("end of calculation reached. Normal exit.\n")
    logging[1].close()
    

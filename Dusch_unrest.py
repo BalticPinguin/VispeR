@@ -24,7 +24,7 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
    **RETURNS**
    linespectrum: vibrational line-spectrum
    """
-   #K*=np.sqrt(np.pi)/2. # --> do it in functions_smsc.Duschinsky now
+   ##K*=np.sqrt(np.pi)/2. # --> do it in functions_smsc.Duschinsky now
    #first: resort the elements of J, K, f to make J most closely to unity
    resort=np.zeros(np.shape(J))
    for i in xrange(len(J)):
@@ -42,9 +42,8 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
          resort[i][k]=1 #use absolute value only.
    F[1]=resort.dot(F[1].T)
 
-   # --> change the following: not size of K but off-diagonal-elements of J!!! 
-   # --> if J[i][j] is large, add indices i and j to ind if they are not contained already...
-   if m<len(J): #this model might be more realistic!!
+   #truncate only, if this really is truncation.
+   if m<len(J): 
       index=np.argsort(np.abs(K), kind="heapsort")[::-1]
       ind=index[:m]
       k=K[ind]
@@ -59,7 +58,7 @@ def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
       f[1]=F[1]
       f[0]=F[0]
 
-   # finally, calculate the Duschinsky-rotated line spectrum in this picture
+   # finally, calculate the Duschinsky-rotated stick spectrum in this picture
    linspect=FCf(logging, j, k, f, Energy, N, T, E0)
    return linspect #3-dimensional array
 
@@ -183,19 +182,19 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
             n[m]-=1 #n[m] is at least 1
             Ps=L2.getState(n)[0]
             I_nn=b[m]*Ps                                     # first term 
-            print "1", b[m]*Ps 
+            #print "1", b[m]*Ps 
             if n[m]>0:
                n[m]-=1
                Ps=L1.getState(n)[0]
                I_nn+=npsqrt(2.0*(n_m-1))*A[m][m]*Ps          # second term
-               print "2", npsqrt(2.0*(n_m-1))*A[m][m]*Ps
+               #print "2", npsqrt(2.0*(n_m-1))*A[m][m]*Ps
                n[m]+=1
             if n[m+leng]>0:
                n[m+leng]-=1
                Ps=L1.getState(n)[0]
                n[m+leng]+=1
                I_nn+=npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps # second term
-               print "3", npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps 
+               #print "3", npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps 
 
             n[m]+=1
          #else: need the other iteration-formula
@@ -204,30 +203,30 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
             n[mp+leng]-=1
             Ps=L2.getState(n)[0]
             I_nn=d[mp]*Ps                                       # first term 
-            print "1a", d[mp]*Ps
+            #print "1a", d[mp]*Ps
             if n[mp+leng]>0:
                n[mp+leng]-=1
                Ps=L1.getState(n)[0]
                I_nn+=npsqrt(2.0*(n_m-1.))*C[mp][mp]*Ps           # second term
-               print "2a", npsqrt(2.0*(n_m-1.))*C[mp][mp]*Ps
+               #print "2a", npsqrt(2.0*(n_m-1.))*C[mp][mp]*Ps
                n[mp+leng]+=1
             n[mp+leng]+=1
          I_nn/=npsqrt(2.*n_m)
-         print "4", npsqrt(2.*n_m)
+         #print "4", npsqrt(2.*n_m)
          assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn:"+\
                                       " {0}\n, n:{1}\n:".format(I_nn, n)
-         if np.abs(I_nn)>1e-8:
+         if np.abs(I_nn)>1e-8: # don't mess with too low intensities (<1e-16)
             L3.insert(n, [I_nn,\
              freq(Energy, np.sign(Energy)*f[1]*n[:leng],\
                           np.sign(Energy)*f[0]*n[leng:]),\
                       freq(0, 0, f[0]*n[leng:]) ])
-         print "   ", n
-         m=min(m,mp)
-         print m, n[m], n[m+leng], I_nn, I_nn*I_nn ,\
-               (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
+         #print "   ", n
+         #m=min(m,mp)
+         #print m, n[m], n[m+leng], I_nn, I_nn*I_nn ,\
+         #      (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
       return L2, L3
    
-   def states2( alpha, n): 
+   def states( alpha, n): 
       """This function creates all possible states having a total number of n 
          excitations in alpha different states
    
@@ -353,9 +352,10 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          i+=1
       return States2
 
-   def states( alpha, n): 
+   def states2( alpha, n): 
       """This function creates all possible states having a total number of n 
-          excitations in alpha different states
+          excitations in alpha DIFFERENT states.
+          Hence it is for OPA-spectrum; here, for debugging only.
       *PARAMETERS:*
       alpha: number of degrees of freedom
       n:     number of excitations
@@ -393,21 +393,20 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          break # kill calculation
       spect=L2.extract()
       for j in xrange(len(spect)):
-         lineapp(spect[j][0]*spect[j][0])  # because I_nn is stored, the intensity is I_nn*I_nn
-         freqapp(spect[j][1])              # energy of respective transition 
-         initapp(spect[j][2])              # for thermal population: the frequency in initial state
+         #I_nn is stored; the intensity is I_nn*I_nn
+         lineapp(spect[j][0]*spect[j][0])  
+         freqapp(spect[j][1])             #energy of respective transition 
+         initapp(spect[j][2])             #for thermal population: frequency in init. state
         # if lines[-1] > 0.0001:
         #    print lines[-1], freqs[-1]
    result=np.zeros((3, len(lines) ))
    result[0]=freqs
    T*=Hartree2cm_1
-   #result[2]=[42 for i in range(len(result[2]))]
-   #result[1]=[lines[i]*lines[i]*np.exp(-initF[i]/T)/10 for i in range(len(result[1]))]  # devide by ten since I_00 is 10 not 100 (should be square)
    for i in range(len(result[0])):
       #arbitrary but constant number for mode
       result[2][i]=42
       result[1][i]=lines[i]*np.exp(-initF[i]/T) #thermally weighting of transitions
-   print result[0][0]-Energy*Hartree2cm_1, result[1][0]
+   #print result[0][0]-Energy*Hartree2cm_1, result[1][0]
    return result
 
 version=0.6

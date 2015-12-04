@@ -135,12 +135,15 @@ def ReadG092(logging, final):
    """ This function reads the required quantities from the gaussian-files
 
    **PARAMETERS**
-   logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging:     This variable consists of two parts: logging[0] specifies 
+                the level of print-out (which is between 0- very detailed
+                and 4- only main information) and logging[1] is the file, 
+                already opened, to write the information in.
    final:       specifies the name of the g09-file
 
    **RETURNS**
-   grad:        gradient of the PES of excited state at ground state equilibrium-geometry
+   grad:        gradient of the PES of excited state at ground state 
+                equilibrium-geometry
    E:           binding energy of the respective state/geometry in Hartree
    """
    files=open(final, "r")
@@ -252,6 +255,39 @@ def ReadGO9_fchk(logging, fileN):
    if logging[0]<=1:
       logging[1].write('temporary energy of state: {0}\n'.format(Etemp))
    return dim, Coord, mass, F, Etemp
+
+def ReadG09_fchk2(logging, final):
+   """ This function reads the required quantities from the gaussian-files
+
+   **PARAMETERS**
+   logging:     This variable consists of two parts: logging[0] specifies 
+                the level of print-out (which is between 0- very detailed
+                and 4- only main information) and logging[1] is the file, 
+                already opened, to write the information in.
+   final:       specifies the name of the g09-file
+
+   **RETURNS**
+   grad:        gradient of the PES of excited state at ground state 
+                equilibrium-geometry
+   E:           binding energy of the respective state/geometry in Hartree
+   """
+   files=open(final, "r")
+   log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
+   files.close
+   #get energy
+   E=re.findall(r'(?<=Total Energy                               R  )[ \-\d.E\+]+', log, re.M)
+   assert len(E)>=1, 'Some error occured! The states energy can not be read.'
+   E=float(E[0].replace('E','e'))
+   if logging[0]<=1:
+      logging[1].write('temporary energy of state: %d\n'%(E))
+  
+   #get gradient
+   grad=re.findall(r"(?<=Cartesian Gradient)[R N=\d.\+\- E\n]+", log)
+   Grad=re.findall(r"[\-\d\.\+E]+", grad[0])[1:]
+   grad=np.zeros(len(Grad))
+   for i in xrange(len(Grad)):
+      grad[i]=float(Grad[i])
+   return grad, E
 
 def getGaussianf(final, dim):
    files=open(final[0], "r") #open file and map it for better working
@@ -530,15 +566,18 @@ def ReadNWChem(logging, fileN):
    """ This function reads the required quantities from the NWChem-files
 
    **PARAMETERS**
-   logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging:     This variable consists of two parts: logging[0] specifies the level of 
+                print-out (which is between 0- very detailed
+                and 4- only main information) and logging[1] is the file, already opened, to 
+                write the information in.
    fileN:       specifies the name of the g09-file
 
    **RETURNS**
    dim:         dimension of the problem (3*number of atoms)
    Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
-   mass:        square root of masses of the atoms in atomi units
-   F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+   mass:        square root of masses of the atoms in atomic units
+   F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's 
+                motion and the frequencies
    E:           binding energy of the respective state/geometry in Hartree
    """
    # Mapping the log file
@@ -589,8 +628,9 @@ def ReadNWChem(logging, fileN):
          continue
       elements=lines[i].replace('D','e').split()
       for j in range(1,len(elements)):
-         F[int(elements[0])-1][j-1+10*n]=float(elements[j])
-         F[j-1+10*n][int(elements[0])-1]=float(elements[j])
+         # convert to a.u.  (masses)
+         F[int(elements[0])-1][j-1+10*n]=float(elements[j])/(1000*AMU2au)
+         F[j-1+10*n][int(elements[0])-1]=float(elements[j])/(1000*AMU2au)
    if logging[0]<1:
       logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
 

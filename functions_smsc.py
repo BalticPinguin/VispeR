@@ -17,8 +17,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
-   logging:This variable consists of two parts: logging[0] specifies the level            
-           of print-out (which is between 0- very detailed
+   logging:This variable consists of two parts: logging[0] specifies the level            of print-out (which is between 0- very detailed
            and 4- only main information) and logging[1] is the file, already 
            opened, to write the information in.
    HR:     Huang-Rhys factors
@@ -100,6 +99,10 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    loggingwrite=logging[1].write #avoid dots!
    npexp=np.exp #avoiding dots accelerates python quite a lot
    #here a goes over all modes
+   sgnE=np.sign(E)
+   if sgnE==0:
+      # sign(0) =0 ...
+      sgnE=1;
    for a in xrange(n):
       #print a, HR[a]
       for j in range(N):  
@@ -113,7 +116,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
             tmp=FCeqf(HR[a], i, j)
             try:
                FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
-               uency[a][j*M+i-1]=(E+np.sign(E)*freq[a]*(j-i))*Hartree2cm_1
+               uency[a][j*M+i-1]=(E+sgnE*freq[a]*(j-i))*Hartree2cm_1
             except IndexError:
                logging[1].write("truncated spectrum for mode nr. %d"%(a))
                break
@@ -224,6 +227,9 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
    FC=np.zeros((n,M*N))
    uency=np.zeros((n,M*N)) #frequency
    #here a goes over all modes
+   sgnE=np.sign(E)
+   if np.sign(E)==0:
+      sgnE=1
    for a in xrange(n):
       if setM:
          # set M to fit best to the value at that moment.
@@ -241,14 +247,13 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
           #           (freq[0][a]*j-freq[1][a]*i)*Hartree2cm_1
             try:
                FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
-               uency[a][j*M+i-1]=(E+np.sign(E)*\
-                   (freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
+               uency[a][j*M+i-1]=(E+sgnE*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
             except IndexError:
                logging[1].write("truncated spectrum for mode nr. %d"%(a))
                break
 
         #    y=tmp*FC00
-        #    x=(np.sign(E)*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
+        #    x=(sgnE*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
         #    if FC[a][j*M+i-1]>0.1:
         #       print FC[a][j*M+i-1],y, x, a,i,j
    FC00*=npexp(-E0/T)
@@ -303,6 +308,7 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
       F[0],Energy[0]=A, E
       CartCoord[0]=Coord
       dim, CartCoord[1], mass, F[1], Energy[1]=rl.ReadGO9_fchk(logging, final) 
+      #F[0]=F[1]
    #else, test what kind of file was given: G09, GAMESS or NWChem
    else:
       with open(initial, "r+b") as f: #open file as mmap
@@ -349,13 +355,14 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
       if logging[0]<2:
          logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( CartCoord[0].T/Angs2Bohr))
-         logging[1].write('Cartesion coordinates of final state: \n{0}\n Force Constants:\n'.format( CartCoord[1].T/Angs2Bohr))
+         logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( CartCoord[1].T/Angs2Bohr))
          logging[1].write('initial state: \n{0}\n'.format(F[0]))
          logging[1].write('final state: \n {0}\n'.format(F[1]))
 
    #Calculate Frequencies and normal modes
    f, Lsorted, Lmassw=GetL(logging, dim, mass, F)
-   J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
+   J, K=Duschinsky(logging, Lmassw, mass, dim, CartCoord)
+   #J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
    extra=re.findall(r"g09Vectors",opt, re.I)
    if extra!=[]:
       g09L=rl.getGaussianL(final, mass, dim)
@@ -400,16 +407,30 @@ def Duschinsky(logging, L, mass, dim, x):
    DeltaX=np.zeros(dim)
 
    for i in range(dim):
-      M[i][i]=mass[i//3] #square root of masses
+      M[i][i]=mass[i//3] #square root of inverse masses
       #Jtemp=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
-   J=np.dot(L[0].T, L[1]) 
+   #J=np.dot(L[0].T, L[1])  # for Lsorted
+   J=np.linalg.pinv(L[0]).dot(L[1]) # for Lmassw
+   print L[0].T.dot(M).dot(M).dot(L[0])
 
    DeltaX=np.array(x[0]-x[1]).flatten('F')
    if logging[0] <1:
       logging[1].write('changes of Cartesian coordinates:\n'\
             +repr(DeltaX)+'\n')
-   K=(DeltaX.dot(M)).dot(L[0]) 
-   #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
+ #  K=(DeltaX.dot(M)).dot(L[0])
+ #  print K
+   #K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted
+   K=np.linalg.pinv(L[0]).dot(DeltaX)  # with Lmassw
+   print K
+   #K=L[0].T.dot(M).dot(M).dot(DeltaX)  # with Lmassw
+   #print K
+   print L[0].T.dot(M).dot(M)-np.linalg.pinv(L[0])
+
+   ## test properties of pinv: --> seem to be valid expressions as one would expect.
+   #print  L[0].dot(np.linalg.pinv(L[0])).dot(L[0])-L[0]
+   #print np.linalg.pinv(L[0]).dot(L[0]).dot(np.linalg.pinv(L[0]))-np.linalg.pinv(L[0])
+   #print np.linalg.pinv(L[0])-(np.linalg.inv(L[0].T.dot(L[0]))).dot(L[0].T)
+   K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
 
    if logging[0]<2:
       logging[1].write('Duschinsky rotation matrix:\n')
@@ -474,24 +495,26 @@ def GetL(logging, dim, mass, F):
       #the frequencies are square root of the eigen values of F
       for j in range(len(f[i])):
          f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
-
       if np.any(f[i]<0):
          logging[1].write('imaginary frequencies occured. The absolute'
                  ' values are used in the following.\n{0}\n'.format(f[i]))
          f[i]=np.abs(f[i])
-      if logging[0]<2:
-         logging[1].write("Frequencies (cm-1)\n"+\
-               repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(L[i])+"\n")
-
       M=np.eye(dim)
       for j in range(0,dim):
          M[j,j]/=mass[j//3]
       Lmass[i]=M.dot(L[i])
       #renormalise
-      for j in range(0,dim-6):
-         norm=np.sum(Lmass.T[j]*Lmass.T[j])
-         if np.abs(norm)>1e-12:
-            Lmass.T[j]/=np.sqrt(norm)
+
+   #   for j in range(0,dim-6):
+   #      norm=np.sum(Lmass[i].T[j]*Lmass[i].T[j])
+   #      if np.abs(norm)>1e-12:
+   #         Lmass[i].T[j]/=np.sqrt(norm)
+      # this than is consistent with the nwchem-output.
+      if logging[0]<2:
+         logging[1].write("Frequencies (cm-1)\n"+\
+               repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(Lmass[i])+"\n")
+   for j in range(0,dim):
+      M[j,j]=mass[j//3]*mass[j//3]
    return f, L, Lmass
 
 def gradientHR(logging, initial, final, opt, HRthresh):
@@ -529,14 +552,59 @@ def gradientHR(logging, initial, final, opt, HRthresh):
             initial+' is not a valid file name or not readable.'
    assert os.path.isfile(final) and os.access(final, os.R_OK),\
             final+' is not a valid file name or not readable.'
-   dim, Coord, mass, A, E=rl.ReadG09(logging, initial)
-   F, CartCoord, P, Energy=quantity(logging, dim, 2 ) #creates respective quantities (empty)
-   if logging[0]==0:
-      logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2))
-   F[0],Energy[0]=A, E
-   F[1]=F[0] #force constant matrix in both states coincides
-   Grad, E=rl.ReadG092(logging, final) 
-   Energy[1]=E
+   # if the input-files are G09-formcheck-files (recognised by ending):
+   if (( ".fchk" in final) and (".fchk" in initial))\
+         or (( ".FChk" in final) and (".FChk" in initial)): # this is also a valid ending
+      dim, Coord, mass, A, E=rl.ReadGO9_fchk(logging, initial)
+      F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+      if logging[0]==0:
+         logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+      F[0],Energy[0]=A, E
+      CartCoord[0]=Coord
+      F[1]=F[0] #force constant matrix in both states coincides
+      Grad, E=rl.ReadG09_fchk2(logging, final) 
+      Energy[1]=E
+   #else, test what kind of file was given: G09, GAMESS or NWChem
+   else:
+      with open(initial, "r+b") as f: #open file as mmap
+         mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+         for line in iter(mapping.readline, ""): #go through every line and test characteristic part
+            if "GAMESS" in line: #if it is found: read important quantities from file
+               assert 1==0, "gradient method for GAMESS-files not "+\
+                               "implemented yet."
+               dim, Coord, mass, A, E=rl.ReadGAMESS(logging, initial)
+               F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+               if logging[0]==0:
+                  logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+               F[0],Energy[0]=A, E
+               CartCoord[0]=Coord
+               # --> here read gradient!!!
+               break
+            elif "Northwest Computational Chemistry Package (NWChem)" in line:
+               assert 1==0, "gradient method for nwchem-files not "+\
+                               "implemented yet."
+               dim, Coord, mass, A, E=rl.ReadNWChem(logging, initial)
+               F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+               if logging[0]==0:
+                  logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+               F[0],Energy[0]=A, E
+               CartCoord[0]=Coord
+               # --> here read gradient!!!
+               break
+            elif "Gaussian(R)" in line:
+               dim, Coord, mass, A, E=rl.ReadG09(logging, initial)
+               F, CartCoord, P, Energy=quantity(logging, dim, 2) #creates respective quantities (empty)
+               if logging[0]==0:
+                  logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
+               F[0],Energy[0]=A, E
+               CartCoord[0]=Coord
+               dim, Coord, mass, A, E=rl.ReadG09(logging, final) 
+               F[1]=F[0] #force constant matrix in both states coincides
+               Grad, E=rl.ReadG092(logging, final) 
+               Energy[1]=E
+               break
+         else: # is there some error??  probably this message is printed also if files were recognised
+            print "file type not recognised"
    #read coordinates, force constant, binding energies from log-files and calculate needed quantities
    if logging[0]<3:
       logging[1].write('difference of minimum energy between states:'
@@ -582,12 +650,34 @@ def GradientShift(logging, L, mass, Grad, Freq):
    for j in range(0,dim):
       M[j,j]=1/mass[j//3]
    #K becomes now gradient in massweighted internal coordinates
-   K=Grad.T.dot(M).dot(L[0])
+   K=Grad.T.dot(M).dot(L[0])[0]
    # scale consistently: Now it is really the shift in terms of normal modes
    K/=Freq*Freq*np.sqrt(2)  ##
+   
+   #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
    #calculate Duschinsky-matrix
-   for i in range(len(J)):
-      J[i]=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
+   J=np.dot(L[0].T, L[1])
+
+   if logging[0]<2:
+      logging[1].write('Duschinsky rotation matrix:\n')
+      k=range(0,dim-6)
+      s=0
+      t=min(s+5,dim-6)
+      while s<dim-6:
+         for temp in range(s,t):
+            logging[1].write("               %d "%(k[temp]+1))
+         logging[1].write("\n")
+         for j in range(len(J)):
+            logging[1].write(" %03d"%(j+1))
+            for temp in range(s,t):
+               logging[1].write("   %+.5e"%(J[j][k[temp]]))
+            logging[1].write("\n")
+         s=t
+         t=min(s+5,dim-6)
+      logging[1].write('\nDuschinsky displacement vector:\n')
+
+      for j in range(len(K)):
+         logging[1].write("  %d    %e\n"%(j+1, K[j]))
    return K, J
 
 def gs(A):
@@ -635,8 +725,9 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    fsort=np.zeros(lenK)
    uniHRall=[]
    uniFall=[]
+   #print K
    for j in range(lenK):
-      HR[j]=K[j]*K[j]*f[1][j]*.5 # /2pi
+      HR[j]=K[j]*K[j]*f[0][j]*.5 # /2pi
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
    fsort0=f[0][index]
@@ -658,7 +749,7 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
                                      ' the input-stat is inconsistent.\n')
    loggingwrite(u'HR-fact           freq     delta\n')
    #print(u'HR-fact           freq\n')
-   for j in range(len(sortHR)-1,0,-1):
+   for j in range(len(sortHR)-1,-1,-1):
       #select all 'big' HR-factors 
       if sortHR[j]>=HRthresh:
          uniHR.append(sortHR[j])
@@ -723,7 +814,7 @@ def ReadHR(logging, HRfile):
    Energy/=Hartree2cm_1
    HR=[]
    funi=[]
-   HRfreq=re.findall(r"HR-fact[\s]*freq[\s]*\n[\n\d\.\s]*", f, re.I)
+   HRfreq=re.findall(r"HR-fact[\s]*freq[\s]*\n[\n\d\.\se\+\-]*", f, re.I)
    assert len(HRfreq)==1, "The file-format could not be read. exit now"
    HRf=re.findall(r"(?<=\n)[\d\.]*[\s]+[\d\.]*", HRfreq[0], re.I)
    for i in range(len(HRf)):
@@ -735,8 +826,9 @@ def ReadHR(logging, HRfile):
    #                         HR calculated in first part
    HRm=np.zeros((1,len(HR)))
    HRm[0]=HR
-   freqm=np.zeros((1,len(HR)))
+   freqm=np.zeros((2,len(HR)))
    freqm[0]=funi
+   freqm[1]=funi # no changing frequencies
    return initial, HRm, freqm, Energy
 
 version=1.5

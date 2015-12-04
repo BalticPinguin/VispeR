@@ -1,0 +1,76 @@
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: s0-freq.fchk  
+final: t1-freq.fchk
+out: Duschinsky.log
+Duschinsky-spect( model=Resort)
+Broadening(print=0 grid=80000,  T=3.000 spectfile=Duschinsky.spe)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 13
+
+Use default method for the calculation of all quantities.
+HR-fact           freq     delta
+1.263722   2496.459972   1.232904
+0.701107   1500.540085   0.965011
+0.444904   480.148643   0.926873
+0.216696   1190.359436   1.010679
+0.111611   292.113942   0.960641
+0.027932   1248.295588   0.982443
+0.027344   725.520166   0.887703
+
+ Use the model Resort for the calculation of linespectrum.
+use log-level all
+
+ STARTING TO CALCULATE BROADENED SPECTRUM.
+neglect 95.0 transitions, use only 125.0 instead.
+minimal and maximal intensities:
+1.0219422040889178e-06 1.0
+maximal and minimal frequencies:
+ -8670.13882079 -23981.8497471
+omega is equally spaced
+end of calculation reached. Normal exit.
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: s0-freq.fchk  
+final: t1-freq.fchk
+out: Duschinsky.log
+Duschinsky-spect( model=Resort)
+Broadening(print=0 grid=80000,  T=3.000 spectfile=Duschinsky.spe)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 13
+
+Use default method for the calculation of all quantities.
+HR-fact           freq     delta
+0.884747   1271.881934   0.960130
+0.595694   480.148643   0.926873
+0.123076   1406.313002   0.985697
+0.032298   911.987066   0.956528
+0.029123   292.113942   0.960641
+0.027041   1077.017635   1.027993
+0.023689   1500.540085   0.965011
+0.021140   1248.295588   0.982443
+0.018279   1190.359436   1.010679
+
+ Use the model Resort for the calculation of linespectrum.
+use log-level all
+
+ STARTING TO CALCULATE BROADENED SPECTRUM.
+neglect 98.0 transitions, use only 126.0 instead.
+minimal and maximal intensities:
+1.1671306440463067e-06 1.0
+maximal and minimal frequencies:
+ -11166.5987927 -23260.7596921
+omega is equally spaced
+end of calculation reached. Normal exit.

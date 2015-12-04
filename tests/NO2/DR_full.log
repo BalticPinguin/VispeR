@@ -1,0 +1,156 @@
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: excited.FChk  
+final: ground.FChk
+out: DR_full.log
+Duschinsky-spect(print=0 T=300.001, states=4, model=unrestricted modes=30)
+Broadening(print=0, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=DR_full.spe shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 13
+use log-level all
+
+Use default method for the calculation of all quantities.
+Number of atoms: 3
+Number of vibrational modes: 9 
+ Sqrt of masses in a.u. as read from log file
+[ 159.76871101  170.7540457   170.7540457 ]
+Cartesian coordinates (a.u.) 
+[[  4.85108141e-07   9.85073927e-01   0.00000000e+00]
+ [  2.08170705e+00  -4.92537229e-01   0.00000000e+00]
+ [ -2.08170754e+00  -4.92534808e-01   0.00000000e+00]]
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: excited.FChk  
+final: ground.FChk
+out: DR_full.log
+Duschinsky-spect(print=0 T=300.001, states=4, model=unrestricted modes=30)
+Broadening(print=0, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=DR_full.spe shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 13
+use log-level all
+
+Use default method for the calculation of all quantities.
+Number of atoms: 3
+Number of vibrational modes: 9 
+ Sqrt of masses in a.u. as read from log file
+[ 159.76871101  170.7540457   170.7540457 ]
+Cartesian coordinates (a.u.) 
+[[  4.85108141e-07   9.85073927e-01   0.00000000e+00]
+ [  2.08170705e+00  -4.92537229e-01   0.00000000e+00]
+ [ -2.08170754e+00  -4.92534808e-01   0.00000000e+00]]
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: excited.FChk  
+final: ground.FChk
+out: DR_full.log
+Duschinsky-spect(print=0 T=300.001, states=4, model=unrestricted modes=30)
+Broadening(print=0, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=DR_full.spe shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 13
+use log-level all
+
+Use default method for the calculation of all quantities.
+Number of atoms: 3
+Number of vibrational modes: 9 
+ Sqrt of masses in a.u. as read from log file
+[ 159.76871101  170.7540457   170.7540457 ]
+Cartesian coordinates (a.u.) 
+[[  4.85108141e-07   9.85073927e-01   0.00000000e+00]
+ [  2.08170705e+00  -4.92537229e-01   0.00000000e+00]
+ [ -2.08170754e+00  -4.92534808e-01   0.00000000e+00]]
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: excited.FChk  
+final: ground.FChk
+out: DR_full.log
+Duschinsky-spect(print=0 T=300.001, states=4, model=unrestricted modes=30)
+Broadening(print=0, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=DR_full.spe shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 13
+use log-level all
+
+Use default method for the calculation of all quantities.
+Number of atoms: 3
+Number of vibrational modes: 9 
+ Sqrt of masses in a.u. as read from log file
+[ 159.76871101  170.7540457   170.7540457 ]
+Cartesian coordinates (a.u.) 
+[[ -1.04221194e-03   8.35627943e-01   0.00000000e+00]
+ [  2.24479889e+00  -4.17713859e-01   0.00000000e+00]
+ [ -2.24481304e+00  -4.17721332e-01   0.00000000e+00]]
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: excited.FChk  
+final: ground.FChk
+out: DR_full.log
+Duschinsky-spect(print=0 T=300.001, states=4, model=unrestricted modes=30)
+Broadening(print=0, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=DR_full.spe shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 13
+use log-level all
+
+Use default method for the calculation of all quantities.
+Number of atoms: 3
+Number of vibrational modes: 9 
+ Sqrt of masses in a.u. as read from log file
+[ 159.76871101  170.7540457   170.7540457 ]
+Cartesian coordinates (a.u.) 
+[[ -1.04221194e-03   8.35627943e-01   0.00000000e+00]
+ [  2.24479889e+00  -4.17713859e-01   0.00000000e+00]
+ [ -2.24481304e+00  -4.17721332e-01   0.00000000e+00]]
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: excited.FChk  
+final: ground.FChk
+out: DR_full.log
+Duschinsky-spect(print=0 T=300.001, states=4, model=unrestricted modes=30)
+Broadening(print=0, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=DR_full.spe shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 13
+use log-level all
+
+Use default method for the calculation of all quantities.
+Number of atoms: 3
+Number of vibrational modes: 9 
+ Sqrt of masses in a.u. as read from log file
+[ 159.76871101  170.7540457   170.7540457 ]
+Cartesian coordinates (a.u.) 
+[[ -1.04221194e-03   8.35627943e-01   0.00000000e+00]
+ [  2.24479889e+00  -4.17713859e-01   0.00000000e+00]
+ [ -2.24481304e+00  -4.17721332e-01   0.00000000e+00]]

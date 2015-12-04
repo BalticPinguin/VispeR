@@ -1,0 +1,5 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<p>Calculations performed in: benzene/ </p>
+<p>date: 5.9.2015 (not submitted version)
+ and 25.9.2015 (DR_changed, DR_full, shift)</p>
+<p>gnuplot-file: benzene/spectra.gp </p>

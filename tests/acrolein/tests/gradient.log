@@ -1,0 +1,21 @@
+.
+
+==================================================================
+===================  output of smallscript  ======================
+==================================================================
+
+   INPUT-FILE:
+initial: t1-freq.fchk
+final: gradient.fchk  
+out: gradient.log
+FC-spect( method: gradient)
+Broadening(print=0 grid=80000, to nPA: 50 T=3.000 spectfile=gradient.spe, gamma=50 shape=g)
+ 
+   END OF INPUT-FILE 
+
+calculations to be done: 11
+
+Use method gradient for the calculation of all quantities.
+HR-fact           freq     delta
+Calculate the line-spectrum in FC-picture with [] excitations
+.

@@ -1,0 +1,4 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<p>Calculations performed in: acrolein/tests</p>
+<p>date: 16.9.2015/ 30.11.15 (not committed version) second one trying other method...</p>
+<p>gnuplot-file: acrolein/spectra.gp </p>
