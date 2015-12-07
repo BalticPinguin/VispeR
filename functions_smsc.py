@@ -332,9 +332,7 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
                   logging[1].write("Dimensions: "+ str(dim)+ '\n Masses: '+ str(mass**2)+"\n")
                F[0],Energy[0]=A, E
                CartCoord[0]=Coord
-               dim, Coord, mass, A, E=rl.ReadNWChem(logging, final) 
-               F[1], Energy[1]=A, E
-               CartCoord[1]=Coord
+               dim, CartCoord[1], mass, F[1], Energy[1]=rl.ReadNWChem(logging, final) 
                break
             elif "Gaussian(R)" in line:
                dim, Coord, mass, A, E=rl.ReadG09(logging, initial)
@@ -392,7 +390,8 @@ def Duschinsky(logging, L, mass, dim, x):
             level of print-out (which is between 0- very detailed
             and 4- only main information) and logging[1] is the file, already 
             opened, to write the information in.
-   L:       Matrix having mass-weighted normal modes as column-vectors
+   L:       Matrix having mass-weighted normal modes as column-vectors,
+            L[0] refers to initial state, L[1] to final one.
    mass:    array of square-roots of nuclear masses (length: N)
    dim:     dimensionality of the problem: 3*N
    x:       cartesian coordinates of the states of interest
@@ -411,26 +410,26 @@ def Duschinsky(logging, L, mass, dim, x):
       #Jtemp=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
    #J=np.dot(L[0].T, L[1])  # for Lsorted
    J=np.linalg.pinv(L[0]).dot(L[1]) # for Lmassw
-   print L[0].T.dot(M).dot(M).dot(L[0])
+   #print L[0].T.dot(M).dot(M).dot(L[0])
 
-   DeltaX=np.array(x[0]-x[1]).flatten('F')
+   DeltaX=np.array(x[1]-x[0]).flatten('F')  # need initial - final here.
    if logging[0] <1:
       logging[1].write('changes of Cartesian coordinates:\n'\
             +repr(DeltaX)+'\n')
  #  K=(DeltaX.dot(M)).dot(L[0])
  #  print K
    #K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted
-   K=np.linalg.pinv(L[0]).dot(DeltaX)  # with Lmassw
-   print K
+   #K=np.linalg.pinv(L[0]).dot(DeltaX)  # w p Lmassw
+   #print K
    #K=L[0].T.dot(M).dot(M).dot(DeltaX)  # with Lmassw
    #print K
-   print L[0].T.dot(M).dot(M)-np.linalg.pinv(L[0])
+   #print L[0].T.dot(M).dot(M)-np.linalg.pinv(L[0])
 
    ## test properties of pinv: --> seem to be valid expressions as one would expect.
    #print  L[0].dot(np.linalg.pinv(L[0])).dot(L[0])-L[0]
    #print np.linalg.pinv(L[0]).dot(L[0]).dot(np.linalg.pinv(L[0]))-np.linalg.pinv(L[0])
    #print np.linalg.pinv(L[0])-(np.linalg.inv(L[0].T.dot(L[0]))).dot(L[0].T)
-   K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
+   #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
 
    if logging[0]<2:
       logging[1].write('Duschinsky rotation matrix:\n')
@@ -453,6 +452,9 @@ def Duschinsky(logging, L, mass, dim, x):
       for j in range(len(K)):
          logging[1].write("  %d    %e\n"%(j+1, K[j]))
       #logging[1].write('\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
+      # for debugging: Check that q'=Jq+K as requested (q': normal modes of initial state)
+    #  print "Zero:"
+    #  print np.linalg.pinv(L[0]).dot(np.array(x[0]).flatten("F")) - J.dot(np.linalg.pinv(L[1]).dot(np.array(x[1]).flatten("F"))) +K
    return J, K 
 
 def GetL(logging, dim, mass, F):
@@ -513,8 +515,6 @@ def GetL(logging, dim, mass, F):
       if logging[0]<2:
          logging[1].write("Frequencies (cm-1)\n"+\
                repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(Lmass[i])+"\n")
-   for j in range(0,dim):
-      M[j,j]=mass[j//3]*mass[j//3]
    return f, L, Lmass
 
 def gradientHR(logging, initial, final, opt, HRthresh):
