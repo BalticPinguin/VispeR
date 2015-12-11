@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # filename: functions_smsc.py
 import numpy as np
+from scipy.linalg.lapack import dsyev
 import re, mmap, os.path, math, sys
+#include [[readLogs.py]]
 import readLogs as rl
 #for python-3 compatibility
 from io import open 
@@ -251,12 +253,7 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
             except IndexError:
                logging[1].write("truncated spectrum for mode nr. %d"%(a))
                break
-
-        #    y=tmp*FC00
-        #    x=(sgnE*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
-        #    if FC[a][j*M+i-1]>0.1:
-        #       print FC[a][j*M+i-1],y, x, a,i,j
-   FC00*=npexp(-E0/T)
+   FC00*=npexp(-E0/T) # rescale 0-0 transition due to thermal population
    spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
    return spect
 
@@ -375,8 +372,9 @@ def CalculationHR(logging, initial, final, opt, HRthresh):
    
    #calculate HR-spect
    HR, funi= HuangR(logging, K, f, HRthresh)
+   print opt
    if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-      rl.replace(logging, initial, f[0], Lmassw[0])
+      rl.replace(logging, "S0.log", f[0], Lmassw[0])
    #Hartree2cm_1=219474.63 
    return HR, funi, Energy, J, K, f
 
@@ -407,11 +405,10 @@ def Duschinsky(logging, L, mass, dim, x):
 
    for i in range(dim):
       M[i][i]=mass[i//3] #square root of inverse masses
-      #Jtemp=np.dot(L[0].T, np.linalg.pinv(L[i+1].T)) 
    #J=np.dot(L[0].T, L[1])  # for Lsorted
    J=np.linalg.pinv(L[0]).dot(L[1]) # for Lmassw
-   #print L[0].T.dot(M).dot(M).dot(L[0])
 
+   #print "J\n", J
    DeltaX=np.array(x[1]-x[0]).flatten('F')  # need initial - final here.
    if logging[0] <1:
       logging[1].write('changes of Cartesian coordinates:\n'\
@@ -419,19 +416,14 @@ def Duschinsky(logging, L, mass, dim, x):
  #  K=(DeltaX.dot(M)).dot(L[0])
  #  print K
    #K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted
-   #K=np.linalg.pinv(L[0]).dot(DeltaX)  # w p Lmassw
+   K=np.linalg.pinv(L[0]).dot(DeltaX)  # w p Lmassw
    #print K
    #K=L[0].T.dot(M).dot(M).dot(DeltaX)  # with Lmassw
-   #print K
-   #print L[0].T.dot(M).dot(M)-np.linalg.pinv(L[0])
 
-   ## test properties of pinv: --> seem to be valid expressions as one would expect.
-   #print  L[0].dot(np.linalg.pinv(L[0])).dot(L[0])-L[0]
-   #print np.linalg.pinv(L[0]).dot(L[0]).dot(np.linalg.pinv(L[0]))-np.linalg.pinv(L[0])
-   #print np.linalg.pinv(L[0])-(np.linalg.inv(L[0].T.dot(L[0]))).dot(L[0].T)
-   #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
+   K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason  --> want to get rid of this!!!
 
    if logging[0]<2:
+      # print the Duschinsky matrix in a nice format
       logging[1].write('Duschinsky rotation matrix:\n')
       k=range(0,dim-6)
       s=0
@@ -451,8 +443,7 @@ def Duschinsky(logging, L, mass, dim, x):
 
       for j in range(len(K)):
          logging[1].write("  %d    %e\n"%(j+1, K[j]))
-      #logging[1].write('\nDuschinsky displacement vector:\n'+ repr(K[i])+'\n')
-      # for debugging: Check that q'=Jq+K as requested (q': normal modes of initial state)
+    # for debugging: Check that q'=Jq+K as requested (q': normal modes of initial state)
     #  print "Zero:"
     #  print np.linalg.pinv(L[0]).dot(np.array(x[0]).flatten("F")) - J.dot(np.linalg.pinv(L[1]).dot(np.array(x[1]).flatten("F"))) +K
    return J, K 
@@ -482,14 +473,128 @@ def GetL(logging, dim, mass, F):
    L=np.zeros(( len(F), lenF, lenF-6 )) 
    Lmass=np.zeros(( len(F), lenF, lenF-6 ))
    f=np.zeros(( len(F), lenF-6 ))
+   
+   def SortL0(J,L,f):
+      np.set_printoptions(threshold=np.nan,linewidth=200)
+      print "J\n", J
+      resort=np.zeros(np.shape(J))
+      roundJ=np.abs(np.around(J)) # don't correct for sign-flips
+     # for i in range(len(J)):
+     #    j=np.argmax(J[i])
+     #    k=np.argmin(J[i])
+     #    if J[i][j]>-J[i][k]:
+     #       resort[i][j]=1
+     #    else:
+     #       resort[i][k]=-1
+      for i in range(len(J)):
+         print i,'\n', roundJ
+         if np.sum(roundJ[i])==0: # there is no large element in the row...
+            # insert an element such that it does not coincide with elements from before...
+            gotit=False
+            index=range(len(J))
+            while not gotit:
+               j=np.argmax(np.abs(J[i][index]))
+               gotit=True
+               for k in range(i):
+                  if np.sum(roundJ[i]*roundJ[k])>0: # i.e. there was a 1 before
+                     index.delete(k)
+                     gotit=False
+                     continue # try next element
+            #I found a working index
+            assert delete!=[], "This is a nasty matrix. Your system has a very bad configuration and I have no clue how to solve it!"
+            roundJ[i][index[0]]=1 # set the missing element
+
+         elif np.sum(roundJ[i])>=2: # there are multiple large elements in the row... 
+            # remove all except the largest one
+            index=np.where(roundJ[i]==1)
+            print index
+            j=np.argmax(np.abs(J[i][index]))
+            roundJ[i,index]=0
+            roundJ[i,j]=1
+         #if np.sum(roundJ[i])==1:  -> this is always true now.
+         assert np.sum(roundJ[i])==1, "dumb Hubert. Don't do such stupid things!"
+         #else: # there is exactly one element in the row
+         j=np.argmax(roundJ[i]) # J(i,j) is one.
+         index=np.where(roundJ[:,j]==1)
+         if len(index)==1: # everything is fine
+            continue
+         else: # there are several elements with j-th line being 1
+            #get the largest elemnt in this line
+            print "index:" , index
+            k=np.argmax(np.abs(J[index,j]))
+            roundJ[index,j]=0
+            roundJ[k,j]=1
+            if k>i: # I deleted the row I am looking at
+               # insert an element such that it does not conflict with those inserted before
+               gotit=False
+               index=range(len(J))
+               while not gotit:
+                  l=np.argmax(np.abs(J[index,j]))
+                  gotit=True
+                  for k in range(i):
+                     if np.sum(roundJ[i]*roundJ[k])>0: # i.e. there was a 1 before
+                        index.delete(k)
+                        gotit=False
+                        continue # try next element
+            if k<i:
+               assert 1==0, "I made a mistake. This should never be true."
+
+      resort=roundJ      
+      #print "{0}".format(resort)
+      invresort=np.linalg.inv(resort)
+      #print "J\n", invresort.dot(J).dot(resort)
+      return np.abs(resort.dot(f[1])), invresort.dot(L[1]).dot(resort)
+   
+   def SortL(J,L,f):
+      resort=np.zeros(np.shape(J))
+      #chose largest elements in lines
+      for i in range(len(J)):
+         j=np.argmax(J[i])
+         k=np.argmin(J[i])
+         if J[i][j]>-J[i][k]:
+            resort[i][j]=1
+         else:
+            resort[i][k]=1
+      #now, go through rows and check if they are ok:
+      resort=resort.T
+      Nos=[]
+      freePlaces=[]
+      for i in range(len(J)):
+         if sum(resort[i])==1:
+            continue
+         elif sum(resort[i])==0:
+            Nos.append(i)
+         else:
+            index=np.where(resort[i]==1)
+            x=np.argmax(np.abs(J[index,i]))
+            #index.delete(np.where(index==x)) # does it work the way I want it to work?
+            index=np.delete(index,x) # does it work the way I want it to work?
+            resort[i][index]=0 #only x remains
+            freePlaces=np.append(freePlaces,index)
+      #print "resortJ\n",resort
+      assert len(Nos)==len(freePlaces), "dodododo!"
+      freePlaces=np.array(freePlaces,dtype=int)
+      #fill remaining lines.
+      for i in range(len(Nos)):
+            x=np.argmax(np.abs(J[freePlaces,Nos[i]]))
+            resort[freePlaces[x],Nos[i]]=1 #only x remains
+            freePlaces=np.delete(freePlaces,x) # does it work the way I want it to work?
+      #print freePlaces
+      assert len(freePlaces)==0, "the matrix is not readily processed."
+      resort=resort.T
+      #print "{0}".format(resort)
+      #print "resortJ\n",resort
+      invresort=np.linalg.inv(resort)
+      #print "J\n", invresort.dot(J).dot(resort)
+      return invresort.dot(f), L.dot(invresort)
 
    for i in range(len(F)):
       # here one can choose between the methods: result is more or less 
       #  independent
       #ftemp,Ltemp=np.linalg.eig(F[i])
-      ftemp,Ltemp=np.linalg.eigh(F[i])
-      #ftemp,Ltemp,info=dsyev(F[i]) #this seems to be the best function
-
+      #ftemp,Ltemp=np.linalg.eigh(F[i])
+      ftemp,Ltemp,info=dsyev(F[i]) #this seems to be the best function
+      
       index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
       f[i]=np.real(ftemp[index]).T[:].T[6:].T
       L[i]=(Ltemp.T[index].T)[:].T[6:].T
@@ -502,19 +607,24 @@ def GetL(logging, dim, mass, F):
                  ' values are used in the following.\n{0}\n'.format(f[i]))
          f[i]=np.abs(f[i])
       M=np.eye(dim)
-      for j in range(0,dim):
+      for j in range(dim):
          M[j,j]/=mass[j//3]
       Lmass[i]=M.dot(L[i])
-      #renormalise
-
-   #   for j in range(0,dim-6):
-   #      norm=np.sum(Lmass[i].T[j]*Lmass[i].T[j])
-   #      if np.abs(norm)>1e-12:
-   #         Lmass[i].T[j]/=np.sqrt(norm)
-      # this than is consistent with the nwchem-output.
       if logging[0]<2:
          logging[1].write("Frequencies (cm-1)\n"+\
                repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(Lmass[i])+"\n")
+   #print "unity\n", L[0].T.dot(L[0]), "\n", np.linalg.norm(L[0].T.dot(L[0]))
+   #print "unity\n", L[1].T.dot(L[1]), "\n", np.linalg.norm(L[1].T.dot(L[1]))
+   # now, resort according to eigenmodes ( not to increasing frequency)
+   #   for j in range(0,dim-6):
+   #      norm=np.sum(Lmass[i].T[j]*Lmass[i].T[j])
+   #      Lmass[i].T[j]/=np.sqrt(norm)
+      # this than is consistent with the nwchem-output.
+   np.set_printoptions(threshold=np.nan,linewidth=200, suppress=True)
+   #print "L_1\n",L[1]
+   f[1],L[1]=SortL(np.linalg.pinv(L[0]).dot(L[1]),L[1],f[1])
+   #print "L_1\n",L[1]
+   print "J:\n", np.linalg.pinv(L[0]).dot(L[1])
    return f, L, Lmass
 
 def gradientHR(logging, initial, final, opt, HRthresh):
@@ -727,7 +837,7 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
    uniFall=[]
    #print K
    for j in range(lenK):
-      HR[j]=K[j]*K[j]*f[0][j]*.5 # /2pi
+      HR[j]=K[j]*K[j]*f[0][j]*.5 
    index=np.argsort(HR, kind='heapsort')
    sortHR=HR[index]
    fsort0=f[0][index]
@@ -757,8 +867,12 @@ def HuangR(logging, K, f, HRthresh): #what is with different frequencies???
          uniF0.append(fsort0[j])
          loggingwrite(u"%f   %f   %f\n"%(sortHR[j], fsort1[j]*Hartree2cm_1, 
                                             np.sqrt(fsort1[j]/fsort0[j]) ))
+      else:
+         # there will come only smaller ones.
+         break
    uniHRall.append(uniHR)
-   uniFall.append(uniF0) #keep order from before
+   #keep order: First one is initial, second is final state.
+   uniFall.append(uniF0)
    uniFall.append(uniF1)
    return uniHRall, uniFall
 
@@ -831,5 +945,5 @@ def ReadHR(logging, HRfile):
    freqm[1]=funi # no changing frequencies
    return initial, HRm, freqm, Energy
 
-version=1.5
+version=1.6
 # End of functions_smsc.py

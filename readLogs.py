@@ -82,12 +82,14 @@ def ReadG09(logging, fileN):
       #try to find matrix from option "Force"
       assert f!=[], 'The input-file does not contain information on the force-constants!'
       #else: error message. The matrix is really needed...
-      f_str=str([f[-1]])#[2:-2]
+      f_str=str([f[-1]])#
       lines=f_str.strip().split("\\n")
+      print lines
       F=np.zeros((dim,dim))
       n=0
       k=0
       line=0
+      assert len(lines)>2, "Can't find any forces. Force constants given in unknown format."
       for i in xrange(2,len(lines)):
          if i == dim+k-5*n+2: 
             #these are those lines where no forces are written to
@@ -121,7 +123,6 @@ def ReadG09(logging, fileN):
    for i in range(0,dim):
       for j in range(0,dim):
          F[i][j]/= (mass[i//3]*mass[j//3]) 
-
    Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
    assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
    if re.search(r'\n ', Etemp[-1]) is not None:
@@ -701,5 +702,5 @@ def getNwchemLf(final, dim):
       s+=len(f2[j])
    return f, L
 
-version=0.3
+version=0.4
 # End of readLogs.py
