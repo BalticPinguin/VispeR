@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 import math, numpy as np
 from copy import deepcopy
 

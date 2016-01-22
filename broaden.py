@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # filename: broadening.py
 import numpy as np, re
 import glob # for searching files in directory
@@ -521,7 +521,7 @@ def outspect(logging, T, opt, linspect, E=0):
       if logging[0]<2:
          logging[1].write('minimal and maximal intensities:\n'+
            repr(linspect[1][minint])+' '+repr(linspect[1][-1])+"\n")
-
+   
    #important for later loops: avoiding '.'s speeds python-codes up!!
    logwrite=logging[1].write  
    #make nPA from OPA:
@@ -538,15 +538,16 @@ def outspect(logging, T, opt, linspect, E=0):
          TPAi=TPAi[index] #resort by intensity
          TPAf=TPAf[index]
          minint=0
-         for i in range(len(TPAi)):
+         # save time: look only on every second value. Could be reduced to log(n) here...
+         for i in range(1,len(index),2):
             if TPAi[i]>=0.0001*TPAi[-1]:
                minint=i
                break
-         if logging[0]<3:
-            logging[1].write('for TPA: again neglect '+repr(minint)+
-                     ' transitions, use only '+repr(len(TPAi)-minint)+" instead.\n")
          TPAintens=TPAi[minint:]
          TPAfreq=TPAf[minint:]
+         if logging[0]<3:
+            logging[1].write('for TPA: again neglect '+repr(minint)+
+                     ' transitions, use only '+repr(len(TPAi)-minint-1)+" instead.\n")
       elif n[0]=='3':
          ind=linspect[2].argmin()
          TPAfreq, TPAintens=OPA23PA(logwrite, linspect[0][minint:],
@@ -560,28 +561,21 @@ def outspect(logging, T, opt, linspect, E=0):
             if TPAintens[i]>=0.0001*TPAintens[-1]:
                minint=i
                break
+         TPAintens=TPAintens[minint:] #resort by intensity
+         TPAfreq=TPAfreq[minint:]
          if logging[0]<3:
             logging[1].write('for 3PA: again neglect '+repr(minint)+
                      ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.\n")
-         TPAintens=TPAintens[minint:] #resort by intensity
-         TPAfreq=TPAfreq[minint:]
-      elif n[0]==1:
+      else:
+         if n[0]!='1':
+            # there should be only 1,2 or 3 given!
+            logging[1].write("to <n>PA was given but not recognised.\n")
          TPAfreq=linspect[0][minint:]
          TPAintens=linspect[1][minint:]
          if stick:
             logwrite=logging[1].write
             logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION "+
                                           "\n intensity   frequency\n")
-            for k in range(len(TPAfreq)):
-               logwrite(u" %s  %s\n" %(TPAintens[k], TPAfreq[k]))
-      else:
-         TPAfreq=linspect[0][minint:]
-         TPAintens=linspect[1][minint:]
-         logging[1].write("to <n>PA was given but not recognised.\n")
-         if stick:
-            logwrite=logging[1].write
-            logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION"+
-                              " \n intensity   frequency\n")
             for k in range(len(TPAfreq)):
                logwrite(u" %s  %s\n" %(TPAintens[k], TPAfreq[k]))
    else:
@@ -631,7 +625,7 @@ def outspect(logging, T, opt, linspect, E=0):
                break
          if logging[0]<3:
             logging[1].write('for {0}PA: again neglect {1} \n'.format(n, minint)+
-                     ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.\n")
+                     ' transitions, use only '+repr(len(TPAintens)-minint-1)+" instead.\n")
          TPAintens=TPAintens[minint:] #resort by intensity
          TPAfreq=TPAfreq[minint:]
 
@@ -670,7 +664,6 @@ def outspect(logging, T, opt, linspect, E=0):
    else:
       out = open(spectfile, "w")
 
-   spect=np.zeros(len(omega))
    if spectfile==None: #that means spectrum is printed into log-file
       logwrite("broadened spectrum:\n frequency      intensity\n")
    outwrite=out.write
@@ -685,6 +678,7 @@ def outspect(logging, T, opt, linspect, E=0):
    if shape=='g':
       sigmasigma=2.*sigma*sigma # these two lines are to avoid multiple calculations of the same
       npexp=np.exp
+      intens/=sigma # scale all transitions according to their width.
       for i in xrange(len(omega)): 
          omegai=omega[i]
          for j in range(maxi,lenfreq):
@@ -696,9 +690,10 @@ def outspect(logging, T, opt, linspect, E=0):
                # else it becomes -1 and hence the spectrum is wrong
                mini=max(j-1,0) 
                break
+         spect=0
          for k in range(mini,maxi+1):
-            spect[i]+=intens[k]*npexp(-(omegai-freq[k])*(omegai-freq[k])/(sigmasigma))
-         outwrite(u" %f  %e\n" %(omegai, spect[i]))
+            spect+=intens[k]*npexp(-(omegai-freq[k])*(omegai-freq[k])/(sigmasigma))
+         outwrite(u" %f  %e\n" %(omegai, spect))
    else:  #shape=='l':
       gammagamma=gamma*gamma
       for i in xrange(len(omega)): 
@@ -712,11 +707,11 @@ def outspect(logging, T, opt, linspect, E=0):
                # else it becomes -1 and hence the spectrum is wrong
                mini=max(j-1,0) 
                break
-      for i in xrange(len(omega)): 
          omegai=omega[i]
+         spect=0
          for k in range(mini,maxi+1):
-            spect[i]+=intens[k]*gamma/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
-         outwrite(u" %f   %e\n" %(omegai, spect[i]))
+            spect+=intens[k]*gamma/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
+         outwrite(u" %f   %e\n" %(omegai, spect))
    if spectfile!=None:
       #only close file if it was opened here
       out.close()

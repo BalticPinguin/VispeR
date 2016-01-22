@@ -1,4 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python2
+# filename: smallscript.py
+
 #include [[functions_smsc.py]]
 import functions_smsc as of 
 #include [[OPA.py]]
@@ -49,23 +51,24 @@ def invokeLogging(logfile, mode="important"):
       log.write("logging-mode not recognized. Using 'important' instead\n")
    return logging, log
 
-def main(argv=None):
-   assert len(argv)==1, 'exactly one argument required.'
-   #open input-file (if existent and readable) and map it to f
-   try:
-      infile=open(argv[0], "r")
-      f=mmap.mmap(infile.fileno(), 0, prot=mmap.PROT_READ)
-      infile.close()
-   except IOError:
-      print "file", inputf, "not found."
-      usage()
-      return 2
-   #opts is an array containing all options of respective sub-tasks, which are 
-   # evaluated in the respective part
+def getTasks(f):
+   """
+   This function extracts the tasks together with all their options from the input-file.
+   Additional text (that doesn't match the regexes) is simply ignored. 
+   Therefore, be careful with typos.
+
+   **PARAMETERS**
+   f      the input-file (already opened)
+
+   **RETURNS**
+   opts   array containing all options of respective sub-tasks, which are 
+          evaluated in the respective part
+   todo   specifies the sub-tasks to be done in numeral values (powers of 2).
+   """
    opts=[]
-   # todo specifies the sub-tasks to be done in numeral values (powers of 2).
    todo=0
    # here: evaluate the file with respect to the tasks to be done
+   # START PARSING TASKS
    if (re.search(r"HR-fact",f, re.I) is not None) is True:
       todo+=1
    opts.append(re.findall(r"(?<=HR-fact)[\w.,\(\) \=;:-]+", f, re.I))
@@ -86,17 +89,46 @@ def main(argv=None):
        ((re.search(r"broaden",f, re.I) is not None) is True):
       todo+=8
    opts.append(re.findall(r"(?<=Broadening)[\w\d\.,:\(\)\=; -]+",f,re.I))
-   #error: This should never be true but due to unconvenient option-combinations it may be
+   # END PARSING TASKS
+   
+   # check, if the combination of input-arguments makes sense. This check is mainly for 
+   # debugging purpose. There should be no invalid combination!
    if todo>=16 or todo in [0,4,6,9]: 
       print "options for calculation don't make sense. Please check the input-file!"
       print opts
-      return 0
-   #invoke logging (write results into file specified by 'out: ' or into 'calculation.log'
+   return opts, todo
+
+def main(argv=None):
+   """ This is the main-function of smallscript. 
+       Its input-argument is the file containing all options. Here, it is evaluated
+       wrt. the main tasks. 
+   """
+   #INTRODUCTION START
+   assert len(argv)==1, 'exactly one argument required.'
+   #open input-file (if existent and readable) and map it to f
+   
+   # try to open the input-file. If it doesn't exist or one is not alowed to open it,
+   # print a usage-information and quit calculation.
+   try:
+      infile=open(argv[0], "r")
+      f=mmap.mmap(infile.fileno(), 0, prot=mmap.PROT_READ)
+      infile.close()
+   except IOError:
+      print "file", inputf, "not found."
+      usage()
+      return 2
+
+   #If the input-file exists, get tasks and their options:
+   opts, todo=getTasks(f)
+
+   #invoke logging (write results into file specified by 'out: ' or into 'calculation.log')
    logfile=re.findall(r"(?<=out: )[\.\-_ \w]+",f, re.I)
    if logfile==[]:
       log=open("calculation.log", "a")
    else:
       log=open(logfile[0], "a")
+   
+   # now,  write the header to the output-file.
    log.write("\n==================================================================\n"
              "===================  output of smallscript  ======================\n"
              "==================================================================\n\n")
@@ -105,7 +137,9 @@ def main(argv=None):
    log.write(" \n   END OF INPUT-FILE \n\n")
    log.write("calculations to be done: %s\n"%(todo))
    log.close()
+   #INTRODUCTION END
    
+   # TASK EXECUTION START
    if np.mod(todo,2)==1: 
       #calculation of HR-facts needed (FC- or Duschinsky spect)
       #first find, where the options for this task is written
@@ -348,6 +382,7 @@ def main(argv=None):
                ' meanwile the Duschinsky-rotated spectrum is calculated using "resort".\n')
          linspect=OPA.resortFCfOPA(logging, J, K, f, Energy[0]-Energy[1], states, T, 0)
 
+   
    np.set_printoptions(suppress=True)
    if np.mod(todo,16)>=8:
       #calculate Broadening
@@ -422,15 +457,21 @@ def main(argv=None):
          br.outspect(logging, T, opt, linspect)
       except NameError:
          opt=opts[0] #do something arbitrary
-   else: #  The broadened spectrum is not calculated: print the line-spectrum!
+   # If the broadened spectrum is not calculated: print the line-spectrum
+   # to not through away the results from that calculation. The line spect. will be 
+   # written to the log-file than.
+   else: 
       logging[1].write("intensity [arb. u.]    energy [cm^-1]\n")
       for i in range(len(linspect[0])):
          logging[1].write("%3.10f    \t%3.10f\n" %(linspect[1][i],linspect[0][i]))
-      
+    # TASK EXECUTION END
+     
+   # tell about the end of the programme
    logging[1].write("end of calculation reached. Normal exit.\n")
    logging[1].close()
-   
+    
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-version=1.5
+#version=1.6.1
+# End of smallscript.py

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # filename: Btree.py
 import numpy as np 
 #contstant is important for [[Btree.pyx#extract]]

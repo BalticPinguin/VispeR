@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # filename: functions_smsc.py
 import numpy as np
 from scipy.linalg.lapack import dsyev
@@ -19,11 +19,12 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    and coinciding frequencies in both electronic states.
 
    **PARAMETERS:**
-   logging:This variable consists of two parts: logging[0] specifies the level            of print-out (which is between 0- very detailed
+   logging:This variable consists of two parts: logging[0] specifies the level
+           of print-out (which is between 0- very detailed
            and 4- only main information) and logging[1] is the file, already 
            opened, to write the information in.
    HR:     Huang-Rhys factors
-   n:      number of modes that are considered here (with biggest HR)
+   n:      number of modes that are considered here (with largest HR)
    freq:   frequencies (have to be in the same order as HR
    E:      energy difference of energy surfaces
    N,M:    are the numbers of vibrational quanta can be in the modes
@@ -39,12 +40,12 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       """Calculate Franck-Condon factors under assumption of equal frequencies 
       for only one vibrational mode
 
-      PARAMETERS:
+      *PARAMETERS:*
       Deltag: HR-factor of respective state
       N:      excitation number of initial state
       M:      excitation number of final state
 
-      RETURNS:
+      *RETURNS:*
       Franck-Condon factor of the respective transition
       """
       fact=math.factorial
@@ -57,7 +58,7 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    
    def unifSpect(intens, freqs, E, FC00):
       """ Calculation of the line spectrum respecting only shift of minima 
-      (no Duschinsky rotation) 
+      (no Duschinsky rotation, no change if frequency) 
       and assuming coinciding frequencies for initial and final state
 
       **PARAMETERS:**
@@ -65,8 +66,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       freqs:  matrix of respective energies
 
       **RETURNS**
-      a 2-dimensional array with energies of transition (1. column) and their 
-      rate (2. column)
+      a 3-dimensional array with energies of transition (1. column), their 
+      rate (2. column) and the number of changing mode.
       """
       J=len(intens[0])
       spect=np.zeros((3,len(intens)*J+1))
@@ -107,11 +108,11 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
       sgnE=1;
    for a in xrange(n):
       #print a, HR[a]
-      for j in range(N):  
+      for j in range(N):  # initial state
          if setM:
             # set M to fit best to the value at that moment.
             M=max(3,int(-1.1*HR[a]*HR[a]+6.4*HR[a]+9.))
-         for i in range(M):
+         for i in range(M):  #final states
             if i==0 and j==0:
                ##skip 0-0 transitions
                continue
@@ -420,7 +421,7 @@ def Duschinsky(logging, L, mass, dim, x):
    #print K
    #K=L[0].T.dot(M).dot(M).dot(DeltaX)  # with Lmassw
 
-   K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason  --> want to get rid of this!!!
+   #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason  --> want to get rid of this!!!
 
    if logging[0]<2:
       # print the Duschinsky matrix in a nice format
@@ -556,6 +557,7 @@ def GetL(logging, dim, mass, F):
          else:
             resort[i][k]=1
       #now, go through rows and check if they are ok:
+      #print "resortJ\n",resort
       resort=resort.T
       Nos=[]
       freePlaces=[]
@@ -567,26 +569,27 @@ def GetL(logging, dim, mass, F):
          else:
             index=np.where(resort[i]==1)
             x=np.argmax(np.abs(J[index,i]))
-            #index.delete(np.where(index==x)) # does it work the way I want it to work?
             index=np.delete(index,x) # does it work the way I want it to work?
             resort[i][index]=0 #only x remains
             freePlaces=np.append(freePlaces,index)
-      #print "resortJ\n",resort
+      #print "resortJ\n",resort.T
       assert len(Nos)==len(freePlaces), "dodododo!"
       freePlaces=np.array(freePlaces,dtype=int)
+      #print(freePlaces,"\n",Nos)
       #fill remaining lines.
       for i in range(len(Nos)):
             x=np.argmax(np.abs(J[freePlaces,Nos[i]]))
-            resort[freePlaces[x],Nos[i]]=1 #only x remains
+            resort[Nos[i],freePlaces[x]]=1 #only x remains
             freePlaces=np.delete(freePlaces,x) # does it work the way I want it to work?
       #print freePlaces
       assert len(freePlaces)==0, "the matrix is not readily processed."
       resort=resort.T
-      #print "{0}".format(resort)
       #print "resortJ\n",resort
       invresort=np.linalg.inv(resort)
+      assert np.all(invresort==resort.T), "The matrix is total bullshit!"
       #print "J\n", invresort.dot(J).dot(resort)
-      return invresort.dot(f), L.dot(invresort)
+      return f.dot(invresort), L.dot(invresort)
+      #  END OF SortL
 
    for i in range(len(F)):
       # here one can choose between the methods: result is more or less 
@@ -610,21 +613,18 @@ def GetL(logging, dim, mass, F):
       for j in range(dim):
          M[j,j]/=mass[j//3]
       Lmass[i]=M.dot(L[i])
-      if logging[0]<2:
-         logging[1].write("Frequencies (cm-1)\n"+\
-               repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(Lmass[i])+"\n")
+      #if logging[0]<2:
+       #  logging[1].write("Frequencies (cm-1)\n"+\
+        #       repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(Lmass[i])+"\n")
    #print "unity\n", L[0].T.dot(L[0]), "\n", np.linalg.norm(L[0].T.dot(L[0]))
    #print "unity\n", L[1].T.dot(L[1]), "\n", np.linalg.norm(L[1].T.dot(L[1]))
-   # now, resort according to eigenmodes ( not to increasing frequency)
-   #   for j in range(0,dim-6):
-   #      norm=np.sum(Lmass[i].T[j]*Lmass[i].T[j])
-   #      Lmass[i].T[j]/=np.sqrt(norm)
-      # this than is consistent with the nwchem-output.
-   np.set_printoptions(threshold=np.nan,linewidth=200, suppress=True)
+   np.set_printoptions(threshold=np.nan,linewidth=500, suppress=True)
    #print "L_1\n",L[1]
+   #print "test:\n", L[1].dot((np.linalg.pinv(L[0]).dot(L[1])).T)-L[0]
    f[1],L[1]=SortL(np.linalg.pinv(L[0]).dot(L[1]),L[1],f[1])
    #print "L_1\n",L[1]
-   print "J:\n", np.linalg.pinv(L[0]).dot(L[1])
+   #print "test:\n", np.linalg.pinv(L[0]).dot(L[1])
+   Lmass[1]=M.dot(L[1]) # recalculate Lmass!
    return f, L, Lmass
 
 def gradientHR(logging, initial, final, opt, HRthresh):
@@ -945,5 +945,5 @@ def ReadHR(logging, HRfile):
    freqm[1]=funi # no changing frequencies
    return initial, HRm, freqm, Energy
 
-version=1.6
+#version=1.6.1
 # End of functions_smsc.py

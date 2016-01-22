@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # filename: readLogs.py
 import numpy as np
 import re, mmap
@@ -530,8 +530,10 @@ def ReadGAMESS2(logging, final):
    return grad, E
 
 def getGamessLf(final, dim):
-   files=open(final[0], "r") #open file and map it for better working
-   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
+   #open file and map it for better working
+   files=open(final[0], "r") 
+   # i-th file containing freq calculations
+   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) 
    files.close
    b=0
    L=np.zeros((dim, dim-6))
@@ -586,8 +588,7 @@ def ReadNWChem(logging, fileN):
    log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
    files.close
 
-   # Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
-     #atom    #        X              Y              Z            mass
+   # Determine atomic masses in a.u. Note mass contains sqrt of mass!
    WeightCoord=re.findall(r"(?<=atom    #        X              Y              Z            mass\n)[\d\w\-\+ \.\n]+", log)
    mtemp=re.findall(r"[ -]\d\.[\dD\.\+\-]+(?=\n)", WeightCoord[-1]) #only weights remain
    dim=3*len(mtemp)
@@ -595,10 +596,11 @@ def ReadNWChem(logging, fileN):
    mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
    for j in range(len(mtemp)):
       mass[j]=np.sqrt(float(mtemp[j].replace('D','e'))*AMU2au) #mass[j] is square-root of masses
-   assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
+   assert not np.any(mass==0) , "some atomic masses are 0. Please check the input-file! {0}".format(mass)
    if logging[0]<2:
       logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                        "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
+                       "modes: {1} \n Sqrt of masses in a.u. as read "
+                       "from log file\n{2}\n".format(dim/3,dim,mass))
    
    # Reading Cartesian coordinates
    tmp=re.findall(r'[ -]\d\.[\dD\.\+\-]+', WeightCoord[-1])
@@ -647,8 +649,9 @@ def ReadNWChem2(logging, final):
    """ This function reads the required quantities from the NWChem-files
 
    **PARAMETERS**
-   logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                and 4- only main information) and logging[1] is the file, already opened, to write the information in.
+   logging:     This variable consists of two parts: logging[0] specifies the level of 
+                print-out (which is between 0- very detailed and 4- only main information) 
+                and logging[1] is the file, already opened, to write the information in.
    final:       specifies the name of the g09-file
 
    **RETURNS**
@@ -671,8 +674,10 @@ def ReadNWChem2(logging, final):
    return grad, E
 
 def getNwchemLf(final, dim):
-   files=open(final[0], "r") #open file and map it for better working
-   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) # i-th file containing freq calculations
+   #open file and map it for better working
+   files=open(final[0], "r") 
+   # i-th file containing freq calculations
+   mapedlog=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ) 
    files.close
    b=0
    L=np.zeros((dim, dim-6))
@@ -702,5 +707,5 @@ def getNwchemLf(final, dim):
       s+=len(f2[j])
    return f, L
 
-version=0.4
+version=0.5
 # End of readLogs.py

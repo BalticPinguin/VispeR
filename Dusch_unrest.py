@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # filename: Dusch_unrest.pyx
 import numpy as np
 import math
