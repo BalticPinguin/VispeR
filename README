@@ -39,3 +39,11 @@ a) The master-branch comprises full functionallity and uses
 b) the smallpythonscript-branch uses pure python (including numpy) 
    and does not have the Duschinsky-rotated spectra as options 
    (which don't work at the moment ).
+
+
+
+   ============================================
+       SMALL SCRIPT IS GOING TO CLASS NOW
+
+That means, in this branch I will change the internal structure and add some class-objects,
+hoping to make the code more readable and easier to maintain.
