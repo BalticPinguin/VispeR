@@ -97,9 +97,8 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
    uency=np.zeros((n,M*N-1)) #frequency
    #calculate 0->0 transition
    FC00=1.00
-   #print 0,0,0, 10
-   uency00=E*Hartree2cm_1 #zero-zero transition
    loggingwrite=logging[1].write #avoid dots!
+   print E
    npexp=np.exp #avoiding dots accelerates python quite a lot
    #here a goes over all modes
    sgnE=np.sign(E)
@@ -119,12 +118,12 @@ def calcspect(logging, HR, freq, E, E0, N, M, T):
             tmp=FCeqf(HR[a], i, j)
             try:
                FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[a]*j)/T)
-               uency[a][j*M+i-1]=(E+sgnE*freq[a]*(j-i))*Hartree2cm_1
+               uency[a][j*M+i-1]=(sgnE*E+sgnE*freq[a]*(j-i))*Hartree2cm_1
             except IndexError:
                logging[1].write("truncated spectrum for mode nr. %d"%(a))
                break
    FC00*=npexp(-E0/T)
-   spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
+   spect=unifSpect(FC, uency, sgnE*E*Hartree2cm_1, FC00)
    return spect
 
 def changespect(logging, HR, freq, E, E0, N, M, T):
@@ -223,8 +222,6 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
    #if setM: the size of these arrays will be overestimated.
    #calculate 0->0 transition
    FC00=1
-   #print 0,0,0, 10
-   uency00=E*Hartree2cm_1 #zero-zero transition
    loggingwrite=logging[1].write #avoid dots!
    npexp=np.exp                  #to accelerates python quite a lot
    FC=np.zeros((n,M*N))
@@ -237,7 +234,6 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
       if setM:
          # set M to fit best to the value at that moment.
          M=max(3,int(-1.1*HR[a]*HR[a]+6.4*HR[a]+9.))
-      #print a, HR[a]
       R=FCchf(HR[a],N,M,[freq[0][a], freq[1][a]])
       for j in range(N): 
          for i in range(M):
@@ -245,17 +241,14 @@ def changespect(logging, HR, freq, E, E0, N, M, T):
                ##skip 0-0 transitions
                continue
             tmp=R[i][j]*R[i][j]
-          #  if tmp*npexp(-(E0+freq[0][a]*j)/T)>0.01:
-          #     print a,i,j, tmp*npexp(-(E0+freq[0][a]*j)/T),\
-          #           (freq[0][a]*j-freq[1][a]*i)*Hartree2cm_1
             try:
                FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
-               uency[a][j*M+i-1]=(E+sgnE*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
+               uency[a][j*M+i-1]=(sgnE*E+sgnE*(freq[0][a]*j-freq[1][a]*i))*Hartree2cm_1
             except IndexError:
                logging[1].write("truncated spectrum for mode nr. %d"%(a))
                break
    FC00*=npexp(-E0/T) # rescale 0-0 transition due to thermal population
-   spect=unifSpect(FC, uency, E*Hartree2cm_1, FC00)
+   spect=unifSpect(FC, uency, sgnE*E*Hartree2cm_1, FC00)
    return spect
 
 def CalculationHR(logging, initial, final, opt, HRthresh):

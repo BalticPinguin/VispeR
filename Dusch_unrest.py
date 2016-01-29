@@ -95,7 +95,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
       #linespect=np.array(Tree.extract())
       #this is done using implicit side effects
       lines.append(1.0)
-      freqs.append((E)*Hartree2cm_1)
+      freqs.append((np.sign(E)*E)*Hartree2cm_1)
       initF.append(0) #needed for boltzmann-weighing
       return Tree
    
@@ -131,7 +131,7 @@ def FCf(logging, J, K, f, Energy, N, T, E0):
          *RETURNS;*
          frequency of respective transition
          """
-         return (E+sum(Gammap-Gamma))*Hartree2cm_1 
+         return (np.sign(E)*E+sum(Gammap-Gamma))*Hartree2cm_1 
    
       def FirstNonzero(n): 
          """Find first non-zero elements in first and second half of array n """

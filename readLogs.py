@@ -6,6 +6,7 @@ AMU2au=1822.88839
 Angs2Bohr=1/0.52917721092                                  
 Hartree2GHz=6.579684e6                                     
 Hartree2cm_1=219474.63 
+ev2Hartree = 0.0367493081366
 
 def ReadG09(logging, fileN):
    """ This function reads the required quantities from the gaussian-files
@@ -123,13 +124,11 @@ def ReadG09(logging, fileN):
    for i in range(0,dim):
       for j in range(0,dim):
          F[i][j]/= (mass[i//3]*mass[j//3]) 
-   Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
-   assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-   if re.search(r'\n ', Etemp[-1]) is not None:
-      Etemp[-1]=Etemp[-1].replace("\n ", "") 
-   if logging[0]<=1:
-      logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
-   E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
+   Etemp=re.findall(r"(?<=Root      1 :)[\d .]+", log, re.M)
+   if Etemp==[]:
+      E=0
+   else:
+      E=float(Etemp[-1])*ev2Hartree
    return dim, Coord, mass, F, E
 
 def ReadG092(logging, final):

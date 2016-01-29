@@ -119,53 +119,55 @@ def OPA2nPA(logwrite, OPAfreq,freq00, OPAintens, intens00, mode, n, stick):
       
       for i in xrange(len(intens)):
          intensi=intens[i]
-         if intensi>5e-6: # only use this if the intensity is reasonably high
-            newintens.append(intensi) #this is OPA-part
-            freqi=freq[i]
-            newfreq.append(freqi)
+         if intensi<5e-6: # only use this if the intensity is reasonably high
+            continue
+         newintens.append(intensi) #this is OPA-part
+         freqi=freq[i]
+         newfreq.append(freqi)
 
-            if n<=1:
-               continue 
-               #this saves creating new objects and running through loops without having results
-            tmpintens=[]
-            tmpfreq=[]
-            newmode=[]
-            nwemode=[]
-            for k in range(len(oldmode[0])): # go through whole range of states ...
-               tempmode=oldmode[:].T[k]
-               if tempmode==[0]:
-                  # that means, if mode[:].T[k] contains 0-0 transition
-                  continue
-               tmpmode=mode[:].T[i]
-               if tmpmode==[]:
-                  continue
-               if not allnonzero(tmpmode):
-                  continue
-               if tempmode<=np.max(tmpmode):
-                  #avoid for multiple changes in one mode (=)
-                  # and for double counts of equal transitions (<)
-                  continue
-               foo=newmode # don't touch this black magic; it's working!!
-               foo.append(tmpmode) # don't touch this black magic; it's working!!
-               newmode=foo # don't touch this black magic; it's working!!
-               nwemode.append(tempmode)
-               tmpintens.append(OPAintens[k]*intensi)
-               tmpfreq.append(OPAfreq[k]+freqi)
-            if len(tmpintens)>0:
-               xmode=newmode
-               if np.shape(xmode)[1]>=2:
-                  xmode=np.matrix(xmode).T
-                  nmode=np.zeros(( len(xmode)+1, len(xmode.T) ))
-                  nmode[:-1]=xmode
-                  nmode[-1]=nwemode
-               else:
-                  nmode=np.zeros(( 2 , len(xmode) ))
-                  nmode[0]=xmode
-                  nmode[1]=nwemode
-               freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode)
-               for k in range(len(intens2)):
-                  newintens.append(intens2[k])
-                  newfreq.append(freq2[k])
+         if n<=1:
+            continue 
+            #this saves creating new objects and running through loops without having results
+         tmpintens=[]
+         tmpfreq=[]
+         newmode=[]
+         nwemode=[]
+         # here a parallelisation can be done. Just need some library for that.
+         for k in range(len(oldmode[0])): # go through whole range of states ...
+            tempmode=oldmode[:].T[k]
+            if tempmode==[0]:
+               # that means, if mode[:].T[k] contains 0-0 transition
+               continue
+            tmpmode=mode[:].T[i]
+            if tmpmode==[]:
+               continue
+            if not allnonzero(tmpmode):
+               continue
+            if tempmode<=np.max(tmpmode):
+               #avoid for multiple changes in one mode (=)
+               # and for double counts of equal transitions (<)
+               continue
+            foo=newmode # don't touch this black magic; it's working!!
+            foo.append(tmpmode) # don't touch this black magic; it's working!!
+            newmode=foo # don't touch this black magic; it's working!!
+            nwemode.append(tempmode)
+            tmpintens.append(OPAintens[k]*intensi)
+            tmpfreq.append(OPAfreq[k]+freqi)
+         if len(tmpintens)>0:
+            xmode=newmode
+            if np.shape(xmode)[1]>=2:
+               xmode=np.matrix(xmode).T
+               nmode=np.zeros(( len(xmode)+1, len(xmode.T) ))
+               nmode[:-1]=xmode
+               nmode[-1]=nwemode
+            else:
+               nmode=np.zeros(( 2 , len(xmode) ))
+               nmode[0]=xmode
+               nmode[1]=nwemode
+            freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode)
+            for k in range(len(intens2)):
+               newintens.append(intens2[k])
+               newfreq.append(freq2[k])
       return np.array(newfreq), np.array(newintens)
         
    length=len(OPAfreq)
