@@ -1,14 +1,11 @@
 #!/usr/bin/python2
 # filename: smallscript.py
 
-#include [[functions_smsc.py]]
-import functions_smsc as of 
-#include [[OPA.py]]
-import OPA
-#include [[Dusch_unrest.py]]
-import Dusch_unrest as DR
-#include [[broaden.py]]
-import broaden as br
+#include [[Spect.py]]
+import Spect
+#include [[FC_spects.py]]
+import FC_spects as FC
+
 #include further dicts
 import sys, re, mmap, numpy as np
 import time
@@ -16,7 +13,7 @@ import time
 def usage():
    print "usage: smallscript <input-file>"
 
-def getTasks(f):
+def oldgetTasks(f):
    """
    This function extracts the tasks together with all their options from the input-file.
    Additional text (that doesn't match the regexes) is simply ignored. 
@@ -63,6 +60,15 @@ def getTasks(f):
       print opts
    return opts, todo
 
+def getTasks(f):
+   if (re.search(r"model",f, re.I) is not None) is True:
+      model = re.findall(r"(?<=model )[\w]+", f, re.I)[-1]
+   else:
+     print "You must specify a model to be used."
+   if model in ['FC', 'fc', 'Fc']:
+       model = "FC"
+   return model
+
 def main(argv=None):
    """ This is the main-function of smallscript. 
        Its input-argument is the file containing all options. Here, it is evaluated
@@ -84,26 +90,35 @@ def main(argv=None):
       return 2
 
    #If the input-file exists, get tasks and their options:
-   opts, todo=getTasks(f)
+   model =getTasks(f)
 
    #look, what kind of spectrum is to be obtained and initialise 
  
- # an object of respective class.
-   if (re.search(r"model",f, re.I) is not None) is True:
-      model = re.findall(r"model", f, re.I)[-1]
-      if model == "FC":
-         spect = FC-spect.init(f)
-      if model == "CFC":
-         spect = CFC-spect.init(f)
-      if model == "GFC":
-         spect = GFC-spect.init(f)
-      if model == "HRs":
-         spect = HR-spect.init(f)
-      if model == "HRf":
-         spect = HR-factors.init(f)
-      else:
-         spect = FC-spect.init(f)
+   # an object of respective class.
+   if model == "FC":
+      spect = FC.FC_spect(f)
+   elif model == "CFC":
+      spect = FC.CFC_spect(f)
+   elif model == "GFC":
+      spect = FC.GFC_spect(f)
+   elif model == "HRs":
+      spect = FC.HR_spect(f)
+   elif model == "HRf":
+      spect = FC.HR_factors(f)
+   else:
+      print "error in the model, ", model, "not known."
+      return 2
    #INTRODUCTION END
+
+   #PERFORM CALCULATION OF SPECTRA
+   states1=5
+   states2=5
+   T=300
+   T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
+   spect.calcspect(spect.HR[0], spect.funi[1], spect.Energy[0]-spect.Energy[1], 0, states1, states2, T)
+   #FINISHED PERFORM CALCULATION OF SPECTRA
+   
+   spect.outspect(T, "deineMudda", spect.spect)
    
     
 if __name__ == "__main__":

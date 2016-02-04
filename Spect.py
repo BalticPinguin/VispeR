@@ -21,10 +21,9 @@ class  Spect:
    Hartree2cm_1=219474.63 
    
    # BEGIN OF DATA-DEF.
-   Energy
-   dim
-   CartCoord
-   logging
+   Energy=[]
+   dim=0
+   CartCoord=[]
    # END OF DATA-DEF.
 
    ## BEGIN OF FUNCTION DEFINITIONS
@@ -44,7 +43,6 @@ class  Spect:
                       much, higher values mean 
                       less printing
          ==RETURNS==
-         logging:     number of respective mode
          log:         opened file to write in
          """
          if logfile==[]:
@@ -71,106 +69,11 @@ class  Spect:
             log.write("logging-mode not recognized. Using 'important' instead\n")
          return logging, log
       
-      def ReadData(self, initial, final, opt):
-          """ This function gathers most essential parts for calculation of 
-          HR-factors from g09-files. That is: read neccecary information from the  
-          g09-files and calculate HR-factors as well as the  Duschinsky-rotation 
-          matrix and the shift between minima (needed later if the option Duschinsky 
-          is specified)
-      
-          **PARAMETERS**
-          initial: name of the file containing the initial state's geometry
-          final:   name of the file containing the initial state's geometry
-          opt:     options that are given to this calculation; especially it is of 
-                   interest, whether there should be frequencies and/or normal
-                   modes to be read from the g09-files.
-          """                                                                                             
-         def quantity(self, dim):
-            """ Here some frequencies are defined; it is just for clearer code.
-            This function is called by CalculationHR.
-            
-            **PARAMETERS**
-            logging: This variable consists of two parts: logging[0] specifies the 
-                     level of print-out (which is between 0- very detailed
-                     and 4- only main information) and logging[1] is the file, already 
-                     opened, to write the information in.
-            dim      dimension of matrices/vectors
-            """
-            F=np.zeros((2, dim, dim)) 
-            self.CartCoord=np.zeros((2, 3, dim//3))
-            P=np.zeros((2, dim,dim))
-            return F, P
-
-          # if the input-files are G09-formcheck-files (recognised by ending):
-          if (( ".fchk" in final) and (".fchk" in initial))\
-                or (( ".FChk" in final) and (".FChk" in initial)): # this is also a valid ending
-             read = "G09_fchk"
-          else:
-             with open(initial, "r+b") as f: #open file as mmap
-                mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
-                for line in iter(mapping.readline, ""): #go through every line and test characteristic part
-                   if "GAMESS" in line: #if it is found: read important quantities from file
-                      read ="GAMESS"
-                      break
-                   elif "Northwest Computational Chemistry Package (NWChem)" in line:
-                      read ="NWChem"
-                      break
-                   elif "Gaussian(R)" in line:
-                      read ="G09"
-                      break
-                #  There is some error: File not recognised or an other programme was used.
-                else: 
-                   print "file type not recognised"
-          
-          #read coordinates, force constant, binding energies from log-files and 
-          # from the file, using the type of file that is known now...
-          self.dim, Coord, mass, A, self.Energy[0]=Read(initial, read)
-          F, CartCoord, P, Energy=quantity(dim) #creates respective quantities (empty)
-          if self.logging[0]==0:
-             self.logging[1].write("Dimensions: "+ str(self.dim)+ '\n Masses: '+ str(mass**2)+"\n")
-          F[0]=A
-          self.CartCoord[0]=Coord
-          dim, self.CartCoord[1], mass, self.F[1], self.Energy[1]=Read(final,read) 
-
-          if logging[0]<3:
-             logging[1].write('difference of minimum energy between states:'
-                              ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
-             if logging[0]<2:
-                logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( CartCoord[0].T/Angs2Bohr))
-                logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( CartCoord[1].T/Angs2Bohr))
-                logging[1].write('initial state: \n{0}\n'.format(F[0]))
-                logging[1].write('final state: \n {0}\n'.format(F[1]))
-      
-
-          #Calculate Frequencies and normal modes
-          f, Lsorted, Lmassw=GetL(logging, dim, mass, F)
-          J, K=Duschinsky(logging, Lmassw, mass, dim, CartCoord)
-          #J, K=Duschinsky(logging, Lsorted, mass, dim, CartCoord)
-          extra=re.findall(r"g09Vectors",opt, re.I)
-          if extra!=[]:
-             g09L=rl.getGaussianL(final, mass, dim)
-             g09f=rl.getGaussianf(final,dim)
-             #rl.replace(logging, initial[0], g09f, g09L)
-          elif re.search(r"g09Vector",opt, re.I) is not None:
-             g09L=rl.getGaussianL(final, mass, dim)
-             g09f=rl.getGaussianf(final,dim)
-             #rl.replace(logging, initial[0], g09f, g09L)
-      
-          #comparet  f, g09f  and Lsorted/Lcart with g09L --> which is which??
-          
-          #calculate HR-spect
-          HR, funi= HuangR(logging, K, f, HRthresh)
-          print opt
-          if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-             rl.replace(logging, "S0.log", f[0], Lmassw[0])
-          #Hartree2cm_1=219474.63 
-          return HR, funi, Energy, J, K, f
-    
 
       #START LOG-FILE DEFINITION     
       #invoke logging (write results into file specified by 'out: ' or into 'calculation.log')
-      logfile=re.findall(r"(?<=out:)[\.\-_ \w]+",f, re.I)[-1]
-      loglevel=re.findall(r"(?<=print:)[\w]+",opt, re.I)[-1]
+      logfile=re.findall(r"(?<=out: )[\w.,\(\) \=;:\-_]+", f, re.I)[-1]
+      loglevel=re.findall(r"(?<=print:)[\w \d]+",f, re.I)[-1]
       self.logging = invokeLogging(logfile, loglevel )
       
       # now,  write the header to the output-file.
@@ -180,37 +83,134 @@ class  Spect:
       self.logging[1].write("   INPUT-FILE:\n")
       self.logging[1].write(f)
       self.logging[1].write(" \n   END OF INPUT-FILE \n\n")
-      self.logging[1].write("calculations to be done: %s\n"%(todo))
+      #self.logging[1].write("calculations to be done: %s\n"%(todo))
       #END LOG-FILE DEFINITION     
       
-      Energy=np.matrix(0,0)
+      self.Energy=np.zeros(2)
       #START READING DATA FROM FILE
       # get files with electronic states:
       final=re.findall(r"(?<=final: )[\w.\-]+",f, re.I)
       initial=re.findall(r"(?<=initial: )[\w.\-]+",f, re.I)
       assert len(initial)==1, 'there must be one initial state'
       assert len(final)==1, 'there must be one final state'
-      initial=initial[0]
-      final=final[0]
+      self.initial=initial[0]
+      self.final=final[0]
       #check, if they are valid files and through an error if not.
-      assert os.path.isfile(initial) and os.access(initial, os.R_OK),\
+      assert os.path.isfile(self.initial) and os.access(self.initial, os.R_OK),\
                initial+' is not a valid file name or not readable.'
-      assert os.path.isfile(final) and os.access(final, os.R_OK),\
+      assert os.path.isfile(self.final) and os.access(self.final, os.R_OK),\
                final+' is not a valid file name or not readable.'
       #read options from input-file:
       opt=re.findall(r"(?<=opt:)[\w.,\(\) \=;:-]", f, re.I)
-      ReadData(initial, final, opt)
+      if opt!=[]:
+         opt=opt[-1]
+      else:
+         opt=" " 
+         #make some empty string that the search-commands don't fail in ReadData.
+      self.HR, self.funi, self.J, self.K, self.f=self.ReadData(opt)
       #END READING DATA FROM FILE
+
+   def ReadData(self, opt):
+      """ This function gathers most essential parts for calculation of 
+      HR-factors from g09-files. That is: read neccecary information from the  
+      g09-files and calculate HR-factors as well as the  Duschinsky-rotation 
+      matrix and the shift between minima (needed later if the option Duschinsky 
+      is specified)
+      
+      **PARAMETERS**
+      initial: name of the file containing the initial state's geometry
+      final:   name of the file containing the initial state's geometry
+      opt:     options that are given to this calculation; especially it is of 
+               interest, whether there should be frequencies and/or normal
+               modes to be read from the g09-files.
+      """                                                                                             
+      
+      # if the input-files are G09-formcheck-files (recognised by ending):
+      if (( ".fchk" in self.final) and (".fchk" in self.initial))\
+                  or (( ".FChk" in self.final) and (".FChk" in self.initial)): # this is also a valid ending
+         read = "G09_fchk"
+      else:
+         with open(self.initial, "r+b") as f: #open file as mmap
+            mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+            for line in iter(mapping.readline, ""): #go through every line and test characteristic part
+               if "GAMESS" in line: #if it is found: read important quantities from file
+                  read ="GAMESS"
+                  break
+               elif "Northwest Computational Chemistry Package (NWChem)" in line:
+                  read ="NWChem"
+                  break
+               elif "Gaussian(R)" in line:
+                  read ="G09"
+                  break
+            #  There is some error: File not recognised or an other programme was used.
+            else: 
+               print "file type not recognised"
+         
+      #read coordinates, force constant, binding energies from log-files and 
+      # from the file, using the type of file that is known now...
+      self.dim, Coord, mass, A, self.Energy[0]=self.Read(self.initial, read)
+      F, P=self.quantity(self.dim) #creates respective quantities (empty)
+      if self.logging[0]==0:
+         self.logging[1].write("Dimensions: "+ str(self.dim)+ '\n Masses: '+ str(mass**2)+"\n")
+      F[0]=A
+      self.dim, self.CartCoord[1], mass, F[1], self.Energy[1]=self.Read(self.final,read) 
+
+      if self.logging[0]<3:
+         self.logging[1].write('difference of minimum energy between states:'
+                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
+         if self.logging[0]<2:
+            self.logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( self.CartCoord[0].T/Angs2Bohr))
+            self.logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( self.CartCoord[1].T/Angs2Bohr))
+            self.logging[1].write('initial state: \n{0}\n'.format(F[0]))
+            self.logging[1].write('final state: \n {0}\n'.format(F[1]))
+   
+   
+      #Calculate Frequencies and normal modes
+      f, Lsorted, Lmassw=self.GetL(self.dim, mass, F)
+      J, K=self.Duschinsky(Lmassw, mass, self.dim, self.CartCoord)
+      #J, K=self.Duschinsky( Lsorted, mass, self.dim, CartCoord)
+      extra=re.findall(r"g09Vectors",opt, re.I)
+      if extra!=[]:
+         g09L=self.getGaussianL(self.final, mass, self.dim)
+         g09f=self.getGaussianf(self.final,self.dim)
+         #self.replace(logging, initial[0], g09f, g09L)
+      elif re.search(r"g09Vector",opt, re.I) is not None:
+         g09L=self.getGaussianL(self.final, mass, self.dim)
+         g09f=self.getGaussianf(self.final,self.dim)
+         #self.replace(logging, initial[0], g09f, g09L)
+   
+      #comparet  f, g09f  and Lsorted/Lcart with g09L --> which is which??
+      
+      #calculate HR-spect
+      HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",opt,re.I)
+      if HRthresh==[]:
+         HRthresh=0.015
+      else: 
+         HRthresh=float(HRthresh[-1])
+      HR, funi= self.HuangR(K, f, HRthresh)
+      print opt
+      if (re.search(r"makeLog", opt, re.I) is not None) is True:  
+         self.replace( "S0.log", f[0], Lmassw[0])
+      #Hartree2cm_1=219474.63 
+      return HR, funi, J, K, f
  
+   def quantity(self, dim):
+      """ Here some frequencies are defined; it is just for clearer code.
+      This function is called by CalculationHR.
+   
+      **PARAMETERS**
+      dim      dimension of matrices/vectors
+      """
+      F=np.zeros((2, dim, dim)) 
+      self.CartCoord=np.zeros((2, 3, dim//3))
+      P=np.zeros((2, dim,dim))
+      return F, P
+
    def GetL(self, dim, mass, F):
       """ Function that calculates the frequencies and normal modes from force 
       constant matrix with and without projection onto internal degrees of freedom
    
       **argumets**
-      logging: This variable consists of two parts: logging[0] specifies the 
-               level of print-out (which is between 0- very detailed
-               and 4- only main information) and logging[1] is the file, already 
-               opened, to write the information in.
       dim      The dimensions of force-constant matrix
       mass     square-root of masses dim/3-dimensional array
       F        force-constant matrix
@@ -359,15 +359,15 @@ class  Spect:
          for j in range(len(f[i])):
             f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
          if np.any(f[i]<0):
-            logging[1].write('imaginary frequencies occured. The absolute'
+            self.logging[1].write('imaginary frequencies occured. The absolute'
                     ' values are used in the following.\n{0}\n'.format(f[i]))
             f[i]=np.abs(f[i])
          M=np.eye(dim)
          for j in range(dim):
             M[j,j]/=mass[j//3]
          Lmass[i]=M.dot(L[i])
-         #if logging[0]<2:
-          #  logging[1].write("Frequencies (cm-1)\n"+\
+         #if self.logging[0]<2:
+          #  self.logging[1].write("Frequencies (cm-1)\n"+\
            #       repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(Lmass[i])+"\n")
       #print "unity\n", L[0].T.dot(L[0]), "\n", np.linalg.norm(L[0].T.dot(L[0]))
       #print "unity\n", L[1].T.dot(L[1]), "\n", np.linalg.norm(L[1].T.dot(L[1]))
@@ -386,10 +386,6 @@ class  Spect:
       (whose geometry is known, see x) as well as the
       Duschinsky-rotation matrix.
       **PARAMETERS:**
-      logging: This variable consists of two parts: logging[0] specifies the 
-               level of print-out (which is between 0- very detailed
-               and 4- only main information) and logging[1] is the file, already 
-               opened, to write the information in.
       L:       Matrix having mass-weighted normal modes as column-vectors,
                L[0] refers to initial state, L[1] to final one.
       mass:    array of square-roots of nuclear masses (length: N)
@@ -412,8 +408,8 @@ class  Spect:
    
       #print "J\n", J
       DeltaX=np.array(x[1]-x[0]).flatten('F')  # need initial - final here.
-      if logging[0] <1:
-         logging[1].write('changes of Cartesian coordinates:\n'\
+      if self.logging[0] <1:
+         self.logging[1].write('changes of Cartesian coordinates:\n'\
                +repr(DeltaX)+'\n')
     #  K=(DeltaX.dot(M)).dot(L[0])
     #  print K
@@ -424,34 +420,31 @@ class  Spect:
    
       #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason  --> want to get rid of this!!!
    
-      if logging[0]<2:
+      if self.logging[0]<2:
          # print the Duschinsky matrix in a nice format
-         logging[1].write('Duschinsky rotation matrix:\n')
+         self.logging[1].write('Duschinsky rotation matrix:\n')
          k=range(0,dim-6)
          s=0
          t=min(s+5,dim-6)
          while s<dim-6:
             for temp in range(s,t):
-               logging[1].write("               %d "%(k[temp]+1))
-            logging[1].write("\n")
+               self.logging[1].write("               %d "%(k[temp]+1))
+            self.logging[1].write("\n")
             for j in range(len(J)):
-               logging[1].write(" %03d"%(j+1))
+               self.logging[1].write(" %03d"%(j+1))
                for temp in range(s,t):
-                  logging[1].write("   %+.5e"%(J[j][k[temp]]))
-               logging[1].write("\n")
+                  self.logging[1].write("   %+.5e"%(J[j][k[temp]]))
+               self.logging[1].write("\n")
             s=t
             t=min(s+5,dim-6)
-         logging[1].write('\nDuschinsky displacement vector:\n')
+         self.logging[1].write('\nDuschinsky displacement vector:\n')
    
          for j in range(len(K)):
-            logging[1].write("  %d    %e\n"%(j+1, K[j]))
+            self.logging[1].write("  %d    %e\n"%(j+1, K[j]))
        # for debugging: Check that q'=Jq+K as requested (q': normal modes of initial state)
        #  print "Zero:"
        #  print np.linalg.pinv(L[0]).dot(np.array(x[0]).flatten("F")) - J.dot(np.linalg.pinv(L[1]).dot(np.array(x[1]).flatten("F"))) +K
       return J, K 
-   
-   def calcspect(self, HR, freq, E, E0, N, M, T)
-        #do nothing, it is a virtual function.
    
    def outspect(self, T, opt, linspect, E=0):
       """This function calculates the broadened spectrum given the line spectrum, 
@@ -459,10 +452,6 @@ class  Spect:
       As basis-function a Lorentzian is assumed with a common width.
       
       **PARAMETERS:**
-      logging: This variable consists of two parts: logging[0] specifies the 
-               level of print-out (which is between 0- very detailed
-               and 4- only main information) and logging[1] is the file, already 
-               opened, to write the information in.
       T:       temperature of the system
       opt:     a string that contains all options that were given for this part 
                in the input-file. See documentation 
@@ -480,8 +469,71 @@ class  Spect:
                linespectra) are printed into log-files.
       
       """
+      def handel_input(opt):
+         #set default values (to have all variables set)
+         gridfile=None
+         gamma=1 #by default: only slight broadening
+         gridpt=5000
+         omega=None
+         minfreq=0
+         maxfreq=0
+         shape='g'
+         stick=False
+      
+         tmpgrid=re.findall(r"(?<=grid=)[ \=\s\w\.;]+", opt, re.M)
+         if len(tmpgrid)==1: 
+         # i.e. if grid is specified
+            grid=re.findall(r"[\w\.]+", tmpgrid[0], re.M)
+            if len(grid)==1:
+               #that means, if either one number (# of gridpoints or a file) is given
+               try:
+                  gridpt=float(grid[0])
+               except ValueError: # if grid is no a number
+                  gridfile=grid[0]
+            elif len(grid)==3:
+               # that means there is the number of gridpoints, min- and max frequency given
+               gridpt=float(grid[0])
+               minfreq=float(grid[1])
+               maxfreq=float(grid[2])
+            if gridfile!=None:
+               #read file in format of linspect
+               grid=[]
+               with open(gridfile) as f:
+                  lis=[line.split() for line in f]  # create a list of lists
+                  for i,x in enumerate(lis):        # get the list items 
+                     grid.append(float(x[0]))
+               omega=np.zeros(len(grid))
+               for i in range(len(grid)):
+                  omega[i]=grid[i]
+         #see, whether a broadening is given
+         if (re.search(r"(?<=gamma=)[ \d\.,]+", opt, re.I) is not None)  is True:
+            gamma=re.findall(r"(?<=gamma=)[ \d\.]+", opt, re.I)
+            gamma=float(gamma[0])
+      
+         shape=re.findall(r"(?<=shape=)[ \w]+", opt, re.I)
+         if len(shape)>0:
+         # there are several options each
+            if shape[0] in ["lorentzian", "Lorentzian", "L", "l"]:
+               shape="l"
+            elif shape[0] in ["gaussian", "Gaussian", "G", "g"]:
+               shape="g"
+   
+         if (re.search(r"stick", opt, re.I) is not None) is True:
+            stick=True
+   
+         spectfile=re.findall(r"(?<=spectfile=)[\w.]+", opt, re.I)
+         if spectfile==[]:
+            spectfile=re.findall(r"(?<=spectfile= )[\w.]+", opt, re.I)
+            if spectfile==[]:
+               spectfile=None
+            else:
+               spectfile=spectfile[-1]
+         else:
+            spectfile=spectfile[-1]
+         return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick
+
       minint=0
-      logging[1].write("\n STARTING TO CALCULATE BROADENED SPECTRUM.\n")
+      self.logging[1].write("\n STARTING TO CALCULATE BROADENED SPECTRUM.\n")
    
       omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick=handel_input(opt)
       #read file in format of linspect
@@ -497,16 +549,16 @@ class  Spect:
          if linspect[1][i]>=1e-6*linspect[1][-1]:
             minint=i
             break
-      if logging[0]<3:
-         logging[1].write('neglect '+repr(minint)+' transitions, use only '+
+      if self.logging[0]<3:
+         self.logging[1].write('neglect '+repr(minint)+' transitions, use only '+
                                 repr(len(linspect[1])-minint)+" instead.\n")
    
-         if logging[0]<2:
-            logging[1].write('minimal and maximal intensities:\n'+
+         if self.logging[0]<2:
+            self.logging[1].write('minimal and maximal intensities:\n'+
               repr(linspect[1][minint])+' '+repr(linspect[1][-1])+"\n")
       
       #important for later loops: avoiding '.'s speeds python-codes up!!
-      logwrite=logging[1].write  
+      logwrite=self.logging[1].write  
       #make nPA from OPA:
       if (re.search(r"to [\d]PA", opt, re.I) is not None) is True:
          n=re.findall(r"(?<=to )[\d](?=PA)", opt, re.I)
@@ -528,8 +580,8 @@ class  Spect:
                   break
             TPAintens=TPAi[minint:]
             TPAfreq=TPAf[minint:]
-            if logging[0]<3:
-               logging[1].write('for TPA: again neglect '+repr(minint)+
+            if self.logging[0]<3:
+               self.logging[1].write('for TPA: again neglect '+repr(minint)+
                         ' transitions, use only '+repr(len(TPAi)-minint-1)+" instead.\n")
          elif n[0]=='3':
             ind=linspect[2].argmin()
@@ -546,17 +598,17 @@ class  Spect:
                   break
             TPAintens=TPAintens[minint:] #resort by intensity
             TPAfreq=TPAfreq[minint:]
-            if logging[0]<3:
-               logging[1].write('for 3PA: again neglect '+repr(minint)+
+            if self.logging[0]<3:
+               self.logging[1].write('for 3PA: again neglect '+repr(minint)+
                         ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.\n")
          else:
             if n[0]!='1':
                # there should be only 1,2 or 3 given!
-               logging[1].write("to <n>PA was given but not recognised.\n")
+               self.logging[1].write("to <n>PA was given but not recognised.\n")
             TPAfreq=linspect[0][minint:]
             TPAintens=linspect[1][minint:]
             if stick:
-               logwrite=logging[1].write
+               logwrite=self.logging[1].write
                logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION "+
                                              "\n intensity   frequency\n")
                for k in range(len(TPAfreq)):
@@ -567,7 +619,7 @@ class  Spect:
             TPAfreq=linspect[0][minint:]
             TPAintens=linspect[1][minint:]
             if stick:
-               logwrite=logging[1].write
+               logwrite=self.logging[1].write
                logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION \n"+
                                                  " intensity   frequency\n")
                for k in range(len(TPAfreq)):
@@ -576,24 +628,24 @@ class  Spect:
             n=int(n[0])
             ind=linspect[2].argmin() #get position of 0-0 transition
             if re.search(r"parallel", opt, re.I) is not None:
-               logging[1].write("\n REACHING OPA TO nPA-PART. DO IT IN PARALELL."+
+               self.logging[1].write("\n REACHING OPA TO nPA-PART. DO IT IN PARALELL."+
                                        " MANY FILES WILL BE CREATED. \n")
-               logging[1].write(" --------------------------------------------"+
+               self.logging[1].write(" --------------------------------------------"+
                                               "--------------------------- \n")
                gotit=parallelOPA2nPA(logwrite, linspect[0][minint:],
                         linspect[0][ind], linspect[1][minint:], 
-                        linspect[1][ind], linspect[2][minint:], n, stick, logging)
+                        linspect[1][ind], linspect[2][minint:], n, stick, self.logging)
                if gotit:
-                  logging[1].write("\n SUCCESSFULLY CALCULATED FULL-nPA SPECTRUM. \n")
+                  self.logging[1].write("\n SUCCESSFULLY CALCULATED FULL-nPA SPECTRUM. \n")
                   return 0
                else:
-                  logging[1].write("\n AN ERROR OCCURED. THE nPA SPECTRUM OR"+
+                  self.logging[1].write("\n AN ERROR OCCURED. THE nPA SPECTRUM OR"+
                                             " BROADENING DID NOT SUCCEED. \n")
                   return 1
             else:
-               logging[1].write("\n REACHING OPA TO NPA-PART. DOING IT NOT"+
+               self.logging[1].write("\n REACHING OPA TO NPA-PART. DOING IT NOT"+
                                                   " PARALELL. \n")
-               logging[1].write(" ----------------------------------------"+
+               self.logging[1].write(" ----------------------------------------"+
                                                        "-------- \n")
                TPAfreq, TPAintens=OPA2nPA(logwrite, linspect[0][minint:],
                         linspect[0][ind], linspect[1][minint:], 
@@ -606,8 +658,8 @@ class  Spect:
                if TPAintens[i]>=1e-6*TPAintens[-1]:
                   minint=i
                   break
-            if logging[0]<3:
-               logging[1].write('for {0}PA: again neglect {1} \n'.format(n, minint)+
+            if self.logging[0]<3:
+               self.logging[1].write('for {0}PA: again neglect {1} \n'.format(n, minint)+
                         ' transitions, use only '+repr(len(TPAintens)-minint-1)+" instead.\n")
             TPAintens=TPAintens[minint:] #resort by intensity
             TPAfreq=TPAfreq[minint:]
@@ -623,18 +675,18 @@ class  Spect:
       else:
          minfreq=omega[0]
          maxfreq=omega[-1]
-      if logging[0]<3:
-         logging[1].write('maximal and minimal frequencies:\n {0} {1}\n'.format(maxfreq, minfreq))
+      if self.logging[0]<3:
+         self.logging[1].write('maximal and minimal frequencies:\n {0} {1}\n'.format(maxfreq, minfreq))
       #if no other grid is defined: use linspace in range
       if omega==None:
          omega=np.linspace(minfreq,maxfreq,gridpt)
-         if logging[0]<2:
-            logging[1].write("omega is equally spaced\n")
+         if self.logging[0]<2:
+            self.logging[1].write("omega is equally spaced\n")
    
       sigma=gamma*2/2.355 #if gaussian used: same FWHM
       
       if gamma*1.1<=(maxfreq-minfreq)/gridpt:
-         logging[1].write("\n !WARNING!\n THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
+         self.logging[1].write("\n !WARNING!\n THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
               "THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!")
    
       index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
@@ -643,7 +695,7 @@ class  Spect:
    
       mini=0
       if spectfile==None:
-         out=logging[1]
+         out=self.logging[1]
       else:
          out = open(spectfile, "w")
    
@@ -703,8 +755,6 @@ class  Spect:
       """ This function reads the required quantities from the gaussian-files
 
       **PARAMETERS**
-      logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                   and 4- only main information) and logging[1] is the file, already opened, to write the information in.
       fileN:       specifies the name of the g09-file
 
       **RETURNS**
@@ -754,8 +804,8 @@ class  Spect:
             mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
          foonum+=len(mtemp[j])
       assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
-      if logging[0]<2:
-         logging[1].write("Number of atoms: {0}\nNumber of vibrational "
+      if self.logging[0]<2:
+         self.logging[1].write("Number of atoms: {0}\nNumber of vibrational "
                            "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
       # Reading Cartesian coordinates
       Coord=np.zeros((3, dim/3))
@@ -763,8 +813,8 @@ class  Spect:
          Coord[j%3][j/3]=tmp[j]
 
       Coord*=Angs2Bohr
-      if logging[0]<1:
-         logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
+      if self.logging[0]<1:
+         self.logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
 
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"Force constants in Cartesian coordinates: [\n\d .+-D]+", log, re.M)
@@ -810,8 +860,8 @@ class  Spect:
             for j in range(1,len(elements)):
                F[int(elements[0])-1][j-1+5*n]=float(elements[j])
                F[j-1+5*n][int(elements[0])-1]=float(elements[j])
-      if logging[0]<1:
-         logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
+      if self.logging[0]<1:
+         self.logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
       for i in range(0,dim):
          for j in range(0,dim):
             F[i][j]/= (mass[i//3]*mass[j//3]) 
@@ -819,8 +869,8 @@ class  Spect:
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
       if re.search(r'\n ', Etemp[-1]) is not None:
          Etemp[-1]=Etemp[-1].replace("\n ", "") 
-      if logging[0]<=1:
-         logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
+      if self.logging[0]<=1:
+         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
       return dim, Coord, mass, F, E
 
@@ -828,10 +878,6 @@ class  Spect:
       """ This function reads the required quantities from the gaussian-files
 
       **PARAMETERS**
-      logging:     This variable consists of two parts: logging[0] specifies 
-                   the level of print-out (which is between 0- very detailed
-                   and 4- only main information) and logging[1] is the file, 
-                   already opened, to write the information in.
       final:       specifies the name of the g09-file
 
       **RETURNS**
@@ -846,8 +892,8 @@ class  Spect:
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
       if re.search(r'\n ', Etemp[-1]) is not None:
          Etemp[-1]=Etemp[-1].replace("\n ", "") 
-      if logging[0]<=1:
-         logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
+      if self.logging[0]<=1:
+         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
      
       grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
@@ -861,8 +907,6 @@ class  Spect:
       """ This function reads the required quantities from the gaussian-files
 
       **PARAMETERS**
-      logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                   and 4- only main information) and logging[1] is the file, already opened, to write the information in.
       fileN:       specifies the name of the g09-file
 
       **RETURNS**
@@ -901,8 +945,8 @@ class  Spect:
             mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
          foonum+=len(mtemp[j])
       assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
-      if logging[0]<2:
-         logging[1].write("Number of atoms: {0}\nNumber of vibrational "
+      if self.logging[0]<2:
+         self.logging[1].write("Number of atoms: {0}\nNumber of vibrational "
                            "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
       # Reading Cartesian coordinates
       Coord=np.zeros((3, dim/3))
@@ -910,8 +954,8 @@ class  Spect:
          Coord[j%3][j/3]=float(tmp[j].replace('E','e')) # need to convert by some factor!!
 
       #Coord*=Angs2Bohr
-      if logging[0]<1:
-         logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
+      if self.logging[0]<1:
+         self.logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
 
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"(?<=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+", log, re.M)
@@ -936,8 +980,8 @@ class  Spect:
                k=0
             else:
                k+=1
-      if logging[0]<1:
-         logging[1].write('F matrix as read from formcheck-file\n{0} \n'.format(F))
+      if self.logging[0]<1:
+         self.logging[1].write('F matrix as read from formcheck-file\n{0} \n'.format(F))
       for i in range(0,dim):
          for j in range(0,dim):
             F[i][j]/= (mass[i//3]*mass[j//3]) 
@@ -945,18 +989,14 @@ class  Spect:
       Etemp=re.findall(r'(?<=Total Energy                               R  )[ \-\d.E\+]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
       Etemp=float(Etemp[0].replace('E','e'))
-      if logging[0]<=1:
-         logging[1].write('temporary energy of state: {0}\n'.format(Etemp))
+      if self.logging[0]<=1:
+         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp))
       return dim, Coord, mass, F, Etemp
 
    def ReadG09_fchk2(self, final):
       """ This function reads the required quantities from the gaussian-files
 
       **PARAMETERS**
-      logging:     This variable consists of two parts: logging[0] specifies 
-                   the level of print-out (which is between 0- very detailed
-                   and 4- only main information) and logging[1] is the file, 
-                   already opened, to write the information in.
       final:       specifies the name of the g09-file
 
       **RETURNS**
@@ -971,8 +1011,8 @@ class  Spect:
       E=re.findall(r'(?<=Total Energy                               R  )[ \-\d.E\+]+', log, re.M)
       assert len(E)>=1, 'Some error occured! The states energy can not be read.'
       E=float(E[0].replace('E','e'))
-      if logging[0]<=1:
-         logging[1].write('temporary energy of state: %d\n'%(E))
+      if self.logging[0]<=1:
+         self.logging[1].write('temporary energy of state: %d\n'%(E))
      
       #get gradient
       grad=re.findall(r"(?<=Cartesian Gradient)[R N=\d.\+\- E\n]+", log)
@@ -1047,8 +1087,6 @@ class  Spect:
       The function is suited to test, whether these results coincide qualitatively with the gaussian's.
 
       ** PARAMETERS: **
-      logging:This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-              and 4- only main information) and logging[1] is the file, already opened, to write the information in.
       log:    i
       files:  file taken as basis ('.rep' added to be used for replacements)
       freq:   frequencies to be inserted
@@ -1070,8 +1108,6 @@ class  Spect:
             if re.search(r'Frequencies -- [\d .-]+', line) is not None:
                t=0 #reset t, when frequencies occur
                u+=3 #
-             #  if logging[0]<1:
-             #     logging[1].write('frequencies not yet written to file:'+ repr(len(freq[s:].T))+ repr(freq[s:].T))
                if len(freq[s:].T)> 2: # there are at least three more frequencies
                   out.write(re.sub(r'Frequencies -- [\d .-]+',
                         'Frequencies --'+'    '+str("%.4f" % freq[s])+'              '\
@@ -1108,12 +1144,23 @@ class  Spect:
                out.write(re.sub('replace nothing','by nothing', line)) #just write line as it is
          out.close()
 
+   def Read(self,inputfile, read):
+      if read == "G09_fchk":
+         return self.ReadG09_fchk(inputfile)
+      if read =="GAMESS":
+         return self.ReadGAMESS(inputfile)
+      if read =="NWChem":
+         return self.ReadNWChem(inputfile)
+      if read =="G09":
+         return self.ReadG09(inputfile)
+      else:
+         print "errer in read-options."
+         return 2
+
    def ReadGAMESS(self, fileN):
       """ This function reads the required quantities from the GAMESS-log-files
 
       **PARAMETERS**
-      logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                   and 4- only main information) and logging[1] is the file, already opened, to write the information in.
       fileN:       specifies the name of the g09-file
 
       **RETURNS**
@@ -1140,8 +1187,8 @@ class  Spect:
       for j in range(len(mtemp[0])):
          mass[j]=np.sqrt(float(mtemp[0][j])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
       assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
-      if logging[0]<2:
-         logging[1].write("Number of atoms: {0}\nNumber of vibrational "
+      if self.logging[0]<2:
+         self.logging[1].write("Number of atoms: {0}\nNumber of vibrational "
                            "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
       
       # Reading Cartesian coordinates
@@ -1153,8 +1200,8 @@ class  Spect:
          for j in range(dim//3):
             Coord[i][j]=float(tmp[3*i+j])
       Coord*=Angs2Bohr
-      if logging[0]<1:
-         logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
+      if self.logging[0]<1:
+         self.logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"(?<=CARTESIAN FORCE CONSTANT MATRIX\n)[\d\w \.\-\n]+", log, re.M)
       f_str=str([f[-1]])
@@ -1180,8 +1227,8 @@ class  Spect:
             F[k][n+j]=F[n+j][k]=f[j]
          k+=1
 
-      if logging[0]<1:
-         logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
+      if self.logging[0]<1:
+         self.logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
       for i in range(0,dim):
          for j in range(0,dim):
             F[i][j]/= (mass[i//3]*mass[j//3]) 
@@ -1189,8 +1236,8 @@ class  Spect:
       #get energy of the state
       Etemp=re.findall(r'(?<=TOTAL ENERGY =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if logging[0]<=1:
-         logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
+      if self.logging[0]<=1:
+         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=float(Etemp[-1]) #energy is negative (bound state)
       return dim, Coord, mass, F, E
 
@@ -1198,8 +1245,6 @@ class  Spect:
       """ This function reads the required quantities from the GAMESS-log-files
 
       **PARAMETERS**
-      logging:     This variable consists of two parts: logging[0] specifies the level of print-out (which is between 0- very detailed
-                   and 4- only main information) and logging[1] is the file, already opened, to write the information in.
       final:       specifies the name of the g09-file
 
       **RETURNS**
@@ -1211,8 +1256,8 @@ class  Spect:
       files.close
       Etemp=re.findall(r'(?<=TOTAL ENERGY =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if logging[0]<=1:
-         logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
+      if self.logging[0]<=1:
+         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=float(Etemp[-1]) #energy is negative (bound state)
       #grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
       #Grad=re.findall(r"[\-\d\.]+[\d]{9}", grad[0])
@@ -1261,10 +1306,6 @@ class  Spect:
       """ This function reads the required quantities from the NWChem-files
 
       **PARAMETERS**
-      logging:     This variable consists of two parts: logging[0] specifies the level of 
-                   print-out (which is between 0- very detailed
-                   and 4- only main information) and logging[1] is the file, already opened, to 
-                   write the information in.
       fileN:       specifies the name of the g09-file
 
       **RETURNS**
@@ -1289,8 +1330,8 @@ class  Spect:
       for j in range(len(mtemp)):
          mass[j]=np.sqrt(float(mtemp[j].replace('D','e'))*AMU2au) #mass[j] is square-root of masses
       assert not np.any(mass==0) , "some atomic masses are 0. Please check the input-file! {0}".format(mass)
-      if logging[0]<2:
-         logging[1].write("Number of atoms: {0}\nNumber of vibrational "
+      if self.logging[0]<2:
+         self.logging[1].write("Number of atoms: {0}\nNumber of vibrational "
                           "modes: {1} \n Sqrt of masses in a.u. as read "
                           "from log file\n{2}\n".format(dim/3,dim,mass))
       
@@ -1304,8 +1345,8 @@ class  Spect:
             Coord[i][j]=float(tmp[i+3*j+k].replace('D','e'))
          k+=1 # important to skip masses in tmp 
       Coord*=Angs2Bohr
-      if logging[0]<1:
-         logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
+      if self.logging[0]<1:
+         self.logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
 
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"(?<=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
@@ -1326,14 +1367,14 @@ class  Spect:
             # convert to a.u.  (masses)
             F[int(elements[0])-1][j-1+10*n]=float(elements[j])/(1000*AMU2au)
             F[j-1+10*n][int(elements[0])-1]=float(elements[j])/(1000*AMU2au)
-      if logging[0]<1:
-         logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
+      if self.logging[0]<1:
+         self.logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
 
       #get energy of the state
       Etemp=re.findall(r'(?<=Total DFT energy =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if logging[0]<=1:
-         logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
+      if self.logging[0]<=1:
+         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=float(Etemp[-1]) #energy is negative (bound state)
       return dim, Coord, mass, F, E
 
@@ -1341,9 +1382,6 @@ class  Spect:
       """ This function reads the required quantities from the NWChem-files
 
       **PARAMETERS**
-      logging:     This variable consists of two parts: logging[0] specifies the level of 
-                   print-out (which is between 0- very detailed and 4- only main information) 
-                   and logging[1] is the file, already opened, to write the information in.
       final:       specifies the name of the g09-file
 
       **RETURNS**
@@ -1355,14 +1393,9 @@ class  Spect:
       files.close
       Etemp=re.findall(r'(?<=Total energy =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if logging[0]<=1:
-         logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
+      if self.logging[0]<=1:
+         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=float(Etemp[-1]) #energy is negative (bound state)
-      #grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
-      #Grad=re.findall(r"[\-\d\.]+[\d]{9}", grad[0])
-      #grad=np.zeros((len(Grad),1))
-      #for i in xrange(len(Grad)):
-         #grad[i]=float(Grad[i])
       return grad, E
 
    def getNwchemLf(self,final, dim):
@@ -1400,5 +1433,5 @@ class  Spect:
       return f, L
    ## END OF FUNCTION DEFINITIONS
 
-version=0.0.1
+#version=0.0.1
 # End of Spect.py
