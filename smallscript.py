@@ -10,6 +10,8 @@ import FC_spects as FC
 import sys, re, mmap, numpy as np
 import time
 
+# ============ CHANGELOG =================
+
 def usage():
    print "usage: smallscript <input-file>"
 
@@ -115,7 +117,7 @@ def main(argv=None):
    states2=5
    T=300
    T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
-   spect.calcspect(spect.HR[0], spect.funi[1], spect.Energy[0]-spect.Energy[1], 0, states1, states2, T)
+   spect.calcspect(spect.HR[0], spect.f[1], spect.Energy[0]-spect.Energy[1], 0, states1, states2, T)
    #FINISHED PERFORM CALCULATION OF SPECTRA
    
    spect.outspect(T, "deineMudda", spect.spect)

@@ -56,25 +56,12 @@
 </div>
 
 for explanations of the output of the calculations, see <a href="output.html">output-documentation</a><br>
-Moreover, some explanaitions of the models in use are available <a href="models.html">here</a>.
+Moreover, some explanations of the models in use are available <a href="models.html">here</a>.
 <!-- Main content -->
 
 <h1 id="main">Main:</h1>
-   The smallscript is a python-script for the calculation of vibronic spectra. 
-   There are different <a href=models.html>models</a> available for it and different sub-tasks can be calculated separately.
-   <ul>
-     <li> with the option  <a href="#HR"><tt>HR-fact()</tt></a> Huang-Rhys (HR) factors
-          are calculated. 
-     <li> Further, the line-spectrum can be calculated in a 
-          <a href="#FC">Franck-Condon</a> (FC) or 
-     <li> <a href="#DR">Duschinsky-rotated</a> model using different approximations. 
-     <li> Finally, the smallscript 
-          can be used to calculate a broadened spectrum as an option for 
-          the calculation of line spectra or using 
-          an externally given line spectrum. 
-   </ul>
-   The spectra in FC-scheme can be computed given HR-factors and 
-   corresponding frequencies as well.
+   The smallscript is a python-script for calculating vibronic spectra. 
+   There are different <a href=models.html>models</a> available to be used.
    <p>For the content and format of the input-files see <a href="#source">below</a>. 
    <h2 id="call">calling the script </h2>
    <p> if the script is located in the current folder  ./smallscript.py "input"
@@ -82,26 +69,30 @@ Moreover, some explanaitions of the models in use are available <a href="models.
    
    <p> where "input" is a custom file specifying all calculations to be done (see sect. input)
 
-<h2 id="intut">INPUT</h2>
-   <p> The available tasks for smallsript are called as follows:
-   <p><tt>HR-fact() </tt>         Calculate Huang-Rhys factors using log files
-   <p><tt>FC-spect() </tt>        Calculate spectra in FC-picture using log files or HR-factors 
-   <p><tt>Duschinsky-spect()</tt> Calculate Duschinsky-rotated spectra using log files
-   <p><tt>Broadening() </tt>      Calculate broadened spectra from line-spectrum 
+<h2 id="input">INPUT</h2>
+In its new version, the input-file needs to have the following information:
+  <ul>
+     <li>The keyword <b> model</b> introduces the <a href="models.html">model to be used</a>. Valid options are FC, GFC, HF, DR URDR. This information is required in all input-files.</li>
+     <li>The second (pair of) keyword(s) necessary are the files to be used. They are specified after  <b>initial: </b> and <b>final: </b> and should be output files from
+     <a href="#sourceFile">some quantum chemical programme</a>, being located in the same directory.</li>
+     <li>with the keyword <b>out: </b> one can specify the output-file for smallscript. By default,  the output is written into calculation.log. </li>
+     <li>with the keyword <b>print:</b> you can decide, how detailed the information should be that is given in the output-file. </li>
+     <li>All other options for the calculation are specified after the keyword <b>opt:</b>. </li>
+  </ul>
+ In general, the order of these arguments doesn't matter; you can also give them one after the other. But some strange ordering and unusual formats may
+ lead to errors and might be confusing even for yourself.
 
-   <p>
-   As source for calculations (above called 'log files'), either the output from 
-   <a href=http://www.msg.chem.iastate.edu/gamess/index.html> GAMESS </a>, 
+<h3 id="sourceFile">Source files</h3>
+   As source for calculations several formats are supported, namely:
+   the output of<a href=http://www.msg.chem.iastate.edu/gamess/index.html> GAMESS </a>, 
    <a href=http://www.nwchem-sw.org/index.php/Main_Page> NWChem </a> or 
-   <a href=http://www.gaussian.com/> Gaussian</a> can be used. In case of the latter, the log-files can be used as 
-   well as the formcheck-files which are preferred for larger molecules due to accuracy.</p>
-   <p> In any case, the files need to include geometry and force-constant matrix as well as 
-   atomic masses and binding energy.
-   Further, the sources are specified as:
+   <a href=http://www.gaussian.com/> Gaussian</a> can be used. 
+   In case of Gaussian, the log-files can be used as 
+   well as the formcheck-files which, however, should be preferred at least for larger molecules due to accuracy.</p>
+   <p> In any case, the files need to include geometry and force-constant matrix (hessian of nuclear energy) as well as 
+   atomic masses and binding energy.</p>
    <center>
   <TABLE  style="width:90%">
-   <TR> <TD><tt>initial:  </tt>   </TD>    <TD> specifies file for initial electronic state geomitry</TD> </TR>
-   <TR> <TD><tt>final:  </tt>   </TD>    <TD> specifies file for final electronic state geomitry</TD> </TR>
    <TR> <TD><tt> HR-file:  </tt> </TD>  <TD> specifies file containing HR-factors (1. column) 
       and frequencies (second column) </TD> </TR>
    <TR> <TD><tt> linespect: </tt> </TD><TD> specifies file containing line-spectrum 
