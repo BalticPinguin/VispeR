@@ -2,7 +2,7 @@
 <html>
 <head>
    <meta http-equiv="content-type" content="text/html;charset=utf-8">
-   <title>Documentation for smallscript</title>
+   <title>Documentation for Visper</title>
    <link rel="stylesheet" href="pycco.css">
    <style>
    table, th, td {
@@ -17,7 +17,7 @@
 </head>
 
 <body>
-<h1><center>Welcome to the documentation page of smallscript</center></h1>
+<h1><center>Welcome to the documentation page of Visper</center></h1>
 <div id='container'>
    <div class='clearall'>
    <div class='section' id='section-0'>
@@ -26,15 +26,12 @@
       <nav role="navigation" class="table-of-contents">
          <h2>List of contents:</h2>
          <ul>
-            <li><a href="#main">Options of the script</a></li>
+            <li><a href="#main">General information</a></li>
             <li><a href="#call">Calling the script</a></li>
             <li><a href="#input">Input</a></li>
+            <li><a href="#model">Available models</a></li>
             <li><a href="#options">Options</a></li>
-            <li><a href="#HR">Calculating Huang-Rhys factors</a></li>
-            <li><a href="#FC">Calculating spectrum based on Franck-Condon factors</a></li>
-            <li><a href="#DR">Cauculating spectrum including Duschinsky-effect</a></li>
             <li><a href="#broaden">Calculate a line-shaped spectrum</a></li>
-            <li><a href="#source">syntax of source-files to smallscript</a></li>
          </ul>
       </nav>
     </div>
@@ -43,12 +40,6 @@
       <!-- Site navigation menu -->
       <ul class="navbar">
          <li><a href="smallscript.html">main program code</a>
-         <li><a href="setup.html">setup-file</a>
-         <li><a href="functions_smsc.html">most functions for general</a>
-         <li><a href="OPA.html">class for Duschisky-rotated spectrum with OPA </a>
-         <li><a href="Dusch_unrest.html">code for Duschinsky-rotated spectrum without OPA </a>
-         <li><a href="Btree.html">class for Duschinsky-rotated spectrum (not OPA) </a>
-         <li><a href="broaden.html">code for broadening and extending</a>
       </ul>
    </div>
    </div>
@@ -59,203 +50,91 @@ for explanations of the output of the calculations, see <a href="output.html">ou
 Moreover, some explanations of the models in use are available <a href="models.html">here</a>.
 <!-- Main content -->
 
-<h1 id="main">Main:</h1>
-   The smallscript is a python-script for calculating vibronic spectra. 
-   There are different <a href=models.html>models</a> available to be used.
-   <p>For the content and format of the input-files see <a href="#source">below</a>. 
-   <h2 id="call">calling the script </h2>
-   <p> if the script is located in the current folder  ./smallscript.py "input"
-   <p> if the script is located in a executable folder smallscript.py "input"
-   
-   <p> where "input" is a custom file specifying all calculations to be done (see sect. input)
+<h1 id="main">General Information</h1>
+<p> Visper, formerly called smallscript is an acronym for <b>Vi</b>bronic <b>spe</b>ctrum calculato<b>r</b>.
+   Hence, it is a python-script for calculating vibronic spectra; being able to work on different levels of theory.
+   There are different <a href=models.html>models</a> available to be used.</p> 
 
-<h2 id="input">INPUT</h2>
-In its new version, the input-file needs to have the following information:
-  <ul>
-     <li>The keyword <b> model</b> introduces the <a href="models.html">model to be used</a>. Valid options are FC, GFC, HF, DR URDR. This information is required in all input-files.</li>
-     <li>The second (pair of) keyword(s) necessary are the files to be used. They are specified after  <b>initial: </b> and <b>final: </b> and should be output files from
-     <a href="#sourceFile">some quantum chemical programme</a>, being located in the same directory.</li>
-     <li>with the keyword <b>out: </b> one can specify the output-file for smallscript. By default,  the output is written into calculation.log. </li>
-     <li>with the keyword <b>print:</b> you can decide, how detailed the information should be that is given in the output-file. </li>
-     <li>All other options for the calculation are specified after the keyword <b>opt:</b>. </li>
-  </ul>
- In general, the order of these arguments doesn't matter; you can also give them one after the other. But some strange ordering and unusual formats may
- lead to errors and might be confusing even for yourself.
+<h1 id="#call">Calling the script</h1>
+<p> Visper is invoked with only an input-file as argument that contains all options. </p>
 
-<h3 id="sourceFile">Source files</h3>
-   As source for calculations several formats are supported, namely:
-   the output of<a href=http://www.msg.chem.iastate.edu/gamess/index.html> GAMESS </a>, 
-   <a href=http://www.nwchem-sw.org/index.php/Main_Page> NWChem </a> or 
-   <a href=http://www.gaussian.com/> Gaussian</a> can be used. 
-   In case of Gaussian, the log-files can be used as 
-   well as the formcheck-files which, however, should be preferred at least for larger molecules due to accuracy.</p>
-   <p> In any case, the files need to include geometry and force-constant matrix (hessian of nuclear energy) as well as 
-   atomic masses and binding energy.</p>
-   <center>
-  <TABLE  style="width:90%">
-   <TR> <TD><tt> HR-file:  </tt> </TD>  <TD> specifies file containing HR-factors (1. column) 
-      and frequencies (second column) </TD> </TR>
-   <TR> <TD><tt> linespect: </tt> </TD><TD> specifies file containing line-spectrum 
-      (intensity  frequency  [mode-number])
-      , no sorting of the points necessary.</TD> </TR>
-   <TR> <TD><tt> out: </tt>    </TD> <TD> specify file the output should be saved in; default is 'calculation.log'.
-      If the file already exists, the logging-information will be appended.</TD> </TR>
-  </TABLE>
-   </center>
-   <p>The order of the arguments is not important; further they are read case-insensitive.
-   <p>If HR-fact() and FC-spect() are both specified in the same file, the newly 
-    calculated HR-factors are taken, even if HR-file is specified.
-   <p>
-   <p>
-<h2 id="options">OPTIONS</h2>
+<h1 id="#input">Input</h1>
+<p>The input-file consists of several sections and is very free in format: Most options are read case-insensitive and the order does not matter as well as separation of different options. 
+However, to avoid confusion and errors in the parser of visper, it is sensible to write the different sections in different lines. 
+A line break within one section is not allowed however.
+</p>
+There are three mandatory sections:
+<ul>
+   <li>The keword <b>model</b> specifies the method that should be used for the calculation of the spectrum. Possible options are:
+      <ul>
+          <li>HF -> This model is a bit special and not supported at the moment. It will be used to calculate a spectrum using just the Huang-Rhys factors
+                    and respective frequencies to calculate a fully harmonic spectrum.</li> 
+          <li>FC -> In this model, a purely harmonic spectrum is calculated in Franck-Condon picture where the Franck-Condon factors are calculated
+                    from the shift between the two involved electronic states.</li>
+          <li>GFC -> The model here is the same as in FC but using information on the gradient in final state only. Hence, here the
+                     final state should not be given in its converged geometry.</li>
+          <li>CFC -> This model is also Franck-Condon based but includes a correction due frequencies differing between the initial and final electronic states. </li>
+          <li>DR  -> With this option, a spectrum is calculated that takes also Duschinsky rotation into account. In this model restrictions due to the
+                   number of changeing vibrational modes are given.</li>
+          <li>URDR -> This model is the least restrictive; it allowes for full spectrum calculation including Duschinsky rotation.</li>
+      </ul>
+   </li>
+   <li>With <b>initial:</b> you specify the file that contains the information of initial state. </li>
+   <li>With <b>final:</b> you specify the file that contains the information of final state. </li>
+</ul>
+<p>As input-files, the log-files from the different quantum-chemical programme-packages can be used: </p>
 
-<h3 id="HR">1: HR-fact()</h3>
-   <center>
-  <TABLE  style="width:90%" >
-   <TR> <TD> <tt>makeLog </tt></TD> <TD>  to create file in style of G09-log files; 
-            this option copies the final state's file and replaces the frequencies and 
-            eigenvectors (transformation matrix) given with the calculated values. 
-            This option makes comparisons easier.</TD> <TR>
-   <TR> <TD><tt>print=level&nbsp</tt> </TD> <TD> specifies, how detailed the output should be printed
-            where level is: <tt>all</tt>, <tt>detailed</tt>, <tt>medium</tt>, <tt>important</tt>, 
-            <tt>short</tt>   </TD> <TR>
-   <TR> <TD><tt>HRthreshold= &nbsp</tt> </TD> <TD> specifies, the threshold for cutting the HR-factors. All modes with
-            Huang-Rhys-factors smaller than this number will be neglected. Default is 0.015 </TD> <TR>
-   <TR> <TD> <tt>g09Vectors </tt></TD> <TD> read transformation matrix from the Gaussian-file, e.g. 
-            for comparison. This option is only possible, if the G09-file was created with the option 
-            <tt>Opt(CalcFC...</tt>. To check whether the file contains the needed information, search 
-            for "Eigenvectors". </TD> <TR>
-   <TR> <TD> <tt>g09freqs </tt></TD>   <TD> read the frequencies from the Gaussian-file, e.g. for comparison. 
-            This option is only possible, if the G09-file was created with the option <tt>Opt(CalcFC...</tt>. 
-            To check whether the file contains the needed information, search for "Eigenvalues". </TD> <TR>
-   <TR> <TD><tt>method:</tt>  </TD> <TD>    
-         <tt><a href="models.html#HR-m,g">gradient</a></tt> (or written <tt>Gradient</tt> or <tt>grad</tt>): 
-         Use the gradient in excited state at ground state geometry 
-         and assume non-changing frequencies to calculate the shift of normal modes and HR-factors respectively
-         need: a g09-file containing gradient of final state at ground state geometry (use option <tt>Force</tt>). 
-         This method is valid only if no DR-spectrum is to be calculated.</TD> <TR>
-   <TR> <TD> </TD> <TD> <tt> <a href="models.html#HR-m,s">shift </a></tt>(or written <tt>SHIFT </tt>or 
-         <tt>Shift</tt>): Calculate the change of normal modes 
-         by the shift of equilibrium positions; needs force constant matrix and optimised 
-         geometries in both states default procedure is shift </TD> <TR>
-  </TABLE>
-  </center>
+<p>In addition to these options, there are four additional, non-mandatory sections: </p>
+<ul>
+   <li> With the key word <b>out:</b> you can specify a file where the information is written in. By default, this file is called 'calculation.log'.</li>
+   <li>The option <b>print:</b> gives you controll over the output-verbosity of visper. Here, 5 different levels are possible: 
+   <ul>
+      <li>Most verbose output is obtained with <b>0</b> or <b>all</b>. This enables every print-statement but makes the log-file very large and full with 
+      <li> The next level, denoted as <b>detailed</b>, shortens some of the least important messages. </li>
+      <li> The level <b>medium</b> is the default case.</li>
+      <li> The second-shortest level <b>important</b> will show you only few quantities.</li>
+      <li>Finally, with <b>short</b> one can specify that only the most important output is written into the log-file.</li>
+   </ul>
+   All print options have in addition to the given name a number between 0 and 4.</li>
+   <li>Most options to the script are set after the keyword <b>opt:</b>.
+   While some options are specific to the model in use (and are shown below), there are some options that are always valid:
+   <ul>
+      <li>Among the general options there is the temperature of the system under study. It is specified via <b>T=</b> with some number in K.</li>
+      <li>For controlling the highest number of vibrational quanta within one state, the key word<b>states=number</b> can be used.
+      The following statement can be done in two ways: Either it is a number (default is 5) stating how many quanta are taken into account 
+      for each mode in initial state, leaving the final states open (and it will be calculated taking the size of HR-factor into account). 
+      <p> The second option is to give <b>states=number1, number2</b>, seperated by a ','. This specifies the initial states (number1) and
+      the final states quanta.</p> 
+      In case of Duschinsky-rotated spectra, the sum of both numbers is taken as the maximum total states number.
+      </li>
+   </ul>
+   </li>
+   <li> Visper allowes also to broaden the spectrum after calculation. This is specified via <b>broaden</b> . After this key word there are multiple options to 
+     controll the features of that broadened spectrum: 
+     <ul>
+     <li> The keyword <b>gamma=</b> specifies the broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM) in cm^-1.</li>
+     <li> The broadenend spectrum is calculated (and printed) on a grid that is controlled via <b>grid=</b>.
+          For this, there are three options:
+          <ol>
+            <li> given a string, this is interpreted as a file (containing list of gridpoints in cm^-1).</li>
+            <li> given three numbers, separated by ';', you can specify the number of points (default: 5000), minimum energy, maximum energy</li>
+            <li> with only one number you give the  number of points (minimum and maximum will be taken from default) </li>
+          </ol> </li>
+     <!-- <li> The option <b> linspect=</b> specifies file with a line-spectrum already calculated </li> -->
+     <li><b> stick</b> specifies, whether the stick-spectrum should be printed or not 
+      (by printing stick it is enabled).</li>
+     <li>Using the keyword <b>spectfile=</b> you specy a file where the spectrum should be saved. 
+     By default it is written into the log-file.</li>
+     <li> The shape of the broadening function is controlled via <b>shape=</b> where possible options are: Gaussian (g) or Lorentzian (l).</li>
+     <li>
+     </li> The option <b>to nPA:"n"</b> with some number n>1 you can calculate a full spectrum instead of the default one-particle approximation.
+       This option is ignored in case of Duschinsky-rotated spectra.</li>
+     </ul>
+     
+</ul>
 
-<h3 id="FC">2: FC-spect()</h3>
-   <center>
-  <TABLE  style="width:90%" >
-   <TR> <TD><tt>print=level&nbsp</tt> </TD> <TD> specifies, how detailed the output should be printed
-         where level is: <tt>all</tt>, <tt>detailed</tt>, <tt>medium</tt>, <tt>important</tt>, 
-         <tt>short</tt> . Alternatively, the numbers <tt>4</tt> (instead of <tt>all</tt>) 
-         to <tt>0</tt> (instead of <tt>short</tt>) can be used. </TD> <TR>
-   <TR> <TD><tt>broaden()</tt></TD> <TD> to calculate the broadened spectrum as 
-         well, options for this: see Broadening()  </TD> <TR>
-   <TR> <TD><tt>states=</tt></TD> <TD> max. number of vibrational states of electronic initial state (default is 5).
-         There are two ways of specifying it: by one number <tt>states=5</tt> says that there are 5 vibrational quanta
-         taken into account for each mode in initial state, leaving the final states open.
-         Or one specifies both numbers by <tt>states=5,6</tt> seperated by a ','.
-         If the second number is not specified, it will be determined to fit (hopefully) best.
-         Be careful about harmonic approximation!  </TD> <TR>
-   <TR> <TD><tt>T= </tt></TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
-   <TR> <TD> <tt>g09Vectors </tt></TD> <TD> read transformation matrix from the Gaussian-file, e.g. 
-         for comparison </TD> <TR>
-   <TR> <TD> <tt>g09freqs </tt></TD>   <TD> read the frequencies from the Gaussian-file, e.g. for comparison </TD> <TR>
-   <TR> <TD><tt>method:</tt>  </TD> <TD>    
-         <tt><a href="models.html#HR-m,g">gradient</a></tt> (or written <tt>Gradient</tt> or <tt>grad</tt>): 
-         Use the gradient in excited state at ground state geometry 
-         and assume non-changing frequencies to calculate the shift of normal modes and HR-factors respectively
-         need: a g09-file containing gradient of final state at ground state geometry (use option <tt>Force</tt>). 
-         This method is valid only if no DR-spectrum is to be calculated.</p>
-         THIS IS ONLY EVALUATED, IF HR-FACT IS NOT GIVEN.</TD> <TR>
-   <TR> <TD> </TD> <TD> <tt> <a href="models.html#HR-m,s">shift </a></tt>(or written <tt>SHIFT </tt>or 
-         <tt>Shift</tt>): Calculate the change of normal modes 
-         by the shift of equilibrium positions; needs force constant matrix and optimised 
-         geometries in both states default procedure is shift </p>
-         THIS IS ONLY EVALUATED, IF HR-FACT IS NOT GIVEN.</TD> <TR>
-   <TR> <TD> </TD> <TD> <tt> <a href="models.html#HR-m,c">changed </a></tt>
-         Calculate the change of normal modes by the shift of equilibrium positions as above,
-         with the same requirements, but take explicitly chaning freqeuncies into account.
-         This may become especially important for smaller molecules and those changing stronger
-         in structure. </TD> <TR>
-  </TABLE>
-   </center>
-
-<h3 id="DR">3: Duschinsky-spect()</h3>
-   <center>
-  <TABLE  style="width:90%" >
-   <TR> <TD><tt>print=level&nbsp</tt> </TD> <TD> specifies, how detailed the output should be printed
-      where level is: <tt>all</tt>, <tt>detailed</tt>, <tt>medium</tt>, <tt>important</tt>, <tt>short</tt>  </TD><TR>
-   <TR> <TD><tt>broaden()</tt></TD> <TD> 	to calculate the broadened spectrum as well, options for this:
-      see <tt>Broadening() </tt> </TD> <TR>
-   <TR> <TD> <tt>states=</tt></TD> <TD> max. number of vibrational states (default is 5).
-      Be careful about harmonic approximation!  </TD> <TR>
-   <TR> <TD><tt>T=</tt> </TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
-  </TABLE>
-  <TABLE  style="width:90%" >
-   <TR> <TD><tt><a href="models.html#DR-m">model=</a></tt>	</TD><TD> specify, which </TD><TD>model 
-      should be used within Duschinsky-picture:</TD> <TR>
-   <TR> <TD>  </TD> <TD> <tt> Simple </tt> </TD> <TD> simple model uses OPA and no resorting of modes; this is assumed 
-      to have very big errors  (don't use it)</TD> <TR>
-   <TR> <TD>  </TD> <TD> <tt>Resort</tt>  </TD> <TD> here the normal modes are resorted and all highest transitions are 
-      taken into account (default) </TD> <TR>
-   <TR> <TD>  </TD> <TD> <tt>Distributing</tt>  </TD> <TD> besides the transitions between states of same number, also 
-      transitions between different
-      vibrational states are taken into account.</TD> <TR>
-   <TR> <TD>   </TD> <TD> </TD> <TD>  <tt>maxshift=</tt>   if <tt>model=Distributin </tt> is 
-      specified: this parameter specifies the number 
-      of modes to left and right hand side taken into account. 
-      Default is 6.</TD> <TR>
-   <TR> <TD>  </TD> <TD> <tt>Unrestricted <tt>&nbsp </TD> <TD>  Don't use OPA but a full particle-picture; 
-      restricted by number of modes 
-      (at the moment fixed to number of 10)</TD> <TR>
-   <TR> <TD>  </TD> <TD>  </TD> <TD> if <tt> model=unrestricted</tt>, 
-      than <tt>modes=nuber </tt> specifies 
-      the number of modes that are calculated in
-      the spectrum. The truncation is due to the shift of 
-      normal modes, assuming this is a valid 
-      quantity for coupling strength as well.</TD> <TR>
-  </TABLE>
-   </center>
-
-<h3 id="broaden">4: Broadening() /broaden()</h3>
-   <center>
-  <TABLE  style="width:90%" >
-   <TR> <TD> <tt>T=</tt> </TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
-   <TR> <TD> <tt>gamma= </tt></TD> <TD> broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM)
-   <TR> <TD> <tt>grid=</tt> </TD> <TD> specify grid: either a file (containing list of gridpoints) or 
-      three numbers separated by ';'
-      specifying number of points (default: 5000), minimum energy, maximum energy
-      or one number: number of points (minimum and maximum will be taken from default</TD> <TR>
-   <TR> <TD><tt> linspect=</tt></TD> <TD>	specifies file with a line-spectrum already calculated</TD> <TR>
-   <TR> <TD><tt> stick</tt></TD> <TD> specifies, whether the stick-spectrum should be printed or not 
-      (by printing stick it is enabled).</TD> <TR>
-   <TR> <TD> <tt>spectfile=</tt> &nbsp</TD> <TD>specifies file where the spectrum should be saved. </TD> <TR>
-   <TR> <TD> <tt>shape=</tt></TD> <TD>	shape of broadening: Gaussian (g) or Lorentzian (l)</TD> <TR>
-   <TR> <TD><tt> to "n"PA</tt> </TD> <TD>adds the calculation of n-particle approximation out of given OPA 
-      spectrum (n=2,3) this option is faster than that below </TD> <TR>
-   <TR> <TD> <tt>to nPA:"n"</tt> &nbsp&nbsp </TD> <TD>same as above, but 
-      using a <a href="Dusch_unrest.html">recursive algorithm</a> and n is not restricted. </TD> <TR>
-   <TR> <TD> <tt>parallel</tt> &nbsp&nbsp </TD> <TD> extra option that can be specified in addition to 
-      <tt> to nPA: j</tt> if the calculation is expected to become large.
-      In this case, no broadened spectrum is calculated (should be done later by hand); instead, a number of files
-      is created containing the stick-spectrum, sorted by orders of particle-approximation. 
-      These files can be used as a basis for extra spectrum-calculations.
-   <TR> <TD> <tt>broadenparallel</tt> &nbsp&nbsp </TD> <TD> extra option that is used to calculate the broadened 
-      spectrum out of that files created by the option parallel.
-      </TD> <TR>
-  </TABLE>
-  </center>
-
-<h2 id="source">Syntax of the source-files </h2>
-<h3> HR-file:</h3>
-   <p>needs:
-   <p>Delta E=  in cm^-1
-   <p> HR-fact   &nbsp        freq  
-   <p> following: list of respective quantities
-
-<h3>line-spect:</h3>
-   <p> grid: (see broadening) the energies of the grid (in cm^-1) in columns. No further numbers or letters should be contained in the file.
-   
-</div>
+<h1 id="#model">Available models</h1>
+<h1 id="#options">Options</h1>
+<h1 href="#broaden">Calculate a line-shaped spectrum</h1>
 </body>
 </html>

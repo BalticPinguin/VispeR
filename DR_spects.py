@@ -1,120 +1,115 @@
 #!/usr/bin/python2
 import Spect
+import Btree as bt
 from copy import deepcopy
+import numpy as np
+import re, mmap, math
 
 # ============ CHANGELOG =================
 
-class URDR-spect(Spect):
+class URDR_spect(Spect.Spect):
    Hartree2cm_1=219474.63 
    Threshold=3e-10
-   def unrestricted(logging, J, K, F, Energy, N, T, E0, m):
-      """This function 
-      **PARAMETERS**
-      logging: object having as first element the mode and as second the (already opened) log-file
-      J:        Duschisky-matrix
-      K:        Displacement-Vector
-      f:        frequency: two-dim array (freq_initial, freq_final)
-      Energy:   Energy-difference of minima
-      N:        Max. number of excitation quanta state considered
-      T:        Temperature of the system
-      E0:       frequency of the purely electronic transition
-      m:        number of vibrational modes taken into account for the spectum calculation
-   
-      **RETURNS**
-      linespectrum: vibrational line-spectrum
-      """
-      ##K*=np.sqrt(np.pi)/2. # --> do it in functions_smsc.Duschinsky now
+
+   m = 10
+   A=[]
+   b=[]
+   C=[]
+   d=[]
+   E=[]
+   Gamma =[]
+   Gammap=[]
+
+   def __init__(self, f): 
+      # first, initialise as done for all spectra:
+      Spect.Spect.__init__(self, f)
+      # now, calculate additional quantities for the iteration:
+      self.GetQuants()
+      #get m from opt. (-> number of states considered)
+      modes=re.findall(r"(?<=modes\=)[\d]+",self.opt, re.I)
+      if modes!=[]:
+         self.m=modes[-1]
+
+   def GetQuants(self):
+      self.Gamma=np.diag(self.f[0])   # in atomic units. It is equivalent to 4pi^2/h f_i
+      self.Gammap=np.diag(self.f[1])  # for initial state
+      sqGamma=np.diag(np.sqrt(self.f[0]))
+      sqGammap=np.diag(np.sqrt(self.f[1]))
+      unity=np.eye(len(self.Gamma))
+
+      TMP=np.linalg.inv(self.J.T.dot(self.Gammap).dot(self.J) + self.Gamma)
+      self.A=2.*sqGammap.dot(self.J).dot(TMP).dot(self.J.T).dot(sqGammap) -unity
+      self.b=2.*sqGammap.dot( unity - self.J.dot(TMP).dot(self.J.T).dot(self.Gammap) ).dot(self.K)
+      self.C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
+      self.d=-2.*sqGamma.dot(TMP).dot(self.J.T.dot(self.Gammap.dot(self.K)))
+      self.E=4.*sqGamma.dot(TMP).dot(self.J.T).dot(sqGammap)
+
+   def calcspect(self):
       #first: resort the elements of J, K, f to make J most closely to unity
-      resort=np.zeros(np.shape(J))
-      for i in xrange(len(J)):
-         j=np.argmax(J[i])
-         k=np.argmin(J[i])
-         if J[i][j]>-J[i][k]:
+      resort=np.zeros(np.shape(self.J))
+      for i in xrange(len(self.J)):
+         j=np.argmax(self.J[i])
+         k=np.argmin(self.J[i])
+         if self.J[i][j]>-self.J[i][k]:
            resort[i][j]=1
          else:
             resort[i][k]=-1
-      J=resort.dot(J.T)
-      K=resort.dot(K.T)
+      self.J=resort.dot(self.J.T)
+      self.K=resort.dot(self.K.T)
       for i in xrange(len(resort)):
          k=np.argmin(resort[i])
          if resort[i][k]==-1:
             resort[i][k]=1 #use absolute value only.
-      F[1]=resort.dot(F[1].T)
+      self.f[1]=resort.dot(self.f[1].T)
    
       #truncate only, if this really is truncation.
-      if m<len(J): 
-         index=np.argsort(np.abs(K), kind="heapsort")[::-1]
-         ind=index[:m]
-         k=K[ind]
-         j=J[ind].T[ind]
-         f=np.zeros(( 2,len(ind) ))
-         f[1]=F[1][ind]
-         f[0]=F[0][ind]
-      else:
-         k=K
-         j=J
-         f=np.zeros(( 2,len(F[0]) ))
-         f[1]=F[1]
-         f[0]=F[0]
+      if self.m<len(self.J): 
+         index=np.argsort(np.abs(self.K), kind="heapsort")[::-1]
+         ind=index[:self.m]
+         self.K=self.K[ind]
+         self.J=self.J[ind].T[ind]
+         f=np.zeros(( 2,self.m))
+         f[1]=self.f[1][ind]
+         f[0]=self.f[0][ind]
+         self.f=f
+         # now recalculate the matrices A,C,E,...
+         self.GetQuants()
    
       # finally, calculate the Duschinsky-rotated stick spectrum in this picture
-      linspect=FCf(logging, j, k, f, Energy, N, T, E0)
-      return linspect #3-dimensional array
+      self.spect=self.FCf(self.states1+ self.states2, self.T)
    
-   def FCf(logging, J, K, f, Energy, N, T, E0):
+   def FCf(self,N, T):
       """Calculates the FC-factors for given Duschinsky-effect. 
        No restriction to OPA
       
       *PARAMETERS:*
-      logging: object having as first element the mode and as second the 
-              (already opened) log-file
-      J:      Duschisky-matrix
-      K:      Displacement-Vector
-      f:      frequency: two-dim array (freq_initial, freq_final)
-      Energy: Energy-difference of minima
       N:      Max. number of excitation quanta state considered
       T:      Temperature of the system
-      E0:     frequency of the purely electronic transition
         
       All parameters are obligatory.
    
       *RETURNS:*
       linespectrum 
       """
-      def CalcI00(J, K, Gamma, Gammap, E):
+      def CalcI00():
          """This function calculates the overlap-integral for zero vibrations """
    
-         Tree=bt.Tree(2*len(K))
+         Tree=bt.Tree(2*len(self.K))
          Tree.fill(0)
-         Zero=np.zeros(2*len(K))
-         #E+=(sum(Gammap)-sum(Gamma))*.5    # correct for vibrational groundstates
-         #linespect=np.array(Tree.extract())
-         Tree.insert(Zero, np.array([1.0, (E)*Hartree2cm_1, 0]) ) #sum(sum()) due to matrix
+         Zero=np.zeros(2*len(self.K))
+         # correct for vibrational groundstates
+         E=self.Energy[0]-self.Energy[1]
+         for i in range(len(self.Gammap)):
+            E+=.5*(self.Gammap[i][i]-self.Gamma[i][i])
+         Tree.insert(Zero, np.array([1.0, (self.Energy[0]-self.Energy[1])*self.Hartree2cm_1, 0]) )
          #I_00 transition-probability [[Btree.py#extract]]
-         #linespect=np.array(Tree.extract())
          #this is done using implicit side effects
          lines.append(1.0)
-         freqs.append((E)*Hartree2cm_1)
+         freqs.append(E*self.Hartree2cm_1)
          initF.append(0) #needed for boltzmann-weighing
          return Tree
       
-      def iterate(L1, L2, Energy, i, f, J, K):
-         """ Calculates the Franck-Condon factors of an eletronic transition 
-             using the lower levels L1 and L2
-      
-         *PARAMETERS:*
-         L1:     binary tree where i-2 quanta are excited (structure: [[Btree.py]]
-         L2:     binary tree where i-1 quanta are excited
-         Energy: Energy-difference between the states (minimal energy)
-         i:      number of excitation-quanta
-         f:      (2xN) frequencies of both states
-         J:      Duschisky-rotation matrix
-         K:      Displacement-vector
-   
-         *RETURNS:*
-         L2:     input-parameter (needed for next iteration)
-         L3:     new binary tree 
-         """
+      def iterate(L1, L2, i):
    
          def freq( E, Gamma, Gammap):
             """Calculates the frequency of respective transition including 
@@ -130,7 +125,7 @@ class URDR-spect(Spect):
             *RETURNS;*
             frequency of respective transition
             """
-            return (E+sum(Gammap-Gamma))*Hartree2cm_1 
+            return (E+sum(Gammap-Gamma))*self.Hartree2cm_1 
       
          def FirstNonzero(n): 
             """Find first non-zero elements in first and second half of array n """
@@ -149,27 +144,18 @@ class URDR-spect(Spect):
                   break
             return m, mp
          
-         Gamma=np.diag(f[0])   # in atomic units. It is equivalent to 4pi^2/h f_i
-         Gammap=np.diag(f[1])  # for initial state
-         sqGamma=np.diag(np.sqrt(f[0]))
-         sqGammap=np.diag(np.sqrt(f[1]))
-         unity=np.eye(len(Gamma))
-      
-         TMP=np.linalg.inv(J.T.dot(Gammap).dot(J) + Gamma)
-         A=2.*sqGammap.dot(J).dot(TMP).dot(J.T).dot(sqGammap) -unity
-         b=2.*sqGammap.dot( unity - J.dot(TMP).dot(J.T).dot(Gammap) ).dot(K)
-         C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
-         d=-2.*sqGamma.dot(TMP).dot(J.T.dot(Gammap.dot(K)))
-         E=4.*sqGamma.dot(TMP).dot(J.T).dot(sqGammap)
-      
          #initialize new tree
-         alpha=2*len(b)
+         alpha=2*len(self.b)
          L3=bt.Tree(i)
          L3.fill(alpha)
          States=states(alpha, i)           # States are all possible
-   
+         
+         Energy=self.Energy[0]-self.Energy[1]
+         sgnE=np.sign(Energy)
+         if sgnE==0:
+            sgnE=1
          npsqrt=np.sqrt
-         leng=len(States[0])//2
+         leng=len(self.b) # = alpha//2
          for n in States: #for each possible state, described by n(vector)
             # index of first-non-zero element of (initial, final) state
             m, mp= FirstNonzero(n)
@@ -180,20 +166,17 @@ class URDR-spect(Spect):
                n_m=n[m]
                n[m]-=1 #n[m] is at least 1
                Ps=L2.getState(n)[0]
-               I_nn=b[m]*Ps                                     # first term 
-               #print "1", b[m]*Ps 
+               I_nn=self.b[m]*Ps                                     # first term 
                if n[m]>0:
                   n[m]-=1
                   Ps=L1.getState(n)[0]
-                  I_nn+=npsqrt(2.0*(n_m-1))*A[m][m]*Ps          # second term
-                  #print "2", npsqrt(2.0*(n_m-1))*A[m][m]*Ps
+                  I_nn+=npsqrt(2.0*(n_m-1))*self.A[m][m]*Ps          # second term
                   n[m]+=1
                if n[m+leng]>0:
                   n[m+leng]-=1
                   Ps=L1.getState(n)[0]
                   n[m+leng]+=1
-                  I_nn+=npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps # second term
-                  #print "3", npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps 
+                  I_nn+=npsqrt(n[m+leng]*0.5)*(self.E[m][m])*Ps # second term
    
                n[m]+=1
             #else: need the other iteration-formula
@@ -201,31 +184,25 @@ class URDR-spect(Spect):
                n_m=n[mp+leng]
                n[mp+leng]-=1
                Ps=L2.getState(n)[0]
-               I_nn=d[mp]*Ps                                       # first term 
-               #print "1a", d[mp]*Ps
+               I_nn=self.d[mp]*Ps                                       # first term 
                if n[mp+leng]>0:
                   n[mp+leng]-=1
                   Ps=L1.getState(n)[0]
-                  I_nn+=npsqrt(2.0*(n_m-1.))*C[mp][mp]*Ps           # second term
-                  #print "2a", npsqrt(2.0*(n_m-1.))*C[mp][mp]*Ps
+                  I_nn+=npsqrt(2.0*(n_m-1.))*self.C[mp][mp]*Ps           # second term
                   n[mp+leng]+=1
                n[mp+leng]+=1
             I_nn/=npsqrt(2.*n_m)
-            #print "4", npsqrt(2.*n_m)
             assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn:"+\
                                          " {0}\n, n:{1}\n:".format(I_nn, n)
-            if np.abs(I_nn)>1e-8: # don't mess with too low intensities (<1e-16)
+            # don't mess with too low intensities (<1e-16)
+            if np.abs(I_nn)>1e-8: 
                L3.insert(n, [I_nn,\
-                freq(Energy, np.sign(Energy)*f[1]*n[:leng],\
-                             np.sign(Energy)*f[0]*n[leng:]),\
-                         freq(0, 0, f[0]*n[leng:]) ])
-            #print "   ", n
-            #m=min(m,mp)
-            #print m, n[m], n[m+leng], I_nn, I_nn*I_nn ,\
-            #      (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
+                freq(Energy, sgnE*self.f[1]*n[:leng],\
+                             sgnE*self.f[0]*n[leng:]),\
+                         freq(0, 0, self.f[0]*n[leng:])])
          return L2, L3
       
-      def states( alpha, n): 
+      def states(alpha, n): 
          """This function creates all possible states having a total number of n 
             excitations in alpha different states
       
@@ -351,30 +328,6 @@ class URDR-spect(Spect):
             i+=1
          return States2
    
-      def states2( alpha, n): 
-         """This function creates all possible states having a total number of n 
-             excitations in alpha DIFFERENT states.
-             Hence it is for OPA-spectrum; here, for debugging only.
-         *PARAMETERS:*
-         alpha: number of degrees of freedom
-         n:     number of excitations
-   
-         *RETURNS:*
-         """
-         alpha=alpha//2
-         States=[]
-         distributions=np.zeros(2*alpha, dtype=np.int8)
-         for i in range(alpha):
-            for j in range(n+1):
-               distributions[i]=n-j
-               distributions[i+alpha]=j
-               States.append(np.array(distributions)) #save memory!
-               distributions[i]=0
-               distributions[i+alpha]=0
-         return States
-   
-      Gammap=np.diag(f[0]) # for initial state
-      Gamma=np.diag(f[1]) #in atomic units. It is equivalent to 4pi^2/h f_i
       lines=[]
       freqs=[]
       initF=[]
@@ -382,33 +335,31 @@ class URDR-spect(Spect):
       freqapp=freqs.append
       initapp=initF.append
    
-      L2=CalcI00(J, K, f[1], f[0], Energy)
+      L2=CalcI00()
       #both trees can be considered to coincide for first state. 
       L1=L2 
       for i in range(1,N+1):
-         L1, L2=iterate(L1, L2, Energy, i, f, J, K)
+         L1, L2=iterate(L1, L2, i)
          if L1==0 and L2==0:
             #only by assert: MemoryError
             break # kill calculation
          spect=L2.extract()
-         for j in xrange(len(spect)):
+         for j in range(len(spect)):
             #I_nn is stored; the intensity is I_nn*I_nn
             lineapp(spect[j][0]*spect[j][0])  
             freqapp(spect[j][1])             #energy of respective transition 
             initapp(spect[j][2])             #for thermal population: frequency in init. state
-           # if lines[-1] > 0.0001:
-           #    print lines[-1], freqs[-1]
       result=np.zeros((3, len(lines) ))
+      #print freqs
       result[0]=freqs
-      T*=Hartree2cm_1
+      T=self.T*self.Hartree2cm_1
       for i in range(len(result[0])):
          #arbitrary but constant number for mode
          result[2][i]=42
          result[1][i]=lines[i]*np.exp(-initF[i]/T) #thermally weighting of transitions
-      #print result[0][0]-Energy*Hartree2cm_1, result[1][0]
       return result
    
-class SDR-spect(Spect):
+class SDR_spect(Spect.Spect):
    Hartree2cm_1=219474.63 
    Threshold=3e-10
 
@@ -530,46 +481,6 @@ class SDR-spect(Spect):
                   distributions[i+alpha]=0
             return States
    
-         #K*=np.sqrt(np.pi)/2
-         #Gamma=np.diag(f[1])*2*np.pi               # in atomic units. It is equivalent to 4pi^2/h f_i
-         #Gammap=np.diag(f[0])*2*np.pi              # for final state
-         #sqGamma=np.diag(np.sqrt(f[1]))*np.sqrt(2*np.pi)
-         #sqGammap=np.diag(np.sqrt(f[0]))*np.sqrt(2*np.pi)
-         Gamma=np.diag(f[0])               # in atomic units. It is equivalent to 4pi^2/h f_i
-         Gammap=np.diag(f[1])              # for initial state
-         sqGamma=np.diag(np.sqrt(f[0]))
-         sqGammap=np.diag(np.sqrt(f[1]))
-         unity=np.eye(len(Gamma))
-      
-      #   C=np.linalg.inv(J.T.dot(Gammap).dot(J)+Gamma) #C is only temporary matrix here
-      #   A=J.dot(np.dot(C,J.T))
-      #   A=2*np.dot(sqGammap,A.dot(sqGammap))-unity
-      #   TMP=J.dot(C).dot(J.T).dot(Gammap)
-      #   b=2*sqGammap.dot((unity-TMP).dot((K)))
-      #   d=-2*sqGamma.dot(C.dot(J.T.dot(Gammap.dot(K))))
-      #   E=4*sqGamma.dot(C).dot(J.T).dot(sqGammap)
-         TMP=np.linalg.inv(J.T.dot(Gammap).dot(J) + Gamma)
-         A=2.*sqGammap.dot(J).dot(TMP).dot(J.T).dot(sqGammap) -unity
-         b=2.*sqGammap.dot( unity - J.dot(TMP).dot(J.T).dot(Gammap) ).dot(K)
-         C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
-         d=-2.*sqGamma.dot(TMP).dot(J.T.dot(Gammap.dot(K)))
-         E=4.*sqGamma.dot(TMP).dot(J.T).dot(sqGammap)
-      
-   
-         #print "J", J, Gamma
-         #print TMP.dot(Gammap), J
-       #simple versions of the above matrices if J=unity and Gamma=Gammap
-       #  A=np.zeros( (len(A),len(A)) )
-       #  C=np.zeros( (len(A),len(A)) )
-       #  E=np.ones( (len(A),len(A)) )*2.
-       #  b=sqGammap.dot(K)
-       #  d=-sqGamma.dot(K)
-       #  print "matrices:"
-       #  print A, '\n', b, '\n', C, '\n', d, "\n", E
-   
-         #for j in range(len(b)):
-         #   print b[j], d[j], sqGamma[j][j]*K[j], (b[j]+d[j])/b[j]
-   
          #initialize new OPA-object
          leng=len(b)
          L3=OPA(leng, i)                   # initialize root-node
@@ -577,13 +488,10 @@ class SDR-spect(Spect):
          npsqrt=np.sqrt
    
          for n in States: #for each possible state, described by n(vector)
-            #print "   ", n
             I_nn=0
             #need first iteration formula
             m=np.argmax(n[:leng])  #if there is no excitation: it returns 0
             # if there excists excitation in initial state: need first iteration formula
-            #if n[m]!=0:
-            #   print b[m]*b[m]*0.5, f[0][m]*Hartree2cm_1
             if n[m]!=0:
                # need first iteration-formula
                n_m=n[m]
@@ -591,15 +499,11 @@ class SDR-spect(Spect):
                Ps=L2.getState(n)
                #if not math.isnan(Ps):
                I_nn=b[m]*Ps                                     # first term 
-               print "1", b[m]*Ps 
-               #print "   ", b[m], Ps
                if n[m]>0:
                   n[m]-=1
                   Ps=L1.getState(n)
                   #if not math.isnan(Ps) and abs(Ps)>1e-8:
                   I_nn+=npsqrt(2.0*(n_m-1))*A[m][m]*Ps         # second termA
-                  print "2", npsqrt(2.0*(n_m-1))*A[m][m]*Ps
-                  #print "   ",npsqrt(2.0*(n_m-1))*A[m][m], Ps
                   n[m]+=1
                if n[m+leng]>0:
                   n[m+leng]-=1
@@ -607,8 +511,6 @@ class SDR-spect(Spect):
                   n[m+leng]+=1
                   #if not math.isnan(Ps) and abs(Ps)>1e-8:
                   I_nn+=npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps # second term
-                  print "3", npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps 
-                  #print "    ",npsqrt(n[m+leng]*0.5)*(E[m][m]), Ps # second term
    
                n[m]+=1
             #else: need the other iteration-formula
@@ -618,28 +520,15 @@ class SDR-spect(Spect):
                n[m+leng]-=1
                Ps=L2.getState(n)
                I_nn=d[m]*Ps                                    # first term 
-               print "1a", d[m]*Ps
-               #print "   ", b[m], Ps
                if n[m+leng]>0:
                   n[m+leng]-=1
                   Ps=L1.getState(n)
                   #if not math.isnan(Ps) and abs(Ps)>1e-8:
                   I_nn+=npsqrt(2.0*(n_m-1))*C[m][m]*Ps         # second term
-                  print "2a", npsqrt(2.0*(n_m-1.))*C[m][m]*Ps
-                  #print "   ", npsqrt(2.0*(n_m-1))*C[m][m], Ps
                   n[m+leng]+=1
                n[m+leng]+=1
             I_nn/=npsqrt(2.*n_m)
-            print "4", npsqrt(2.*n_m)
             assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn: {0}\n, n:{1}\n:".format(I_nn, n)
-            #if m==7 and n[m]>0:
-               #print  I_nn*I_nn, sum(Gamma.dot(n[:leng])-Gamma.dot(n[leng:]))*Hartree2cm_1, m
-            ##print sum(Gamma.dot(n[:leng])-Gamma.dot(n[leng:]))*Hartree2cm_1 ,I_nn*I_nn*np.exp(-sum(Gamma.dot(n[leng:]))/T) 
-            #if m==7:
-         #   if abs(I_nn)>1e-3:
-         #      print m, n[m], n[m+leng], I_nn*I_nn , (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
-            print "   ", n
-            print m, n[m], n[m+leng], I_nn, I_nn*I_nn , (f[1].T.dot(n[:leng])-f[0].T.dot(n[leng:]))*Hartree2cm_1
             L3.insert(n, I_nn)
          return L2, L3
    
@@ -653,8 +542,8 @@ class SDR-spect(Spect):
                          +np.sign(E)*Gammap[indi]*(ex[i])+E)*Hartree2cm_1,
                         intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) ,
                         0])
-               if F[-1][1]>0.0001:
-                  print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*Hartree2cm_1
+              # if F[-1][1]>0.0001:
+              #    print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*Hartree2cm_1
    
          if F==[]: # no transitions with enough intensity occured.
             F=[0,0,0]
@@ -664,20 +553,14 @@ class SDR-spect(Spect):
    
       linspect=[]
    
-####   print Energy, sum(f[0])-sum(f[1])
       # correct for vibrational groundstates:
-      #Energy+=(sum(f[0])-sum(f[1]))*.5
+      Energy+=(sum(f[0])-sum(f[1]))*.5
       L2=CalcI00(len(K), Energy)
       #this is already extracted to linspect (using side-effects)
       L1=L2 
       for i in range(1, N+1):
          L1, L2=iterate(L1, L2, Energy, i, f, J, K)
          intens, index, excitation, N=L2.extract()
-         #print linspect
-         #print "\n"
-         #print N, N, N, N
-         #print intens
-         #print "\n\n\n\n"
          linspect.append(makeLine(logging, intens, E0, T, index, excitation, f[1], f[0], Energy, i))
          dimen+=len(linspect[i])+1
       spect=np.zeros((dimen,3))
@@ -782,16 +665,13 @@ class SDR-spect(Spect):
          for j in range(len(resort)-1):
             resort[j]=resort[j+1]
          resort[-1]=vec
-         print resort
    
          J=resort.dot(Jo)
          K=resort.dot(Ka)
          f[1]=resort.dot(f1)
          f[0]=resort.dot(f0)
-         #print "J", J,"\n"
          temp=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
          spect2.append(temp[:].T[1:].T)# do not take the 0-0 transititon a second time
-         #print (simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)[:].T[1:])
    
       resort=np.eye(len(resort))
       for i in range(threshold):
@@ -820,3 +700,4 @@ class SDR-spect(Spect):
          leng+=len(spect2[i][0])
    
       return spect.T
+

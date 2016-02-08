@@ -15,127 +15,21 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       # first, initialise as done for all spectra:
       Spect.Spect.__init__(self, f)
       # now, calculate HR-spect in addition.
-      HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",self.opt,re.I)
+      HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",self.opt,re.M)
       if HRthresh==[]:
          HRthresh=0.015
       else: 
          HRthresh=float(HRthresh[-1])
       self.HuangR(HRthresh)
 
-   def CalculationHR(self, initial, final, opt, HRthresh):
-      """ This function gathers most essential parts for calculation of 
-      HR-factors from g09-files. That is: read neccecary information from the  
-      g09-files and calculate HR-factors as well as the  Duschinsky-rotation 
-      matrix and the shift between minima (needed later if the option Duschinsky 
-      is specified)
+      # get N, M from opt
 
-      **PARAMETERS**
-      initial: name of the file containing the initial state's geometry
-      final:   name of the file containing the initial state's geometry
-      opt:     options that are given to this calculation; especially it is of 
-               interest, whether there should be frequencies and/or normal
-                modes to be read from the g09-files.
-      HRthresh threshold for HR-factors (only those larger than this are taken 
-               into account)
-
-      **RETURNS**
-      HR:      Huang-Rhys factors, sorted by size
-      funi:    vibrational frequencies sorted same as HR 
-      J:       Duschinsky-rotation matrix
-      K:       shift between the states (in normal coordinates)
-      f:       frequencies of the vibrational modes, sorted by size of the 
-               frequencies
-
-      """                                                                                             
-      if (( ".fchk" in self.final) and (".fchk" in self.initial))\
-                  or (( ".FChk" in self.final) and (".FChk" in self.initial)): # this is also a valid ending
-         read = "G09_fchk"
-      else:
-         with open(self.initial, "r+b") as f: #open file as mmap
-            mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
-            for line in iter(mapping.readline, ""): #go through every line and test characteristic part
-               if "GAMESS" in line: #if it is found: read important quantities from file
-                  read ="GAMESS"
-                  break
-               elif "Northwest Computational Chemistry Package (NWChem)" in line:
-                  read ="NWChem"
-                  break
-               elif "Gaussian(R)" in line:
-                  read ="G09"
-                  break
-            #  There is some error: File not recognised or an other programme was used.
-            else: 
-               print "file type not recognised"
-         
-      #read coordinates, force constant, binding energies from log-files and 
-      # from the file, using the type of file that is known now...
-      self.dim, Coord, mass, A, self.Energy[0]=self.Read(self.initial, read)
-      F, CartCoord, P, self.Energy=self.quantity(self.dim) #creates respective quantities (empty)
-      if self.logging[0]==0:
-         self.logging[1].write("Dimensions: "+ str(self.dim)+ '\n Masses: '+ str(mass**2)+"\n")
-      F[0]=A
-      self.CartCoord[0]=Coord
-      dim, self.CartCoord[1], mass, self.F[1], self.Energy[1]=self.Read(self.final,read) 
-
-      if self.logging[0]<3:
-         self.logging[1].write('difference of minimum energy between states:'
-                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*self.Hartree2cm_1))
-         if self.logging[0]<2:
-            self.logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( CartCoord[0].T/self.Angs2Bohr))
-            self.logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( CartCoord[1].T/self.Angs2Bohr))
-            self.logging[1].write('initial state: \n{0}\n'.format(F[0]))
-            self.logging[1].write('final state: \n {0}\n'.format(F[1]))
-   
-      #read coordinates, force constant, binding energies from log-files and calculate needed quantities
-      if self.logging[0]<3:
-         self.logging[1].write('difference of minimum energy between states:'
-                           ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*self.Hartree2cm_1))
-         if self.logging[0]<2:
-            self.logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( CartCoord[0].T/self.Angs2Bohr))
-            self.logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( CartCoord[1].T/self.Angs2Bohr))
-            self.logging[1].write('initial state: \n{0}\n'.format(F[0]))
-            self.logging[1].write('final state: \n {0}\n'.format(F[1]))
-   
-      #Calculate Frequencies and normal modes
-      f, Lsorted, Lmassw=self.GetL(dim, mass, F)
-      J, K=self.Duschinsky(Lmassw, mass, dim, CartCoord)
-      #J, K=self.Duschinsky(Lsorted, mass, dim, CartCoord)
-      extra=re.findall(r"g09Vectors",opt, re.I)
-      if extra!=[]:
-         g09L=self.getGaussianL(final, mass, dim)
-         g09f=self.getGaussianf(final,dim)
-      elif re.search(r"g09Vector",opt, re.I) is not None:
-         g09L=self.getGaussianL(final, mass, dim)
-         g09f=self.getGaussianf(final,dim)
-
-      #comparet  f, g09f  and Lsorted/Lcart with g09L --> which is which??
-      
-      #calculate HR-spect
-      HR, funi= self.HuangR(K, f, HRthresh)
-      if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-          self.replace( "S0.log", f[0], Lmassw[0])
-      #Hartree2cm_1=219474.63 
-      return HR, funi, J, K, f
-
-   def calcspect(self, E, E0, N, M, T):
-       """This is used to calculate the line spectrum assuming no mode mixing 
-       (shift only) 
-       and coinciding frequencies in both electronic states.
-    
-       **PARAMETERS:**
-       HR:     Huang-Rhys factors
-       n:      number of modes that are considered here (with largest HR)
-       freq:   frequencies (have to be in the same order as HR
-       E:      energy difference of energy surfaces
-       N,M:    are the numbers of vibrational quanta can be in the modes
-    
-       **RETURNS:**
-       nothing (output into /tmp/linspect)
-       """
+   def calcspect(self):
        # M,N are maximal numbers of vibrational modes 
        #     (+1, since they should be arrived really; count from 0)
-       N+=1
-       M+=1
+       self.states1+=1
+       self.states2+=1
+       f=self.f[0]
        def FCeqf( Deltag, M, N):
           """Calculate Franck-Condon factors under assumption of equal frequencies 
           for only one vibrational mode
@@ -149,7 +43,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
           Franck-Condon factor of the respective transition
           """
           fact=math.factorial
-          faktNM=fact(M)*fact(N)
+          faktNM=float(fact(M)*fact(N))
           FC=0
           for x in range(int(min(N,M))+1):# +1: to go to really reach min(M,N).
              FC+=math.pow(-1,N-x)*math.pow(Deltag,(M+N)*0.5-x)/(fact(M-x)*fact(N-x))*\
@@ -170,60 +64,61 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
           rate (2. column) and the number of changing mode.
           """
           J=len(intens[0])
-          this.spect=np.zeros((3,len(intens)*J+1))
+          spect=np.zeros((3,len(intens)*J+1))
           #first transition: 0-0 transition. 
-          this.spect[1][0]=FC00 #0->0 transition
-          this.spect[0][0]=E
-          this.spect[2][0]=0
+          spect[1][0]=FC00 #0->0 transition
+          spect[0][0]=E
+          spect[2][0]=0
           for i in range(len(intens)):#make this easier: reshapeing of intens, freqs
              for j in xrange(J):
-                this.spect[2][i*J+j+1]=i+1
-                this.spect[1][i*J+j+1]=intens[i][j]
-                this.spect[0][i*J+j+1]=freqs[i][j]
+                spect[2][i*J+j+1]=i+1
+                spect[1][i*J+j+1]=intens[i][j]
+                spect[0][i*J+j+1]=freqs[i][j]
+          return spect
     
        n=len(self.HR) #=len(freq)
        setM=False
-       if M==1: 
+       if self.states2==1: 
           # there was not specified, how many vibr. states in ground-state 
           #     should be taken into account
           setM=True
-          M=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+9.))
+          self.states2=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+9.))
           #i.e. take M following an empirical value as function of the HR-file
        assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
                                         "threshold. No mode to be calculated."
        #if setM: the size of these arrays will be overestimated.
-       FC=np.zeros((n,M*N-1))
-       uency=np.zeros((n,M*N-1)) #frequency
-       #calculate 0->0 transition
-       FC00=1.00
-       #print 0,0,0, 10
-       uency00=E*self.Hartree2cm_1 #zero-zero transition
-       loggingwrite=self.logging[1].write #avoid dots!
-       npexp=np.exp #avoiding dots accelerates python quite a lot
-       #here a goes over all modes
+       FC=np.zeros((n,self.states2*self.states1-1))
+       uency=np.zeros((n,self.states2*self.states1-1)) #frequency
+
+       #avoiding dots accelerates python quite a lot
+       loggingwrite=self.logging[1].write
+       npexp=np.exp 
+       E=self.Energy[0]-self.Energy[1]
+       #set  0->0 transition:
        sgnE=np.sign(E)
+       uency00=E*self.Hartree2cm_1 #zero-zero transition
+       FC00=1.00
        if sgnE==0:
-          # sign(0) =0 ...
           sgnE=1;
+       #here a goes over all modes
        for a in xrange(n):
           #print a, HR[a]
-          for j in range(N):  # initial state
+          for j in range(self.states1):  # initial state
              if setM:
                 # set M to fit best to the value at that moment.
                 M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
-             for i in range(M):  #final states
+             for i in range(self.states2):  #final states
                 if i==0 and j==0:
                    ##skip 0-0 transitions
                    continue
                 tmp=FCeqf(self.HR[a], i, j)
                 try:
-                   FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+self.f[a]*j)/T)
-                   uency[a][j*M+i-1]=(E+sgnE*self.f[a]*(j-i))*self.Hartree2cm_1
+                   FC[a][j*M+i-1]=tmp*FC00*npexp(-(f[a]*j)/self.T)
+                   uency[a][j*M+i-1]=(sgnE*E+sgnE*f[a]*(j-i))*self.Hartree2cm_1
                 except IndexError:
                    loggingwrite("truncated spectrum for mode nr. %d"%(a))
                    break
-       FC00*=npexp(-E0/T)
-       unifSpect(FC, uency, E*self.Hartree2cm_1, FC00)
+       self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
 
    def gs(A):
        """This function does row-wise Gram-Schmidt orthonormalization of 
@@ -267,7 +162,6 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        sortHR=np.zeros(lenK)
        HR=np.zeros(lenK)
        fsort=np.zeros(lenK)
-       uniHRall=[]
        uniFall=[]
        #print K
        for j in range(lenK):
@@ -305,16 +199,15 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
           else:
              # there will come only smaller ones.
              break
-       uniHRall.append(uniHR)
        #keep order: First one is initial, second is final state.
        uniFall.append(uniF0)
        uniFall.append(uniF1)
        # now, make the new results being objects of that class:
-       self.HR=uniHRall
+       self.HR=uniHR
        self.f=uniFall
     
 class CFC_spect(FC_spect):
-    def calcspect(self, HR, freq, E, E0, N, M, T):
+    def calcspect(self):
        """This is used to calculate the line spectrum assuming no mode mixing 
        (shift only)  and coinciding frequencies in both electronic states.
    
@@ -331,8 +224,8 @@ class CFC_spect(FC_spect):
        """
        # M,N are maximal numbers of vibrational modes (+1, since they should 
        #      be arrived really; count from 0)
-       N+=1
-       M+=1
+       self.N+=1
+       self.M+=1
    
        def FCchf(HR,N,M,freq):
           npsqrt=np.sqrt
@@ -390,56 +283,54 @@ class CFC_spect(FC_spect):
                 spect[0][i*J+j+1]=freqs[i][j]
           return spect
    
-       n=len(HR) #=len(freq)
+       n=len(self.HR) #=len(freq)
        setM=False
    
        # correct for vibrational groundstates:
        #E+=(sum(freq[0])-sum(freq[1]))*.5
        #print E, freq[0]
-       if M==1: 
+       if self.M==1: 
           # there was not specified, how many vibr. states in ground-state 
           #           should be taken into account
           setM=True
-          M=max(3,int(-1.1*HR[0]*HR[0]+6.4*HR[0]+9.))
+          self.M=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+5.))
        assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
                     " threshold. No mode to be calculated."
        #if setM: the size of these arrays will be overestimated.
        #calculate 0->0 transition
        FC00=1
        #print 0,0,0, 10
-       uency00=E*self.Hartree2cm_1 #zero-zero transition
-       loggingwrite=logging[1].write #avoid dots!
+       loggingwrite=self.logging[1].write #avoid dots!
        npexp=np.exp                  #to accelerates python quite a lot
-       FC=np.zeros((n,M*N))
-       uency=np.zeros((n,M*N)) #frequency
+       freq=self.f
+
+       FC=np.zeros((n,self.M*self.N))
+       uency=np.zeros((n,self.M*self.N)) #frequency
+       E=self.Energy[0]-self.Energy[1]
        #here a goes over all modes
        sgnE=np.sign(E)
        if np.sign(E)==0:
           sgnE=1
+       uency00=sgnE*E*self.Hartree2cm_1 #zero-zero transition
        for a in xrange(n):
           if setM:
              # set M to fit best to the value at that moment.
-             M=max(3,int(-1.1*HR[a]*HR[a]+6.4*HR[a]+9.))
+             M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+5.))
           #print a, HR[a]
-          R=FCchf(HR[a],N,M,[freq[0][a], freq[1][a]])
-          for j in range(N): 
-             for i in range(M):
+          R=FCchf(self.HR[a],N,M,[freq[0][a], freq[1][a]])
+          for j in range(self.N): 
+             for i in range(self.M):
                 if i==0 and j==0:
                    ##skip 0-0 transitions
                    continue
                 tmp=R[i][j]*R[i][j]
-              #  if tmp*npexp(-(E0+freq[0][a]*j)/T)>0.01:
-              #     print a,i,j, tmp*npexp(-(E0+freq[0][a]*j)/T),\
-              #           (freq[0][a]*j-freq[1][a]*i)*self.Hartree2cm_1
                 try:
-                   FC[a][j*M+i-1]=tmp*FC00*npexp(-(E0+freq[0][a]*j)/T)
-                   uency[a][j*M+i-1]=(E+sgnE*(freq[0][a]*j-freq[1][a]*i))*self.Hartree2cm_1
+                   FC[a][j*M+i-1]=tmp*FC00*npexp(-(freq[0][a]*j)/T)
+                   uency[a][j*M+i-1]=sgnE*(E+(freq[0][a]*j-freq[1][a]*i))*self.Hartree2cm_1
                 except IndexError:
-                   logging[1].write("truncated spectrum for mode nr. %d"%(a))
+                   logwrite("truncated spectrum for mode nr. %d"%(a))
                    break
-       FC00*=npexp(-E0/T) # rescale 0-0 transition due to thermal population
-       spect=unifSpect(FC, uency, E*self.Hartree2cm_1, FC00)
-       return spect
+       self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
 
 class GFC_spect(FC_spect):
    def CalculationHR(self, HRthresh): 

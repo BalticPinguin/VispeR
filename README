@@ -1,16 +1,29 @@
-Welcome to Smallscript.
+Welcome to Visper, the replacement of smallscript.
 This tool is intended to calculate vibronic spectra on different levels of theory
 using several types of formats as input.
 
-Smallscript is licensed under GPL, so you are free to use it and change as you
-like. 
 If you find any error or add some further functionality, please let me know
 to improve the programme.
 
 
-====================================================
-***************** Requirements *********************
-====================================================
+       ====================================================
+       ***************** Requirements *********************
+       ====================================================
 
-Smallscript is written in python; so your machine needs a python2 installation (2.7)
+Visper is written in python; so your machine needs a python2 installation (2.7)
 with numpy and scipy in addition.
+
+
+       ====================================================
+       ******************    Usage   **********************
+       ====================================================
+Visper is easy to use: Unpack the files in a folder, make the main file,
+smallscript.py, executable and execute it, followed by the name of your 
+input-file that specifies all options.
+For more detailes about these options, please have a look at doc/DOCUMENTAION.html.
+
+       ====================================================
+       ******************  Licence   **********************
+       ====================================================
+Visper is licensed under GPL, so you are free to use it and change as you
+like. 

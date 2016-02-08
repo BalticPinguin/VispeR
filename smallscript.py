@@ -6,6 +6,9 @@ import Spect
 #include [[FC_spects.py]]
 import FC_spects as FC
 
+#include [[DR_spects.py]]
+import DR_spects as DR
+
 #include further dicts
 import sys, re, mmap, numpy as np
 import time
@@ -69,6 +72,12 @@ def getTasks(f):
      print "You must specify a model to be used."
    if model in ['FC', 'fc', 'Fc']:
        model = "FC"
+   elif model in ['CFC', 'cfc', 'Cfc']:
+       model = "CFC"
+   elif model in ['URDR', 'urdr', 'UrDR', 'urDR']:
+       model = "URDR"
+   else:
+      model = 'unknown'
    return model
 
 def main(argv=None):
@@ -103,25 +112,22 @@ def main(argv=None):
       spect = FC.CFC_spect(f)
    elif model == "GFC":
       spect = FC.GFC_spect(f)
-   elif model == "HRs":
-      spect = FC.HR_spect(f)
-   elif model == "HRf":
-      spect = FC.HR_factors(f)
+  # elif model == "HRs":
+  #    spect = FC.HR_spect(f)
+  # elif model == "HRf":
+  #    spect = FC.HR_factors(f)
+   elif model == "URDR":
+      spect= DR.URDR_spect(f)
    else:
       print "error in the model, ", model, "not known."
       return 2
    #INTRODUCTION END
 
    #PERFORM CALCULATION OF SPECTRA
-   states1=5
-   states2=5
-   T=300
-   T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
-   spect.calcspect(spect.HR[0], spect.f[1], spect.Energy[0]-spect.Energy[1], 0, states1, states2, T)
+   spect.calcspect()
    #FINISHED PERFORM CALCULATION OF SPECTRA
    
-   spect.outspect(T, "deineMudda", spect.spect)
-   
+   spect.outspect()
     
 if __name__ == "__main__":
    main(sys.argv[1:])

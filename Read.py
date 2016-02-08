@@ -13,11 +13,15 @@ import re, mmap, os.path, math, sys
 #  FUNCTIONS TO READ THE NEEDED DATA FROM OUTPUT-FILES IN DIFFERENT FORMATS.
 class Read: 
    #members:
-     init='unknown'
-     final='unknown'
-     type='unknown'
+   AMU2au=1822.88839                                          
+   Angs2Bohr=1/0.52917721092                                  
+   ev2Hartree = 0.0367493081366
+   init='unknown'
+   final='unknown'
+   type='unknown'
+
    #attributes:
-   def __init__(self, initial,final)
+   def __init__(self, final, initial):
       """ initialises the class Read. It will get the following properties:
        init:  the name of the file with initial state information. 
               Having this as class member, we don't can access it any time we need.
@@ -28,15 +32,15 @@ class Read:
       """
       self.init=initial
       self.final=final
-      if (".fchk" in self.init))\ or (".FChk" in self.init)): 
+      if (".fchk" in self.init) or (".FChk" in self.init): 
          self.type = "G09_fchk"
-      if (( ".fchk" in self.final) or (( ".FChk" in self.final) :
+      if (".fchk" in self.final) or (".FChk" in self.final) :
          if self.type!="G09_fchk":
             self.type=""
             self.ftype='G09_fchk'
 
       if self.type!='G09_fchk':
-         with open(self.initial, "r+b") as f: #open file as mmap
+         with open(self.init, "r+b") as f: #open file as mmap
             mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
             for line in iter(mapping.readline, ""): #go through every line and test characteristic part
                if "GAMESS" in line: #if it is found: read important quantities from file
@@ -77,7 +81,7 @@ class Read:
             else: 
                print "file type not recognised"
    
-   def ReadAll(state):
+   def ReadAll(self,state):
       """This function is supposed to be the main interface
       for accessing this class. """
       #first chose the correct file and its format
@@ -87,12 +91,14 @@ class Read:
          else:
             kind=self.type
          inputfile=self.init
-      else:
+      elif state=='f':
          if self.type=='':
             kind=self.ftype
          else:
             kind=self.type
-         inputfile=self.init
+         inputfile=self.final
+      else:
+         assert 1==1, "invalid state provided to be read."
 
       # than perform the correct calculation with it and return all data.
       if kind == "G09_fchk":
@@ -157,21 +163,15 @@ class Read:
       mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
       for j in range(len(mtemp)):
          for k in range(len(mtemp[j])):
-            mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
+            mass[k+foonum]=np.sqrt(float(mtemp[j][k])*self.AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
          foonum+=len(mtemp[j])
       assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
-      if self.logging[0]<2:
-         self.logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                           "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
       # Reading Cartesian coordinates
       Coord=np.zeros((3, dim/3))
       for j in range(len(tmp)):
          Coord[j%3][j/3]=tmp[j]
 
       Coord*=self.Angs2Bohr
-      if self.logging[0]<1:
-         self.logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
-
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"Force constants in Cartesian coordinates: [\n\d .+-D]+", log, re.M)
       if f==[]:
@@ -216,18 +216,14 @@ class Read:
             for j in range(1,len(elements)):
                F[int(elements[0])-1][j-1+5*n]=float(elements[j])
                F[j-1+5*n][int(elements[0])-1]=float(elements[j])
-      if self.logging[0]<1:
-         self.logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
       for i in range(0,dim):
          for j in range(0,dim):
             F[i][j]/= (mass[i//3]*mass[j//3]) 
-      Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
-      assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if re.search(r'\n ', Etemp[-1]) is not None:
-         Etemp[-1]=Etemp[-1].replace("\n ", "") 
-      if self.logging[0]<=1:
-         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
-      E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
+      Etemp=re.findall(r"(?<=Root      1 :)[\d .]+", log, re.M)
+      if Etemp==[]:
+         E=0
+      else:
+         E=float(Etemp[-1])*self.ev2Hartree
       return dim, Coord, mass, F, E
 
    def __ReadG09_Grad(self, final):
@@ -248,8 +244,6 @@ class Read:
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
       if re.search(r'\n ', Etemp[-1]) is not None:
          Etemp[-1]=Etemp[-1].replace("\n ", "") 
-      if self.logging[0]<=1:
-         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
      
       grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
@@ -298,20 +292,13 @@ class Read:
       mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
       for j in range(len(mtemp)):
          for k in range(len(mtemp[j])):
-            mass[k+foonum]=np.sqrt(float(mtemp[j][k])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
+            mass[k+foonum]=np.sqrt(float(mtemp[j][k])*self.AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
          foonum+=len(mtemp[j])
       assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
-      if self.logging[0]<2:
-         self.logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                           "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
       # Reading Cartesian coordinates
       Coord=np.zeros((3, dim/3))
       for j in range(len(tmp)):
          Coord[j%3][j/3]=float(tmp[j].replace('E','e')) # need to convert by some factor!!
-
-      #Coord*=self.Angs2Bohr
-      if self.logging[0]<1:
-         self.logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
 
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"(?<=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+", log, re.M)
@@ -336,8 +323,6 @@ class Read:
                k=0
             else:
                k+=1
-      if self.logging[0]<1:
-         self.logging[1].write('F matrix as read from formcheck-file\n{0} \n'.format(F))
       for i in range(0,dim):
          for j in range(0,dim):
             F[i][j]/= (mass[i//3]*mass[j//3]) 
@@ -345,8 +330,6 @@ class Read:
       Etemp=re.findall(r'(?<=Total Energy                               R  )[ \-\d.E\+]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
       Etemp=float(Etemp[0].replace('E','e'))
-      if self.logging[0]<=1:
-         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp))
       return dim, Coord, mass, F, Etemp
 
    def __ReadG09_fchk_Grad(self, final):
@@ -367,8 +350,6 @@ class Read:
       E=re.findall(r'(?<=Total Energy                               R  )[ \-\d.E\+]+', log, re.M)
       assert len(E)>=1, 'Some error occured! The states energy can not be read.'
       E=float(E[0].replace('E','e'))
-      if self.logging[0]<=1:
-         self.logging[1].write('temporary energy of state: %d\n'%(E))
      
       #get gradient
       grad=re.findall(r"(?<=Cartesian Gradient)[R N=\d.\+\- E\n]+", log)
@@ -406,11 +387,8 @@ class Read:
 
       mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
       for j in range(len(mtemp[0])):
-         mass[j]=np.sqrt(float(mtemp[0][j])*AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
+         mass[j]=np.sqrt(float(mtemp[0][j])*self.AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
       assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
-      if self.logging[0]<2:
-         self.logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                           "modes: {1} \n Sqrt of masses in a.u. as read from log file\n{2}\n".format(dim/3,dim,mass))
       
       # Reading Cartesian coordinates
       temp=re.findall(r'(?<=ATOM             X              Y              Z\n\n)[\n -.\d\w]+', log)  
@@ -421,8 +399,6 @@ class Read:
          for j in range(dim//3):
             Coord[i][j]=float(tmp[3*i+j])
       Coord*=self.Angs2Bohr
-      if self.logging[0]<1:
-         self.logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"(?<=CARTESIAN FORCE CONSTANT MATRIX\n)[\d\w \.\-\n]+", log, re.M)
       f_str=str([f[-1]])
@@ -448,8 +424,6 @@ class Read:
             F[k][n+j]=F[n+j][k]=f[j]
          k+=1
 
-      if self.logging[0]<1:
-         self.logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
       for i in range(0,dim):
          for j in range(0,dim):
             F[i][j]/= (mass[i//3]*mass[j//3]) 
@@ -457,8 +431,6 @@ class Read:
       #get energy of the state
       Etemp=re.findall(r'(?<=TOTAL ENERGY =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if self.logging[0]<=1:
-         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=float(Etemp[-1]) #energy is negative (bound state)
       return dim, Coord, mass, F, E
 
@@ -477,8 +449,6 @@ class Read:
       files.close
       Etemp=re.findall(r'(?<=TOTAL ENERGY =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if self.logging[0]<=1:
-         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=float(Etemp[-1]) #energy is negative (bound state)
       #grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
       #Grad=re.findall(r"[\-\d\.]+[\d]{9}", grad[0])
@@ -513,12 +483,8 @@ class Read:
 
       mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
       for j in range(len(mtemp)):
-         mass[j]=np.sqrt(float(mtemp[j].replace('D','e'))*AMU2au) #mass[j] is square-root of masses
+         mass[j]=np.sqrt(float(mtemp[j].replace('D','e'))*self.AMU2au) #mass[j] is square-root of masses
       assert not np.any(mass==0) , "some atomic masses are 0. Please check the input-file! {0}".format(mass)
-      if self.logging[0]<2:
-         self.logging[1].write("Number of atoms: {0}\nNumber of vibrational "
-                          "modes: {1} \n Sqrt of masses in a.u. as read "
-                          "from log file\n{2}\n".format(dim/3,dim,mass))
       
       # Reading Cartesian coordinates
       tmp=re.findall(r'[ -]\d\.[\dD\.\+\-]+', WeightCoord[-1])
@@ -530,8 +496,6 @@ class Read:
             Coord[i][j]=float(tmp[i+3*j+k].replace('D','e'))
          k+=1 # important to skip masses in tmp 
       Coord*=self.Angs2Bohr
-      if self.logging[0]<1:
-         self.logging[1].write("Cartesian coordinates (a.u.) \n{0}\n".format(Coord.T))
 
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"(?<=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
@@ -550,16 +514,12 @@ class Read:
          elements=lines[i].replace('D','e').split()
          for j in range(1,len(elements)):
             # convert to a.u.  (masses)
-            F[int(elements[0])-1][j-1+10*n]=float(elements[j])/(1000*AMU2au)
-            F[j-1+10*n][int(elements[0])-1]=float(elements[j])/(1000*AMU2au)
-      if self.logging[0]<1:
-         self.logging[1].write('F matrix as read from log file\n{0} \n'.format(F))
+            F[int(elements[0])-1][j-1+10*n]=float(elements[j])/(1000*self.AMU2au)
+            F[j-1+10*n][int(elements[0])-1]=float(elements[j])/(1000*self.AMU2au)
 
       #get energy of the state
       Etemp=re.findall(r'(?<=Total DFT energy =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if self.logging[0]<=1:
-         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=float(Etemp[-1]) #energy is negative (bound state)
       return dim, Coord, mass, F, E
 
@@ -578,8 +538,6 @@ class Read:
       files.close
       Etemp=re.findall(r'(?<=Total energy =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if self.logging[0]<=1:
-         self.logging[1].write('temporary energy of state: {0}\n'.format(Etemp[-1]))
       E=float(Etemp[-1]) #energy is negative (bound state)
       return grad, E
 

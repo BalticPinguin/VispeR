@@ -4,9 +4,8 @@ import numpy as np
 from scipy.linalg.lapack import dsyev
 import re, mmap, os.path, math, sys
 import Read
+import MultiPart
 
-AMU2au=1822.88839                                          
-Angs2Bohr=1/0.52917721092                                  
 Hartree2GHz=6.579684e6                                     
 Hartree2cm_1=219474.63 
 
@@ -26,7 +25,18 @@ class  Spect:
    Energy=[]
    dim=0
    CartCoord=[]
-   read
+   read=[]  # this object is valid only after __init__. Maybe it doesn't belong here...
+   spect=[[0],[0],[0]]
+   
+   # The following additional elements are members of all 
+   #
+   #  logging
+   #  f  (frequencies in a 2-D array)
+   #  Lmassw
+   #  T  (temperature of the system)
+   #  broadopt
+   #  states1, states2
+
    # END OF DATA-DEF.
 
    ## BEGIN OF FUNCTION DEFINITIONS
@@ -51,10 +61,13 @@ class  Spect:
          if logfile==[]:
             log=open("calculation.log", "a")
          else:
-            s=logfile[0].strip()
+            s=logfile[-1].strip()
             log=open(s, "a")
-  
-         if mode in ['all', 'ALL', 'All', '0']:
+
+         #remove all white spaces
+         mode= mode.strip() 
+         #search, which option was set.
+         if mode in ['all', "ALL", "All", "0", 0]:
             logging=0
             log.write('use log-level all\n')
          elif mode in ['detailed', 'DETAILED', 'Detailed', "1"]:
@@ -69,15 +82,18 @@ class  Spect:
             logging=4
          else:
             logging=3
-            log.write("logging-mode not recognized. Using 'important' instead\n")
+            log.write("logging-mode "+mode+" not recognized. Using 'important' instead\n")
          return logging, log
       
 
       #START LOG-FILE DEFINITION     
       #invoke logging (write results into file specified by 'out: ' or into 'calculation.log')
-      logfile=re.findall(r"(?<=out: )[\w.,\(\) \=;:\-_]+", f, re.I)[-1]
-      loglevel=re.findall(r"(?<=print:)[\w \d]+",f, re.I)[-1]
-      self.logging = invokeLogging(logfile, loglevel )
+      logfile=re.findall(r"(?<=out: )[\w.,\(\) \=;:\-_]+", f, re.I)
+      try:
+         loglevel=re.findall(r"(?<=print:)[\w \d]+",f, re.I)[-1]
+         self.logging = invokeLogging(logfile, loglevel )
+      except IndexError:
+         self.logging = invokeLogging(logfile)
       
       # now,  write the header to the output-file.
       self.logging[1].write("\n==================================================================\n"
@@ -104,28 +120,52 @@ class  Spect:
       assert os.path.isfile(final) and os.access(final, os.R_OK),\
                final+' is not a valid file name or not readable.'
       #read options from input-file:
-      opt=re.findall(r"(?<=opt:)[\w.,\(\) \=;:-]", f, re.I)
+      opt=re.findall(r"(?<=opt:)[\d\s\w.,\(\) \=;:-]+", f, re.M)
       if opt!=[]:
          self.opt=opt[-1]
       else:
          self.opt=" " 
          #make some empty string that the search-commands don't fail in ReadData.
+      broadopt=re.findall(r"(?<=broaden:)[\d\s\w.,\(\) \=;:-]+", f, re.M)
+      if broadopt!=[]:
+         self.broadopt=broadopt[-1]
+      else:
+         self.broadopt=" " 
       self.ReadData(initial, final)
+      self.T=re.findall(r"(?<=T=)[\d .]+", self.opt, re.M)
+      if self.T==[]:
+         self.T=300
+      else:
+         self.T=float(self.T[-1])
+      self.T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
+
+      # get number of maximal excited/ground from opt:
+      states=re.findall(r"(?<=states=)[\d ,]*", self.opt, re.I)
+      if len(states)==0:
+         # i.e. no states given
+	 self.states1=5
+         self.states2=0
+      else:
+	 try:
+            #i.e. 1 number given (else, the 'int' will give an error)
+	    self.states1=int(states[0])
+	    self.states2=0
+	    logging[1].write("number of states: %d and %d \n"%(self.states1, self.states2))
+	 except ValueError:
+            try:
+               # two numbers given, try to extract them
+               self.states1=int(states[0].split(",")[0])
+               self.states2=int(states[0].split(",")[1])
+               logging[1].write("number of states: %d and %d \n"%(states1, states2))
+            except ValueError:
+               #unknown format. Use default and give a respective message.
+               self.states1=5
+               self.states2=0
+               logging[1].write("!!number of vibrational states {0} is not an integer.",
+                                    " Use default instead.\n".format(self.states1, self.states2))
       #END READING DATA FROM FILE
 
-   def quantity(self, dim):
-      """ Here some frequencies are defined; it is just for clearer code.
-      This function is called by CalculationHR.
-   
-      **PARAMETERS**
-      dim      dimension of matrices/vectors
-      """
-      F=np.zeros((2, dim, dim)) 
-      self.CartCoord=np.zeros((2, 3, dim//3))
-      P=np.zeros((2, dim,dim))
-      return F, P
-
-   def GetL(self, dim, mass, F):
+   def GetL(self, mass, F):
       """ Function that calculates the frequencies and normal modes from force 
       constant matrix with and without projection onto internal degrees of freedom
    
@@ -281,21 +321,15 @@ class  Spect:
             self.logging[1].write('imaginary frequencies occured. The absolute'
                     ' values are used in the following.\n{0}\n'.format(f[i]))
             f[i]=np.abs(f[i])
-         M=np.eye(dim)
-         for j in range(dim):
+         M=np.eye(self.dim)
+         for j in range(self.dim):
             M[j,j]/=mass[j//3]
          Lmass[i]=M.dot(L[i])
-         #if self.logging[0]<2:
-          #  self.logging[1].write("Frequencies (cm-1)\n"+\
-           #       repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(Lmass[i])+"\n")
-      #print "unity\n", L[0].T.dot(L[0]), "\n", np.linalg.norm(L[0].T.dot(L[0]))
-      #print "unity\n", L[1].T.dot(L[1]), "\n", np.linalg.norm(L[1].T.dot(L[1]))
-      np.set_printoptions(threshold=np.nan,linewidth=500, suppress=True)
-      #print "L_1\n",L[1]
-      #print "test:\n", L[1].dot((np.linalg.pinv(L[0]).dot(L[1])).T)-L[0]
+         if self.logging[0]<2:
+            self.logging[1].write("Frequencies (cm-1)\n"+\
+                  repr(f[i]*Hartree2cm_1)+"\nL-matrix \n"+ repr(Lmass[i])+"\n")
+      #np.set_printoptions(threshold=np.nan,linewidth=500, suppress=True)
       f[1],L[1]=SortL(np.linalg.pinv(L[0]).dot(L[1]),L[1],f[1])
-      #print "L_1\n",L[1]
-      #print "test:\n", np.linalg.pinv(L[0]).dot(L[1])
       Lmass[1]=M.dot(L[1]) # recalculate Lmass!
       return f, L, Lmass
    
@@ -318,7 +352,7 @@ class  Spect:
       for i in range(self.dim):
          M[i][i]=mass[i//3] #square root of inverse masses
       #J=np.dot(L[0].T, L[1])  # for Lsorted
-      J=np.linalg.pinv(self.Lmassw[0]).dot(self.Lmassw[1]) # for Lmassw
+      self.J=np.linalg.pinv(self.Lmassw[0]).dot(self.Lmassw[1]) # for Lmassw
    
       #print "J\n", J
       DeltaX=np.array(self.CartCoord[1]-self.CartCoord[0]).flatten('F')  # need initial - final here.
@@ -344,7 +378,7 @@ class  Spect:
             for temp in range(s,t):
                self.logging[1].write("               %d "%(k[temp]+1))
             self.logging[1].write("\n")
-            for j in range(len(J)):
+            for j in range(len(self.J)):
                self.logging[1].write(" %03d"%(j+1))
                for temp in range(s,t):
                   self.logging[1].write("   %+.5e"%(self.J[j][k[temp]]))
@@ -357,20 +391,12 @@ class  Spect:
             self.logging[1].write("  %d    %e\n"%(j+1, self.K[j]))
       #return J, K   # now, everything is part of 'self'.
    
-   def outspect(self, T, opt, linspect, E=0):
+   def outspect(self, E=0):
       """This function calculates the broadened spectrum given the line spectrum, 
       frequency-rage and output-file whose name is first argument. 
       As basis-function a Lorentzian is assumed with a common width.
       
       **PARAMETERS:**
-      T:       temperature of the system
-      opt:     a string that contains all options that were given for this part 
-               in the input-file. See documentation 
-               for details of it's allowed/used content
-      linspect:The line-spectrum that has to be broadened: A array/matrix 
-               with 3(!!) rows: 
-               Frequency, intentensity and mode number (last one is 
-               important for making multiple-particle spectra 
       E:       energy-shift of the 0-0 transition. Important if the excited 
                state is not the lowest and
                thermal equilibration with the lower states should be considered
@@ -407,7 +433,7 @@ class  Spect:
                minfreq=float(grid[1])
                maxfreq=float(grid[2])
             if gridfile!=None:
-               #read file in format of linspect
+               #read file in format of spect
                grid=[]
                with open(gridfile) as f:
                   lis=[line.split() for line in f]  # create a list of lists
@@ -445,136 +471,44 @@ class  Spect:
 
       minint=0
       self.logging[1].write("\n STARTING TO CALCULATE BROADENED SPECTRUM.\n")
-   
-      omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick=handel_input(opt)
-      #read file in format of linspect
+      
+      omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick=handel_input(self.broadopt)
+      #read file in format of spect
       #sort spectrum with respect to size of elements
-      index=np.argsort(linspect[1], kind='heapsort')
-      linspect[0]=linspect[0][index] #frequency
-      linspect[1]=linspect[1][index] #intensity
-      linspect[2]=linspect[2][index] #mode
+      index=np.argsort(self.spect[1], kind='heapsort')
+      self.spect[0]=self.spect[0][index] #frequency
+      self.spect[1]=self.spect[1][index] #intensity
+      self.spect[2]=self.spect[2][index] #mode
       #find transition with minimum intensity to be respected
    
       #truncate all transitions having less than 0.0001% of
-      for i in range(len(linspect[1])):
-         if linspect[1][i]>=1e-6*linspect[1][-1]:
+      for i in range(len(self.spect[1])):
+         if self.spect[1][i]>=1e-6*self.spect[1][-1]:
             minint=i
             break
       if self.logging[0]<3:
          self.logging[1].write('neglect '+repr(minint)+' transitions, use only '+
-                                repr(len(linspect[1])-minint)+" instead.\n")
+                                repr(len(self.spect[1])-minint)+" instead.\n")
    
          if self.logging[0]<2:
             self.logging[1].write('minimal and maximal intensities:\n'+
-              repr(linspect[1][minint])+' '+repr(linspect[1][-1])+"\n")
+              repr(self.spect[1][minint])+' '+repr(self.spect[1][-1])+"\n")
       
       #important for later loops: avoiding '.'s speeds python-codes up!!
       logwrite=self.logging[1].write  
-      #make nPA from OPA:
-      if (re.search(r"to [\d]PA", opt, re.I) is not None) is True:
-         n=re.findall(r"(?<=to )[\d](?=PA)", opt, re.I)
-         if n[0]=='2':
-            ind=linspect[2].argmin()
-                           #  spectral frequency   0-0 transition   intensities
-                           #      0-0 intensit.          modes        
-            TPAf, TPAi=OPA2TPA(logwrite, linspect[0][minint:],linspect[0][ind] ,
-                               linspect[1][minint:], linspect[1][ind], 
-                               linspect[2][minint:], stick)
-            index=np.argsort(TPAi,kind='heapsort')
-            TPAi=TPAi[index] #resort by intensity
-            TPAf=TPAf[index]
-            minint=0
-            # save time: look only on every second value. Could be reduced to log(n) here...
-            for i in range(1,len(index),2):
-               if TPAi[i]>=0.0001*TPAi[-1]:
-                  minint=i
-                  break
-            TPAintens=TPAi[minint:]
-            TPAfreq=TPAf[minint:]
-            if self.logging[0]<3:
-               self.logging[1].write('for TPA: again neglect '+repr(minint)+
-                        ' transitions, use only '+repr(len(TPAi)-minint-1)+" instead.\n")
-         elif n[0]=='3':
-            ind=linspect[2].argmin()
-            TPAfreq, TPAintens=OPA23PA(logwrite, linspect[0][minint:],
-                                 linspect[0][ind] ,linspect[1][minint:], 
-                                 linspect[1][ind], linspect[2][minint:], stick)
-            minint=0
-            index=np.argsort(TPAintens,kind='heapsort')
-            TPAintens=TPAintens[index] #resort by intensity
-            TPAfreq=TPAfreq[index]
-            for i in range(len(TPAintens)):
-               if TPAintens[i]>=0.0001*TPAintens[-1]:
-                  minint=i
-                  break
-            TPAintens=TPAintens[minint:] #resort by intensity
-            TPAfreq=TPAfreq[minint:]
-            if self.logging[0]<3:
-               self.logging[1].write('for 3PA: again neglect '+repr(minint)+
-                        ' transitions, use only '+repr(len(TPAintens)-minint)+" instead.\n")
-         else:
-            if n[0]!='1':
-               # there should be only 1,2 or 3 given!
-               self.logging[1].write("to <n>PA was given but not recognised.\n")
-            TPAfreq=linspect[0][minint:]
-            TPAintens=linspect[1][minint:]
-            if stick:
-               logwrite=self.logging[1].write
-               logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION "+
-                                             "\n intensity   frequency\n")
-               for k in range(len(TPAfreq)):
-                  logwrite(u" %s  %s\n" %(TPAintens[k], TPAfreq[k]))
-      else:
-         n=re.findall(r"(?<=to nPA:)[ \d]*", opt, re.I)
-         if n==[]:
-            TPAfreq=linspect[0][minint:]
-            TPAintens=linspect[1][minint:]
-            if stick:
-               logwrite=self.logging[1].write
-               logwrite(u"\nSTICK-SPECTRUM IN ONE-PARTICLE APPROXIMATION \n"+
-                                                 " intensity   frequency\n")
-               for k in range(len(TPAfreq)):
-                  logwrite(u" %s  %s\n" %(TPAintens[k], TPAfreq[k]))
-         else:
-            n=int(n[0])
-            ind=linspect[2].argmin() #get position of 0-0 transition
-            if re.search(r"parallel", opt, re.I) is not None:
-               self.logging[1].write("\n REACHING OPA TO nPA-PART. DO IT IN PARALELL."+
-                                       " MANY FILES WILL BE CREATED. \n")
-               self.logging[1].write(" --------------------------------------------"+
-                                              "--------------------------- \n")
-               gotit=parallelOPA2nPA(logwrite, linspect[0][minint:],
-                        linspect[0][ind], linspect[1][minint:], 
-                        linspect[1][ind], linspect[2][minint:], n, stick, self.logging)
-               if gotit:
-                  self.logging[1].write("\n SUCCESSFULLY CALCULATED FULL-nPA SPECTRUM. \n")
-                  return 0
-               else:
-                  self.logging[1].write("\n AN ERROR OCCURED. THE nPA SPECTRUM OR"+
-                                            " BROADENING DID NOT SUCCEED. \n")
-                  return 1
-            else:
-               self.logging[1].write("\n REACHING OPA TO NPA-PART. DOING IT NOT"+
-                                                  " PARALELL. \n")
-               self.logging[1].write(" ----------------------------------------"+
-                                                       "-------- \n")
-               TPAfreq, TPAintens=OPA2nPA(logwrite, linspect[0][minint:],
-                        linspect[0][ind], linspect[1][minint:], 
-                        linspect[1][ind], linspect[2][minint:], n, stick)
-            index=np.argsort(TPAintens,kind='heapsort')
-            TPAintens=TPAintens[index] #resort by intensity
-            TPAfreq=TPAfreq[index]
-            minint=0
-            for i in range(len(TPAintens)):
-               if TPAintens[i]>=1e-6*TPAintens[-1]:
-                  minint=i
-                  break
-            if self.logging[0]<3:
-               self.logging[1].write('for {0}PA: again neglect {1} \n'.format(n, minint)+
-                        ' transitions, use only '+repr(len(TPAintens)-minint-1)+" instead.\n")
-            TPAintens=TPAintens[minint:] #resort by intensity
-            TPAfreq=TPAfreq[minint:]
-   
+     
+      #make nPA from OPA if requested.
+      n=re.findall(r"(?<=to nPA:)[ \d]*", self.broadopt, re.I)
+      if n!=[]:
+         MakeFull=MultiPart.OPAtoNPA(float(n[-1].strip()))
+         self.logging[1].write("\n REACHING OPA TO NPA-PART. \n")
+         self.logging[1].write(" ----------------------------------------"+
+                                                 "-------- \n")
+         MakeFull.GetSpect(self.spect, minint)
+         TPAintens, TPAfreq=MakeFull.Calc()
+      else: 
+         TPAfreq=linspect[0][minint:]
+         TPAintens=linspect[1][minint:]
    
       #find transition with minimum intensity to be respected
       #the range of frequency ( should be greater than the transition-frequencies)
@@ -662,7 +596,7 @@ class  Spect:
          #only close file if it was opened here
          out.close()
 
-   def ReadData(self, initial, final)
+   def ReadData(self, initial, final):
       """ This function gathers most essential parts for calculation of 
       HR-factors from g09-files. That is: read neccecary information from the  
       g09-files and calculate HR-factors as well as the  Duschinsky-rotation 
@@ -670,7 +604,7 @@ class  Spect:
       is specified)
       
       """                                                                                             
-      # if the input-files are G09-formcheck-files (recognised by ending):
+      # create the member read. It is an instance of a class, made for reading data.
       self.read = Read.Read(final, initial)
          
       #read coordinates, force constant, binding energies from log-files and 
@@ -680,12 +614,12 @@ class  Spect:
       if self.logging[0]==0:
          self.logging[1].write("Dimensions: "+ str(self.dim)+ '\n Masses: '+ str(mass**2)+"\n")
       F[0]=A
-      self.dim, self.CartCoord[1], mass, F[1], self.Energy[1]=self.Read('f') 
-      self.dim, Coord, mass, A, self.Energy[0]=self.read.ReadAll('i')
+      self.CartCoord[0]=Coord
+      self.dim, self.CartCoord[1], mass, F[1], self.Energy[1]=self.read.ReadAll('f') 
 
       if self.logging[0]<3:
          self.logging[1].write('difference of minimum energy between states:'
-                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*Hartree2cm_1))
+                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*Hartree2cm_1))
          if self.logging[0]<2:
             self.logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( self.CartCoord[0].T/self.Angs2Bohr))
             self.logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( self.CartCoord[1].T/self.Angs2Bohr))
@@ -694,17 +628,20 @@ class  Spect:
    
    
       #Calculate Frequencies and normal modes
-      self.f, Lsorted, self.Lmassw=self.GetL(self.dim, mass, F)
+      self.f, Lsorted, self.Lmassw=self.GetL(mass, F)
       self.Duschinsky(mass)
-      extra=re.findall(r"g09Vectors",self.opt, re.I)
-      if extra!=[]:
-         g09L=self.getGaussianL(self.final, mass, self.dim)
-         g09f=self.getGaussianf(self.final,self.dim)
-         #self.replace(logging, initial[0], g09f, g09L)
-      elif re.search(r"g09Vector",self.opt, re.I) is not None:
-         g09L=self.getGaussianL(self.final, mass, self.dim)
-         g09f=self.getGaussianf(self.final,self.dim)
-
+   
+   def quantity(self, dim):
+      """ Here some frequencies are defined; it is just for clearer code.
+      This function is called by CalculationHR.
+   
+      **PARAMETERS**
+      dim      dimension of matrices/vectors
+      """
+      F=np.zeros((2, dim, dim)) 
+      self.CartCoord=np.zeros((2, 3, dim//3))
+      P=np.zeros((2, dim,dim))
+      return F, P
    ## END OF FUNCTION DEFINITIONS
 
 #version=0.0.1
