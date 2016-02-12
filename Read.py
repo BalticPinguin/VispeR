@@ -4,14 +4,34 @@ import numpy as np
 from scipy.linalg.lapack import dsyev
 import re, mmap, os.path, math, sys
 
-# ============ CHANGELOG =================
-# I deleted the functions reading L and f from the log-file.
-# They are available only in older versions (non-class)
-# of smallscript.
+# CHANGELOG 
+# =========
+#to version=0.0.1
+# 1. I deleted the functions reading L and f from the log-file.
+#    They are available only in older versions (non-class)
+#    of smallscript.  
+# 2. Changed functions _Grad to read only the gradient and added 
+#    function ReadGrad  
+# 3. Fixed error with units of coordinates in ReadNWChem
 
-
-#  FUNCTIONS TO READ THE NEEDED DATA FROM OUTPUT-FILES IN DIFFERENT FORMATS.
+# The Class Read
+# ==============
 class Read: 
+   """This class is made to outsource all work (and much code) related to reading
+      data from log-files in one of the supported formats. 
+      At the moment, for each format there are two functions: One that reads all data
+      required for the models FC,CFC,DR,URDR and one function that reads the gradient
+      as required for the class GFC.
+   
+      Description of the class
+      -----------------------
+      It mainly consists of the following three members:
+      the name of the file with **initial** state and that of
+      **final** state. The third member is **type** which
+      is ' ' if the files differ in their format.
+      In that case than, the two members *ftype* and *itype
+      replace it.
+   """
    #members:
    AMU2au=1822.88839                                          
    Angs2Bohr=1/0.52917721092                                  
@@ -23,22 +43,28 @@ class Read:
    #attributes:
    def __init__(self, final, initial):
       """ initialises the class Read. It will get the following properties:
-       init:  the name of the file with initial state information. 
-              Having this as class member, we don't can access it any time we need.
-       final: name of file with final states information.
-       type, itype+ftype : the type of file, meaning: its format. With the 
-                           possiblitity of having itype and ftype defined, the two states
-                           are allowed to have different formats (which is NOT recommended).
+       init: the name of the file with initial state information. 
+             Having this as class member, we don't can access it any time we need.  
+       final: name of file with final states information.  
+       type/ itype+ftype : the type of file, meaning: its format. With the
+             possiblitity of having itype and ftype defined, the two states
+             are allowed to have different formats (which is NOT recommended).
       """
+      #initialise the class members:
       self.init=initial
       self.final=final
+      #check, which file type they have. Do it individually
+      # for both to allow for the (not very sensible) case
+      # that initial state and final state have different format.
       if (".fchk" in self.init) or (".FChk" in self.init): 
          self.type = "G09_fchk"
       if (".fchk" in self.final) or (".FChk" in self.final) :
          if self.type!="G09_fchk":
             self.type=""
             self.ftype='G09_fchk'
-
+      
+      #Besides the formcheck-files, all log-files are recognised by a
+      # certain line/string in the following:
       if self.type!='G09_fchk':
          with open(self.init, "r+b") as f: #open file as mmap
             mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
@@ -80,11 +106,12 @@ class Read:
             #  There is some error: File not recognised or an other programme was used.
             else: 
                print "file type not recognised"
+        # End of __init__()
    
-   def ReadAll(self,state):
-      """This function is supposed to be the main interface
-      for accessing this class. """
-      #first chose the correct file and its format
+   def __getInput(self,state):
+      """This function is a helper for ReadAll and ReadGrad to find the   
+      correct file to be read, still keeping it as general as possible.
+      """
       if state=='i':
          if self.type=='':
             kind=self.itype
@@ -99,6 +126,14 @@ class Read:
          inputfile=self.final
       else:
          assert 1==1, "invalid state provided to be read."
+      return inputfile, kind
+
+   def ReadAll(self,state):
+      """This function is supposed to be the main interface
+      for accessing this class. 
+      """
+      #first chose the correct file and its format
+      inputfile, kind=self.__getInput(state)
 
       # than perform the correct calculation with it and return all data.
       if kind == "G09_fchk":
@@ -112,19 +147,37 @@ class Read:
       else:
          print "errer in read-options."
          return 2
+   
+   def ReadGrad(self,state):
+      """This function is supposed to be the main interface 
+         for accessing this class. 
+      """
+      inputfile, kind=self.__getInput(state)
+      # than perform the correct calculation with it and return all data.
+      if kind == "G09_fchk":
+         return self.__ReadG09_fchk_Grad(inputfile)
+      if kind =="GAMESS":
+         return self.__ReadGAMESS_Grad(inputfile)
+      if kind =="NWChem":
+         return self.__ReadNWChem_Grad(inputfile)
+      if kind =="G09":
+         return self.__ReadG09_Grad(inputfile)
+      else:
+         print "errer in read-options."
+         return 2
 
    def __ReadG09(self, fileN):
-      """ This function reads the required quantities from the gaussian-files
-
-      **PARAMETERS**
-      fileN:       specifies the name of the g09-file
-
-      **RETURNS**
-      dim:         dimension of the problem (3*number of atoms)
-      Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
-      mass:        square root of masses of the atoms in atomi units
-      F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
-      E:           binding energy of the respective state/geometry in Hartree
+      """This function reads the required quantities from the gaussian-files
+      
+         **PARAMETERS**
+         fileN: specifies the name of the g09-file
+         
+         **RETURNS**
+         dim:   dimension of the problem (3*number of atoms)
+         Coord: Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+         mass:  square root of masses of the atoms in atomi units
+         F:     force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+         E:     binding energy of the respective state/geometry in Hartree
       """
       # Mapping the log file
       files=open(fileN, "r")
@@ -226,49 +279,40 @@ class Read:
          E=float(Etemp[-1])*self.ev2Hartree
       return dim, Coord, mass, F, E
 
-   def __ReadG09_Grad(self, final):
+   def __ReadG09_Grad(self, logfile):
       """ This function reads the required quantities from the gaussian-files
 
-      **PARAMETERS**
-      final:       specifies the name of the g09-file
-
-      **RETURNS**
-      grad:        gradient of the PES of excited state at ground state 
+         **PARAMETERS**
+         logfile:     specifies the name of the g09-file
+   
+         **RETURNS**
+         grad:        gradient of the PES of excited state at ground state 
                    equilibrium-geometry
-      E:           binding energy of the respective state/geometry in Hartree
       """
-      files=open(final, "r")
+      files=open(logfile, "r")
       log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
       files.close
-      Etemp=re.findall(r'HF=-[\d.\n ]+', log, re.M)
-      assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      if re.search(r'\n ', Etemp[-1]) is not None:
-         Etemp[-1]=Etemp[-1].replace("\n ", "") 
-      E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
-     
       grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
       Grad=re.findall(r"[\-\d\.]+[\d]{9}", grad[0])
       grad=np.zeros((len(Grad),1))
       for i in xrange(len(Grad)):
          grad[i]=float(Grad[i])
-      return grad, E
+      return grad
 
    def __ReadGO9_fchk(self, fileN):
       """ This function reads the required quantities from the gaussian-files
 
-      **PARAMETERS**
-      fileN:       specifies the name of the g09-file
-
-      **RETURNS**
-      dim:         dimension of the problem (3*number of atoms)
-      Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
-      mass:        square root of masses of the atoms in atomi units
-      F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
-      E:           binding energy of the respective state/geometry in Hartree
+         **PARAMETERS**
+         fileN:       specifies the name of the g09-file
+   
+         **RETURNS**
+         dim:         dimension of the problem (3*number of atoms)
+         Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+         mass:        square root of masses of the atoms in atomi units
+         F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+         E:           binding energy of the respective state/geometry in Hartree
       """
-      #####
-      #####
-      ##### get normal modes: Vib-Modes 
+      # get normal modes: Vib-Modes 
       # Mapping the log file
       files=open(fileN, "r")
       log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
@@ -332,25 +376,19 @@ class Read:
       Etemp=float(Etemp[0].replace('E','e'))
       return dim, Coord, mass, F, Etemp
 
-   def __ReadG09_fchk_Grad(self, final):
+   def __ReadG09_fchk_Grad(self, logfile):
       """ This function reads the required quantities from the gaussian-files
 
-      **PARAMETERS**
-      final:       specifies the name of the g09-file
+         **PARAMETERS**
+         logfile:       specifies the name of the g09-file
 
-      **RETURNS**
-      grad:        gradient of the PES of excited state at ground state 
-                   equilibrium-geometry
-      E:           binding energy of the respective state/geometry in Hartree
+         **RETURNS**
+         grad:        gradient of the PES of excited state at ground state 
+                      equilibrium-geometry
       """
-      files=open(final, "r")
+      files=open(logfile, "r")
       log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
       files.close
-      #get energy
-      E=re.findall(r'(?<=Total Energy                               R  )[ \-\d.E\+]+', log, re.M)
-      assert len(E)>=1, 'Some error occured! The states energy can not be read.'
-      E=float(E[0].replace('E','e'))
-     
       #get gradient
       grad=re.findall(r"(?<=Cartesian Gradient)[R N=\d.\+\- E\n]+", log)
       Grad=re.findall(r"[\-\d\.\+E]+", grad[0])[1:]
@@ -361,16 +399,16 @@ class Read:
 
    def __ReadGAMESS(self, fileN):
       """ This function reads the required quantities from the GAMESS-log-files
+      
+         **PARAMETERS**
+         fileN:       specifies the name of the g09-file
 
-      **PARAMETERS**
-      fileN:       specifies the name of the g09-file
-
-      **RETURNS**
-      dim:         dimension of the problem (3*number of atoms)
-      Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
-      mass:        square root of masses of the atoms in atomi units
-      F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
-      E:           binding energy of the respective state/geometry in Hartree
+         **RETURNS**
+         dim:         dimension of the problem (3*number of atoms)
+         Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+         mass:        square root of masses of the atoms in atomi units
+         F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+         E:           binding energy of the respective state/geometry in Hartree
       """
       # Mapping the log file
       files=open(fileN, "r")
@@ -434,42 +472,35 @@ class Read:
       E=float(Etemp[-1]) #energy is negative (bound state)
       return dim, Coord, mass, F, E
 
-   def __ReadGAMESS_Grad(self, final):
+   def __ReadGAMESS_Grad(self, logfile):
       """ This function reads the required quantities from the GAMESS-log-files
 
-      **PARAMETERS**
-      final:       specifies the name of the g09-file
-
-      **RETURNS**
-      grad:        gradient of the PES of excited state at ground state equilibrium-geometry
-      E:           binding energy of the respective state/geometry in Hartree
+         **PARAMETERS**
+         final:       specifies the name of the g09-file
+      
+         **RETURNS**
+         grad:        gradient of the PES of excited state at ground state equilibrium-geometry
       """
-      files=open(final, "r")
+      files=open(logfile, "r")
       log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
       files.close
-      Etemp=re.findall(r'(?<=TOTAL ENERGY =)[\-\d. ]+', log, re.M)
-      assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      E=float(Etemp[-1]) #energy is negative (bound state)
-      #grad=re.findall(r"Number     Number              X              Y              Z\n [\-\.\d \n]+",log)
-      #Grad=re.findall(r"[\-\d\.]+[\d]{9}", grad[0])
-      #grad=np.zeros((len(Grad),1))
-      #for i in xrange(len(Grad)):
-         #grad[i]=float(Grad[i])
-      return grad, E
+      print "ERROR: FUNCTION NOT IMPLEMENTED YET!"
+      print "I am sorry about that."
+      return 
 
    def __ReadNWChem(self, fileN):
       """ This function reads the required quantities from the NWChem-files
 
-      **PARAMETERS**
-      fileN:       specifies the name of the g09-file
+         **PARAMETERS**
+         fileN:       specifies the name of the g09-file
 
-      **RETURNS**
-      dim:         dimension of the problem (3*number of atoms)
-      Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
-      mass:        square root of masses of the atoms in atomic units
-      F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's 
-                   motion and the frequencies
-      E:           binding energy of the respective state/geometry in Hartree
+         **RETURNS**
+         dim:         dimension of the problem (3*number of atoms)
+         Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+         mass:        square root of masses of the atoms in atomic units
+         F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's 
+                     motion and the frequencies
+         E:           binding energy of the respective state/geometry in Hartree
       """
       # Mapping the log file
       files=open(fileN, "r")
@@ -495,7 +526,7 @@ class Read:
          for i in range(3):
             Coord[i][j]=float(tmp[i+3*j+k].replace('D','e'))
          k+=1 # important to skip masses in tmp 
-      Coord*=self.Angs2Bohr
+      #Coord*=self.Angs2Bohr are given in a.u.
 
       # Reading of Cartesian force constant matrix  
       f=re.findall(r"(?<=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+", log, re.M)
@@ -517,8 +548,11 @@ class Read:
             F[int(elements[0])-1][j-1+10*n]=float(elements[j])/(1000*self.AMU2au)
             F[j-1+10*n][int(elements[0])-1]=float(elements[j])/(1000*self.AMU2au)
 
-      #get energy of the state
-      Etemp=re.findall(r'(?<=Total DFT energy =)[\-\d. ]+', log, re.M)
+      #get energy of the (excited) state
+      Etemp=re.findall(r'(?<= Excited state energy = =)[\-\d ]+', log, re.M)
+      if Etemp==[]:
+         #if the ground state is calculated
+         Etemp=re.findall(r'(?<=Total DFT energy =)[\-\d. ]+', log, re.M)
       assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
       E=float(Etemp[-1]) #energy is negative (bound state)
       return dim, Coord, mass, F, E
@@ -526,20 +560,18 @@ class Read:
    def __ReadNWChem2_Grad(self, final):
       """ This function reads the required quantities from the NWChem-files
 
-      **PARAMETERS**
-      final:       specifies the name of the g09-file
+         **PARAMETERS**
+         final:       specifies the name of the g09-file
 
-      **RETURNS**
-      grad:        gradient of the PES of excited state at ground state equilibrium-geometry
-      E:           binding energy of the respective state/geometry in Hartree
+         **RETURNS**
+         grad:        gradient of the PES of excited state at ground state equilibrium-geometry
+         E:           binding energy of the respective state/geometry in Hartree
       """
       files=open(final, "r")
       log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
       files.close
-      Etemp=re.findall(r'(?<=Total energy =)[\-\d. ]+', log, re.M)
-      assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
-      E=float(Etemp[-1]) #energy is negative (bound state)
-      return grad, E
+      assert 1==2, "ERROR: FUNCTION NOT IMPLEMENTED YET!\n I am sorry about that."
+      return -2
 
 # END: FUNCTIONS TO READ THE NEEDED DATA FROM OUTPUT-FILES IN DIFFERENT FORMATS.
    

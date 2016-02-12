@@ -3,59 +3,60 @@
 <head>
    <meta http-equiv="content-type" content="text/html;charset=utf-8">
    <title>Documentation for Visper</title>
-   <link rel="stylesheet" href="pycco.css">
-   <style>
-   table, th, td {
-      border: 1px solid white;
-      border-collapse: collapse;
-   }
-   th, td {
-      padding: 10px;
-   }
-   </style>
+   <link rel="stylesheet" href="visper.css">
    <div style="margit-left: 10%">
 </head>
 
 <body>
 <h1><center>Welcome to the documentation page of Visper</center></h1>
-<div id='container'>
-   <div class='clearall'>
-   <div class='section' id='section-0'>
-    <div class='docs'>
-      <h1>Contents:</h1>
+<table>
+   <tr>
+   <td padding=10% >
+      <h2>Table of contents</h2>
+   </td>
+   <td>
+      <h2>The code</h2>
+   </td>
+   </tr>
+   <tr>
+   <td>
       <nav role="navigation" class="table-of-contents">
-         <h2>List of contents:</h2>
-         <ul>
+         <ol>
             <li><a href="#main">General information</a></li>
             <li><a href="#call">Calling the script</a></li>
             <li><a href="#input">Input</a></li>
             <li><a href="#model">Available models</a></li>
             <li><a href="#options">Options</a></li>
             <li><a href="#broaden">Calculate a line-shaped spectrum</a></li>
-         </ul>
+         </ol>
       </nav>
-    </div>
-    <div class='code'>
-      <h2>the code with some documetation strings is listed in the following pages:</h2>
-      <!-- Site navigation menu -->
+   </td>
+   <td>
       <ul class="navbar">
          <li><a href="smallscript.html">main program code</a>
+         <li><a href="Spect.html">Class Spect</a>
+         <li><a href="FC_spects.html">Derived Classes FC</a>
+         <li><a href="DR_spects.html">Derived Classes DR</a>
+         <li><a href="Btree.html">Dependent Class Btree</a>
+         <li><a href="OPA.html">Dependent Class OPA</a>
+         <li><a href="Read.html">Class Read</a>
+         <li><a href="MultiPart.html">Class MultiPart</a>
       </ul>
-   </div>
-   </div>
-   <div class='clearall'></div>
-</div>
-
+   </td>
+   </tr>
+</table>
 for explanations of the output of the calculations, see <a href="output.html">output-documentation</a><br>
 Moreover, some explanations of the models in use are available <a href="models.html">here</a>.
 <!-- Main content -->
 
 <h1 id="main">General Information</h1>
-<p> Visper, formerly called smallscript is an acronym for <b>Vi</b>bronic <b>spe</b>ctrum calculato<b>r</b>.
-   Hence, it is a python-script for calculating vibronic spectra; being able to work on different levels of theory.
+<p> Visper, formerly called smallscript is an acronym for</p> 
+   <b>Vi</b>bronic <b>spe</b>ctrum calculato<b>r</b>
+   or <b>Vi</b>bronic <b>spe</b>ctra from <b>R</b>ostock, depending on your personal favour
+   <p>Hence, it is a python-script for calculating vibronic spectra; being able to work on different levels of theory.
    There are different <a href=models.html>models</a> available to be used.</p> 
 
-<h1 id="#call">Calling the script</h1>
+<h2 id="#call">Calling the script</h2>
 <p> Visper is invoked with only an input-file as argument that contains all options. </p>
 
 <h1 id="#input">Input</h1>
@@ -66,6 +67,65 @@ A line break within one section is not allowed however.
 There are three mandatory sections:
 <ul>
    <li>The keword <b>model</b> specifies the method that should be used for the calculation of the spectrum. Possible options are:
+   <table>
+   <th>
+   <td>
+      <ul>
+      <li>HF </li> 
+      <li>FC </li> 
+      </ul>
+   </td>
+   <td>
+      <ul>
+      <li>GFC</li> 
+      <li>CFC</li> 
+      </ul>
+   </td>
+   <td>
+      <ul>
+      <li>DR </li> 
+      <li>URDR</li>
+      </ul>
+   </th>
+   </table>
+      For information about this, see the <a href="#model">section about models </a> or the more detailed <a href="models.html">page</a> about implemented models.
+   </li>
+   <li>With <b>initial:</b> you specify the file that contains the information of initial state. </li>
+   <li>With <b>final:</b> you specify the file that contains the information of final state. </li>
+</ul>
+<p>As input-files, the <a href="#log">log-files</a> from the different quantum-chemical programme-packages can be used. </p>
+
+<p>In addition to these options, there are four additional, non-mandatory sections: </p>
+<ul>
+   <li> With the key word <b>out:</b> you can specify an output-file. By default it is called 'calculation.log'.</li>
+   <li>The option <b>print:</b> gives you controll over the output-verbosity of visper. Possible levels are:
+      <table>
+      <tr>
+         <td> <b>0</b> or <b>all</b> for most verbose output  </td>
+         <td>    <b>1</b> or <b>detailed</b>  </td>
+      </tr>
+      <tr>
+         <td> <b>2</b> or <b>medium</b> (default case)  </td>
+         <td>   <b>3</b> or <b>important</b>  </td>
+      </tr>
+      <tr>
+         <td> <b>4</b> <b>short</b>  </td>
+         <td>  </td>
+      </tr>
+   </table>
+   </li>
+   <li>Most options to the script are set after the keyword <b>opt:</b>.
+   While some options are specific to the model in use (and are shown below), there are some options that are always valid:
+   <ul>
+      <li> system temperature: <b>T=</b> (in K, default 300)</li>
+      <li> highest vibrational number (initial state): <b>states=number</b>  (default is 5) </li>
+      <li> highest vibrational number (intial state, final state): <b>states=number1, number2</b> </li>
+   </ul>
+   </li>
+   <li> To calculate broadened spectrum, specify <b>broaden</b>. Here <a href="#broaden">several options</a> are possible. </li>
+</ul>
+
+<h1 id="#model">Available models</h1>
       <ul>
           <li>HF -> This model is a bit special and not supported at the moment. It will be used to calculate a spectrum using just the Huang-Rhys factors
                     and respective frequencies to calculate a fully harmonic spectrum.</li> 
@@ -78,63 +138,42 @@ There are three mandatory sections:
                    number of changeing vibrational modes are given.</li>
           <li>URDR -> This model is the least restrictive; it allowes for full spectrum calculation including Duschinsky rotation.</li>
       </ul>
-   </li>
-   <li>With <b>initial:</b> you specify the file that contains the information of initial state. </li>
-   <li>With <b>final:</b> you specify the file that contains the information of final state. </li>
-</ul>
-<p>As input-files, the log-files from the different quantum-chemical programme-packages can be used: </p>
-
-<p>In addition to these options, there are four additional, non-mandatory sections: </p>
-<ul>
-   <li> With the key word <b>out:</b> you can specify a file where the information is written in. By default, this file is called 'calculation.log'.</li>
-   <li>The option <b>print:</b> gives you controll over the output-verbosity of visper. Here, 5 different levels are possible: 
-   <ul>
-      <li>Most verbose output is obtained with <b>0</b> or <b>all</b>. This enables every print-statement but makes the log-file very large and full with 
-      <li> The next level, denoted as <b>detailed</b>, shortens some of the least important messages. </li>
-      <li> The level <b>medium</b> is the default case.</li>
-      <li> The second-shortest level <b>important</b> will show you only few quantities.</li>
-      <li>Finally, with <b>short</b> one can specify that only the most important output is written into the log-file.</li>
-   </ul>
-   All print options have in addition to the given name a number between 0 and 4.</li>
-   <li>Most options to the script are set after the keyword <b>opt:</b>.
-   While some options are specific to the model in use (and are shown below), there are some options that are always valid:
-   <ul>
-      <li>Among the general options there is the temperature of the system under study. It is specified via <b>T=</b> with some number in K.</li>
-      <li>For controlling the highest number of vibrational quanta within one state, the key word<b>states=number</b> can be used.
-      The following statement can be done in two ways: Either it is a number (default is 5) stating how many quanta are taken into account 
-      for each mode in initial state, leaving the final states open (and it will be calculated taking the size of HR-factor into account). 
-      <p> The second option is to give <b>states=number1, number2</b>, seperated by a ','. This specifies the initial states (number1) and
-      the final states quanta.</p> 
-      In case of Duschinsky-rotated spectra, the sum of both numbers is taken as the maximum total states number.
-      </li>
-   </ul>
-   </li>
-   <li> Visper allowes also to broaden the spectrum after calculation. This is specified via <b>broaden</b> . After this key word there are multiple options to 
-     controll the features of that broadened spectrum: 
-     <ul>
-     <li> The keyword <b>gamma=</b> specifies the broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM) in cm^-1.</li>
-     <li> The broadenend spectrum is calculated (and printed) on a grid that is controlled via <b>grid=</b>.
-          For this, there are three options:
-          <ol>
-            <li> given a string, this is interpreted as a file (containing list of gridpoints in cm^-1).</li>
-            <li> given three numbers, separated by ';', you can specify the number of points (default: 5000), minimum energy, maximum energy</li>
-            <li> with only one number you give the  number of points (minimum and maximum will be taken from default) </li>
-          </ol> </li>
-     <!-- <li> The option <b> linspect=</b> specifies file with a line-spectrum already calculated </li> -->
-     <li><b> stick</b> specifies, whether the stick-spectrum should be printed or not 
-      (by printing stick it is enabled).</li>
-     <li>Using the keyword <b>spectfile=</b> you specy a file where the spectrum should be saved. 
-     By default it is written into the log-file.</li>
-     <li> The shape of the broadening function is controlled via <b>shape=</b> where possible options are: Gaussian (g) or Lorentzian (l).</li>
-     <li>
-     </li> The option <b>to nPA:"n"</b> with some number n>1 you can calculate a full spectrum instead of the default one-particle approximation.
-       This option is ignored in case of Duschinsky-rotated spectra.</li>
-     </ul>
-     
-</ul>
-
-<h1 id="#model">Available models</h1>
 <h1 id="#options">Options</h1>
+
+to control the number of matrix-elements that are printed aside of each other, specify <b>width=</b> .
+<h2 id="#log">Log-files</h2>
+There are multiple file-types possible:
+<ul>
+   <li>NWChem output files (.nwo)</li>
+   <li>GAMESS output files (.gao)</li>
+   <li>Gaussian output files (.log)</li>
+   <li>Gaussian formcheck files (.fchk, .FCHK)</li>
+</ul>
+<p> Except for the formcheck-files, the ending does not matter.</p>
+It is even possible to combine outputs from different packages. None the less, both files specified should contain:
+the geometries
+the force constant matrix
+the energies
 <h1 href="#broaden">Calculate a line-shaped spectrum</h1>
+One of the main features is the broadening of the spectrum with some line-shape.
+The following options are available to controll the spectrum:
+   <ul>
+   <li> The keyword <b>gamma=</b> specifies the broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM) in cm^-1.</li>
+   <li> The broadenend spectrum is calculated (and printed) on a grid that is controlled via <b>grid=</b>.
+         For this, there are three options:
+         <ol>
+         <li> given a string, this is interpreted as a file (containing list of gridpoints in cm^-1).</li>
+         <li> given three numbers, separated by ';', you can specify the number of points (default: 5000), minimum energy, maximum energy</li>
+         <li> with only one number you give the  number of points (minimum and maximum will be taken from default) </li>
+         </ol> </li>
+   <!-- <li> The option <b> linspect=</b> specifies file with a line-spectrum already calculated </li> -->
+   <li><b> stick</b> specifies, whether the stick-spectrum should be printed or not 
+   (by printing stick it is enabled).</li>
+   <li>Using the keyword <b>spectfile=</b> you specy a file where the spectrum should be saved. 
+   By default it is written into the log-file.</li>
+   <li> The shape of the broadening function is controlled via <b>shape=</b> where possible options are: Gaussian (g) or Lorentzian (l).</li>
+   <li> The option <b>to nPA:"n"</b> with some number n>1 you can calculate a full spectrum instead of the default one-particle approximation.
+      This option is ignored in case of Duschinsky-rotated spectra.</li>
+   </ul>
 </body>
 </html>

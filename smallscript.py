@@ -18,73 +18,46 @@ import time
 def usage():
    print "usage: smallscript <input-file>"
 
-def oldgetTasks(f):
-   """
-   This function extracts the tasks together with all their options from the input-file.
-   Additional text (that doesn't match the regexes) is simply ignored. 
-   Therefore, be careful with typos.
+def getModel(f):
+   """ This function looks into the input-file 'f' and searches for the option model.
+   If it is given, it is evaluated, whether this model is one of the known models.
+   If not, or if no model is specified, than the model 'unknown' is used.
+   
+   The purpose of this function is to have only one name per model in the later programme.
 
    **PARAMETERS**
-   f      the input-file (already opened)
+   f  is a file-name. It should be in the same folder as where the script is called.
 
-   **RETURNS**
-   opts   array containing all options of respective sub-tasks, which are 
-          evaluated in the respective part
-   todo   specifies the sub-tasks to be done in numeral values (powers of 2).
+   **OUTPUT**
+   model is a string, specifying the given model.
+
    """
-   opts=[]
-   todo=0
-   # here: evaluate the file with respect to the tasks to be done
-   # START PARSING TASKS
-   if (re.search(r"HR-fact",f, re.I) is not None) is True:
-      todo+=1
-   opts.append(re.findall(r"(?<=HR-fact)[\w.,\(\) \=;:-]+", f, re.I))
-   if (re.search(r"FC-spect",f, re.I) is not None) is True:
-      if (re.search(r"HR-file: ",f, re.I) is not None) is True:
-         #calculation of HR-facts not neccecary
-         todo+=2
-      else: #if 
-         todo=3
-   opts.append(re.findall(r"(?<=FC-spect)[\w\d\.\=,\(\):; -]+",f,re.I))
-   if (re.search(r"Duschinsky-spect",f, re.I) is not None) is True:
-      if todo==0:
-         todo=5
-      else:
-         todo+=4
-   opts.append(re.findall(r"(?<=Duschinsky-spect)[\w:\d\=.\(\),; -]+",f,re.I))
-   if ((re.search(r"Broadening",f, re.I) is not None) is True) or\
-       ((re.search(r"broaden",f, re.I) is not None) is True):
-      todo+=8
-   opts.append(re.findall(r"(?<=Broadening)[\w\d\.,:\(\)\=; -]+",f,re.I))
-   # END PARSING TASKS
-   
-   # check, if the combination of input-arguments makes sense. This check is mainly for 
-   # debugging purpose. There should be no invalid combination!
-   if todo>=16 or todo in [0,4,6,9]: 
-      print "options for calculation don't make sense. Please check the input-file!"
-      print opts
-   return opts, todo
-
-def getTasks(f):
+   #search the file
    if (re.search(r"model",f, re.I) is not None) is True:
       model = re.findall(r"(?<=model )[\w]+", f, re.I)[-1]
    else:
+     #if no model is specified:
      print "You must specify a model to be used."
+     model = 'unknown'
    if model in ['FC', 'fc', 'Fc']:
-       model = "FC"
+      model = "FC"
    elif model in ['CFC', 'cfc', 'Cfc']:
-       model = "CFC"
+      model = "CFC"
    elif model in ['URDR', 'urdr', 'UrDR', 'urDR']:
-       model = "URDR"
+      model = "URDR"
    else:
+      #a typo or unknown model is given.
       model = 'unknown'
    return model
 
 def main(argv=None):
-   """ This is the main-function of smallscript. 
-       Its input-argument is the file containing all options. Here, it is evaluated
-       wrt. the main tasks. 
-   """
+   """ This is the main-function of Visper (smallscript). 
+   Its input-argument is a file containing all options. 
+   
+   The main part of the evaluaten of options as well as the
+   calculations of all necessary quantiies is performed within the 
+   classes. This keeps the main-function clean from technical details."""
+
    #INTRODUCTION START
    assert len(argv)==1, 'exactly one argument required.'
    #open input-file (if existent and readable) and map it to f
@@ -101,36 +74,45 @@ def main(argv=None):
       return 2
 
    #If the input-file exists, get tasks and their options:
-   model =getTasks(f)
+   model =getModel(f)
 
    #look, what kind of spectrum is to be obtained and initialise 
- 
-   # an object of respective class.
+   # an object of respective class. The initialisation-routine
+   # already does most of the calculations needed.
    if model == "FC":
       spect = FC.FC_spect(f)
    elif model == "CFC":
       spect = FC.CFC_spect(f)
    elif model == "GFC":
       spect = FC.GFC_spect(f)
+  # these two options are not available at the moment.
   # elif model == "HRs":
   #    spect = FC.HR_spect(f)
   # elif model == "HRf":
   #    spect = FC.HR_factors(f)
    elif model == "URDR":
       spect= DR.URDR_spect(f)
+  # this model is not available at the moment.
+  # elif model == "DR":
+  #    spect = DR.SDR_spect(f)
    else:
       print "error in the model, ", model, "not known."
       return 2
    #INTRODUCTION END
 
    #PERFORM CALCULATION OF SPECTRA
+   #At this point, already all necessary quantities are calculated.
    spect.calcspect()
    #FINISHED PERFORM CALCULATION OF SPECTRA
    
+   #with this, the broadened spectrum is calculated.
    spect.outspect()
+
+   #This function prints some final statements.
+   spect.finish()
     
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-#version=1.6.1
+version=2.0.1
 # End of smallscript.py

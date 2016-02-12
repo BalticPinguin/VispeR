@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+   <meta http-equiv="content-type" content="text/html;charset=utf-8">
+   <title>Documentation for smallscript</title>
+   <link rel="stylesheet" href="pycco.css">
+   <style>
+   table, th, td {
+      border: 1px solid white;
+      border-collapse: collapse;
+   }
+   th, td {
+      padding: 10px;
+   }
+   </style>
+   <div style="margit-left: 10%">
+</head>
+
+<body>
+<h1><center>Welcome to the documentation page of smallscript</center></h1>
+<div id='container'>
+   <div class='clearall'>
+   <div class='section' id='section-0'>
+    <div class='docs'>
+      <h1>Contents:</h1>
+      <nav role="navigation" class="table-of-contents">
+         <h2>List of contents:</h2>
+         <ul>
+            <li><a href="#main">Options of the script</a></li>
+            <li><a href="#call">Calling the script</a></li>
+            <li><a href="#input">Input</a></li>
+            <li><a href="#options">Options</a></li>
+            <li><a href="#HR">Calculating Huang-Rhys factors</a></li>
+            <li><a href="#FC">Calculating spectrum based on Franck-Condon factors</a></li>
+            <li><a href="#DR">Cauculating spectrum including Duschinsky-effect</a></li>
+            <li><a href="#broaden">Calculate a line-shaped spectrum</a></li>
+            <li><a href="#source">syntax of source-files to smallscript</a></li>
+         </ul>
+      </nav>
+    </div>
+    <div class='code'>
+      <h2>the code with some documetation strings is listed in the following pages:</h2>
+      <!-- Site navigation menu -->
+      <ul class="navbar">
+         <li><a href="smallscript.html">main program code</a>
+         <li><a href="setup.html">setup-file</a>
+         <li><a href="functions_smsc.html">most functions for general</a>
+         <li><a href="OPA.html">class for Duschisky-rotated spectrum with OPA </a>
+         <li><a href="Dusch_unrest.html">code for Duschinsky-rotated spectrum without OPA </a>
+         <li><a href="Btree.html">class for Duschinsky-rotated spectrum (not OPA) </a>
+         <li><a href="broaden.html">code for broadening and extending</a>
+      </ul>
+   </div>
+   </div>
+   <div class='clearall'></div>
+</div>
+
+for explanations of the output of the calculations, see <a href="output.html">output-documentation</a><br>
+Moreover, some explanations of the models in use are available <a href="models.html">here</a>.
+<!-- Main content -->
+
+<h1 id="main">Main:</h1>
+   The smallscript is a python-script for calculating vibronic spectra. 
+   There are different <a href=models.html>models</a> available to be used.
+   <p>For the content and format of the input-files see <a href="#source">below</a>. 
+   <h2 id="call">calling the script </h2>
+   <p> if the script is located in the current folder  ./smallscript.py "input"
+   <p> if the script is located in a executable folder smallscript.py "input"
+   
+   <p> where "input" is a custom file specifying all calculations to be done (see sect. input)
+
+<h2 id="input">INPUT</h2>
+In its new version, the input-file needs to have the following information:
+  <ul>
+     <li>The keyword <b> model</b> introduces the <a href="models.html">model to be used</a>. Valid options are HF, FC, GFC, CFC, DR and URDR. This information is required in all input-files.</li>
+     <li>The second (pair of) keyword(s) necessary are the files to be used. They are specified after  <b>initial: </b> and <b>final: </b> and should be output files from
+     <a href="#sourceFile">some quantum chemical programme</a>, being located in the same directory.</li>
+     <li>with the keyword <b>out: </b> one can specify the output-file for smallscript. By default,  the output is written into calculation.log. </li>
+     <li>with the keyword <b>print:</b> you can decide, how detailed the information should be that is given in the output-file. </li>
+     <li>All other options for the calculation are specified after the keyword <b>opt:</b>. </li>
+  </ul>
+ In general, the order of these arguments doesn't matter; you can also give them one after the other. But some strange ordering and unusual formats may
+ lead to errors and might be confusing even for yourself.
+
+<h3 id="sourceFile">Source files</h3>
+   As source for calculations several formats are supported, namely:
+   the output of<a href=http://www.msg.chem.iastate.edu/gamess/index.html> GAMESS </a>, 
+   <a href=http://www.nwchem-sw.org/index.php/Main_Page> NWChem </a> or 
+   <a href=http://www.gaussian.com/> Gaussian</a> can be used. 
+   In case of Gaussian, the log-files can be used as 
+   well as the formcheck-files which, however, should be preferred at least for larger molecules due to accuracy.</p>
+   <p> In any case, the files need to include geometry and force-constant matrix (hessian of nuclear energy) as well as 
+   atomic masses and binding energy.</p>
+   <center>
+  <TABLE  style="width:90%">
+   <TR> <TD><tt> HR-file:  </tt> </TD>  <TD> specifies file containing HR-factors (1. column) 
+      and frequencies (second column) </TD> </TR>
+   <TR> <TD><tt> linespect: </tt> </TD><TD> specifies file containing line-spectrum 
+      (intensity  frequency  [mode-number]),
+      no sorting of the points necessary.</TD> </TR>
+  </TABLE>
+   </center>
+   <p>The order of the arguments is not important; further they are read case-insensitive.
+
+<h2 id="options">OPTIONS</h2>
+Most of the options listed here are important only for some model. Therefore, they are sorted here 
+by the model-system they are valid for.
+
+<h3 id="HR">1: HR-fact()</h3>
+   <center>
+  <TABLE  style="width:90%" >
+   <TR> <TD><tt>HRthreshold= &nbsp</tt> </TD> <TD> specifies, the threshold for cutting the HR-factors. All modes with
+            Huang-Rhys-factors smaller than this number will be neglected. Default is 0.015 </TD> <TR>
+  </TABLE>
+  </center>
+
+<h3 id="FC">2: FC-spect()</h3>
+   <center>
+  <TABLE  style="width:90%" >
+   <TR> <TD><tt>states=</tt></TD> <TD> max. number of vibrational states of electronic initial state (default is 5).
+         There are two ways of specifying it: by one number <tt>states=5</tt> says that there are 5 vibrational quanta
+         taken into account for each mode in initial state, leaving the final states open.
+         Or one specifies both numbers by <tt>states=5,6</tt> seperated by a ','.
+         If the second number is not specified, it will be determined to fit (hopefully) best.
+         Be careful about harmonic approximation!  </TD> <TR>
+   <TR> <TD><tt>T= </tt></TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
+  </TABLE>
+   </center>
+
+<h3 id="DR">3: Duschinsky-spect()</h3>
+   <center>
+  <TABLE  style="width:90%" >
+   <TR> <TD> <tt>states=</tt></TD> <TD> max. number of vibrational states (default is 5).
+      Be careful about harmonic approximation!  </TD> <TR>
+   <TR> <TD><tt>T=</tt> </TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
+  </TABLE>
+ </center>
+
+<h3 id="broaden">4: Broadening() /broaden()</h3>
+   <center>
+  <TABLE  style="width:90%" >
+   <TR> <TD> <tt>T=</tt> </TD> <TD> specifies temperature of system in Kelvin (default: 300K)  </TD> <TR>
+   <TR> <TD> <tt>gamma= </tt></TD> <TD> broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM)
+   <TR> <TD> <tt>grid=</tt> </TD> <TD> specify grid: either a file (containing list of gridpoints) or 
+      three numbers separated by ';'
+      specifying number of points (default: 5000), minimum energy, maximum energy
+      or one number: number of points (minimum and maximum will be taken from default</TD> <TR>
+   <TR> <TD><tt> linspect=</tt></TD> <TD>	specifies file with a line-spectrum already calculated</TD> <TR>
+   <TR> <TD><tt> stick</tt></TD> <TD> specifies, whether the stick-spectrum should be printed or not 
+      (by printing stick it is enabled).</TD> <TR>
+   <TR> <TD> <tt>spectfile=</tt> &nbsp</TD> <TD>specifies file where the spectrum should be saved. </TD> <TR>
+   <TR> <TD> <tt>shape=</tt></TD> <TD>	shape of broadening: Gaussian (g) or Lorentzian (l)</TD> <TR>
+   <TR> <TD><tt> to "n"PA</tt> </TD> <TD>adds the calculation of n-particle approximation out of given OPA 
+      spectrum (n=2,3) this option is faster than that below </TD> <TR>
+   <TR> <TD> <tt>to nPA:"n"</tt> &nbsp&nbsp </TD> <TD>same as above, but 
+      using a <a href="Dusch_unrest.html">recursive algorithm</a> and n is not restricted. </TD> <TR>
+   <TR> <TD> <tt>parallel</tt> &nbsp&nbsp </TD> <TD> extra option that can be specified in addition to 
+      <tt> to nPA: j</tt> if the calculation is expected to become large.
+      In this case, no broadened spectrum is calculated (should be done later by hand); instead, a number of files
+      is created containing the stick-spectrum, sorted by orders of particle-approximation. 
+      These files can be used as a basis for extra spectrum-calculations.
+      </TD> <TR>
+  </TABLE>
+  </center>
+
+<h2 id="source">Syntax of the source-files </h2>
+<h3> HR-file:</h3>
+   <p>needs:
+   <p>Delta E=  in cm^-1
+   <p> HR-fact   &nbsp        freq  
+   <p> following: list of respective quantities
+
+<h3>line-spect:</h3>
+   <p> grid: (see broadening) the energies of the grid (in cm^-1) in columns. No further numbers or letters should be contained in the file.
+   
+</div>
+</body>
+</html>

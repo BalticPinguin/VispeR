@@ -1,0 +1,79 @@
+/*--------------------- Layout and Typography of visper-documentation: ----------------------------*/
+body{
+   margin-left: 42px;
+   margin-right: 62px;
+   padding: 20px;
+   text-align: left;
+   background-color: white
+}
+
+h1{
+   margin-left: 55px;
+   text-transform: uppercase;
+   font-family: Antiqua,"Agency FB";
+   font-style: normal;
+   font-size: 22px;
+   line-height: 35px;
+   font-variant:small-caps;
+   font-weight: normal;
+   text-decoration: underline
+  
+h2{
+   margin-left: 50px;
+   text-transform: uppercase;
+   font-family: Antiqua,"Agency FB";
+   font-style: normal;
+   font-size: 22px;
+   line-height: 31px;
+   font-variant:small-caps;
+   font-weight: normal;
+}
+h3{
+   margin-left: 45px;
+   text-transform: uppercase;
+   font-family: Antiqua,"Agency FB";
+   font-style: normal;
+   font-size: 20px;
+   line-height: 27px;
+   font-variant:small-caps;
+   font-weight: normal;
+}
+h4{
+   margin-left: 42px;
+   text-transform: uppercase;
+   font-family: Antiqua,"Agency FB";
+   font-style: normal;
+   font-size: 20px;
+   line-height: 25px;
+   font-variant:small-caps;
+   font-weight: normal;
+}
+
+p.small{
+   line-height:120%;
+}
+p.small{
+   line-height:144%;
+}
+
+table, th, td {
+   border: 1px solid white;
+   border-collapse: collapse;
+}
+th, td {
+   padding: 20px;
+}
+
+a {
+  color: #261a3b;
+}
+  a:visited {
+    color: #261a3b;
+  }
+p {
+   margin: 0 0 15px 0;
+   font-family: Antiqua,"Agency FB";
+   font-style: normal;
+   font-size: 20px;
+}
+

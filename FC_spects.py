@@ -1,9 +1,15 @@
 #!/usr/bin/python2
+#filename: FC_Spects.py
+#including the class everything stems from:
 import Spect
 import re, mmap, math
 import numpy as np
 
-# ============ CHANGELOG =================
+#  CHANGELOG 
+# ===========
+# to version 0.1.0:  
+#  1) Added some sense to GFC  
+#  2) Removed the HR-classes from the code  
 
 class FC_spect(Spect.Spect): # import class Spect from file Spect.
    """ All models that are based on FC-scheme are based on this class. 
@@ -32,15 +38,15 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        f=self.f[0]
        def FCeqf( Deltag, M, N):
           """Calculate Franck-Condon factors under assumption of equal frequencies 
-          for only one vibrational mode
-    
-          *PARAMETERS:*
-          Deltag: HR-factor of respective state
-          N:      excitation number of initial state
-          M:      excitation number of final state
-    
-          *RETURNS:*
-          Franck-Condon factor of the respective transition
+            for only one vibrational mode
+            
+            *PARAMETERS:*
+            Deltag: HR-factor of respective state
+            N:      excitation number of initial state
+            M:      excitation number of final state
+         
+            *RETURNS:*
+            Franck-Condon factor of the respective transition
           """
           fact=math.factorial
           faktNM=float(fact(M)*fact(N))
@@ -52,16 +58,16 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        
        def unifSpect(intens, freqs, E, FC00):
           """ Calculation of the line spectrum respecting only shift of minima 
-          (no Duschinsky rotation, no change if frequency) 
-          and assuming coinciding frequencies for initial and final state
-    
-          **PARAMETERS:**
-          intens: matrix of intensities of transitions
-          freqs:  matrix of respective energies
-    
-          **RETURNS**
-          a 3-dimensional array with energies of transition (1. column), their 
-          rate (2. column) and the number of changing mode.
+            (no Duschinsky rotation, no change if frequency) 
+            and assuming coinciding frequencies for initial and final state
+         
+            **PARAMETERS:**
+            intens: matrix of intensities of transitions
+            freqs:  matrix of respective energies
+         
+            **RETURNS**
+            a 3-dimensional array with energies of transition (1. column), their 
+            rate (2. column) and the number of changing mode.
           """
           J=len(intens[0])
           spect=np.zeros((3,len(intens)*J+1))
@@ -109,7 +115,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
                 M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
              for i in range(self.states2):  #final states
                 if i==0 and j==0:
-                   ##skip 0-0 transitions
+                   #skip 0-0 transitions
                    continue
                 tmp=FCeqf(self.HR[a], i, j)
                 try:
@@ -122,9 +128,9 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
 
    def gs(A):
        """This function does row-wise Gram-Schmidt orthonormalization of 
-       matrices.
-       code for Gram-Schmidt adapted from iizukak, 
-       see https://gist.github.com/iizukak/1287876
+         matrices.
+         code for Gram-Schmidt adapted from iizukak, 
+         see https://gist.github.com/iizukak/1287876
        """
        #def proj(v1, v2):
           #return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)
@@ -144,19 +150,19 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
     
    def HuangR(self, HRthresh): #what is with different frequencies???
        """ Function that calculates the Huang-Rhys factors for all 
-       vibrational states
-    
-       **PARAMETERS**
-       K        The displacements of minima in internal coordinates (n-vector)
-       f        The frequencies of respective modes (2xn-matrix)
-       HRthresh threshold for lowest HR-factor (number)
-    
-       **CALCULATES**
-       uniHRall   HR-factors for coinciding frequencies sorted by size (decreasing)
-       uniFall    respective frequencies (same order)
-
-       **RETURNES**
-       nothing. All results are members of class  FC_Spect.
+         vibrational states
+            
+         **PARAMETERS**
+         K        The displacements of minima in internal coordinates (n-vector)
+         f        The frequencies of respective modes (2xn-matrix)
+         HRthresh threshold for lowest HR-factor (number)
+      
+         **CALCULATES**
+         uniHRall   HR-factors for coinciding frequencies sorted by size (decreasing)
+         uniFall    respective frequencies (same order)
+   
+         **RETURNES**
+         nothing. All results are members of class  FC_Spect.
        """
        lenK=len(self.K)
        sortHR=np.zeros(lenK)
@@ -209,18 +215,18 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
 class CFC_spect(FC_spect):
     def calcspect(self):
        """This is used to calculate the line spectrum assuming no mode mixing 
-       (shift only)  and coinciding frequencies in both electronic states.
+         (shift only)  and coinciding frequencies in both electronic states.
    
-       **PARAMETERS:**
-       HR:     Huang-Rhys factors
-       n:      number of modes that are considered here (with biggest HR)
-       freq:   frequencies (have to be in the same order as HR
-       E:      energy difference of energy surfaces
-       N,M:    are the numbers of vibrational quanta can be in the modes
-       All arguments are neccesary.
-   
-       **RETURNS:**
-       nothing (output into /tmp/linspect)
+         **PARAMETERS:**
+         HR:     Huang-Rhys factors
+         n:      number of modes that are considered here (with biggest HR)
+         freq:   frequencies (have to be in the same order as HR
+         E:      energy difference of energy surfaces
+         N,M:    are the numbers of vibrational quanta can be in the modes
+         All arguments are neccesary.
+         
+         **RETURNS:**
+         nothing (output into /tmp/linspect)
        """
        # M,N are maximal numbers of vibrational modes (+1, since they should 
        #      be arrived really; count from 0)
@@ -259,16 +265,16 @@ class CFC_spect(FC_spect):
    
        def unifSpect(intens, freqs, E, FC00):
           """ Calculation of the line spectrum respecting only shift of minima 
-          (no Duschinsky rotation) 
-          and assuming coinciding frequencies for initial and final state
-   
-          **PARAMETERS:**
-          intens: matrix of intensities of transitions
-          freqs:  matrix of respective energies
-   
-          **RETURNS**
-          a 2-dimensional array with energies of transition (1. column) and their 
-          rate (2. column)
+            (no Duschinsky rotation) 
+            and assuming coinciding frequencies for initial and final state
+         
+            **PARAMETERS:**
+            intens: matrix of intensities of transitions
+            freqs:  matrix of respective energies
+         
+            **RETURNS**
+            a 2-dimensional array with energies of transition (1. column) and their 
+            rate (2. column)
           """
           J=len(intens[0])
           spect=np.zeros((3,len(intens)*J+1))
@@ -321,7 +327,7 @@ class CFC_spect(FC_spect):
           for j in range(self.N): 
              for i in range(self.M):
                 if i==0 and j==0:
-                   ##skip 0-0 transitions
+                   #skip 0-0 transitions
                    continue
                 tmp=R[i][j]*R[i][j]
                 try:
@@ -333,177 +339,57 @@ class CFC_spect(FC_spect):
        self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
 
 class GFC_spect(FC_spect):
-   def CalculationHR(self, HRthresh): 
-      """ This function gathers most essential parts for calculation of HR-factors from g09-files
-   
-      **PARAMETERS**
-      HRthresh threshold for HR-factors (only those larger than this are taken 
-               into account)
-   
-      **RETURNS**
-      HR:      Huang-Rhys factors, sorted by size
-      funi:    vibrational frequencies sorted same as HR 
-      J:       Duschinsky-rotation matrix
-      K:       shift between the states (in normal coordinates)
-      f:       frequencies of the vibrational modes, sorted by size of the 
-               frequencies
-   
+   """The class GFC (gradient-Franck-Condon) is, from its model, similar to FC_spect.
+      In contrast to that, how ever, here the gradient of nuclear energies in excited 
+      state is used only.  
+      Its only function inherited from FC_Spect is HuangR().
+   """
+   def __init__(self,f):
+      """This function initialises spectra that are calculated using the gradient.
+         It uses here the __init__ from Spectra but not from FC_Spect!
       """
-      if (( ".fchk" in self.final) and (".fchk" in self.initial))\
-                  or (( ".FChk" in self.final) and (".FChk" in self.initial)): # this is also a valid ending
-         read = "G09_fchk"
-      else:
-         with open(self.initial, "r+b") as f: #open file as mmap
-            mapping = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
-            for line in iter(mapping.readline, ""): #go through every line and test characteristic part
-               if "GAMESS" in line: #if it is found: read important quantities from file
-                  read ="GAMESS"
-                  break
-               elif "Northwest Computational Chemistry Package (NWChem)" in line:
-                  read ="NWChem"
-                  break
-               elif "Gaussian(R)" in line:
-                  read ="G09"
-                  break
-            #  There is some error: File not recognised or an other programme was used.
-            else: 
-               print "file type not recognised"
-         
-      #read coordinates, force constant, binding energies from log-files and 
-      # from the file, using the type of file that is known now...
-      self.dim, Coord, mass, A, self.Energy[0]=self.Read(self.initial, read)
-      F,  P, =self.quantity(self.dim) #creates respective quantities (empty)
-      if self.logging[0]==0:
-         self.logging[1].write("Dimensions: "+ str(self.dim)+ '\n Masses: '+ str(mass**2)+"\n")
-      F[0]=A
-      self.CartCoord[0]=Coord
-      dim, self.CartCoord[1], mass, self.F[1], self.Energy[1]=self.Read(self.final,read) 
+      #first, initialise all general spectrum-things:
+      Spect.Spect.__init__(self, f)
+      #now, I need to read the gradient from final state:
+      read =ReadGrad(self,'f')
+      #than, recalculate K, J with its own Duschinsky!
+      self.Duschinsky()
+      # finally, calculate the Huang-Rhys factors:
+      HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",self.opt,re.M)
+      if HRthresh==[]:
+         HRthresh=0.015
+      else: 
+         HRthresh=float(HRthresh[-1])
+      self.HuangR(HRthresh)
 
-      if self.logging[0]<3:
-         self.logging[1].write('difference of minimum energy between states:'
-                        ' Delta E= {0}\n'.format((Energy[0]-Energy[1])*self.Hartree2cm_1))
-         if self.logging[0]<2:
-            self.logging[1].write('Cartesion coordinates of initial state: \n{0}\n'.format( self.CartCoord[0].T/self.Angs2Bohr))
-            self.logging[1].write('Cartesion coordinates of final state: \n{0}\n Forces:\n'.format( self.CartCoord[1].T/self.Angs2Bohr))
-            self.logging[1].write('initial state: \n{0}\n'.format(F[0]))
-            self.logging[1].write('final state: \n {0}\n'.format(F[1]))
-   
-      #Calculate Frequencies and normal modes
-      f, Lsorted, Lcart=self.GetL( dim, mass,F)
-      K, J=self.GradientShift( Lsorted, mass, Grad, f[0])
-      extra=re.findall(r"g09Vectors",opt, re.I)
-      if extra!=[]:
-         g09L=getGaussianL([initial], dim)
-         self.replace(final, g09f[0], g09L)
-      elif re.search(r"g09Vector",opt, re.I) is not None:
-         g09L=getGaussianL([initial], dim)
-         self.replace( final, g09f[0], g09L)
-      
-      #calculate HR-spect
-      HR, funi= self.HuangR( K, f, HRthresh)
-      if (re.search(r"makeLog", opt, re.I) is not None) is True:  
-         self.replace(initial, f[0], Lcart[0])
-      return HR, funi, J, K, f
-   
-   def GradientShift(self, L, mass, Grad, Freq):
+   def Duschinsky(self):
       """ This function calculates the 'shift' between excited state and ground 
-          state from the gradient of the excited state  at ground state geometry 
-          assuming coinciding frequencies and harmonic potentials.
-      **PARAMETERS**
-      L        Eigen-vectors of force-constant matrix (matrix)
-      mass     vector of masses (in a.u.)
-      Grad     gradient vector of final states PES at ground state equilibr.
-      Freq     (2xn -matrix) containing frequencies in initial/final state
+         state from the gradient of the excited state  at ground state geometry 
+         assuming coinciding frequencies and harmonic potentials.
+
+         **PARAMETERS**
+         L        Eigen-vectors of force-constant matrix (matrix)
+         Grad     gradient vector of final states PES at ground state equilibr.
+         Freq     (2xn -matrix) containing frequencies in initial/final state
       """
       #get dimensionality of the problem and initialise quantitios
       dim=len(mass)*3
-      J=np.zeros(( len(L)-1,dim-6,dim-6 ))
-      M=np.zeros((dim,dim)) 
-      for j in range(0,dim):
-         M[j,j]=1/mass[j//3]
+      self.J=np.zeros(( len(L)-1,dim-6,dim-6 ))
+      self.M=np.zeros((dim,dim)) 
       #K becomes now gradient in massweighted internal coordinates
-      K=Grad.T.dot(M).dot(L[0])[0]
+      #self.K=Grad.T.dot(M).dot(L[0])[0]
+      self.K=Grad.T.dot(self.Lmassw[0])
       # scale consistently: Now it is really the shift in terms of normal modes
-      K/=Freq*Freq*np.sqrt(2)  ##
+      K/=Freq*Freq*np.sqrt(2)  #
       
-      #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason
       #calculate Duschinsky-matrix
-      J=np.dot(L[0].T, L[1])
+      self.J=np.dot(L[0].T, L[1])
    
       if self.logging[0]<2:
          self.logging[1].write('Duschinsky rotation matrix:\n')
-         k=range(0,dim-6)
-         s=0
-         t=min(s+5,dim-6)
-         while s<dim-6:
-            for temp in range(s,t):
-               self.logging[1].write("               %d "%(k[temp]+1))
-            self.logging[1].write("\n")
-            for j in range(len(J)):
-               self.logging[1].write(" %03d"%(j+1))
-               for temp in range(s,t):
-                  self.logging[1].write("   %+.5e"%(J[j][k[temp]]))
-               self.logging[1].write("\n")
-            s=t
-            t=min(s+5,dim-6)
+         self.printMat(self.J)
          self.logging[1].write('\nDuschinsky displacement vector:\n')
+         self.printVec(self.K)
    
-         for j in range(len(K)):
-            self.logging[1].write("  %d    %e\n"%(j+1, K[j]))
-      return K, J
-   
-class HR_spect(FC_spect):
-   """ First, I will leave this class empty. Does one need it? 
-   From its structure, this is not as the other spectra and hence there is not much to
-   inherit from; maybe later this can be added to some structure.
-   """
-   def ReadHR(self, HRfile):
-      """ This function reads the HR-factors and electronic transition energy 
-      from a given file and brings them into a 
-      similar structure as they are used in the 'smallscript'.
-   
-      **PARAMETERS**
-      HRfile:      the file where the information is found
-   
-      **RETURNS**
-      initial:     a dummy-array that originally contains information about 
-                   the inital states. Here at the moment only one
-                   is allowed and only its length is relevant in the further 
-                   programme.
-      HRm:         a 2-dimensional array containing all Huang-Rhys-factors
-      freqm:       analogously to HRm, containing the respective frequencies
-                   (in atomic units)
-   
-      """
-      assert os.path.isfile(HRfile) and os.access(HRfile, os.R_OK),\
-               HRfile+' is not a valid file name or not readable.'
-      fi=open(HRfile, "r")
-      f=mmap.mmap(fi.fileno(), 0, prot=mmap.PROT_READ)
-      fi.close()
-      Energy=re.findall(r"(?<=Delta E=)[ \d\.\-]*", f, re.I)
-      assert len(Energy)==1, "Please specify only one energy-difference!"
-      Energy=float(Energy[0])
-      self.Energy=Energy/self.Hartree2cm_1
-      HR=[]
-      funi=[]
-      HRfreq=re.findall(r"HR-fact[\s]*freq[\s]*\n[\n\d\.\se\+\-]*", f, re.I)
-      assert len(HRfreq)==1, "The file-format could not be read. exit now"
-      HRf=re.findall(r"(?<=\n)[\d\.]*[\s]+[\d\.]*", HRfreq[0], re.I)
-      for i in range(len(HRf)):
-         line=re.findall(r"[\d.]+",HRf[i], re.I)
-         HR.append(float(line[0]))
-         funi.append(float(line[1])/self.Hartree2cm_1)
-      initial=['excited']
-      #the following is just to be consistent with structure of 
-      #                         HR calculated in first part
-      HRm=np.zeros((1,len(HR)))
-      HRm[0]=HR
-      freqm=np.zeros((2,len(HR)))
-      freqm[0]=funi
-      freqm[1]=funi # no changing frequencies
-      return initial, HRm, freqm
-
-class HR_factors():
-      """ This is not a spectrum. Hence it doesn't inherit from Spect.
-      First, I will leave this class empty. Does one need it?
-      """
+#version 0.1.0
+#end of FC_Spects.py

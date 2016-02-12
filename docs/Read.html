@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>Read.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>Read.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>filename: Read.py</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg.lapack</span> <span class="kn">import</span> <span class="n">dsyev</span>
+<span class="kn">import</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">sys</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <h1>CHANGELOG</h1>
+<p>to version=0.0.1
+1. I deleted the functions reading L and f from the log-file.
+   They are available only in older versions (non-class)
+   of smallscript.<br />
+2. Changed functions _Grad to read only the gradient and added 
+   function ReadGrad  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <h1>The Class Read</h1>
+<p>This class is made to outsource all work (and much code) related to reading</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Read</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>data from log-files in one of the supported formats. 
+At the moment, for each format there are two functions: One that reads all data
+required for the models FC,CFC,DR,URDR and one function that reads the gradient
+as required for the class GFC.</p>
+<h2>Description of the class</h2>
+<p>It mainly consists of the following three members:
+the name of the file with <strong>initial</strong> state and that of
+<strong>final</strong> state. The third member is <strong>type</strong> which
+is ' ' if the files differ in their format.
+In that case than, the two members <em>ftype</em> and *itype
+replace it.</p>
+<p>members:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="n">AMU2au</span><span class="o">=</span><span class="mf">1822.88839</span>                                          
+   <span class="n">Angs2Bohr</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="mf">0.52917721092</span>                                  
+   <span class="n">ev2Hartree</span> <span class="o">=</span> <span class="mf">0.0367493081366</span>
+   <span class="n">init</span><span class="o">=</span><span class="s1">&#39;unknown&#39;</span>
+   <span class="n">final</span><span class="o">=</span><span class="s1">&#39;unknown&#39;</span>
+   <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;unknown&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>attributes:
+initialises the class Read. It will get the following properties:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">final</span><span class="p">,</span> <span class="n">initial</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>init: the name of the file with initial state information. 
+      Having this as class member, we don't can access it any time we need.<br />
+final: name of file with final states information.<br />
+type/ itype+ftype : the type of file, meaning: its format. With the
+      possiblitity of having itype and ftype defined, the two states
+      are allowed to have different formats (which is NOT recommended).</p>
+<p>initialise the class members:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="o">=</span><span class="n">initial</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="o">=</span><span class="n">final</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>check, which file type they have. Do it individually
+for both to allow for the (not very sensible) case
+that initial state and final state have different format.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;.fchk&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;.FChk&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">):</span> 
+         <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;G09_fchk&quot;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;.fchk&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;.FChk&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">)</span> <span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">!=</span><span class="s2">&quot;G09_fchk&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="o">=</span><span class="s1">&#39;G09_fchk&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>Besides the formcheck-files, all log-files are recognised by a
+certain line/string in the following:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">!=</span><span class="s1">&#39;G09_fchk&#39;</span><span class="p">:</span>
+         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="s2">&quot;r+b&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span> <span class="c1">#open file as mmap</span>
+            <span class="n">mapping</span> <span class="o">=</span> <span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">readline</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span> <span class="c1">#go through every line and test characteristic part</span>
+               <span class="k">if</span> <span class="s2">&quot;GAMESS&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span> <span class="c1">#if it is found: read important quantities from file</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span><span class="s2">&quot;GAMESS&quot;</span>
+                  <span class="k">break</span>
+               <span class="k">elif</span> <span class="s2">&quot;Northwest Computational Chemistry Package (NWChem)&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span><span class="s2">&quot;NWChem&quot;</span>
+                  <span class="k">break</span>
+               <span class="k">elif</span> <span class="s2">&quot;Gaussian(R)&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s2">&quot;G09&quot;</span>
+                  <span class="k">break</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>There is some error: File not recognised or an other programme was used.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="k">else</span><span class="p">:</span> 
+               <span class="k">print</span> <span class="s2">&quot;file type not recognised&quot;</span>
+
+         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="s2">&quot;r+b&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span> <span class="c1">#open file as mmap</span>
+            <span class="n">mapping</span> <span class="o">=</span> <span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">readline</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span> <span class="c1">#go through every line and test characteristic part</span>
+               <span class="k">if</span> <span class="s2">&quot;GAMESS&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span> <span class="c1">#if it is found: read important quantities from file</span>
+                  <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span><span class="s2">&quot;GAMESS&quot;</span><span class="p">:</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="o">=</span><span class="s2">&quot;GAMESS&quot;</span>
+                  <span class="k">break</span>
+               <span class="k">elif</span> <span class="s2">&quot;Northwest Computational Chemistry Package (NWChem)&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                  <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span><span class="s2">&quot;NWChem&quot;</span><span class="p">:</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="o">=</span><span class="s2">&quot;NWChem&quot;</span>
+                  <span class="k">break</span>
+               <span class="k">elif</span> <span class="s2">&quot;Gaussian(R)&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                  <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">!=</span><span class="s2">&quot;G09&quot;</span><span class="p">:</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="o">=</span><span class="s2">&quot;G09&quot;</span>
+                  <span class="k">break</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>There is some error: File not recognised or an other programme was used.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="k">else</span><span class="p">:</span> 
+               <span class="k">print</span> <span class="s2">&quot;file type not recognised&quot;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>End of <strong>init</strong>()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>This function is a helper for ReadAll and ReadGrad to find the</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__getInput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>correct file to be read, still keeping it as general as possible.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">state</span><span class="o">==</span><span class="s1">&#39;i&#39;</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">kind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">itype</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">kind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span>
+         <span class="n">inputfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span>
+      <span class="k">elif</span> <span class="n">state</span><span class="o">==</span><span class="s1">&#39;f&#39;</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">kind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ftype</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">kind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span>
+         <span class="n">inputfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">assert</span> <span class="mi">1</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;invalid state provided to be read.&quot;</span>
+      <span class="k">return</span> <span class="n">inputfile</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>This function is supposed to be the main interface</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">ReadAll</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>for accessing this class. </p>
+<p>first chose the correct file and its format</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">inputfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getInput</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>than perform the correct calculation with it and return all data.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;G09_fchk&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ReadG09_fchk</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span><span class="s2">&quot;GAMESS&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ReadGAMESS</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span><span class="s2">&quot;NWChem&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ReadNWChem</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span><span class="s2">&quot;G09&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ReadG09</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">print</span> <span class="s2">&quot;errer in read-options.&quot;</span>
+         <span class="k">return</span> <span class="mi">2</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <p>This function is supposed to be the main interface</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">ReadGrad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>for accessing this class. </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">inputfile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__getInput</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>than perform the correct calculation with it and return all data.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;G09_fchk&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ReadG09_fchk_Grad</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span><span class="s2">&quot;GAMESS&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ReadGAMESS_Grad</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span><span class="s2">&quot;NWChem&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ReadNWChem_Grad</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span><span class="s2">&quot;G09&quot;</span><span class="p">:</span>
+         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ReadG09_Grad</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">print</span> <span class="s2">&quot;errer in read-options.&quot;</span>
+         <span class="k">return</span> <span class="mi">2</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+      <p>This function reads the required quantities from the gaussian-files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__ReadG09</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileN</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p><strong>PARAMETERS</strong>
+   fileN: specifies the name of the g09-file</p>
+<p><strong>RETURNS</strong>
+   dim:   dimension of the problem (3*number of atoms)
+   Coord: Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+   mass:  square root of masses of the atoms in atomi units
+   F:     force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+   E:     binding energy of the respective state/geometry in Hartree</p>
+<p>Mapping the log file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">fileN</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
+      </div>
+      <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">temp</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">temp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39; Number     Number       Type             X           Y           Z[\n -.\d]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
+      <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d]+.[\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+      <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;AtmWgt= [\d .]+&quot;</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
+      <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">atmwgt</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">):</span> <span class="c1"># because atomic masses are printed twize in log-files...</span>
+         <span class="n">mtemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]+&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+      <span class="n">dim</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)):</span>
+            <span class="n">dim</span><span class="o">+=</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="c1"># dim will be sum over all elements of temp</span>
+      <span class="n">dim</span><span class="o">*=</span><span class="mi">3</span>
+      <span class="k">if</span> <span class="n">dim</span><span class="o">!=</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
+      <p>this is necessary since they are not always printed twice...</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;AtmWgt= [\d .]+&quot;</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
+         <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
+         <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">atmwgt</span><span class="p">)):</span> 
+            <span class="n">mtemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]+&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+         <span class="n">dim</span><span class="o">=</span><span class="mi">0</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      <p>dim will be sum over all elements of temp</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>               <span class="n">dim</span><span class="o">+=</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> 
+         <span class="n">dim</span><span class="o">*=</span><span class="mi">3</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      <p>if still something is wrong with the dimensionality:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">==</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;Not all atoms were found! Something went wrong...{0}, {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">),</span><span class="n">dim</span><span class="p">)</span>
+
+      <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)):</span>
+         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])):</span>
+            <span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="n">foonum</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c1">#elements in m are sqrt(m_i) where m_i is the i-th atoms mass</span>
+         <span class="n">foonum</span><span class="o">+=</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+      <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s2">&quot;some atomic masses are zero. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>Reading Cartesian coordinates</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)):</span>
+         <span class="n">Coord</span><span class="p">[</span><span class="n">j</span><span class="o">%</span><span class="mi">3</span><span class="p">][</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+      <span class="n">Coord</span><span class="o">*=</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+      <p>Reading of Cartesian force constant matrix  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;Force constants in Cartesian coordinates: [\n\d .+-D]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">f</span><span class="o">==</span><span class="p">[]:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>if Freq was not specified in Gaussian-file:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;The second derivative matrix:[XYZ\n\d .-]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>try to find matrix from option "Force"</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">assert</span> <span class="n">f</span><span class="o">!=</span><span class="p">[],</span> <span class="s1">&#39;The input-file does not contain information on the force-constants!&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+      <p>else: error message. The matrix is really needed...</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span><span class="c1">#</span>
+         <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span>
+         <span class="k">print</span> <span class="n">lines</span>
+         <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+         <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+         <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+         <span class="n">line</span><span class="o">=</span><span class="mi">0</span>
+         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t find any forces. Force constants given in unknown format.&quot;</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">2</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      <p>these are those lines where no forces are written to</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>               <span class="n">k</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span>
+               <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
+               <span class="n">line</span><span class="o">=</span><span class="n">n</span><span class="o">*</span><span class="mi">5</span> 
+               <span class="k">continue</span>
+            <span class="n">elements</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span> <span class="c1">#don&#39;t use the first element</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>line=int(re.findall(r"[\d]+", lines[i].split()[0])[0])+(i-2-n)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="n">line</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span>
+               <span class="n">F</span><span class="p">[</span><span class="n">line</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+               <span class="n">F</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="p">][</span><span class="n">line</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span><span class="c1">#[2:-2]</span>
+         <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span>
+         <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+         <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+         <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">2</span><span class="p">:</span> 
+               <span class="n">k</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span>
+               <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
+               <span class="k">continue</span>
+            <span class="n">elements</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span>
+               <span class="n">F</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+               <span class="n">F</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+            <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span> <span class="p">(</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="o">//</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="p">])</span> 
+      <span class="n">Etemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=Root      1 :)[\d .]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">Etemp</span><span class="o">==</span><span class="p">[]:</span>
+         <span class="n">E</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">E</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ev2Hartree</span>
+      <span class="k">return</span> <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">E</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>This function reads the required quantities from the gaussian-files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__ReadG09_Grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p><strong>PARAMETERS</strong>
+  logfile:     specifies the name of the g09-file</p>
+<p><strong>RETURNS</strong>
+  grad:        gradient of the PES of excited state at ground state 
+            equilibrium-geometry</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span>
+      <span class="n">grad</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;Number     Number              X              Y              Z\n [\-\.\d \n]+&quot;</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
+      <span class="n">Grad</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;[\-\d\.]+[\d]{9}&quot;</span><span class="p">,</span> <span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">grad</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">Grad</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Grad</span><span class="p">)):</span>
+         <span class="n">grad</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Grad</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+      <span class="k">return</span> <span class="n">grad</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>This function reads the required quantities from the gaussian-files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__ReadGO9_fchk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileN</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      <p><strong>PARAMETERS</strong>
+  fileN:       specifies the name of the g09-file</p>
+<p><strong>RETURNS</strong>
+  dim:         dimension of the problem (3*number of atoms)
+  Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+  mass:        square root of masses of the atoms in atomi units
+  F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+  E:           binding energy of the respective state/geometry in Hartree</p>
+<p>get normal modes: Vib-Modes 
+Mapping the log file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">fileN</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>get geometry of the molecule</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">temp</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">temp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;Current cartesian coordinates  [RN\=\n \-\+.\d E]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
+      <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d.]+E[+-][\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=Real atomic weights     )[RN\=\-\+\d \.E\n]+&quot;</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
+      <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">mtemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]+E[+-][\d]+&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+      <span class="n">dim</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;(?&lt;=N\= )[\d ]+&quot;</span><span class="p">,</span> <span class="n">atmwgt</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">dim</span><span class="o">*=</span><span class="mi">3</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-38'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-38'>#</a>
+      </div>
+      <p>if something is wrong with the dimensionality:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">==</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;Not all atoms were found! Something went wrong...{0}, {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">),</span><span class="n">dim</span><span class="p">)</span>
+
+      <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)):</span>
+         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])):</span>
+            <span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="n">foonum</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c1">#elements in m are sqrt(m_i) where m_i is the i-th atoms mass</span>
+         <span class="n">foonum</span><span class="o">+=</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+      <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s2">&quot;some atomic masses are zero. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>Reading Cartesian coordinates</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)):</span>
+         <span class="n">Coord</span><span class="p">[</span><span class="n">j</span><span class="o">%</span><span class="mi">3</span><span class="p">][</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span> <span class="c1"># need to convert by some factor!!</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      <p>Reading of Cartesian force constant matrix  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+      <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+         <span class="k">assert</span> <span class="mi">1</span><span class="o">==</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;the intput-file </span><span class="si">%s</span><span class="s2"> has no information about Force-constant</span><span class="se">\n</span><span class="s2">sorry. I can&#39;t work like this!&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">fileN</span><span class="p">)</span>
+      <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span>
+      <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+      <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">m</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span> <span class="c1"># the first line is not part of the matrix</span>
+         <span class="n">elements</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+         <span class="k">if</span> <span class="n">m</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">F</span><span class="p">):</span> <span class="c1"># break this outer loop if inner is broken</span>
+            <span class="k">break</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span>
+            <span class="n">F</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">m</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
+               <span class="n">m</span><span class="o">+=</span><span class="mi">1</span>
+               <span class="k">if</span> <span class="n">m</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">F</span><span class="p">):</span> <span class="c1"># matrix is full; there will be only waste</span>
+                  <span class="k">break</span>
+               <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+            <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span> <span class="p">(</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="o">//</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="p">])</span> 
+
+      <span class="n">Etemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;(?&lt;=Total Energy                               R  )[ \-\d.E\+]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Etemp</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Some error occured! The states energy can not be read.&#39;</span>
+      <span class="n">Etemp</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span>
+      <span class="k">return</span> <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">Etemp</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
+      </div>
+      <p>This function reads the required quantities from the gaussian-files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__ReadG09_fchk_Grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      <p><strong>PARAMETERS</strong>
+  logfile:       specifies the name of the g09-file</p>
+<p><strong>RETURNS</strong>
+  grad:        gradient of the PES of excited state at ground state 
+               equilibrium-geometry</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+      <p>get gradient</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">grad</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=Cartesian Gradient)[R N=\d.\+\- E\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
+      <span class="n">Grad</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;[\-\d\.\+E]+&quot;</span><span class="p">,</span> <span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">1</span><span class="p">:]</span>
+      <span class="n">grad</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Grad</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Grad</span><span class="p">)):</span>
+         <span class="n">grad</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Grad</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+      <span class="k">return</span> <span class="n">grad</span><span class="p">,</span> <span class="n">E</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>This function reads the required quantities from the GAMESS-log-files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__ReadGAMESS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileN</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-45'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      <pre><code>
+</code></pre>
+<p><strong>PARAMETERS</strong>
+  fileN:       specifies the name of the g09-file</p>
+<p><strong>RETURNS</strong>
+  dim:         dimension of the problem (3*number of atoms)
+  Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+  mass:        square root of masses of the atoms in atomi units
+  F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's motion and the frequencies
+  E:           binding energy of the respective state/geometry in Hartree</p>
+<p>Mapping the log file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">fileN</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
+      </div>
+      <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
+atmwgt=re.findall(r"ATOMIC WEIGHTS (AMU)", log)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=ATOMIC WEIGHTS \(AMU\))[ \.\w\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
+      <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">mtemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]{7,10}(?=\n)&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+      <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+      <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+         <span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c1">#elements in m are sqrt(m_i) where m_i is the i-th atoms mass</span>
+      <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s2">&quot;some atomic masses are zero. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-47'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-47'>#</a>
+      </div>
+      <p>Reading Cartesian coordinates</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">temp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;(?&lt;=ATOM             X              Y              Z\n\n)[\n -.\d\w]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-48'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-48'>#</a>
+      </div>
+      <ul>
+<li>need even more in structure</li>
+</ul>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d]+.[\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+      <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">Coord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="p">])</span>
+      <span class="n">Coord</span><span class="o">*=</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-49'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-49'>#</a>
+      </div>
+      <p>Reading of Cartesian force constant matrix  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=CARTESIAN FORCE CONSTANT MATRIX\n)[\d\w \.\-\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+      <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)[</span><span class="mi">5</span><span class="p">:]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>lines include each three six elements.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">s</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+         <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;[ -]\d\.[\d]+&quot;</span><span class="p">,</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">s</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span> <span class="c1">#this is one number each</span>
+         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">!=</span><span class="mi">6</span><span class="p">:</span>
+            <span class="n">n</span><span class="o">+=</span><span class="mi">6</span>
+            <span class="n">k</span><span class="o">=</span><span class="n">n</span>
+            <span class="n">s</span><span class="o">+=</span><span class="mi">3</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">dim</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
+      </div>
+      <p>this will finally finish this loop (since the last lines are no more in the
+force constant matrix; I just don't know, how to make it easier</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>               <span class="k">break</span>
+            <span class="k">continue</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-52'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-52'>#</a>
+      </div>
+      <p>some numbers will be counted twice but this shouldn't matter</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="n">F</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">n</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="n">n</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+         <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
+
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+            <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span> <span class="p">(</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="o">//</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-53'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-53'>#</a>
+      </div>
+      <p>get energy of the state</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">Etemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;(?&lt;=TOTAL ENERGY =)[\-\d. ]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Etemp</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Some error occured! The states energy can not be read.&#39;</span>
+      <span class="n">E</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#energy is negative (bound state)</span>
+      <span class="k">return</span> <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">E</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-54'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-54'>#</a>
+      </div>
+      <p>This function reads the required quantities from the GAMESS-log-files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__ReadGAMESS_Grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-55'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-55'>#</a>
+      </div>
+      <p><strong>PARAMETERS</strong>
+  final:       specifies the name of the g09-file</p>
+<p><strong>RETURNS</strong>
+  grad:        gradient of the PES of excited state at ground state equilibrium-geometry</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span>
+      <span class="k">print</span> <span class="s2">&quot;ERROR: FUNCTION NOT IMPLEMENTED YET!&quot;</span>
+      <span class="k">print</span> <span class="s2">&quot;I am sorry about that.&quot;</span>
+      <span class="k">return</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-56'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-56'>#</a>
+      </div>
+      <p>This function reads the required quantities from the NWChem-files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__ReadNWChem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileN</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-57'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-57'>#</a>
+      </div>
+      <p><strong>PARAMETERS</strong>
+  fileN:       specifies the name of the g09-file</p>
+<p><strong>RETURNS</strong>
+  dim:         dimension of the problem (3*number of atoms)
+  Coord:       Cartesian coordinates of the atoms in this state (as 1x, 1y, 1z, 2x,...)
+  mass:        square root of masses of the atoms in atomic units
+  F:           force constant matrix (Hessian of the PES); used to calculate the normal mode's 
+              motion and the frequencies
+  E:           binding energy of the respective state/geometry in Hartree</p>
+<p>Mapping the log file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">fileN</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-58'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-58'>#</a>
+      </div>
+      <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">WeightCoord</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=atom    #        X              Y              Z            mass\n)[\d\w\-\+ \.\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
+      <span class="n">mtemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;[ -]\d\.[\dD\.\+\-]+(?=\n)&quot;</span><span class="p">,</span> <span class="n">WeightCoord</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#only weights remain</span>
+      <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)</span>
+
+      <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)):</span>
+         <span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c1">#mass[j] is square-root of masses</span>
+      <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s2">&quot;some atomic masses are 0. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-59'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-59'>#</a>
+      </div>
+      <p>Reading Cartesian coordinates</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -]\d\.[\dD\.\+\-]+&#39;</span><span class="p">,</span> <span class="n">WeightCoord</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+      <span class="n">tmp</span>
+      <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">))</span>
+      <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">Coord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span>
+         <span class="n">k</span><span class="o">+=</span><span class="mi">1</span> <span class="c1"># important to skip masses in tmp </span>
+      <span class="n">Coord</span><span class="o">*=</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-60'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-60'>#</a>
+      </div>
+      <p>Reading of Cartesian force constant matrix  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+      <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span>
+      <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+      <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+         <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">8</span><span class="p">:</span> <span class="c1">#this is due to the lines after the first row</span>
+            <span class="n">k</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">4</span>
+            <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="k">continue</span>
+         <span class="k">if</span> <span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">5</span><span class="o">&lt;=</span><span class="n">i</span><span class="o">&lt;=</span><span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">7</span><span class="p">:</span>
+            <span class="k">continue</span>
+         <span class="n">elements</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-61'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-61'>#</a>
+      </div>
+      <p>convert to a.u.  (masses)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="n">F</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">1000</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span>
+            <span class="n">F</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">1000</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-62'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-62'>#</a>
+      </div>
+      <p>get energy of the state</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">Etemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;(?&lt;=Total DFT energy =)[\-\d. ]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Etemp</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Some error occured! The states energy can not be read.&#39;</span>
+      <span class="n">E</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#energy is negative (bound state)</span>
+      <span class="k">return</span> <span class="n">dim</span><span class="p">,</span> <span class="n">Coord</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">E</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-63'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-63'>#</a>
+      </div>
+      <p>This function reads the required quantities from the NWChem-files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__ReadNWChem2_Grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">final</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-64'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-64'>#</a>
+      </div>
+      <p><strong>PARAMETERS</strong>
+  final:       specifies the name of the g09-file</p>
+<p><strong>RETURNS</strong>
+  grad:        gradient of the PES of excited state at ground state equilibrium-geometry
+  E:           binding energy of the respective state/geometry in Hartree</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">final</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span>
+      <span class="k">assert</span> <span class="mi">1</span><span class="o">==</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;ERROR: FUNCTION NOT IMPLEMENTED YET!</span><span class="se">\n</span><span class="s2"> I am sorry about that.&quot;</span>
+      <span class="k">return</span> <span class="o">-</span><span class="mi">2</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-65'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-65'>#</a>
+      </div>
+      <p>END: FUNCTIONS TO READ THE NEEDED DATA FROM OUTPUT-FILES IN DIFFERENT FORMATS.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-66'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-66'>#</a>
+      </div>
+      <p>version=0.0.1
+End of Read.py</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
