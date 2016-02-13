@@ -12,7 +12,7 @@ import re, mmap, os.path, math, sys
 #    of smallscript.  
 # 2. Changed functions _Grad to read only the gradient and added 
 #    function ReadGrad  
-# 3. Fixed error with units of coordinates in ReadNWChem
+# 3. Fixed error with units of coordinates in ReadNWChem  
 
 # The Class Read
 # ==============

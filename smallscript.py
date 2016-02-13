@@ -43,6 +43,8 @@ def getModel(f):
       model = "FC"
    elif model in ['CFC', 'cfc', 'Cfc']:
       model = "CFC"
+   elif model in ['GFC', 'gfc', 'Gfc']:
+      model = "GFC"
    elif model in ['URDR', 'urdr', 'UrDR', 'urDR']:
       model = "URDR"
    else:
@@ -52,11 +54,12 @@ def getModel(f):
 
 def main(argv=None):
    """ This is the main-function of Visper (smallscript). 
-   Its input-argument is a file containing all options. 
+      Its input-argument is a file containing all options. 
    
-   The main part of the evaluaten of options as well as the
-   calculations of all necessary quantiies is performed within the 
-   classes. This keeps the main-function clean from technical details."""
+      The main part of the evaluaten of options as well as the
+      calculations of all necessary quantiies is performed within the 
+      classes. This keeps the main-function clean from technical details.
+   """
 
    #INTRODUCTION START
    assert len(argv)==1, 'exactly one argument required.'
@@ -69,7 +72,7 @@ def main(argv=None):
       f=mmap.mmap(infile.fileno(), 0, prot=mmap.PROT_READ)
       infile.close()
    except IOError:
-      print "file", inputf, "not found."
+      print "file", argv[0], "not found."
       usage()
       return 2
 
@@ -114,5 +117,5 @@ def main(argv=None):
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-version=2.0.1
+#version=2.0.1
 # End of smallscript.py
