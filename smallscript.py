@@ -99,7 +99,7 @@ def main(argv=None):
   # elif model == "DR":
   #    spect = DR.SDR_spect(f)
    else:
-      print "error in the model, ", model, "not known."
+      print "WARNING: error in the model, ", model, "not known."
       return 2
    #INTRODUCTION END
 
@@ -113,6 +113,7 @@ def main(argv=None):
 
    #This function prints some final statements.
    spect.finish()
+   #END PERFORMING CALCULATION OF SPECTRA
     
 if __name__ == "__main__":
    main(sys.argv[1:])

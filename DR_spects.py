@@ -61,6 +61,11 @@ class URDR_spect(Spect.Spect):
          if resort[i][k]==-1:
             resort[i][k]=1 #use absolute value only.
       self.f[1]=resort.dot(self.f[1].T)
+      self.logging[1].write("before truncation:\n")
+      self.logging[1].write("Duschinsky-Matrix:\n")
+      self.printMat(self.J)
+      self.logging[1].write("Displacement vector:\n")
+      self.printVec(self.K)
    
       #truncate only, if this really is truncation.
       if self.m<len(self.J): 
@@ -74,6 +79,11 @@ class URDR_spect(Spect.Spect):
          self.f=f
          # now recalculate the matrices A,C,E,...
          self.GetQuants()
+      self.logging[1].write("After truncation:\n")
+      self.logging[1].write("Duschinsky-Matrix:\n")
+      self.printMat(self.J)
+      self.logging[1].write("Displacement vector:\n")
+      self.printVec(self.K)
    
       # finally, calculate the Duschinsky-rotated stick spectrum in this picture
       self.spect=self.FCf(self.states1+ self.states2, self.T)
@@ -197,7 +207,7 @@ class URDR_spect(Spect.Spect):
             # don't mess with too low intensities (<1e-16)
             if np.abs(I_nn)>1e-8: 
                L3.insert(n, [I_nn,\
-                freq(Energy, sgnE*self.f[1]*n[:leng],\
+                freq(sgnE*Energy, sgnE*self.f[1]*n[:leng],\
                              sgnE*self.f[0]*n[leng:]),\
                          freq(0, 0, self.f[0]*n[leng:])])
          return L2, L3

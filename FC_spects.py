@@ -10,12 +10,13 @@ import numpy as np
 # to version 0.1.0:  
 #  1) Added some sense to GFC  
 #  2) Removed the HR-classes from the code  
+#  3) In FC: final states frequencies in use.
 
 class FC_spect(Spect.Spect): # import class Spect from file Spect.
    """ All models that are based on FC-scheme are based on this class. 
-   Since it doesn't need any more data than the DR-scheme, everything 
-   initialised for Spect is initialized here already and hence no extra
-   init()-function is needed.
+      Since it doesn't need any more data than the DR-scheme, everything 
+      initialised for Spect is initialized here already and hence no extra
+      init()-function is needed.
    """
    def __init__(self, f): 
       # first, initialise as done for all spectra:
@@ -27,6 +28,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       else: 
          HRthresh=float(HRthresh[-1])
       self.HuangR(HRthresh)
+      self.type='FC'
 
       # get N, M from opt
 
@@ -35,7 +37,8 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        #     (+1, since they should be arrived really; count from 0)
        self.states1+=1
        self.states2+=1
-       f=self.f[0]
+       #as frequency, use the final states frequency.
+       f=self.f[1]
        def FCeqf( Deltag, M, N):
           """Calculate Franck-Condon factors under assumption of equal frequencies 
             for only one vibrational mode
@@ -153,8 +156,6 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
          vibrational states
             
          **PARAMETERS**
-         K        The displacements of minima in internal coordinates (n-vector)
-         f        The frequencies of respective modes (2xn-matrix)
          HRthresh threshold for lowest HR-factor (number)
       
          **CALCULATES**
@@ -177,7 +178,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        fsort0=self.f[0][index]
        fsort1=self.f[1][index]
        if np.any(fsort)<0:
-          self.logging[1].write('ATTENTION: some HR-factors are <0.\
+          self.logging[1].write('WARNING: some HR-factors are <0.\
                    In the following their absolute value is used.')
           fsort1=np.abs(fsort1)
           fsort0=np.abs(fsort0)
@@ -187,7 +188,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        loggingwrite=self.logging[1].write
        if sortHR[-1]>=10: 
           #if larges HR-factor is too large
-          loggingwrite(u'\n!! ATTENTION!! THE HUANG-RHYS FACTOR SEEMS TO BE'+\
+          loggingwrite(u'\n!! WARNING: THE HUANG-RHYS FACTOR SEEMS TO BE'+\
                                                             ' TOO LARGE !!\n')
           loggingwrite(u'the spectrum will be calculated, but most probably'+\
                                          ' the input-stat is inconsistent.\n')
@@ -213,7 +214,13 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        self.f=uniFall
     
 class CFC_spect(FC_spect):
-    def calcspect(self):
+
+   def __init__(self, f): 
+      # first, initialise as done for all spectra:
+      FC_spect.__init__(self, f)
+      self.type='CFC'
+
+   def calcspect(self):
        """This is used to calculate the line spectrum assuming no mode mixing 
          (shift only)  and coinciding frequencies in both electronic states.
    
@@ -361,6 +368,7 @@ class GFC_spect(FC_spect):
       else: 
          HRthresh=float(HRthresh[-1])
       self.HuangR(HRthresh)
+      self.type='GFC'
 
    def Duschinsky(self):
       """ This function calculates the 'shift' between excited state and ground 
