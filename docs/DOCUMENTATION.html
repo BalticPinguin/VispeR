@@ -77,13 +77,12 @@ There are three mandatory sections:
    </td>
    <td>
       <ul>
-      <li>GFC</li> 
       <li>CFC</li> 
+      <li>DR </li> 
       </ul>
    </td>
    <td>
       <ul>
-      <li>DR </li> 
       <li>URDR</li>
       </ul>
    </th>
@@ -129,10 +128,7 @@ There are three mandatory sections:
       <ul>
           <li>HF -> This model is a bit special and not supported at the moment. It will be used to calculate a spectrum using just the Huang-Rhys factors
                     and respective frequencies to calculate a fully harmonic spectrum.</li> 
-          <li>FC -> In this model, a purely harmonic spectrum is calculated in Franck-Condon picture where the Franck-Condon factors are calculated
-                    from the shift between the two involved electronic states.</li>
-          <li>GFC -> The model here is the same as in FC but using information on the gradient in final state only. Hence, here the
-                     final state should not be given in its converged geometry.</li>
+          <li>FC -> In this model, a purely harmonic spectrum is calculated in Franck-Condon picture.</li>
           <li>CFC -> This model is also Franck-Condon based but includes a correction due frequencies differing between the initial and final electronic states. </li>
           <li>DR  -> With this option, a spectrum is calculated that takes also Duschinsky rotation into account. In this model restrictions due to the
                    number of changeing vibrational modes are given.</li>

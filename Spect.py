@@ -11,11 +11,14 @@ Hartree2cm_1=219474.63
 
 # CHANGELOG
 # =========
+#to version 0.1.5:  
 #to version 0.1.0:  
 #   a) added some documentation/doc-strings  
 #   b) added the functions printMat and printVec, taken from Duschinksy().
 #   c) fixed some errors
 #   d) made vector-output more beautiful
+#   e) try an oher invokeLogging; hopefully more stable.
+#   f) added warnings
 
 class  Spect:
    """ The class Spect is the parent-class for all spectrum-models in use here.
@@ -64,6 +67,7 @@ class  Spect:
    read=[]  # this object is valid only after __init__. Maybe it doesn't belong here...
    spect=[[0],[0],[0]]
    width=5  # determines, how many rows of a matrix are writen aside each other.
+   type="Spect"
    
    # The following additional elements are members of all instances:
    #
@@ -73,6 +77,7 @@ class  Spect:
    #  states1, states2
    #  read 
    #  mass (sqrt(masses))
+   #  logfile
  
    # END OF DATA-DEF.
 
@@ -86,7 +91,7 @@ class  Spect:
          All variables/functions that are common to all spectral tyes are initialised here.
       """
       
-      def invokeLogging(logfile, mode="important"):
+      def oldinvokeLogging(logfile, mode="important"):
          """ initialises the logging-functionality
             **PARAMETERS**
             logfile   name of file to be used as log-file. It is expected to be an array of 
@@ -98,7 +103,6 @@ class  Spect:
             **RETURNS**
             log:      opened file to write in
          """
-
          if logfile==[]:
             log=open("calculation.log", "a")
          else:
@@ -106,7 +110,7 @@ class  Spect:
             log=open(s, "a")
 
          #remove all white spaces
-         mode= mode.strip() 
+         mode= mode.strip()
          #search, which option was set.
          if mode in ['all', "ALL", "All", "0", 0]:
             logging=0
@@ -124,6 +128,47 @@ class  Spect:
          else:
             logging=3
             log.write("logging-mode "+mode+" not recognized. Using 'important' instead\n")
+         print logging
+         return logging, log
+      
+      def invokeLogging(logfile, mode="important"):
+         """ initialises the logging-functionality
+            **PARAMETERS**
+            logfile   name of file to be used as log-file. It is expected to be an array of 
+                   length 0 or one.
+            mode:     5 different values are possible (see below); the lowest means: print 
+                     much, higher values mean 
+                     less printing
+
+            **RETURNS**
+            log:      opened file to write in
+         """
+         if logfile==[]:
+            log=open("calculation.log", "a")
+         else:
+            s=logfile[-1].strip()
+            log=open(s, "a")
+         
+         self.logfile=s
+         #remove all white spaces and take only first character.
+         mode= mode.strip()[0]
+         #search, which option was set.
+         if mode in ['a', "A", "0", 0]:
+            logging=0
+            log.write('use log-level all\n')
+         elif mode in ['d', 'D', "1"]:
+            logging=1
+            log.write('use log-level detailed\n')
+         elif mode in ['m', 'M','2']:
+            logging=2
+            log.write('use log-level medium\n')
+         elif mode in ['i', 'I','3']:
+            logging=3
+         elif mode in ['s', 'S', '4']:
+            logging=4
+         else:
+            logging=3
+            log.write("logging-mode "+mode+" not recognized. Using 'important' instead\n")
          return logging, log
       
       #START LOG-FILE DEFINITION     
@@ -133,7 +178,12 @@ class  Spect:
          loglevel=re.findall(r"(?<=print:)[\w \d]+",f, re.I)[-1]
          self.logging = invokeLogging(logfile, loglevel )
       except IndexError:
-         self.logging = invokeLogging(logfile)
+         #else, try an other syntax
+         try:
+            loglevel=re.findall(r"(?<=print=)[\w \d]+",f, re.I)[-1]
+            self.logging = invokeLogging(logfile, loglevel )
+         except IndexError:
+            self.logging = invokeLogging(logfile)
       
       # now,  write the header to the output-file.
       self.logging[1].write("\n==================================================================\n"
@@ -169,7 +219,7 @@ class  Spect:
          #make some empty string that the search-commands don't fail in ReadData.
 
       #find the information for the broadening
-      broadopt=re.findall(r"(?<=broaden:)[\d\s\w.,\(\) \=;:-_]+", f, re.M)
+      broadopt=re.findall(r"(?<=broaden:)[\d\s\w.,\(\) \=;:\-_]+", f, re.M)
       if broadopt!=[]:
          self.broadopt=broadopt[-1]
       else:
@@ -197,7 +247,7 @@ class  Spect:
             #i.e. 1 number given (else, the 'int' will give an error)
 	    self.states1=int(states[0])
 	    self.states2=0
-	    logging[1].write("number of states: %d and %d \n"%(self.states1, self.states2))
+	    self.logging[1].write("number of states: %d and %d \n"%(self.states1, self.states2))
 	 except ValueError:
             try:
                # two numbers given, try to extract them
@@ -211,193 +261,11 @@ class  Spect:
                logging[1].write("!!number of vibrational states {0} is not an integer.",
                                     " Use default instead.\n".format(self.states1, self.states2))
       
+      self.reader=Read.Read(initial, final)
       #The ReadData class finds out which format the input-files have
       # and reads the most important data from them.
-      self.ReadData(initial, final)
+      self.ReadData()
       
-      #END READING DATA FROM FILE
-
-   def GetL(self, F):
-      """Function that calculates the frequencies and normal modes from force constant matrix.It
-      mainly calls a hermitian eigenvalue-solver and computes the frequencies as 
-      srqrt(eigenvalue) and the normal modes by cutting the translation/rotation off.
-      A projection method once has been in use but turned out to be pointless.
-
-      This function is a member of Spect but syntactically not bound to it at the moment.
-      Hence, it has access to member-variables.
-   
-      **PARAMETERS** 
-        self -> it is member of class
-        F    -> two matrices, F[0] and F[1] ; the respective nuclear energy Hessians.
-
-      **RETURN**
-        f  -> frequencies of initial (f[0]) and final (f[1]) state. The dimesion is (2, dim-6)
-        L  -> unitary matrices (L[0], L[1]) that diagonalise M*F (massweighted Hessian). Its columns are normal modes 
-              in Cartesian Coordinats The dimension is (2, dim, dim-6)
-        Lmass -> L*M where M_ij=1/sqrt(m_i m_j). This is mass-weighted L and will be used later for most systems.
-        
-      """
-      # Defining arrays
-      lenF=len(F[0])
-      L=np.zeros(( 2, lenF, lenF-6 )) 
-      Lmass=np.zeros(( 2, lenF, lenF-6 ))
-      f=np.zeros(( 2, lenF-6 ))
-      
-      def SortL(J,L,f):
-         """This functions resorts the normal modes (L, f) such that the Duschinsky-Rotation
-         matrix J becomes most close to unity (as possible just by sorting).
-         In many cases, here chosing max(J[i]) does not help since there will be rows/columns occur
-         more often. 
-         Since I don't know any closed theory for calculating this, it is done by cosidering all possible cases.
-         """
-         
-         #initialize the matrix that resorts the states:
-         resort=np.zeros(np.shape(J))
-         #FIRST, DO SOME GUESS HOW THE MATRIX COULD LOOK LIKE
-         #chose largest elements in lines
-         for i in range(len(J)):
-            j=np.argmax(J[i])
-            k=np.argmin(J[i])
-            if J[i][j]>-J[i][k]:
-               resort[i][j]=1
-            else:
-               resort[i][k]=1
-         #now, go through rows and check if they are ok:
-         #print "resortJ\n",resort
-         resort=resort.T
-         Nos=[]
-         freePlaces=[]
-
-         # NOW LOOK FOR ERRORS IN THE GUESS
-         for i in range(len(J)):
-            if sum(resort[i])==1:
-               #this is the normal case: the order of
-               # states did not change.
-               continue
-            elif sum(resort[i])==0:
-               Nos.append(i)
-            else:
-               index=np.where(resort[i]==1)
-               x=np.argmax(np.abs(J[index,i]))
-               index=np.delete(index,x)
-               resort[i][index]=0 #only x remains
-               freePlaces=np.append(freePlaces,index)
-         # By construction, this should always be true!
-         assert len(Nos)==len(freePlaces), "dodododo!"
-         freePlaces=np.array(freePlaces,dtype=int)
-         
-         #FIXING THE ERRORS NOW:
-         #fill remaining lines. Therefore, set that element to one
-         # whose value is largest under all remaining ones.
-         # This method is not fair since the first has most choise but should
-         # be fair enough in most cases
-         for i in range(len(Nos)):
-               x=np.argmax(np.abs(J[freePlaces,Nos[i]]))
-               resort[Nos[i],freePlaces[x]]=1 #only x remains
-               freePlaces=np.delete(freePlaces,x) # does it work the way I want it to work?
-         assert len(freePlaces)==0, "the matrix is not readily processed."
-         #FIX DONE.
-         
-         #since resort is a permutation matrix, it is unitary. Using this:
-         return f.dot(resort), L.dot(resort)
-         #  END OF SortL
-  
-      # do the following for both states:
-      for i in range(2):
-         # solve the eigenvalue-equation for F:
-
-         # here one can choose between the methods: result is more or less 
-         #  independent
-         #ftemp,Ltemp=np.linalg.eig(F[i])
-         #ftemp,Ltemp=np.linalg.eigh(F[i])
-         ftemp,Ltemp,info=dsyev(F[i])
-         
-         #sort the results with increasing frequency (to make sure it really is)
-         index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
-         # and then cut off the 6 smallest values: rotations and vibrations.
-         f[i]=np.real(ftemp[index]).T[:].T[6:].T
-         L[i]=(Ltemp.T[index].T)[:].T[6:].T
-   
-         #the frequencies are square root of the eigen values of F
-         # Here, we need to take care for values <0 due to bad geometry
-         for j in range(len(f[i])):
-            f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
-
-         #through a warning if imaginary frequencies occured and take their pos. values for that.
-         if np.any(f[i]<0):
-            self.logging[1].write('imaginary frequencies occured. The absolute'
-                    ' values are used in the following.\n{0}\n'.format(f[i]))
-            f[i]=np.abs(f[i])
-
-         #calculate the mass matrix, for Lmass
-         M=np.eye(self.dim)
-         for j in range(self.dim):
-            M[j,j]/=self.mass[j//3]
-         Lmass[i]=M.dot(L[i])
-         #if log level=0 or 1:
-         if self.logging[0]<2:
-            if i==0:
-               self.logging[1].write("Initial states:\n")
-            else:
-               self.logging[1].write("Final states:\n")
-            self.logging[1].write("Frequencies (cm-1)\n")
-            self.printVec(f[i]*Hartree2cm_1)
-            #indeed, this matrix is not resorted yet and yes, the user is not informed
-            #that there are manipulations done on it afterwards.
-            self.logging[1].write("L-matrix \n")
-            self.printMat(Lmass[i])
-      
-      # to account for the effect that the frequencies independently change between the states 
-      #  and hence may change their order, the final states L and f are resorted via the
-      #  largest overlap. When strong changes occur, there is no fair method. This one tries
-      #  to be as fair as possible.
-      f[1],L[1]=SortL(np.linalg.pinv(L[0]).dot(L[1]),L[1],f[1])
-
-      #recalculate Lmass for final state.
-      Lmass[1]=M.dot(L[1]) # recalculate Lmass!
-      return f, L, Lmass
-   
-   def Duschinsky(self):
-      """This function calculates the shift between two electronic states 
-         (whose geometry is known, see x) as well as the
-         Duschinsky-rotation matrix.
-
-         **PARAMETERS:**
-         mass:    array of square-roots of nuclear masses (length: N)
-
-         **RETURN:**
-         J:    Duschinsky-rotation matrix
-         K:    displacement-vector of energy-minima in normal coordinates
-      """
-      self.J=np.zeros((self.dim-6,self.dim-6))
-      self.K=np.zeros(self.dim-6)
-      M=np.zeros((self.dim,self.dim))
-      DeltaX=np.zeros(self.dim)
-   
-      for i in range(self.dim):
-         M[i][i]=self.mass[i//3] #square root of inverse masses
-      #J=np.dot(L[0].T, L[1])  # for Lsorted
-      self.J=np.linalg.pinv(self.Lmassw[0]).dot(self.Lmassw[1]) # for Lmassw
-   
-      #print "J\n", J
-      DeltaX=np.array(self.CartCoord[1]-self.CartCoord[0]).flatten('F')  # need initial - final here.
-      if self.logging[0] <1:
-         self.logging[1].write('changes of Cartesian coordinates:\n')
-         self.printVec(DeltaX)
-    #  K=(DeltaX.dot(M)).dot(L[0])
-      #K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted
-      self.K=np.linalg.pinv(self.Lmassw[0]).dot(DeltaX)  # w p Lmassw
-      #K=L[0].T.dot(M).dot(M).dot(DeltaX)  # with Lmassw
-   
-      #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason  --> want to get rid of this!!!
-   
-      if self.logging[0]<2:
-         # print the Duschinsky matrix in a nice format
-         self.logging[1].write('Duschinsky rotation matrix:\n')
-         self.printMat(self.J)
-         self.logging[1].write('\nDuschinsky displacement vector:\n')
-         self.printVec(self.K)
-   
    def outspect(self, E=0):
       """This function calculates the broadened spectrum given the line spectrum, 
       frequency-rage and output-file whose name is first argument. 
@@ -513,8 +381,8 @@ class  Spect:
          MakeFull.GetSpect(self.spect, minint)
          TPAintens, TPAfreq=MakeFull.Calc()
       else: 
-         TPAfreq=linspect[0][minint:]
-         TPAintens=linspect[1][minint:]
+         TPAfreq=self.spect[0][minint:]
+         TPAintens=self.spect[1][minint:]
       
       if stick:
          self.logging[1].write(" Intensity  \t frequency \n")
@@ -542,7 +410,7 @@ class  Spect:
       sigma=gamma*2/2.355 #if gaussian used: same FWHM
       
       if gamma*1.1<=(maxfreq-minfreq)/gridpt:
-         self.logging[1].write("\n !WARNING!\n THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
+         self.logging[1].write("\n WARNING: THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
               "THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!")
    
       index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
@@ -607,46 +475,6 @@ class  Spect:
          #only close file if it was opened here
          out.close()
 
-   def ReadData(self, initial, final):
-      """ This function gathers most essential parts for calculation of
-         HR-factors from g09-files. That is: read neccecary information from the
-         g09-files and calculate HR-factors as well as the  Duschinsky-rotation
-         matrix and the shift between minima (needed later if the option Duschinsky
-         is specified)
-      """ 
-
-      # create the member read. It is an instance of a class, made for reading data.
-      self.read = Read.Read(final, initial)
-         
-      #read coordinates, force constant, binding energies from log-files and 
-      # from the file, using the type of file that is known now...
-      self.dim, Coord, self.mass, A, self.Energy[0]=self.read.ReadAll('i')
-      F, P=self.quantity(self.dim) #creates respective quantities (empty)
-      if self.logging[0]==0:
-         self.logging[1].write("Dimensions: "+ str(self.dim)+ '\n Masses: \n')
-         self.printVec(self.mass**2)
-      F[0]=A
-      self.CartCoord[0]=Coord
-      self.dim, self.CartCoord[1], self.mass, F[1], self.Energy[1]=self.read.ReadAll('f') 
-
-      if self.logging[0]<3:
-         self.logging[1].write('difference of minimum energy between states:'
-                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*Hartree2cm_1))
-         if self.logging[0]<2:
-            self.logging[1].write('Cartesian coordinates of initial state: \n')
-            self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
-            self.logging[1].write('Cartesian coordinates of final state: \n')
-            self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
-            if self.logging==0:
-               self.logging[1].write('initial state: \n')
-               self.printMat(F[0])
-               self.logging[1].write('final state: \n')
-               self.printMat(F[1])
-   
-      #Calculate Frequencies and normal modes
-      self.f, Lsorted, self.Lmassw=self.GetL(F)
-      self.Duschinsky()
-   
    def quantity(self, dim):
       """ Here some frequencies are defined; it is just for clearer code.
          This function is called by CalculationHR.
@@ -665,10 +493,20 @@ class  Spect:
          More over, it gives the user feedback about successfull finish;
          also nice if some warnings appeared before.
       """
-      self.logging[1].write("\n==================================================================\n"
-               "=========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============\n"
-               "==================================================================\n\n")
       self.logging[1].close()
+      #count warnings in self.logging[1]:
+      warnings=re.findall('WARNING:',self.logfile)
+      warnings=len(warnings)
+      foo=open(self.logfile, 'a')
+      if warnings==0:
+         foo.write("\n==================================================================\n"
+                  "=========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============\n"
+                  "==================================================================\n\n")
+      else:
+         foo.write("\n==================================================================\n"
+                  "========= VISPER FINISHED WITH "+repr(warnings)+" WARNINGS.  ===========\n"
+                  "==================================================================\n\n")
+      foo.close()
    # END OF FUNCTION DEFINITIONS
    
    def printMat(self,mat):
@@ -703,5 +541,246 @@ class  Spect:
          self.logging[1].write("\n")
       self.logging[1].write("\n")
 
-#version=0.1.0
+   def ReadData(self):
+      """ This function gathers most essential parts for calculation of
+         HR-factors from g09-files. That is: read neccecary information from the
+         g09-files and calculate HR-factors as well as the  Duschinsky-rotation
+         matrix and the shift between minima (needed later if the option Duschinsky
+         is specified)
+      """ 
+      def IsZero(mat):
+         """checks, if a matrix is zero
+         """
+         return np.all(mat==0)
+
+      #read coordinates, force constant, binding energies from log-files and 
+      # from the file, using the type of file that is known now...
+      self.Energy[0], self.Energy[1]=self.reader.Energy()
+      
+      self.mass=self.reader.mass()
+      assert IsZero(self.mass[0]-self.mass[1]), "It seems as if the masses don't coincide within files."
+      self.mass=self.mass[0]
+      
+      self.dim=len(self.mass)*3
+      if self.logging[0]<2:
+         self.logging[1].write("Dimensions: %d\n" %self.dim)
+         self.logging[1].write(" Masses: \n")
+         self.printVec(self.mass)
+   
+      self.F=self.reader.Force()
+      if IsZero(self.F[0]):
+         self.F[0]=self.F[1]
+         self.write("WARNING: Only one force constant matrix given.")
+         assert (self.type=='FC'), "You must specify both force constant matrices in this model."
+      elif IsZero(self.F[1]):
+         self.F[1]=self.F[0]
+         self.write("WARNING: Only one force constant matrix given.")
+         assert (self.type=='FC'), "You must specify both force constant matrices in this model."
+      assert not IsZero(self.F[0]), "ERROR: No force constant matrix given."
+      
+      self.CartCoord=self.reader.Coordinates()
+      if IsZero(self.CartCoord[0]-self.CartCoord[1]):
+         self.Grad=self.reader.Gradient() 
+      
+      if self.logging[0]<3:
+         self.logging[1].write('difference of minimum energy between states:'
+                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*Hartree2cm_1))
+         if self.logging[0]<2:
+            self.logging[1].write('Cartesian coordinates of initial state: \n')
+            self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
+            self.logging[1].write('Cartesian coordinates of final state: \n')
+            self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
+            if self.logging==0:
+               self.logging[1].write('initial state: \n')
+               self.printMat(F[0])
+               self.logging[1].write('final state: \n')
+               self.printMat(F[1])
+   
+      #Calculate Frequencies and normal modes
+      self.GetL()
+      self.Duschinsky()
+   
+   def GetL(self):
+      """Function that calculates the frequencies and normal modes from force constant matrix.It
+         mainly calls a hermitian eigenvalue-solver and computes the frequencies as 
+         srqrt(eigenvalue) and the normal modes by cutting the translation/rotation off.
+         A projection method once has been in use but turned out to be pointless.
+   
+         This function is a member of Spect but syntactically not bound to it at the moment.
+         Hence, it has access to member-variables.
+      
+         **PARAMETERS** 
+         self -> it is member of class
+         F    -> two matrices, F[0] and F[1] ; the respective nuclear energy Hessians.
+   
+         **RETURN**
+         f  -> frequencies of initial (f[0]) and final (f[1]) state. The dimesion is (2, dim-6)
+         L  -> unitary matrices (L[0], L[1]) that diagonalise M*F (massweighted Hessian). Its columns are normal modes 
+               in Cartesian Coordinats The dimension is (2, dim, dim-6)
+         Lmass -> L*M where M_ij=1/sqrt(m_i m_j). This is mass-weighted L and will be used later for most systems.
+        
+      """
+      # Defining arrays
+      lenF=len(self.F[0])
+      L=np.zeros(( 2, lenF, lenF-6 )) 
+      Lmass=np.zeros(( 2, lenF, lenF-6 ))
+      f=np.zeros(( 2, lenF-6 ))
+      
+      def SortL(J,L,f):
+         """This functions resorts the normal modes (L, f) such that the Duschinsky-Rotation
+         matrix J becomes most close to unity (as possible just by sorting).
+         In many cases, here chosing max(J[i]) does not help since there will be rows/columns occur
+         more often. 
+         Since I don't know any closed theory for calculating this, it is done by cosidering all possible cases.
+         """
+         
+         #initialize the matrix that resorts the states:
+         resort=np.zeros(np.shape(J))
+         #FIRST, DO SOME GUESS HOW THE MATRIX COULD LOOK LIKE
+         #chose largest elements in lines
+         for i in range(len(J)):
+            j=np.argmax(J[i])
+            k=np.argmin(J[i])
+            if J[i][j]>-J[i][k]:
+               resort[i][j]=1
+            else:
+               resort[i][k]=1
+         #now, go through rows and check if they are ok:
+         #print "resortJ\n",resort
+         resort=resort.T
+         Nos=[]
+         freePlaces=[]
+
+         # NOW LOOK FOR ERRORS IN THE GUESS
+         for i in range(len(J)):
+            if sum(resort[i])==1:
+               #this is the normal case: the order of
+               # states did not change.
+               continue
+            elif sum(resort[i])==0:
+               Nos.append(i)
+            else:
+               index=np.where(resort[i]==1)
+               x=np.argmax(np.abs(J[index,i]))
+               index=np.delete(index,x)
+               resort[i][index]=0 #only x remains
+               freePlaces=np.append(freePlaces,index)
+         # By construction, this should always be true!
+         assert len(Nos)==len(freePlaces), "dodododo!"
+         freePlaces=np.array(freePlaces,dtype=int)
+         
+         #FIXING THE ERRORS NOW:
+         #fill remaining lines. Therefore, set that element to one
+         # whose value is largest under all remaining ones.
+         # This method is not fair since the first has most choise but should
+         # be fair enough in most cases
+         for i in range(len(Nos)):
+               x=np.argmax(np.abs(J[freePlaces,Nos[i]]))
+               resort[Nos[i],freePlaces[x]]=1 #only x remains
+               freePlaces=np.delete(freePlaces,x) # does it work the way I want it to work?
+         assert len(freePlaces)==0, "the matrix is not readily processed."
+         #FIX DONE.
+         
+         #since resort is a permutation matrix, it is unitary. Using this:
+         return f.dot(resort), L.dot(resort)
+         #  END OF SortL
+  
+      # do the following for both states:
+      for i in range(2):
+         # solve the eigenvalue-equation for F:
+
+         # here one can choose between the methods: result is more or less 
+         #  independent
+         #ftemp,Ltemp=np.linalg.eig(self.F[i])
+         #ftemp,Ltemp=np.linalg.eigh(self.F[i])
+         ftemp,Ltemp,info=dsyev(self.F[i])
+         
+         #sort the results with increasing frequency (to make sure it really is)
+         index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
+         # and then cut off the 6 smallest values: rotations and vibrations.
+         f[i]=np.real(ftemp[index]).T[:].T[6:].T
+         L[i]=(Ltemp.T[index].T)[:].T[6:].T
+   
+         #the frequencies are square root of the eigen values of F
+         # Here, we need to take care for values <0 due to bad geometry
+         for j in range(len(f[i])):
+            f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
+
+         #through a warning if imaginary frequencies occured and take their pos. values for that.
+         if np.any(f[i]<0):
+            self.logging[1].write('WARNING: imaginary frequencies occured. The absolute'
+                    ' values are used in the following.\n{0}\n'.format(f[i]))
+            f[i]=np.abs(f[i])
+
+         #calculate the mass matrix, for Lmass
+         M=np.eye(self.dim)
+         for j in range(self.dim):
+            M[j,j]/=self.mass[j//3]
+         Lmass[i]=M.dot(L[i])
+         #if log level=0 or 1:
+         if self.logging[0]<2:
+            if i==0:
+               self.logging[1].write("Initial states:\n")
+            else:
+               self.logging[1].write("Final states:\n")
+            self.logging[1].write("Frequencies (cm-1)\n")
+            self.printVec(f[i]*Hartree2cm_1)
+            #indeed, this matrix is not resorted yet and yes, the user is not informed
+            #that there are manipulations done on it afterwards.
+            self.logging[1].write("L-matrix \n")
+            self.printMat(Lmass[i])
+      
+      # to account for the effect that the frequencies independently change between the states 
+      #  and hence may change their order, the final states L and f are resorted via the
+      #  largest overlap. When strong changes occur, there is no fair method. This one tries
+      #  to be as fair as possible.
+      f[1],L[1]=SortL(np.linalg.pinv(L[0]).dot(L[1]),L[1],f[1])
+
+      #recalculate Lmass for final state.
+      Lmass[1]=M.dot(L[1]) # recalculate Lmass!
+      self.Lmassw=Lmass
+      self.f=f
+      self.L=L
+   
+   def Duschinsky(self):
+      """This function calculates the shift between two electronic states 
+         (whose geometry is known, see x) as well as the
+         Duschinsky-rotation matrix.
+
+         **PARAMETERS:**
+         mass:    array of square-roots of nuclear masses (length: N)
+
+         **RETURN:**
+         J:    Duschinsky-rotation matrix
+         K:    displacement-vector of energy-minima in normal coordinates
+      """
+      self.J=np.zeros((self.dim-6,self.dim-6))
+      self.K=np.zeros(self.dim-6)
+      M=np.zeros((self.dim,self.dim))
+   
+      for i in range(self.dim):
+         M[i][i]=self.mass[i//3] #square root of inverse masses
+      #J=np.dot(L[0].T, L[1])  # for Lsorted
+      self.J=np.linalg.pinv(self.Lmassw[0]).dot(self.Lmassw[1]) # for Lmassw
+   
+      #print "J\n", J
+      DeltaX=np.array(self.CartCoord[1]-self.CartCoord[0]).flatten('F')  # need initial - final here.
+      if self.logging[0] <1:
+         self.logging[1].write('changes of Cartesian coordinates:\n')
+         self.printVec(DeltaX)
+    #  K=(DeltaX.dot(M)).dot(L[0])
+      #K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted
+      self.K=np.linalg.pinv(self.Lmassw[0]).dot(DeltaX)  # w p Lmassw
+      #K=L[0].T.dot(M).dot(M).dot(DeltaX)  # with Lmassw
+   
+      #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason  --> want to get rid of this!!!
+   
+      if self.logging[0]<2:
+         # print the Duschinsky matrix in a nice format
+         self.logging[1].write('Duschinsky rotation matrix:\n')
+         self.printMat(self.J)
+         self.logging[1].write('\nDuschinsky displacement vector:\n')
+         self.printVec(self.K)
+
+#version=0.1.5
 # End of Spect.py

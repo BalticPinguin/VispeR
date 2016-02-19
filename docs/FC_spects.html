@@ -35,7 +35,8 @@ including the class everything stems from:</p>
       <h1>CHANGELOG</h1>
 <p>to version 0.1.0:<br />
  1) Added some sense to GFC<br />
- 2) Removed the HR-classes from the code  </p>
+ 2) Removed the HR-classes from the code<br />
+ 3) In FC: final states frequencies in use.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -60,8 +61,8 @@ including the class everything stems from:</p>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
       <p>Since it doesn't need any more data than the DR-scheme, everything 
-   initialised for Spect is initialized here already and hence no extra
-   init()-function is needed.</p>
+  initialised for Spect is initialized here already and hence no extra
+  init()-function is needed.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span></pre></div>
@@ -93,7 +94,8 @@ including the class everything stems from:</p>
          <span class="n">HRthresh</span><span class="o">=</span><span class="mf">0.015</span>
       <span class="k">else</span><span class="p">:</span> 
          <span class="n">HRthresh</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">HRthresh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">HuangR</span><span class="p">(</span><span class="n">HRthresh</span><span class="p">)</span></pre></div>
+      <span class="bp">self</span><span class="o">.</span><span class="n">HuangR</span><span class="p">(</span><span class="n">HRthresh</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;FC&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -131,8 +133,7 @@ including the class everything stems from:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>       <span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="o">+=</span><span class="mi">1</span>
-       <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="o">+=</span><span class="mi">1</span>
-       <span class="n">f</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></pre></div>
+       <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="o">+=</span><span class="mi">1</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -141,10 +142,10 @@ including the class everything stems from:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-9'>#</a>
       </div>
-      <p>Calculate Franck-Condon factors under assumption of equal frequencies</p>
+      <p>as frequency, use the final states frequency.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>       <span class="k">def</span> <span class="nf">FCeqf</span><span class="p">(</span> <span class="n">Deltag</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>       <span class="n">f</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -152,6 +153,18 @@ including the class everything stems from:</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>Calculate Franck-Condon factors under assumption of equal frequencies</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>       <span class="k">def</span> <span class="nf">FCeqf</span><span class="p">(</span> <span class="n">Deltag</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <p>for only one vibrational mode</p>
 <p><em>PARAMETERS:</em>
@@ -172,10 +185,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-11'>
+  <div class='section' id='section-12'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-11'>#</a>
+        <a class='octothorpe' href='#section-12'>#</a>
       </div>
       <p>Calculation of the line spectrum respecting only shift of minima</p>
     </div>
@@ -184,10 +197,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-12'>
+  <div class='section' id='section-13'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-12'>#</a>
+        <a class='octothorpe' href='#section-13'>#</a>
       </div>
       <p>(no Duschinsky rotation, no change if frequency) 
  and assuming coinciding frequencies for initial and final state</p>
@@ -204,10 +217,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-13'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-13'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <p>first transition: 0-0 transition. </p>
     </div>
@@ -228,10 +241,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-14'>
+  <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <p>there was not specified, how many vibr. states in ground-state 
     should be taken into account</p>
@@ -242,10 +255,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-15'>
+  <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
+        <a class='octothorpe' href='#section-16'>#</a>
       </div>
       <p>i.e. take M following an empirical value as function of the HR-file</p>
     </div>
@@ -255,10 +268,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-16'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       <p>if setM: the size of these arrays will be overestimated.</p>
     </div>
@@ -268,10 +281,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       <p>avoiding dots accelerates python quite a lot</p>
     </div>
@@ -282,10 +295,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-18'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       <p>set  0-&gt;0 transition:</p>
     </div>
@@ -298,10 +311,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-19'>
+  <div class='section' id='section-20'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
+        <a class='octothorpe' href='#section-20'>#</a>
       </div>
       <p>here a goes over all modes</p>
     </div>
@@ -310,10 +323,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-20'>
+  <div class='section' id='section-21'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-20'>#</a>
+        <a class='octothorpe' href='#section-21'>#</a>
       </div>
       <p>print a, HR[a]</p>
     </div>
@@ -323,10 +336,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-21'>
+  <div class='section' id='section-22'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-21'>#</a>
+        <a class='octothorpe' href='#section-22'>#</a>
       </div>
       <p>set M to fit best to the value at that moment.</p>
     </div>
@@ -337,10 +350,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-22'>
+  <div class='section' id='section-23'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-22'>#</a>
+        <a class='octothorpe' href='#section-23'>#</a>
       </div>
       <p>skip 0-0 transitions</p>
     </div>
@@ -357,10 +370,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-23'>
+  <div class='section' id='section-24'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-23'>#</a>
+        <a class='octothorpe' href='#section-24'>#</a>
       </div>
       <p>This function does row-wise Gram-Schmidt orthonormalization of</p>
     </div>
@@ -369,10 +382,10 @@ including the class everything stems from:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-24'>
+  <div class='section' id='section-25'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-24'>#</a>
+        <a class='octothorpe' href='#section-25'>#</a>
       </div>
       <p>matrices.
   code for Gram-Schmidt adapted from iizukak, 
@@ -391,10 +404,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-26'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       <p>proj_vec = proj(inY, X[i])</p>
     </div>
@@ -407,10 +420,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <p>Function that calculates the Huang-Rhys factors for all</p>
     </div>
@@ -419,15 +432,13 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-28'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <p>vibrational states</p>
 <p><strong>PARAMETERS</strong>
- K        The displacements of minima in internal coordinates (n-vector)
- f        The frequencies of respective modes (2xn-matrix)
  HRthresh threshold for lowest HR-factor (number)</p>
 <p><strong>CALCULATES</strong>
  uniHRall   HR-factors for coinciding frequencies sorted by size (decreasing)
@@ -444,10 +455,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-29'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-29'>#</a>
       </div>
       <p>print K</p>
     </div>
@@ -459,7 +470,7 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
        <span class="n">fsort0</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
        <span class="n">fsort1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">fsort</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ATTENTION: some HR-factors are &lt;0.</span><span class="se">\</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;WARNING: some HR-factors are &lt;0.</span><span class="se">\</span>
 <span class="s1">                   In the following their absolute value is used.&#39;</span><span class="p">)</span>
           <span class="n">fsort1</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fsort1</span><span class="p">)</span>
           <span class="n">fsort0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fsort0</span><span class="p">)</span>
@@ -471,30 +482,18 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-29'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
-      </div>
-      <p>if larges HR-factor is too large</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>          <span class="n">loggingwrite</span><span class="p">(</span><span class="s1">u&#39;</span><span class="se">\n</span><span class="s1">!! ATTENTION!! THE HUANG-RHYS FACTOR SEEMS TO BE&#39;</span><span class="o">+</span>\
-                                                            <span class="s1">&#39; TOO LARGE !!</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-          <span class="n">loggingwrite</span><span class="p">(</span><span class="s1">u&#39;the spectrum will be calculated, but most probably&#39;</span><span class="o">+</span>\
-                                         <span class="s1">&#39; the input-stat is inconsistent.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
   <div class='section' id='section-30'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-30'>#</a>
       </div>
-      <p>the HR-factors are printed allways.</p>
+      <p>if larges HR-factor is too large</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>       <span class="n">loggingwrite</span><span class="p">(</span><span class="s1">u&#39;HR-fact           freq     delta</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>          <span class="n">loggingwrite</span><span class="p">(</span><span class="s1">u&#39;</span><span class="se">\n</span><span class="s1">!! WARNING: THE HUANG-RHYS FACTOR SEEMS TO BE&#39;</span><span class="o">+</span>\
+                                                            <span class="s1">&#39; TOO LARGE !!</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+          <span class="n">loggingwrite</span><span class="p">(</span><span class="s1">u&#39;the spectrum will be calculated, but most probably&#39;</span><span class="o">+</span>\
+                                         <span class="s1">&#39; the input-stat is inconsistent.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -503,10 +502,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-31'>#</a>
       </div>
-      <p>print(u'HR-fact           freq\n')</p>
+      <p>the HR-factors are printed allways.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sortHR</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>       <span class="n">loggingwrite</span><span class="p">(</span><span class="s1">u&#39;HR-fact           freq     delta</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -514,6 +513,18 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>print(u'HR-fact           freq\n')</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sortHR</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
       </div>
       <p>select all 'big' HR-factors </p>
     </div>
@@ -528,10 +539,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-33'>
+  <div class='section' id='section-34'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-34'>#</a>
       </div>
       <p>there will come only smaller ones.</p>
     </div>
@@ -540,10 +551,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-34'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       <p>keep order: First one is initial, second is final state.</p>
     </div>
@@ -553,10 +564,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-35'>
+  <div class='section' id='section-36'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
+        <a class='octothorpe' href='#section-36'>#</a>
       </div>
       <p>now, make the new results being objects of that class:</p>
     </div>
@@ -566,10 +577,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-37'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-37'>#</a>
       </div>
       
     </div>
@@ -578,22 +589,47 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
-      </div>
-      <p>This is used to calculate the line spectrum assuming no mode mixing</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">calcspect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
   <div class='section' id='section-38'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-38'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>first, initialise as done for all spectra:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">FC_spect</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;CFC&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+      <p>This is used to calculate the line spectrum assuming no mode mixing</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">calcspect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       <p>(shift only)  and coinciding frequencies in both electronic states.</p>
 <p><strong>PARAMETERS:</strong>
@@ -614,10 +650,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-39'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-39'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       
     </div>
@@ -630,10 +666,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-40'>
+  <div class='section' id='section-43'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
+        <a class='octothorpe' href='#section-43'>#</a>
       </div>
       <p>R00=sqrt(2<em>delta/(1+delta</em>delta))<em>np.exp(-.5</em>D<em>D/(1+delta</em>delta))</p>
     </div>
@@ -642,10 +678,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-41'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>R_00 is normalisation -&gt; actually calculate FC_ij/FC_00 --&gt; 
                     than I can chose FC_00 outside.</p>
@@ -674,10 +710,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-42'>
+  <div class='section' id='section-45'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
+        <a class='octothorpe' href='#section-45'>#</a>
       </div>
       <p>Calculation of the line spectrum respecting only shift of minima</p>
     </div>
@@ -686,10 +722,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-43'>
+  <div class='section' id='section-46'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-43'>#</a>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
       <p>(no Duschinsky rotation) 
  and assuming coinciding frequencies for initial and final state</p>
@@ -706,10 +742,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-44'>
+  <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
+        <a class='octothorpe' href='#section-47'>#</a>
       </div>
       <p>first transition: 0-0 transition. </p>
     </div>
@@ -729,10 +765,10 @@ return map(lambda x : x *(np.dot(v2,v1) / np.dot(v1, v1)) , v1)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-45'>
+  <div class='section' id='section-48'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
+        <a class='octothorpe' href='#section-48'>#</a>
       </div>
       <p>correct for vibrational groundstates:
 E+=(sum(freq[0])-sum(freq[1]))*.5
@@ -743,10 +779,10 @@ print E, freq[0]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-46'>
+  <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-49'>#</a>
       </div>
       <p>there was not specified, how many vibr. states in ground-state 
           should be taken into account</p>
@@ -759,10 +795,10 @@ print E, freq[0]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-47'>
+  <div class='section' id='section-50'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
+        <a class='octothorpe' href='#section-50'>#</a>
       </div>
       <p>if setM: the size of these arrays will be overestimated.
 calculate 0-&gt;0 transition</p>
@@ -772,10 +808,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-51'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-51'>#</a>
       </div>
       <p>print 0,0,0, 10</p>
     </div>
@@ -790,10 +826,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-52'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-52'>#</a>
       </div>
       <p>here a goes over all modes</p>
     </div>
@@ -807,10 +843,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-53'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-53'>#</a>
       </div>
       <p>set M to fit best to the value at that moment.</p>
     </div>
@@ -819,10 +855,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-51'>
+  <div class='section' id='section-54'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
+        <a class='octothorpe' href='#section-54'>#</a>
       </div>
       <p>print a, HR[a]</p>
     </div>
@@ -834,10 +870,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-52'>
+  <div class='section' id='section-55'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-52'>#</a>
+        <a class='octothorpe' href='#section-55'>#</a>
       </div>
       <p>skip 0-0 transitions</p>
     </div>
@@ -854,10 +890,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-53'>
+  <div class='section' id='section-56'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-53'>#</a>
+        <a class='octothorpe' href='#section-56'>#</a>
       </div>
       <p>The class GFC (gradient-Franck-Condon) is, from its model, similar to FC_spect.</p>
     </div>
@@ -866,10 +902,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-54'>
+  <div class='section' id='section-57'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-54'>#</a>
+        <a class='octothorpe' href='#section-57'>#</a>
       </div>
       <p>In contrast to that, how ever, here the gradient of nuclear energies in excited 
    state is used only.<br />
@@ -881,10 +917,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-55'>
+  <div class='section' id='section-58'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-55'>#</a>
+        <a class='octothorpe' href='#section-58'>#</a>
       </div>
       <p>It uses here the <strong>init</strong> from Spectra but not from FC_Spect!</p>
 <p>first, initialise all general spectrum-things:</p>
@@ -894,10 +930,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-56'>
+  <div class='section' id='section-59'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-56'>#</a>
+        <a class='octothorpe' href='#section-59'>#</a>
       </div>
       <p>now, I need to read the gradient from final state:</p>
     </div>
@@ -906,10 +942,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-57'>
+  <div class='section' id='section-60'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-57'>#</a>
+        <a class='octothorpe' href='#section-60'>#</a>
       </div>
       <p>than, recalculate K, J with its own Duschinsky!</p>
     </div>
@@ -918,10 +954,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-58'>
+  <div class='section' id='section-61'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-58'>#</a>
+        <a class='octothorpe' href='#section-61'>#</a>
       </div>
       <p>finally, calculate the Huang-Rhys factors:</p>
     </div>
@@ -931,14 +967,15 @@ calculate 0-&gt;0 transition</p>
          <span class="n">HRthresh</span><span class="o">=</span><span class="mf">0.015</span>
       <span class="k">else</span><span class="p">:</span> 
          <span class="n">HRthresh</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">HRthresh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">HuangR</span><span class="p">(</span><span class="n">HRthresh</span><span class="p">)</span></pre></div>
+      <span class="bp">self</span><span class="o">.</span><span class="n">HuangR</span><span class="p">(</span><span class="n">HRthresh</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;GFC&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-59'>
+  <div class='section' id='section-62'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-59'>#</a>
+        <a class='octothorpe' href='#section-62'>#</a>
       </div>
       <p>This function calculates the 'shift' between excited state and ground</p>
     </div>
@@ -947,10 +984,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-60'>
+  <div class='section' id='section-63'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-60'>#</a>
+        <a class='octothorpe' href='#section-63'>#</a>
       </div>
       <p>state from the gradient of the excited state  at ground state geometry 
   assuming coinciding frequencies and harmonic potentials.</p>
@@ -967,10 +1004,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-61'>
+  <div class='section' id='section-64'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-61'>#</a>
+        <a class='octothorpe' href='#section-64'>#</a>
       </div>
       <p>K becomes now gradient in massweighted internal coordinates
 self.K=Grad.T.dot(M).dot(L[0])[0]</p>
@@ -980,10 +1017,10 @@ self.K=Grad.T.dot(M).dot(L[0])[0]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-62'>
+  <div class='section' id='section-65'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-62'>#</a>
+        <a class='octothorpe' href='#section-65'>#</a>
       </div>
       <p>scale consistently: Now it is really the shift in terms of normal modes</p>
     </div>
@@ -992,10 +1029,10 @@ self.K=Grad.T.dot(M).dot(L[0])[0]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-63'>
+  <div class='section' id='section-66'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-63'>#</a>
+        <a class='octothorpe' href='#section-66'>#</a>
       </div>
       <p>calculate Duschinsky-matrix</p>
     </div>
@@ -1010,10 +1047,10 @@ self.K=Grad.T.dot(M).dot(L[0])[0]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-64'>
+  <div class='section' id='section-67'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-64'>#</a>
+        <a class='octothorpe' href='#section-67'>#</a>
       </div>
       <p>version 0.1.0
 end of FC_Spects.py</p>
