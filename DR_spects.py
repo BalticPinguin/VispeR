@@ -5,9 +5,14 @@ from copy import deepcopy
 import numpy as np
 import re, mmap, math
 
-# ============ CHANGELOG =================
+#  CHANGELOG 
+# ===========
 
 class URDR_spect(Spect.Spect):
+   """The class to calculate full Duschinsky-spectra.
+      At this point, it is the only working class including
+      Duschinksy effect.
+   """
    Hartree2cm_1=219474.63 
    Threshold=3e-10
 
@@ -21,6 +26,12 @@ class URDR_spect(Spect.Spect):
    Gammap=[]
 
    def __init__(self, f): 
+      """In addition to the initialisation of
+         Spect( see first line of code), here the number
+         of modes is evaluated and the matrices/vectors
+         needed for evaluation of the recursive equations are
+         calculated.
+      """
       # first, initialise as done for all spectra:
       Spect.Spect.__init__(self, f)
       # now, calculate additional quantities for the iteration:
@@ -45,6 +56,9 @@ class URDR_spect(Spect.Spect):
       self.E=4.*sqGamma.dot(TMP).dot(self.J.T).dot(sqGammap)
 
    def calcspect(self):
+      """This function prepares all variables according to the given 
+         options to calculate the spectrum.
+      """
       #first: resort the elements of J, K, f to make J most closely to unity
       resort=np.zeros(np.shape(self.J))
       for i in xrange(len(self.J)):
@@ -89,20 +103,20 @@ class URDR_spect(Spect.Spect):
       self.spect=self.FCf(self.states1+ self.states2, self.T)
    
    def FCf(self,N, T):
-      """Calculates the FC-factors for given Duschinsky-effect. 
-       No restriction to OPA
-      
-      *PARAMETERS:*
-      N:      Max. number of excitation quanta state considered
-      T:      Temperature of the system
-        
-      All parameters are obligatory.
-   
-      *RETURNS:*
-      linespectrum 
+      """Calculates the intensities including the Duschinsky-effect. 
+                     
+         **PARAMETERS:**  
+         N:      Max. number of excitation quanta state considered  
+         T:      Temperature of the system
+            
+         All parameters are obligatory.
+         
+         **RETURNS:**  
+         linespectrum 
       """
       def CalcI00():
-         """This function calculates the overlap-integral for zero vibrations """
+         """This function calculates the overlap-integral for zero vibrations 
+         """
    
          Tree=bt.Tree(2*len(self.K))
          Tree.fill(0)
@@ -120,7 +134,11 @@ class URDR_spect(Spect.Spect):
          return Tree
       
       def iterate(L1, L2, i):
-   
+         """This is the main function calculating the intensities iteratively.
+            It fills the tree L3 using the previous trees L1 and L2.
+            Each tree contains all transitions with a given total sum (initial + final)
+            of vibrational quanta (i).
+         """
          def freq( E, Gamma, Gammap):
             """Calculates the frequency of respective transition including 
             vibrational frequency
@@ -216,11 +234,12 @@ class URDR_spect(Spect.Spect):
          """This function creates all possible states having a total number of n 
             excitations in alpha different states
       
-         *PARAMETERS:*
-         alpha: number of degrees of freedom
-         n:     number of excitations
+            **PARAMETERS:**   
+            alpha: number of degrees of freedom  
+            n:     number of excitations  
       
-         *RETURNS:*
+            **RETURNS:**  
+            a vector containing the states.
          """
    
          #needed for 'states'
@@ -370,6 +389,9 @@ class URDR_spect(Spect.Spect):
       return result
    
 class SDR_spect(Spect.Spect):
+   """This class is not working at the moment.   
+      I am not sure yet whether to enable it or through it away...
+   """
    Hartree2cm_1=219474.63 
    Threshold=3e-10
 
@@ -381,9 +403,9 @@ class SDR_spect(Spect.Spect):
           mat matrix containing FC-factors: first index: number of mode being excited, second index is exc. number
       """
       def __init__(self, alpha, L): #should it be __new__?
-         """ initializes the class
-         alpha: number of vibrational modes
-         L:     number of states excited
+         """ initialises the class
+            alpha: number of vibrational modes
+            L:     number of states excited
          """
          assert alpha>0, "There must be at least one degree of freedom!"
          self.L=L
@@ -431,19 +453,19 @@ class SDR_spect(Spect.Spect):
    def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
       """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
       
-      *PARAMETERS:*
-      J:      Duschisky-matrix
-      K:      Displacement-Vector
-      f:      frequency: two-dim array (freq_initial, freq_final)
-      Energy: Energy-difference of minima
-      N:      Max. number of excitation quanta state considered
-      T:      temperature of the system (in atomic units)
-      E0:     relative energy with respect to lowest triplet state
-        
-      All arguments are obligatory.
-   
-      *RETURNS:*
-      linespectrum 
+         **PARAMETERS:**  
+         J:      Duschisky-matrix  
+         K:      Displacement-Vector  
+         f:      frequency: two-dim array (freq_initial, freq_final)  
+         Energy: Energy-difference of minima  
+         N:      Max. number of excitation quanta state considered  
+         T:      temperature of the system (in atomic units)  
+         E0:     relative energy with respect to lowest triplet state    
+         
+         All arguments are obligatory.  
+      
+         **RETURNS:**  
+         linespectrum 
       """
    
       def CalcI00(dim, E):
@@ -457,28 +479,27 @@ class SDR_spect(Spect.Spect):
          return opa
    
       def iterate(L1, L2, Energy,i, f, J, K):
-         """ Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2
-      
-         *PARAMETERS:*
-         L1:     binary tree where i-2 quanta are excited (structure: [[Btree.py]]
-         L2:     binary tree where i-1 quanta are excited
-         Energy: Energy-difference between the states (minimal energy)
-         i:      number of excitation-quanta
-         f:      (2xN) frequencies of both states
-         J:      Duschisky-rotation matrix
-         K:      Displacement-vector
+         """ Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2   
+            **PARAMETERS:**  
+            L1:     binary tree where i-2 quanta are excited (structure: [[Btree.py]]  
+            L2:     binary tree where i-1 quanta are excited  
+            Energy: Energy-difference between the states (minimal energy)  
+            i:      number of excitation-quanta  
+            f:      (2xN) frequencies of both states  
+            J:      Duschisky-rotation matrix  
+            K:      Displacement-vector  
    
-         *RETURNS:*
-         L2:     input-parameter (needed for next iteration)
-         L3:     new binary tree 
+            **RETURNS:**  
+            L2:     input-parameter (needed for next iteration)  
+            L3:     new binary tree   
          """
          def states( alpha, n): 
-            """This function creates all possible states having a total number of n excitations in alpha different states
-            *PARAMETERS:*
-            alpha: number of degrees of freedom
-            n:     number of excitations
+            """This function creates all possible states having a total number of n excitations in alpha different states  
+               **PARAMETERS:**  
+               alpha: number of degrees of freedom  
+               n:     number of excitations  
    
-            *RETURNS:*
+               **RETURNS:**
             """
             States=[]
             distributions=np.zeros(2*alpha, dtype=np.int8)
@@ -584,18 +605,18 @@ class SDR_spect(Spect.Spect):
    def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
       """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
       
-      *PARAMETERS:*
-      J:      Duschisky-matrix
-      K:      Displacement-Vector
-      f:      frequency: two-dim array (freq_initial, freq_final)
-      Energy: Energy-difference of minima
-      N:      Max. number of excitation quanta state considered
-      T:      temperature of the system (in atomic units)
-      E0:     relative energy with respect to lowest triplet state
+      **PARAMETERS:**    
+      J:      Duschisky-matrix   
+      K:      Displacement-Vector   
+      f:      frequency: two-dim array (freq_initial, freq_final)   
+      Energy: Energy-difference of minima   
+      N:      Max. number of excitation quanta state considered   
+      T:      temperature of the system (in atomic units)   
+      E0:     relative energy with respect to lowest triplet state   
         
       All arguments are obligatory.
    
-      *RETURNS:*
+      **RETURNS:**   
       linespectrum 
       """
       #quantities for the iterative spectrum-calculation

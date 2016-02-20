@@ -6,19 +6,21 @@ import re, mmap, os.path, math, sys
 
 # CHANGELOG 
 # =========
-#to version=0.1.0
-# 1. Resorted the class: reads data-based, not logfile-based.
-#    This might be slower at runtime but is better structured
-#    and easier to read. Moreover, it avoids redundant code.
+#to version=0.1.5   
 #
-#to version=0.0.1
-# 1. I deleted the functions reading L and f from the log-file.
+#to version=0.1.0  
+# 1. Resorted the class: reads data-based, not logfile-based.  
+#    This might be slower at runtime but is better structured  
+#    and easier to read. Moreover, it avoids redundant code.  
+#  
+#to version=0.0.1  
+# 1. I deleted the functions reading L and f from the log-file.  
 #    They are available only in older versions (non-class)
 #    of smallscript.  
 # 2. Changed functions _Grad to read only the gradient and added 
 #    function ReadGrad  
 # 3. Fixed error with units of coordinates in ReadNWChem  
-# 4. refixed energy in Gaussian. Need to do it for NWChem as well...
+# 4. refixed energy in Gaussian. Need to do it for NWChem as well...  
 
 # The Class Read
 # ==============
@@ -392,7 +394,7 @@ class Read:
       elif rtype.type=='GAMESS':
          # Reading Cartesian coordinates
          temp=re.findall(r'(?<=ATOM             X              Y              Z\n\n)[\n -.\d\w]+', log)  
-                  #+ need even more in structure
+                  # need even more in structure
          tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
          Coord=np.zeros((3,dim//3))
          for i in range(3):
@@ -458,19 +460,19 @@ class Read:
 
    #USER-FUNCTIONS ASKING FOR CERTAIN DATA:
    def Gradient(self,state):
-      return self.__Read_Grad(self.init, self.itype) ,self.__Read_Grad(self.final, self.ftype) 
+      return [self.__Read_Grad(self.init, self.itype) ,self.__Read_Grad(self.final, self.ftype)]
    
    def Energy(self):
-      return self.__Read_Energy(self.init, self.itype) ,self.__Read_Energy(self.final, self.ftype) 
+      return [self.__Read_Energy(self.init, self.itype) ,self.__Read_Energy(self.final, self.ftype)]
 
    def mass(self):
-      return self.__Read_Mass(self.init, self.itype), self.__Read_Mass(self.final, self.itype)
+      return [self.__Read_Mass(self.init, self.itype), self.__Read_Mass(self.final, self.itype)]
    
    def Coordinates(self):
-      return self.__Read_Coords(self.init, self.itype), self.__Read_Coords(self.final, self.itype)
+      return [self.__Read_Coords(self.init, self.itype), self.__Read_Coords(self.final, self.itype)]
 
    def Force(self):
-      return self.__Read_Force(self.init, self.itype), self.__Read_Force(self.final, self.itype)
+      return [self.__Read_Force(self.init, self.itype), self.__Read_Force(self.final, self.itype)]
    #END USER-FUNCTIONS ASKING FOR CERTAIN DATA:
 
 #version=0.1.0

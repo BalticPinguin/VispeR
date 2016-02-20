@@ -399,5 +399,5 @@ class GFC_spect(FC_spect):
          self.logging[1].write('\nDuschinsky displacement vector:\n')
          self.printVec(self.K)
    
-#version 0.1.0
+#version 0.1.0  
 #end of FC_Spects.py

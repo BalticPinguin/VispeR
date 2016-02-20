@@ -12,13 +12,14 @@ Hartree2cm_1=219474.63
 # CHANGELOG
 # =========
 #to version 0.1.5:  
+#   a) Add function for reorientation of Cartesian Coordinates (Manipulate)
 #to version 0.1.0:  
 #   a) added some documentation/doc-strings  
-#   b) added the functions printMat and printVec, taken from Duschinksy().
-#   c) fixed some errors
-#   d) made vector-output more beautiful
-#   e) try an oher invokeLogging; hopefully more stable.
-#   f) added warnings
+#   b) added the functions printMat and printVec, taken from Duschinksy().  
+#   c) fixed some errors  
+#   d) made vector-output more beautiful  
+#   e) try an oher invokeLogging; hopefully more stable.  
+#   f) added warnings  
 
 class  Spect:
    """ The class Spect is the parent-class for all spectrum-models in use here.
@@ -35,17 +36,20 @@ class  Spect:
       These classes will be changed to private and/or changed to be subclasses of __init__).
       The other functions are:  
       
-      __init__(f)  ->(of course!)   
+      __init__(f)  ->(of course!)
          Its parameter is the input-file to Visper. From this, all other data are infered.
          Its returned variables are none.  
-      calcspect()  
+
+      calcspect()
          This function performs the actual calculation of the spectrum in the respect.
          model. This function is not present here at all!!! It is defined only for the
          derived classes (is there some virtual function in python!?)  
-      outspect()  
+      
+      outspect()
          This function performs the broadening of the line-spectrum calculated in 
          calcspect().  
-      finish()  
+      
+      finish()
          This function maybe will be changed to be a destructor, if there exists such 
          in python. It cleans up everything uncleaned.
    
@@ -128,7 +132,6 @@ class  Spect:
          else:
             logging=3
             log.write("logging-mode "+mode+" not recognized. Using 'important' instead\n")
-         print logging
          return logging, log
       
       def invokeLogging(logfile, mode="important"):
@@ -265,6 +268,15 @@ class  Spect:
       #The ReadData class finds out which format the input-files have
       # and reads the most important data from them.
       self.ReadData()
+
+      #changes the orientation of the molecules to coincide with
+      # the main axes of inertia. Input-orientations may
+      # give too large or just unphysical HR-factors.
+      self.Manipulate()
+   
+      #Calculate Frequencies and normal modes
+      self.GetL()
+      self.Duschinsky()
       
    def outspect(self, E=0):
       """This function calculates the broadened spectrum given the line spectrum, 
@@ -565,7 +577,7 @@ class  Spect:
       if self.logging[0]<2:
          self.logging[1].write("Dimensions: %d\n" %self.dim)
          self.logging[1].write(" Masses: \n")
-         self.printVec(self.mass)
+         self.printVec(self.mass*self.mass) # print not the square-root!
    
       self.F=self.reader.Force()
       if IsZero(self.F[0]):
@@ -595,10 +607,6 @@ class  Spect:
                self.printMat(F[0])
                self.logging[1].write('final state: \n')
                self.printMat(F[1])
-   
-      #Calculate Frequencies and normal modes
-      self.GetL()
-      self.Duschinsky()
    
    def GetL(self):
       """Function that calculates the frequencies and normal modes from force constant matrix.It
@@ -782,5 +790,75 @@ class  Spect:
          self.logging[1].write('\nDuschinsky displacement vector:\n')
          self.printVec(self.K)
 
-#version=0.1.5
+   def Manipulate(self):
+      """This function reorients the molecules in space. 
+         Therefore, it first detects axis-flips (changes between coordinate-
+         axes as x<->y or y-> -y or similar).
+         Than the moment of inertia and its main-axes are computed and both 
+         states are rotated to have them as their respective axes.
+      """
+      # FIRST STEP: Correct for axis-flips as they can occur in 
+      # Gaussian-output, if option 'NoSymm' not given.
+      # Here I need to invent some code...  
+      #  a) look for possible flips
+      #  b) look for coordinate-switches: x<->y, x<->z, y<->z  , +-
+      #  c) look for coordinate-rotations: x->y->z->x , x->z->y->x, +-
+
+      #temporary vector to transform Force-constant matrix (later on)
+      Y=np.zeros( (self.dim,self.dim) )
+
+      #SECOND STEP: move the center of mass (COM) to origin:
+      COM=np.zeros(3)
+      #do it for initial and final state:
+      for i in [0,1]:
+         #loop over coordinates:
+         for j in [0,1,2]:
+            COM[j]=np.sum(self.CartCoord[i][j]*self.mass)
+            COM[j]/=np.sum(self.mass) 
+         #now it is Cartesian center of mass
+         if self.logging[0]<2:
+            if i==0:
+               self.logging[1].write("Center of mass (initial) coordinates (Bohr):\n")
+            else:
+               self.logging[1].write("Center of mass (final) coordinates (Bohr):\n")
+            self.printVec(COM)
+         for j in [0,1,2]:
+            #displacement of molecule into center of mass:
+            self.CartCoord[i][j]-=COM[j]
+      
+         #THIRD STEP: Calculate the inertia-system and rotate the coordinate systems 
+         # accordingly. MOI: Moment Of Inertia
+         MOI=np.zeros((3,3))# this is Moment Of Inertia
+         #loop over coordinates:
+         for j in [0,1,2]:
+            MOI[j][j]=np.sum(self.mass*self.mass*(self.CartCoord[i][0]*self.CartCoord[i][0]+\
+                     self.CartCoord[i][1]*self.CartCoord[i][1]+self.CartCoord[i][2]*self.CartCoord[i][2]-\
+                     self.CartCoord[i][j]*self.CartCoord[i][j]))
+            for k in range(j):
+               MOI[j][k]=np.sum(self.mass*self.mass*(self.CartCoord[i][j]*self.CartCoord[i][k]))
+               MOI[k][j]=MOI[j][k]
+         #calculate the eigen-system of MOI
+         diagI,X=np.linalg.eig(MOI) 
+         #sorting by eigenvalues
+         index=np.argsort(diagI, kind='heapsort')
+         diagI=diagI[index]
+         if self.logging[0]==0:
+            if i==0:
+               self.logging[1].write("Initial state:\n")
+            else:
+               self.logging[1].write("Final state:\n")
+            self.logging[1].write("Moments of inertia (a.u.) in principal axes\n"+repr(diagI.T)+\
+               '\nRotational constants (GHz) in principle axes\n'+ repr(1/(2*diagI.T)*Hartree2GHz)+\
+               "Rotation matrix\n")
+            self.printMat(X)
+         # finally, perform the transformation:
+         # only F and CartCoordinate are coordinate-dependent so far.
+         self.CartCoord[i]=X.dot(self.CartCoord[i])
+         for j in range(self.dim//3):
+            Y[3*j:3*j+3].T[3*j:3*j+3]=X
+         # Returning the read values
+         self.F[i]=np.dot(Y.T.dot(self.F[i]),Y)
+      #end for i
+
+#version=0.1.5  
 # End of Spect.py

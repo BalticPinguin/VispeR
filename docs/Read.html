@@ -32,18 +32,19 @@
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
       <h1>CHANGELOG</h1>
-<p>to version=0.1.0
-1. Resorted the class: reads data-based, not logfile-based.
-   This might be slower at runtime but is better structured
-   and easier to read. Moreover, it avoids redundant code.</p>
-<p>to version=0.0.1
-1. I deleted the functions reading L and f from the log-file.
+<p>to version=0.1.5   </p>
+<p>to version=0.1.0<br />
+1. Resorted the class: reads data-based, not logfile-based.<br />
+   This might be slower at runtime but is better structured<br />
+   and easier to read. Moreover, it avoids redundant code.  </p>
+<p>to version=0.0.1<br />
+1. I deleted the functions reading L and f from the log-file.<br />
    They are available only in older versions (non-class)
    of smallscript.<br />
 2. Changed functions _Grad to read only the gradient and added 
    function ReadGrad<br />
 3. Fixed error with units of coordinates in ReadNWChem<br />
-4. refixed energy in Gaussian. Need to do it for NWChem as well...</p>
+4. refixed energy in Gaussian. Need to do it for NWChem as well...  </p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -829,9 +830,7 @@ force constant matrix; I just don't know, how to make it easier</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-43'>#</a>
       </div>
-      <ul>
-<li>need even more in structure</li>
-</ul>
+      <p>need even more in structure</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>         <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d]+.[\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
@@ -1006,7 +1005,7 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">Gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
-      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Grad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)</span> <span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Grad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="p">)</span></pre></div>
+      <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Grad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)</span> <span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Grad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="p">)]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1019,7 +1018,7 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">Energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)</span> <span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="p">)</span></pre></div>
+      <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)</span> <span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="p">)]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1032,7 +1031,7 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Mass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Mass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)</span></pre></div>
+      <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Mass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Mass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1045,7 +1044,7 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">Coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Coords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Coords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)</span></pre></div>
+      <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Coords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Coords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1058,7 +1057,7 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">Force</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Force</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Force</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)</span></pre></div>
+      <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Force</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Force</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>

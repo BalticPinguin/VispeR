@@ -13,7 +13,7 @@ import DR_spects as DR
 import sys, re, mmap, numpy as np
 import time
 
-# ============ CHANGELOG =================
+# ============ CHANGELOG =================  
 #version=2.0.1
 #  1. removed class GFC.
 
@@ -48,7 +48,7 @@ def getModel(f):
    elif model in ['URDR', 'urdr', 'UrDR', 'urDR']:
       model = "URDR"
    else:
-      #a typo or unknown model is given.
+      #else: a typo or unknown model is given.
       model = 'unknown'
    return model
 
@@ -87,21 +87,21 @@ def main(argv=None):
    elif model == "CFC":
       spect = FC.CFC_spect(f)
   # these two options are not available at the moment.
-  # elif model == "HRs":
-  #    spect = FC.HR_spect(f)
-  # elif model == "HRf":
-  #    spect = FC.HR_factors(f)
+  # elif model == "HRs":  
+  #    spect = FC.HR_spect(f)  
+  # elif model == "HRf":  
+  #    spect = FC.HR_factors(f)  
    elif model == "URDR":
       spect= DR.URDR_spect(f)
-  # this model is not available at the moment.
-  # elif model == "DR":
-  #    spect = DR.SDR_spect(f)
+  # this model is not available at the moment.  
+  # elif model == "DR":  
+  #    spect = DR.SDR_spect(f)  
    else:
       print "WARNING: error in the model, ", model, "not known."
       return 2
    #INTRODUCTION END
 
-   #PERFORM CALCULATION OF SPECTRA
+   #PERFORM CALCULATION OF SPECTRA  
    #At this point, already all necessary quantities are calculated.
    spect.calcspect()
    #FINISHED PERFORM CALCULATION OF SPECTRA

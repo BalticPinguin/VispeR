@@ -6,22 +6,22 @@ DATATHRESHOLD=1e-6
 
 class Tree:
    """the class Tree is a binary tree having a certain structure depending on 'alpha' 
-   and (n+apha-1)!/(n!(alpha-1)!) data-points.
-   For better structurisation, it has  4 different data-types:
-
-   1. n: has two child-trees attached ('left' and *right*)
-   2. l: has one child-tree ('left') and one data-point
-   3. r: has one child-tree ('right') and one data-point
-   4. u: has two data-points attached
-
-   in addition, for the 0-th order tree there is a type '_' having only one data-point attached.
+      and (n+apha-1)!/(n!(alpha-1)!) data-points.
+      For better structurisation, it has  4 different data-types:
    
-   the 'data' moreover consists of an array (due to the fill-procedure in Dusch_unrest.py > iterate
-   with the content
-            I_nn                   - square root of intensity
-            Delta E                - the transition energy
-            Freq_init              - the energy of initial state above its ground (for thermal weighting)
-   that are needed for the further working with the transitions.
+      1. n: has two child-trees attached ('left' and *right*)
+      2. l: has one child-tree ('left') and one data-point
+      3. r: has one child-tree ('right') and one data-point
+      4. u: has two data-points attached
+   
+      in addition, for the 0-th order tree there is a type '_' having only one data-point attached.
+   
+      the 'data' moreover consists of an array (due to the fill-procedure in Dusch_unrest.py > iterate
+      with the content  
+               I_nn                   - square root of intensity  
+               Delta E                - the transition energy  
+               Freq_init              - the energy of initial state above its ground (for thermal weighting)  
+      that are needed for the further working with the transitions.
    """
    #all possible attributes; it saves memory especially for huge trees, (saves about 1/3)
    #see http://tech.oyster.com/save-ram-with-python-slots/
@@ -29,14 +29,15 @@ class Tree:
 
    def __init__(self,alph):
       """ initializes the tree root of a (sub-) tree
-      where alph is twize the number of modes, decreasing within the tree.
+         where alph is twize the number of modes, decreasing within the tree.
       """
       #self.alpha is not the same for different ns in the tree.
       # For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational modes
       self.alpha=alph
 
    def fill(self, n):
-      """ fills the Tree with the specific structure required for the level-fixed binary tree"""
+      """ fills the Tree with the specific structure required for the level-fixed binary tree
+      """
       assert self.alpha!=0, 'There must be at least 1 vibrational mode!!'
       assert n>=0, 'The dimensionality of a tree can not be smaller 0'
       if n==0:
@@ -64,20 +65,20 @@ class Tree:
 
    def insert(self, N, FC): 
       """ function that inserts some data into a specific placed denoted by the 2*alpha-dimensional array
-      (note: 2*alpha-1 is 'self.alpha' of the main n)
+         (note: 2*alpha-1 is 'self.alpha' of the main n)
 
-      **PARAMETERS:** 
-      N:  A 2*alpha-dimensional array 'attention: The size is never checked.  
-      FC  The data to be filled into the respective n (2x1)-array
+         **PARAMETERS:** 
+         N:  A 2*alpha-dimensional array 'attention: The size is never checked.  
+         FC  The data to be filled into the respective n (2x1)-array
 
-      **RETURNS:**
-      nothing
+         **RETURNS:**
+         nothing
 
-      **NOTE:**
-      Wrong-sized arrays will can lead to unexpected beaviour.
-      Additionally the sum over all elemens has to coincide with 'n' used for 
-      the function 'fill()'. This is not checked as well and will NOT lead 
-      to asserts but will fill the element into wrong ns'
+         **NOTE:**
+         Wrong-sized arrays will can lead to unexpected beaviour.
+         Additionally the sum over all elemens has to coincide with 'n' used for 
+         the function 'fill()'. This is not checked as well and will NOT lead 
+         to asserts but will fill the element into wrong ns'
       """
       def summ(array):
          total=0
@@ -115,13 +116,13 @@ class Tree:
 
    def extract(self): #extract all elements 
       """
-      **extract**
-      This function is for ordered extraction of all elements in the tree and additionally can be used 
-      instead of print (by 'print instance.extract()').
-      the returned statement is a vector containing all values created by the inner function
+         **extract**
+         This function is for ordered extraction of all elements in the tree and additionally can be used 
+         instead of print (by 'print instance.extract()').
+         the returned statement is a vector containing all values created by the inner function
 
-      *RETURN:*
-      two-dimensional array containing intensities([0]) and frequencies([1])
+         **RETURN:**
+         two-dimensional array containing intensities([0]) and frequencies([1])
       """
       result=[]
 
@@ -157,12 +158,12 @@ class Tree:
 
    def getState(self, N):
       """This function returns a particular state denoted by the array N (comprising thi initial and final state).
-
-      **Input-Arguments:**
-      Vector of length 2*alpha
-
-      **returns:**
-      the Franck-Condon factor for this state
+   
+         **Input-Arguments:**
+         Vector of length 2*alpha
+   
+         **returns:**
+         the Franck-Condon factor for this state
       """
       def summ(array):
          total=0
@@ -197,8 +198,8 @@ class Tree:
 
    def size(self):
       """ function that returns the size of the tree (number of data-points). 
-      It is needed for temporary needs and debugging only since the size can be calculated
-      by the input-argumens of '__init__' and 'fill'.
+         It is needed for temporary needs and debugging only since the size can be calculated
+         by the input-argumens of '__init__' and 'fill'.
       """
       if self.type=='u':
          return 2

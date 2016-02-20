@@ -38,13 +38,14 @@
       </div>
       <h1>CHANGELOG</h1>
 <p>to version 0.1.5:<br />
+  a) Add function for reorientation of Cartesian Coordinates (Manipulate)
 to version 0.1.0:<br />
   a) added some documentation/doc-strings<br />
-  b) added the functions printMat and printVec, taken from Duschinksy().
-  c) fixed some errors
-  d) made vector-output more beautiful
-  e) try an oher invokeLogging; hopefully more stable.
-  f) added warnings</p>
+  b) added the functions printMat and printVec, taken from Duschinksy().<br />
+  c) fixed some errors<br />
+  d) made vector-output more beautiful<br />
+  e) try an oher invokeLogging; hopefully more stable.<br />
+  f) added warnings  </p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -78,17 +79,17 @@ to version 0.1.0:<br />
   (There are many functions in this class that are intended to be called only by init.
   These classes will be changed to private and/or changed to be subclasses of <strong>init</strong>).
   The other functions are:  </p>
-<p><strong>init</strong>(f)  -&gt;(of course!) <br />
+<p><strong>init</strong>(f)  -&gt;(of course!)
      Its parameter is the input-file to Visper. From this, all other data are infered.
-     Its returned variables are none.<br />
-  calcspect()<br />
+     Its returned variables are none.  </p>
+<p>calcspect()
      This function performs the actual calculation of the spectrum in the respect.
      model. This function is not present here at all!!! It is defined only for the
-     derived classes (is there some virtual function in python!?)<br />
-  outspect()<br />
+     derived classes (is there some virtual function in python!?)  </p>
+<p>outspect()
      This function performs the broadening of the line-spectrum calculated in 
-     calcspect().<br />
-  finish()<br />
+     calcspect().  </p>
+<p>finish()
      This function maybe will be changed to be a destructor, if there exists such 
      in python. It cleans up everything uncleaned.</p>
 <p><strong>USER-RELEVANT MEMBERS</strong>
@@ -264,7 +265,6 @@ to version 0.1.0:<br />
          <span class="k">else</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">=</span><span class="mi">3</span>
             <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;logging-mode &quot;</span><span class="o">+</span><span class="n">mode</span><span class="o">+</span><span class="s2">&quot; not recognized. Using &#39;important&#39; instead</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-         <span class="k">print</span> <span class="n">logging</span>
          <span class="k">return</span> <span class="n">logging</span><span class="p">,</span> <span class="n">log</span></pre></div>
     </div>
   </div>
@@ -601,10 +601,12 @@ and reads the most important data from them.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-34'>#</a>
       </div>
-      <p>This function calculates the broadened spectrum given the line spectrum,</p>
+      <p>changes the orientation of the molecules to coincide with
+the main axes of inertia. Input-orientations may
+give too large or just unphysical HR-factors.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">outspect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">Manipulate</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -612,6 +614,31 @@ and reads the most important data from them.</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      <p>Calculate Frequencies and normal modes</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">GetL</span><span class="p">()</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">Duschinsky</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>This function calculates the broadened spectrum given the line spectrum,</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">outspect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
       </div>
       <p>frequency-rage and output-file whose name is first argument. 
 As basis-function a Lorentzian is assumed with a common width.</p>
@@ -628,10 +655,10 @@ nothing; the key values (broadened spectra/ many-particle-app.
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-38'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-38'>#</a>
       </div>
       <p>set default values (to have all variables set)</p>
     </div>
@@ -650,10 +677,10 @@ nothing; the key values (broadened spectra/ many-particle-app.
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
+  <div class='section' id='section-39'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
+        <a class='octothorpe' href='#section-39'>#</a>
       </div>
       <p>i.e. if grid is specified</p>
     </div>
@@ -663,10 +690,10 @@ nothing; the key values (broadened spectra/ many-particle-app.
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-38'>
+  <div class='section' id='section-40'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-38'>#</a>
+        <a class='octothorpe' href='#section-40'>#</a>
       </div>
       <p>that means, if either one number (# of gridpoints or a file) is given</p>
     </div>
@@ -679,10 +706,10 @@ nothing; the key values (broadened spectra/ many-particle-app.
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-39'>
+  <div class='section' id='section-41'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-39'>#</a>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       <p>that means there is the number of gridpoints, min- and max frequency given</p>
     </div>
@@ -694,10 +721,10 @@ nothing; the key values (broadened spectra/ many-particle-app.
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-40'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       <p>read file in format of spect</p>
     </div>
@@ -713,10 +740,10 @@ nothing; the key values (broadened spectra/ many-particle-app.
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-41'>
+  <div class='section' id='section-43'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
+        <a class='octothorpe' href='#section-43'>#</a>
       </div>
       <p>see, whether a broadening is given</p>
     </div>
@@ -730,10 +757,10 @@ nothing; the key values (broadened spectra/ many-particle-app.
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-42'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>there are several options each</p>
     </div>
@@ -763,10 +790,10 @@ nothing; the key values (broadened spectra/ many-particle-app.
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-43'>
+  <div class='section' id='section-45'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-43'>#</a>
+        <a class='octothorpe' href='#section-45'>#</a>
       </div>
       <p>read file in format of spect
 sort spectrum with respect to size of elements</p>
@@ -779,10 +806,10 @@ sort spectrum with respect to size of elements</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-44'>
+  <div class='section' id='section-46'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
       <p>find transition with minimum intensity to be respected</p>
     </div>
@@ -791,10 +818,10 @@ sort spectrum with respect to size of elements</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-45'>
+  <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
+        <a class='octothorpe' href='#section-47'>#</a>
       </div>
       <p>truncate all transitions having less than 0.0001% of</p>
     </div>
@@ -813,10 +840,10 @@ sort spectrum with respect to size of elements</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-46'>
+  <div class='section' id='section-48'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-48'>#</a>
       </div>
       <p>important for later loops: avoiding '.'s speeds python-codes up!!</p>
     </div>
@@ -825,10 +852,10 @@ sort spectrum with respect to size of elements</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-47'>
+  <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
+        <a class='octothorpe' href='#section-49'>#</a>
       </div>
       <p>make nPA from OPA if requested.</p>
     </div>
@@ -852,10 +879,10 @@ sort spectrum with respect to size of elements</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-50'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-50'>#</a>
       </div>
       <p>find transition with minimum intensity to be respected
 the range of frequency ( should be greater than the transition-frequencies)</p>
@@ -874,10 +901,10 @@ the range of frequency ( should be greater than the transition-frequencies)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-51'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-51'>#</a>
       </div>
       <p>if no other grid is defined: use linspace in range</p>
     </div>
@@ -909,10 +936,10 @@ the range of frequency ( should be greater than the transition-frequencies)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-52'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-52'>#</a>
       </div>
       <p>this shrinks the size of the spectral lines; hopefully accelerates the script.
 intens, freq=concise(intens,freq, sigma)</p>
@@ -939,10 +966,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-51'>
+  <div class='section' id='section-53'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
+        <a class='octothorpe' href='#section-53'>#</a>
       </div>
       <p>else it becomes -1 and hence the spectrum is wrong</p>
     </div>
@@ -966,10 +993,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-52'>
+  <div class='section' id='section-54'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-52'>#</a>
+        <a class='octothorpe' href='#section-54'>#</a>
       </div>
       <p>else it becomes -1 and hence the spectrum is wrong</p>
     </div>
@@ -985,10 +1012,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-53'>
+  <div class='section' id='section-55'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-53'>#</a>
+        <a class='octothorpe' href='#section-55'>#</a>
       </div>
       <p>only close file if it was opened here</p>
     </div>
@@ -997,10 +1024,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-54'>
+  <div class='section' id='section-56'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-54'>#</a>
+        <a class='octothorpe' href='#section-56'>#</a>
       </div>
       <p>Here some frequencies are defined; it is just for clearer code.</p>
     </div>
@@ -1009,10 +1036,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-55'>
+  <div class='section' id='section-57'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-55'>#</a>
+        <a class='octothorpe' href='#section-57'>#</a>
       </div>
       <p>This function is called by CalculationHR.</p>
 <p><strong>PARAMETERS</strong>
@@ -1026,10 +1053,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-56'>
+  <div class='section' id='section-58'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-56'>#</a>
+        <a class='octothorpe' href='#section-58'>#</a>
       </div>
       <p>This simple function has the only task to close the log-file after</p>
     </div>
@@ -1038,10 +1065,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-57'>
+  <div class='section' id='section-59'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-57'>#</a>
+        <a class='octothorpe' href='#section-59'>#</a>
       </div>
       <p>calculation as it is nice. 
    More over, it gives the user feedback about successfull finish;
@@ -1052,10 +1079,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-58'>
+  <div class='section' id='section-60'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-58'>#</a>
+        <a class='octothorpe' href='#section-60'>#</a>
       </div>
       <p>count warnings in self.logging[1]:</p>
     </div>
@@ -1075,10 +1102,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-59'>
+  <div class='section' id='section-61'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-59'>#</a>
+        <a class='octothorpe' href='#section-61'>#</a>
       </div>
       <p>END OF FUNCTION DEFINITIONS</p>
     </div>
@@ -1087,10 +1114,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-60'>
+  <div class='section' id='section-62'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-60'>#</a>
+        <a class='octothorpe' href='#section-62'>#</a>
       </div>
       <p>Function to print matrices in a nice way to the log-file.</p>
     </div>
@@ -1099,10 +1126,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-61'>
+  <div class='section' id='section-63'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-61'>#</a>
+        <a class='octothorpe' href='#section-63'>#</a>
       </div>
       <p>To keep it general, the matrix needs to be given as argument.</p>
     </div>
@@ -1125,10 +1152,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-62'>
+  <div class='section' id='section-64'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-62'>#</a>
+        <a class='octothorpe' href='#section-64'>#</a>
       </div>
       <p>This funcion is no that tricky but better than rewriting it everywhere it is</p>
     </div>
@@ -1137,10 +1164,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-63'>
+  <div class='section' id='section-65'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-63'>#</a>
+        <a class='octothorpe' href='#section-65'>#</a>
       </div>
       <p>indeed.</p>
     </div>
@@ -1155,10 +1182,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-64'>
+  <div class='section' id='section-66'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-64'>#</a>
+        <a class='octothorpe' href='#section-66'>#</a>
       </div>
       <p>This function gathers most essential parts for calculation of</p>
     </div>
@@ -1167,10 +1194,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-65'>
+  <div class='section' id='section-67'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-65'>#</a>
+        <a class='octothorpe' href='#section-67'>#</a>
       </div>
       <p>HR-factors from g09-files. That is: read neccecary information from the
   g09-files and calculate HR-factors as well as the  Duschinsky-rotation
@@ -1183,10 +1210,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-66'>
+  <div class='section' id='section-68'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-66'>#</a>
+        <a class='octothorpe' href='#section-68'>#</a>
       </div>
       
     </div>
@@ -1195,10 +1222,10 @@ intens, freq=concise(intens,freq, sigma)</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-67'>
+  <div class='section' id='section-69'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-67'>#</a>
+        <a class='octothorpe' href='#section-69'>#</a>
       </div>
       <p>read coordinates, force constant, binding energies from log-files and 
 from the file, using the type of file that is known now...</p>
@@ -1214,7 +1241,7 @@ from the file, using the type of file that is known now...</p>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Dimensions: </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; Masses: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span> <span class="c1"># print not the square-root!</span>
    
       <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">Force</span><span class="p">()</span>
       <span class="k">if</span> <span class="n">IsZero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
@@ -1247,23 +1274,10 @@ from the file, using the type of file that is known now...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-68'>
+  <div class='section' id='section-70'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-68'>#</a>
-      </div>
-      <p>Calculate Frequencies and normal modes</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">GetL</span><span class="p">()</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">Duschinsky</span><span class="p">()</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-69'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-69'>#</a>
+        <a class='octothorpe' href='#section-70'>#</a>
       </div>
       <p>Function that calculates the frequencies and normal modes from force constant matrix.It</p>
     </div>
@@ -1272,10 +1286,10 @@ from the file, using the type of file that is known now...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-70'>
+  <div class='section' id='section-71'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-70'>#</a>
+        <a class='octothorpe' href='#section-71'>#</a>
       </div>
       <p>mainly calls a hermitian eigenvalue-solver and computes the frequencies as 
    srqrt(eigenvalue) and the normal modes by cutting the translation/rotation off.
@@ -1300,10 +1314,10 @@ from the file, using the type of file that is known now...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-71'>
+  <div class='section' id='section-72'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-71'>#</a>
+        <a class='octothorpe' href='#section-72'>#</a>
       </div>
       <p>This functions resorts the normal modes (L, f) such that the Duschinsky-Rotation</p>
     </div>
@@ -1312,10 +1326,10 @@ from the file, using the type of file that is known now...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-72'>
+  <div class='section' id='section-73'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-72'>#</a>
+        <a class='octothorpe' href='#section-73'>#</a>
       </div>
       <p>matrix J becomes most close to unity (as possible just by sorting).
 In many cases, here chosing max(J[i]) does not help since there will be rows/columns occur
@@ -1327,10 +1341,10 @@ Since I don't know any closed theory for calculating this, it is done by cosider
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-73'>
+  <div class='section' id='section-74'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-73'>#</a>
+        <a class='octothorpe' href='#section-74'>#</a>
       </div>
       <p>initialize the matrix that resorts the states:</p>
     </div>
@@ -1339,10 +1353,10 @@ Since I don't know any closed theory for calculating this, it is done by cosider
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-74'>
+  <div class='section' id='section-75'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-74'>#</a>
+        <a class='octothorpe' href='#section-75'>#</a>
       </div>
       <p>FIRST, DO SOME GUESS HOW THE MATRIX COULD LOOK LIKE
 chose largest elements in lines</p>
@@ -1358,10 +1372,10 @@ chose largest elements in lines</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-75'>
+  <div class='section' id='section-76'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-75'>#</a>
+        <a class='octothorpe' href='#section-76'>#</a>
       </div>
       <p>now, go through rows and check if they are ok:
 print "resortJ\n",resort</p>
@@ -1373,10 +1387,10 @@ print "resortJ\n",resort</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-76'>
+  <div class='section' id='section-77'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-76'>#</a>
+        <a class='octothorpe' href='#section-77'>#</a>
       </div>
       <p>NOW LOOK FOR ERRORS IN THE GUESS</p>
     </div>
@@ -1386,10 +1400,10 @@ print "resortJ\n",resort</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-77'>
+  <div class='section' id='section-78'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-77'>#</a>
+        <a class='octothorpe' href='#section-78'>#</a>
       </div>
       <p>this is the normal case: the order of
 states did not change.</p>
@@ -1407,10 +1421,10 @@ states did not change.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-78'>
+  <div class='section' id='section-79'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-78'>#</a>
+        <a class='octothorpe' href='#section-79'>#</a>
       </div>
       <p>By construction, this should always be true!</p>
     </div>
@@ -1420,10 +1434,10 @@ states did not change.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-79'>
+  <div class='section' id='section-80'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-79'>#</a>
+        <a class='octothorpe' href='#section-80'>#</a>
       </div>
       <p>FIXING THE ERRORS NOW:
 fill remaining lines. Therefore, set that element to one
@@ -1440,10 +1454,10 @@ be fair enough in most cases</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-80'>
+  <div class='section' id='section-81'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-80'>#</a>
+        <a class='octothorpe' href='#section-81'>#</a>
       </div>
       <p>FIX DONE.</p>
     </div>
@@ -1452,10 +1466,10 @@ be fair enough in most cases</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-81'>
+  <div class='section' id='section-82'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-81'>#</a>
+        <a class='octothorpe' href='#section-82'>#</a>
       </div>
       <p>since resort is a permutation matrix, it is unitary. Using this:</p>
     </div>
@@ -1464,10 +1478,10 @@ be fair enough in most cases</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-82'>
+  <div class='section' id='section-83'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-82'>#</a>
+        <a class='octothorpe' href='#section-83'>#</a>
       </div>
       <p>END OF SortL</p>
     </div>
@@ -1476,10 +1490,10 @@ be fair enough in most cases</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-83'>
+  <div class='section' id='section-84'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-83'>#</a>
+        <a class='octothorpe' href='#section-84'>#</a>
       </div>
       <p>do the following for both states:</p>
     </div>
@@ -1488,10 +1502,10 @@ be fair enough in most cases</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-84'>
+  <div class='section' id='section-85'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-84'>#</a>
+        <a class='octothorpe' href='#section-85'>#</a>
       </div>
       <p>solve the eigenvalue-equation for F:</p>
     </div>
@@ -1500,10 +1514,10 @@ be fair enough in most cases</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-85'>
+  <div class='section' id='section-86'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-85'>#</a>
+        <a class='octothorpe' href='#section-86'>#</a>
       </div>
       <p>here one can choose between the methods: result is more or less 
  independent
@@ -1515,10 +1529,10 @@ ftemp,Ltemp=np.linalg.eigh(self.F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-86'>
+  <div class='section' id='section-87'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-86'>#</a>
+        <a class='octothorpe' href='#section-87'>#</a>
       </div>
       <p>sort the results with increasing frequency (to make sure it really is)</p>
     </div>
@@ -1527,10 +1541,10 @@ ftemp,Ltemp=np.linalg.eigh(self.F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-87'>
+  <div class='section' id='section-88'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-87'>#</a>
+        <a class='octothorpe' href='#section-88'>#</a>
       </div>
       <p>and then cut off the 6 smallest values: rotations and vibrations.</p>
     </div>
@@ -1540,10 +1554,10 @@ ftemp,Ltemp=np.linalg.eigh(self.F[i])</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-88'>
+  <div class='section' id='section-89'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-88'>#</a>
+        <a class='octothorpe' href='#section-89'>#</a>
       </div>
       <p>the frequencies are square root of the eigen values of F
 Here, we need to take care for values &lt;0 due to bad geometry</p>
@@ -1554,10 +1568,10 @@ Here, we need to take care for values &lt;0 due to bad geometry</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-89'>
+  <div class='section' id='section-90'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-89'>#</a>
+        <a class='octothorpe' href='#section-90'>#</a>
       </div>
       <p>through a warning if imaginary frequencies occured and take their pos. values for that.</p>
     </div>
@@ -1569,10 +1583,10 @@ Here, we need to take care for values &lt;0 due to bad geometry</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-90'>
+  <div class='section' id='section-91'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-90'>#</a>
+        <a class='octothorpe' href='#section-91'>#</a>
       </div>
       <p>calculate the mass matrix, for Lmass</p>
     </div>
@@ -1584,10 +1598,10 @@ Here, we need to take care for values &lt;0 due to bad geometry</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-91'>
+  <div class='section' id='section-92'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-91'>#</a>
+        <a class='octothorpe' href='#section-92'>#</a>
       </div>
       <p>if log level=0 or 1:</p>
     </div>
@@ -1602,10 +1616,10 @@ Here, we need to take care for values &lt;0 due to bad geometry</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-92'>
+  <div class='section' id='section-93'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-92'>#</a>
+        <a class='octothorpe' href='#section-93'>#</a>
       </div>
       <p>indeed, this matrix is not resorted yet and yes, the user is not informed
 that there are manipulations done on it afterwards.</p>
@@ -1616,10 +1630,10 @@ that there are manipulations done on it afterwards.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-93'>
+  <div class='section' id='section-94'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-93'>#</a>
+        <a class='octothorpe' href='#section-94'>#</a>
       </div>
       <p>to account for the effect that the frequencies independently change between the states 
  and hence may change their order, the final states L and f are resorted via the
@@ -1631,10 +1645,10 @@ that there are manipulations done on it afterwards.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-94'>
+  <div class='section' id='section-95'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-94'>#</a>
+        <a class='octothorpe' href='#section-95'>#</a>
       </div>
       <p>recalculate Lmass for final state.</p>
     </div>
@@ -1646,10 +1660,10 @@ that there are manipulations done on it afterwards.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-95'>
+  <div class='section' id='section-96'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-95'>#</a>
+        <a class='octothorpe' href='#section-96'>#</a>
       </div>
       <p>This function calculates the shift between two electronic states</p>
     </div>
@@ -1658,10 +1672,10 @@ that there are manipulations done on it afterwards.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-96'>
+  <div class='section' id='section-97'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-96'>#</a>
+        <a class='octothorpe' href='#section-97'>#</a>
       </div>
       <p>(whose geometry is known, see x) as well as the
    Duschinsky-rotation matrix.</p>
@@ -1681,10 +1695,10 @@ that there are manipulations done on it afterwards.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-97'>
+  <div class='section' id='section-98'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-97'>#</a>
+        <a class='octothorpe' href='#section-98'>#</a>
       </div>
       <p>J=np.dot(L[0].T, L[1])  # for Lsorted</p>
     </div>
@@ -1693,10 +1707,10 @@ that there are manipulations done on it afterwards.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-98'>
+  <div class='section' id='section-99'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-98'>#</a>
+        <a class='octothorpe' href='#section-99'>#</a>
       </div>
       <p>print "J\n", J</p>
     </div>
@@ -1708,10 +1722,10 @@ that there are manipulations done on it afterwards.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-99'>
+  <div class='section' id='section-100'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-99'>#</a>
+        <a class='octothorpe' href='#section-100'>#</a>
       </div>
       <p>K=(DeltaX.dot(M)).dot(L[0])
 K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted</p>
@@ -1721,10 +1735,10 @@ K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-100'>
+  <div class='section' id='section-101'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-100'>#</a>
+        <a class='octothorpe' href='#section-101'>#</a>
       </div>
       <p>K=L[0].T.dot(M).dot(M).dot(DeltaX)  # with Lmassw</p>
     </div>
@@ -1733,10 +1747,10 @@ K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-101'>
+  <div class='section' id='section-102'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-101'>#</a>
+        <a class='octothorpe' href='#section-102'>#</a>
       </div>
       <p>K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason  --&gt; want to get rid of this!!!</p>
     </div>
@@ -1746,10 +1760,10 @@ K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-102'>
+  <div class='section' id='section-103'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-102'>#</a>
+        <a class='octothorpe' href='#section-103'>#</a>
       </div>
       <p>print the Duschinsky matrix in a nice format</p>
     </div>
@@ -1761,12 +1775,229 @@ K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-103'>
+  <div class='section' id='section-104'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-103'>#</a>
+        <a class='octothorpe' href='#section-104'>#</a>
       </div>
-      <p>version=0.1.5
+      <p>This function reorients the molecules in space.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">Manipulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-105'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-105'>#</a>
+      </div>
+      <p>Therefore, it first detects axis-flips (changes between coordinate-
+   axes as x&lt;-&gt;y or y-&gt; -y or similar).
+   Than the moment of inertia and its main-axes are computed and both 
+   states are rotated to have them as their respective axes.</p>
+<p>FIRST STEP: Correct for axis-flips as they can occur in 
+Gaussian-output, if option 'NoSymm' not given.
+Here I need to invent some code...<br />
+ a) look for possible flips
+ b) look for coordinate-switches: x&lt;-&gt;y, x&lt;-&gt;z, y&lt;-&gt;z  , +-
+ c) look for coordinate-rotations: x-&gt;y-&gt;z-&gt;x , x-&gt;z-&gt;y-&gt;x, +-</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-106'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-106'>#</a>
+      </div>
+      <p>temporary vector to transform Force-constant matrix (later on)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span> <span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-107'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-107'>#</a>
+      </div>
+      <p>SECOND STEP: move the center of mass (COM) to origin:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">COM</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-108'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-108'>#</a>
+      </div>
+      <p>do it for initial and final state:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-109'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-109'>#</a>
+      </div>
+      <p>loop over coordinates:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
+            <span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-110'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-110'>#</a>
+      </div>
+      <p>now it is Cartesian center of mass</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Center of mass (initial) coordinates (Bohr):</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Center of mass (final) coordinates (Bohr):</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="n">COM</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-111'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-111'>#</a>
+      </div>
+      <p>displacement of molecule into center of mass:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">-=</span><span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-112'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-112'>#</a>
+      </div>
+      <p>THIRD STEP: Calculate the inertia-system and rotate the coordinate systems 
+accordingly. MOI: Moment Of Inertia</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">MOI</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span><span class="c1"># this is Moment Of Inertia</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-113'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-113'>#</a>
+      </div>
+      <p>loop over coordinates:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span>\
+                     <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span>\
+                     <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]))</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+               <span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]))</span>
+               <span class="n">MOI</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-114'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-114'>#</a>
+      </div>
+      <p>calculate the eigen-system of MOI</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">diagI</span><span class="p">,</span><span class="n">X</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">MOI</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-115'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-115'>#</a>
+      </div>
+      <p>sorting by eigenvalues</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">diagI</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;heapsort&#39;</span><span class="p">)</span>
+         <span class="n">diagI</span><span class="o">=</span><span class="n">diagI</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Initial state:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Final state:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Moments of inertia (a.u.) in principal axes</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">diagI</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">+</span>\
+               <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Rotational constants (GHz) in principle axes</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">diagI</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">*</span><span class="n">Hartree2GHz</span><span class="p">)</span><span class="o">+</span>\
+               <span class="s2">&quot;Rotation matrix</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="n">X</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-116'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-116'>#</a>
+      </div>
+      <p>finally, perform the transformation:
+only F and CartCoordinate are coordinate-dependent so far.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">Y</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">X</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-117'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-117'>#</a>
+      </div>
+      <p>Returning the read values</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span><span class="n">Y</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-118'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-118'>#</a>
+      </div>
+      <p>end for i</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-119'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-119'>#</a>
+      </div>
+      <p>version=0.1.5<br />
 End of Spect.py</p>
     </div>
     <div class='code'>
