@@ -45,40 +45,40 @@
    </td>
    </tr>
 </table>
-for explanations of the output of the calculations, see <a href="output.html">output-documentation</a><br>
-Moreover, some explanations of the models in use are available <a href="models.html">here</a>.
-<p>Requirements to the log-files used are specified at <a href="input.html">this</a> page. </p>
+<p> Explanations of the output of the calculations is given at the <a href="output.html">output-documentation</a> page.</p>
+<p> The models in use are explained <a href="models.html">here</a>.</p>
+<p>Requirements to the log-files used in the input are specified at <a href="input.html">this</a> page. </p>
 <!-- Main content -->
 
 <h1 id="main">General Information</h1>
-<p> Visper, formerly called smallscript is an acronym for</p> 
-   <b>Vi</b>bronic <b>spe</b>ctrum calculato<b>r</b>
-   or <b>Vi</b>bronic <b>spe</b>ctra from <b>R</b>ostock, depending on your personal favour
-   <p>Hence, it is a python-script for calculating vibronic spectra; being able to work on different levels of theory.
-   There are different <a href=models.html>models</a> available to be used.</p> 
+<p> VispeR, formerly called smallscript is an acronym for <b>Vi</b>bronic <b>spe</b>ctrum <b>R</b>ostock. </p>
+<p>It is a python-script for calculating vibronic spectra; being able to work on different levels of theory.</p> 
 
 <h2 id="#call">Calling the script</h2>
-<p> Visper is invoked with only an input-file as argument that contains all options. </p>
+<p> Visper is invoked with only an input-file as argument that contains all options
+as well as the names of two log-files of quantum-chemical programms such as Gaussian or NWChem.</p>
 
 <h1 id="#input">Input</h1>
-<p>The input-file consists of several sections and is very free in format: Most options are read case-insensitive and the order does not matter as well as separation of different options. 
-However, to avoid confusion and errors in the parser of visper, it is sensible to write the different sections in different lines. 
-A line break within one section is not allowed however.
+<p>The input-file needs to consist of several keywords, starting a logigal section and is free in format: Most options are case-insensitive and the order does not matter.
+A line break within one section is not allowed.
 </p>
-There are three mandatory sections:
+There are three mandatory keywords:
 <ul>
-   <li>The keword <b>model</b> specifies the method that should be used for the calculation of the spectrum. Possible options are:
+   <li>The keyword <b>model</b> specifies the method that should be used. Here, one can chose between
    <table>
    <th>
    <td>
       <ul>
-      <li>HF </li> 
       <li>FC </li> 
       </ul>
    </td>
    <td>
       <ul>
       <li>CFC</li> 
+      </ul>
+   </td>
+   <td>
+      <ul>
       <li>DR </li> 
       </ul>
    </td>
@@ -125,36 +125,36 @@ There are three mandatory sections:
    <li> To calculate broadened spectrum, specify <b>broaden</b>. Here <a href="#broaden">several options</a> are possible. </li>
 </ul>
 
-<h1 id="#model">Available models</h1>
+<h1 id="model">Available models</h1>
       <ul>
-          <li>HF -> This model is a bit special and not supported at the moment. It will be used to calculate a spectrum using just the Huang-Rhys factors
-                    and respective frequencies to calculate a fully harmonic spectrum.</li> 
+         <!-- <li>HF -> This model is a bit special and not supported at the moment. It will be used to calculate a spectrum using just the Huang-Rhys factors
+                    and respective frequencies to calculate a fully harmonic spectrum.</li>  -->
           <li>FC -> In this model, a purely harmonic spectrum is calculated in Franck-Condon picture.</li>
           <li>CFC -> This model is also Franck-Condon based but includes a correction due frequencies differing between the initial and final electronic states. </li>
-          <li>DR  -> With this option, a spectrum is calculated that takes also Duschinsky rotation into account. In this model restrictions due to the
-                   number of changeing vibrational modes are given.</li>
+        <!--  <li>DR  -> With this option, a spectrum is calculated that takes also Duschinsky rotation into account. In this model restrictions due to the
+                   number of changeing vibrational modes are given.</li> -->
           <li>URDR -> This model is the least restrictive; it allowes for full spectrum calculation including Duschinsky rotation.</li>
       </ul>
-<h1 id="#options">Options</h1>
+<h1 id="options">Options</h1>
 
 to control the number of matrix-elements that are printed aside of each other, specify <b>width=</b> .
-<h2 id="#log">Log-files</h2>
+<h2 id="log">Log-files</h2>
 There are multiple file-types possible:
 <ul>
    <li>NWChem output files (.nwo)</li>
    <li>GAMESS output files (.gao)</li>
    <li>Gaussian output files (.log)</li>
-   <li>Gaussian formcheck files (.fchk, .FCHK)</li>
+   <li>Gaussian formcheck files (.fchk, .FChk)</li>
 </ul>
-<p> Except for the formcheck-files, the ending does not matter.</p>
-It is even possible to combine outputs from different packages. None the less, both files specified should contain:
-the geometries
-the force constant matrix
-the energies
-<h1 href="#broaden">Calculate a line-shaped spectrum</h1>
+<p> Except for the formcheck-files, the format is found automatically, formcheck-files need to have the ending .fchk or .FChk.</p>
+It is possible to combine outputs from different packages. None the less, both files specified should contain the geometry and energy
+of the respective state. Moreover, the force constant matrix should be given at least in one file (in case of the model FC, the others 
+need two force constant matrices)
+
+<h1 href="broaden">Calculate a line-shaped spectrum</h1>
 One of the main features is the broadening of the spectrum with some line-shape.
 The following options are available to controll the spectrum:
-   <ul>
+<ul>
    <li> The keyword <b>gamma=</b> specifies the broadening-parameter (Lorentzian) or respective Gaussian parameter (with same FWHM) in cm^-1.</li>
    <li> The broadenend spectrum is calculated (and printed) on a grid that is controlled via <b>grid=</b>.
          For this, there are three options:
@@ -171,6 +171,8 @@ The following options are available to controll the spectrum:
    <li> The shape of the broadening function is controlled via <b>shape=</b> where possible options are: Gaussian (g) or Lorentzian (l).</li>
    <li> The option <b>to nPA:"n"</b> with some number n>1 you can calculate a full spectrum instead of the default one-particle approximation.
       This option is ignored in case of Duschinsky-rotated spectra.</li>
-   </ul>
+</ul>
+Here especially the option <b>to nPA:"n"</b> is of interest for FC-base models. Here, the spectrum initially is calculated in one particle approximation
+but using this option, it can be expanded into n-particle approximation.
 </body>
 </html>

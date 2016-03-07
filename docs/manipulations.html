@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+   <meta http-equiv="content-type" content="text/html;charset=utf-8">
+   <title>Documentation for Visper</title>
+   <link rel="stylesheet" href="visper.css">
+   <div style="margit-left: 10%">
+</head>
+
+<body>
+<h1><center>Data-manipulations Visper</center></h1>
+<p> During the calucalation several manipulations are done on the computed as well as the
+inserted data which are, at the current state, mandatory to perform.</p>
+<p> In the following sections, these manipulations are motivated and the algorithms in use are explained </p>
+
+<h1>Assingment of Normal Modes</h1>
+<p> The normal modes and respective frequencies are obtained as the eigen-system for the force constant matrix.
+From the algorithm, the ordering of these modes is due to their frequency but the frequencies of the modes
+change independently and hence the order between the states may change.
+To correct for this, the modes in the final state are resorted according to the modes in initial state using
+the overlap matrix of the eigen-vectors.</p> 
+<p>To account for changes in the mode none the less, the overlap-matrix is rounded before being applied to the
+final states quantities.
+Unfortunately, simple rounding is not enough in cases of strong coupling between the modes 
+(which is most often the case). Therefore, a more intricate algorithm is applied that follows the scheme:</p>
+
+<h1>Reorientation of states</h1>
+<p> The shift of normal modes is calculated in terms of changes in Cartesian coordinates. Hence, if due to the
+relaxation of geometry the frames in the given states does not coincide, the Huang Rhys factors and hence
+the vibronic structure will be overestimated.</p>
+<p>Especially calculations in G09 can even have axis-flips (sign-changes and/or interchanges of coordinates) 
+during the optimisation procedure, spoiling the results completely.</p>
+<p>Correcting these changes, in general a translation as well as rotation is needed. </p>
+<p> To correct for these changes, two algorithms are implemented in VispeR, one bringing the moment of inertia
+systems in coincidence, the other minimizing the differences in geometry.</p>
+
+<h2>moment of inertia</h2>
+<p>Bringing the MOI systems in coincidence has a clear physical motivation. </p>
+<p>In this programme, the following procedure is used:</p>
+<p>Unfortunately, this method comes into troubles when the symmetry of the molecule is high. 
+In these cases, the moments of intertia are often (almost) degenerate. Than, the order of the moments of inertia
+can change between the states and the algorithm will detect a false axis-flip. The other problem likely to occur
+is that in one set the axes are a linear combination of the other set, leading to a rotation that is unphysical 
+either. </p> 
+<p> For such systems this method is therefore not applicable.</p>
+
+<h2>least squares</h2>
+<p> Minimising the RMSD is the less physical way but it is more straight forward and robust in practice.</p>
+
+<h1>Applying these algorithms to model systems</h1>
+<p> Lets have a glance on the effect of these manipulations!</p>
+
+</body>
+</html>

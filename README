@@ -1,10 +1,9 @@
-Welcome to Visper, the replacement of smallscript.
+Welcome to VispeR, the replacement of smallscript.
 This tool is intended to calculate vibronic spectra on different levels of theory
 using several types of formats as input.
 
 If you find any error or add some further functionality, please let me know
 to improve the programme.
-
 
        ====================================================
        ***************** Requirements *********************
@@ -12,6 +11,8 @@ to improve the programme.
 
 Visper is written in python; so your machine needs a python2 installation (2.7)
 with numpy and scipy in addition.
+Other requirements, also to the hardware, are not known; but be aware that some
+parameters blow up the calculation exponentially in time as well as in memory requirements.
 
 
        ====================================================
@@ -20,10 +21,24 @@ with numpy and scipy in addition.
 Visper is easy to use: Unpack the files in a folder, make the main file,
 smallscript.py, executable and execute it, followed by the name of your 
 input-file that specifies all options.
-For more detailes about these options, please have a look at doc/DOCUMENTAION.html.
+For more detailes about these options, please have a look at doc/DOCUMENTAION.html. 
+
+Some example-calculations (input-files, log-files and results) will follow.
+The examples given in the folder 'tests' are out-of date and may contain results
+that are obtaind with options/models that are no more available in this way.
 
        ====================================================
        ******************  Licence   **********************
        ====================================================
 Visper is licensed under GPL, so you are free to use it and change as you
 like. 
+       
+       ====================================================
+       **************  Current Issues   *******************
+       ====================================================
+
+There are several known issues at this point:
+  > Log-files stemming from GAMESS are not accepted at the moment
+  > Only the models FC, GFC and URDR are tested and might work 
+  > There might be issues with some units, especially the energy of
+    electronic transition is problematic.

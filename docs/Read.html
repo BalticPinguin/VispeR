@@ -32,11 +32,17 @@
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
       <h1>CHANGELOG</h1>
-<p>to version=0.1.5   </p>
+<p>to version=0.1.5 <br />
+1. Reduced amount of redundant code; added strings to rtype.
+2. Gradients for NWChem work now. Gradient() returns now only
+   final states gradient.
+3. repaired Estring of G09</p>
 <p>to version=0.1.0<br />
 1. Resorted the class: reads data-based, not logfile-based.<br />
    This might be slower at runtime but is better structured<br />
-   and easier to read. Moreover, it avoids redundant code.  </p>
+   and easier to read. Moreover, it avoids redundant code.<br />
+2. Added class rtype that knows the strings to search for 
+   some of the data.</p>
 <p>to version=0.0.1<br />
 1. I deleted the functions reading L and f from the log-file.<br />
    They are available only in older versions (non-class)
@@ -120,26 +126,40 @@
          <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="n">typestring</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">=</span><span class="mi">0</span>
          <span class="k">if</span> <span class="n">typestring</span><span class="o">==</span><span class="s2">&quot;NWChem&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">gradString</span><span class="o">=</span><span class="s2">r&quot;&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">gradPolishString</span><span class="o">=</span><span class="s2">r&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradString</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=atom               coordinates                        gradient)[\d\w\- .\n]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradPolishString</span><span class="o">=</span><span class="s2">r&quot;[-\d.]+[ ]+[-\d.]+[ ]+[-\d.]+(?=\n)&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">Estring</span><span class="o">=</span><span class="s1">r&#39;(?&lt;= Excited state energy = =)[\-\d ]+&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ForceString</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MassString</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=atom    #        X              Y              Z            mass\n)[\d\w\-\+ \.\n]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MassString2</span><span class="o">=</span><span class="s2">r&quot;[ -]\d\.[\dD\.\+\-]+(?=\n)&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CoordS</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=atom    #        X              Y              Z            mass\n)[\d\w\-\+ \.\n]+&quot;</span>
 
          <span class="k">if</span> <span class="n">typestring</span><span class="o">==</span><span class="s2">&quot;G09&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gradString</span><span class="o">=</span><span class="s2">r&quot;Number     Number              X              Y              Z\n [\-\.\d \n]+&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gradPolishString</span><span class="o">=</span><span class="s2">r&quot;[\-\d\.]+[\d]{9}&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Estring</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=Total Energy, E(TD-HF/TD-KS) =)[\d .\-]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Estring</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=Total Energy, E\(TD-HF/TD-KS\) =)[\d .\-]+&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">Estring2</span><span class="o">=</span><span class="s2">r&quot;HF=-[\d.\n ]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ForceString</span><span class="o">=</span><span class="s2">r&quot;Force constants in Cartesian coordinates: [\n\d .+-D]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MassString</span><span class="o">=</span><span class="s2">r&quot;AtmWgt= [\d .]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CoordS</span><span class="o">=</span><span class="s1">r&#39; Number     Number       Type             X           Y           Z[\n -.\d]+&#39;</span>
 
          <span class="k">if</span> <span class="n">typestring</span><span class="o">==</span><span class="s2">&quot;GAMESS&quot;</span><span class="p">:</span>
             <span class="k">assert</span> <span class="mi">1</span><span class="o">==</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;GAMES-files are not supported at the moment. I am sorry.&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gradString</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gradPolishString</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">Estring</span><span class="o">=</span><span class="s1">r&#39;(?&lt;=TOTAL ENERGY =)[\-\d. ]+&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ForceString</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=CARTESIAN FORCE CONSTANT MATRIX\n)[\d\w \.\-\n]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MassString</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=ATOMIC WEIGHTS \(AMU\))[ \.\w\n]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MassString2</span><span class="o">=</span><span class="s1">r&#39;[\d.]{7,10}(?=\n)&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CoordS</span><span class="o">=</span><span class="s1">r&#39;(?&lt;=ATOM             X              Y              Z\n\n)[\n -.\d\w]+&#39;</span>
 
          <span class="k">if</span> <span class="n">typestring</span><span class="o">==</span><span class="s2">&quot;G09_fchk&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gradString</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=Cartesian Gradient)[R N=\d.\+\- E\n]+&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gradPolishString</span><span class="o">=</span><span class="s2">r&quot;[\-\d\.\+E]+&quot;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Estring</span><span class="o">=</span><span class="s1">r&#39;(?&lt;=Total Energy                               R  )[ \-\d.E\+]+&#39;</span></pre></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Estring</span><span class="o">=</span><span class="s1">r&#39;(?&lt;=Total Energy                               R  )[ \-\d.E\+]+&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ForceString</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MassString</span><span class="o">=</span><span class="s2">r&quot;(?&lt;=Real atomic weights     )[RN\=\-\+\d \.E\n]+&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">CoordS</span><span class="o">=</span><span class="s1">r&#39;Current cartesian coordinates  [RN\=\n \-\+.\d E]+&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -280,7 +300,9 @@ certain line/string in the following:</p>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__Read_Mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">,</span> <span class="n">rtype</span><span class="p">):</span>
       <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
       <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
-      <span class="n">files</span><span class="o">.</span><span class="n">close</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+      <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">rtype</span><span class="o">.</span><span class="n">MassString</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09&#39;</span><span class="p">:</span></pre></div>
     </div>
   </div>
@@ -293,9 +315,7 @@ certain line/string in the following:</p>
       <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;AtmWgt= [\d .]+&quot;</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
-         <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
-         <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
+      <div class="highlight"><pre>         <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
          <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">atmwgt</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">):</span> <span class="c1"># because atomic masses are printed twize in log-files...</span>
             <span class="n">mtemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]+&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
          <span class="n">dim</span><span class="o">=</span><span class="mi">0</span>
@@ -319,7 +339,6 @@ certain line/string in the following:</p>
     <div class='code'>
       <div class="highlight"><pre>            <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;AtmWgt= [\d .]+&quot;</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
             <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
-            <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">atmwgt</span><span class="p">)):</span> 
                <span class="n">mtemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]+&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
             <span class="n">dim</span><span class="o">=</span><span class="mi">0</span>
@@ -350,6 +369,7 @@ certain line/string in the following:</p>
     <div class='code'>
       <div class="highlight"><pre>         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">==</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;Not all atoms were found! Something went wrong...{0}, {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">),</span><span class="n">dim</span><span class="p">)</span>
 
+         <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
          <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
          <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)):</span>
             <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])):</span>
@@ -369,12 +389,17 @@ certain line/string in the following:</p>
       <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=Real atomic weights     )[RN\=\-\+\d \.E\n]+&quot;</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
-         <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
-         <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
-         <span class="n">mtemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]+E[+-][\d]+&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+      <div class="highlight"><pre>         <span class="n">mtemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]+E[+-][\d]+&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
          <span class="n">dim</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;(?&lt;=N\= )[\d ]+&quot;</span><span class="p">,</span> <span class="n">atmwgt</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
-         <span class="n">dim</span><span class="o">*=</span><span class="mi">3</span></pre></div>
+         <span class="n">dim</span><span class="o">*=</span><span class="mi">3</span>
+   
+         <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
+         <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)):</span>
+            <span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c1">#elements in m are sqrt(m_i) where m_i is the i-th atoms mass</span>
+         <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s2">&quot;some atomic masses are zero. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
+
+      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span> <span class="ow">or</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;GAMESS&#39;</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -383,19 +408,10 @@ certain line/string in the following:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-19'>#</a>
       </div>
-      <p>if something is wrong with the dimensionality:</p>
+      <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span><span class="o">==</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;Not all atoms were found! Something went wrong...{0}, {1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">),</span><span class="n">dim</span><span class="p">)</span>
-   
-         <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
-         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)):</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])):</span>
-               <span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="n">foonum</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c1">#elements in m are sqrt(m_i) where m_i is the i-th atoms mass</span>
-            <span class="n">foonum</span><span class="o">+=</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-         <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s2">&quot;some atomic masses are zero. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
-
-      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>         <span class="k">if</span> <span class="n">atmwgt</span><span class="o">==</span><span class="p">[]:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -404,11 +420,11 @@ certain line/string in the following:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-20'>#</a>
       </div>
-      <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!</p>
+      <p>this is the case especially, if no frequency-calculation was performed.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">WeightCoord</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=atom    #        X              Y              Z            mass\n)[\d\w\-\+ \.\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
-         <span class="n">mtemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;[ -]\d\.[\dD\.\+\-]+(?=\n)&quot;</span><span class="p">,</span> <span class="n">WeightCoord</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#only weights remain</span>
+      <div class="highlight"><pre>            <span class="k">return</span> <span class="mi">0</span>
+         <span class="n">mtemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">rtype</span><span class="o">.</span><span class="n">MassString2</span><span class="p">,</span> <span class="n">atmwgt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#only weights remain</span>
          <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">)</span>
    
          <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
@@ -416,7 +432,9 @@ certain line/string in the following:</p>
             <span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c1">#mass[j] is square-root of masses</span>
          <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s2">&quot;some atomic masses are 0. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
 
-      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;GAMESS&#39;</span><span class="p">:</span></pre></div>
+      <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">=</span><span class="n">dim</span>
+      <span class="n">rtype</span><span class="o">.</span><span class="n">mass</span><span class="o">=</span><span class="n">mass</span>
+      <span class="k">return</span> <span class="n">mass</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -425,22 +443,16 @@ certain line/string in the following:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-21'>#</a>
       </div>
-      <p>Determine atomic masses in a.u. Note mass contains sqrt of mass!!!</p>
+      
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">atmwgt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=ATOMIC WEIGHTS \(AMU\))[ \.\w\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
-         <span class="n">mtemp</span><span class="o">=</span><span class="p">[]</span>
-         <span class="n">foonum</span><span class="o">=</span><span class="mi">0</span>
-         <span class="n">mtemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[\d.]{7,10}(?=\n)&#39;</span><span class="p">,</span><span class="n">atmwgt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-         <span class="n">dim</span><span class="o">=</span><span class="mi">3</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__Read_Force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">,</span> <span class="n">rtype</span><span class="p">):</span>
+      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-         <span class="n">mass</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># this is an integer since dim=3*N with N=atomicity</span>
-         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
-            <span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mtemp</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span> <span class="c1">#elements in m are sqrt(m_i) where m_i is the i-th atoms mass</span>
-         <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mass</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span> <span class="p">,</span> <span class="s2">&quot;some atomic masses are zero. Please check the input-file! {0}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">=</span><span class="n">dim</span>
-      <span class="n">rtype</span><span class="o">.</span><span class="n">mass</span><span class="o">=</span><span class="n">mass</span>
-      <span class="k">return</span> <span class="n">mass</span></pre></div>
+      <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+      <span class="n">mass</span><span class="o">=</span><span class="n">rtype</span><span class="o">.</span><span class="n">mass</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -449,15 +461,10 @@ certain line/string in the following:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-22'>#</a>
       </div>
-      
+      <p>Reading of Cartesian force constant matrix  </p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__Read_Force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">,</span> <span class="n">rtype</span><span class="p">):</span>
-      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
-      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
-      <span class="n">files</span><span class="o">.</span><span class="n">close</span>
-      <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
-      <span class="n">mass</span><span class="o">=</span><span class="n">rtype</span><span class="o">.</span><span class="n">mass</span>
+      <div class="highlight"><pre>      <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span> <span class="n">rtype</span><span class="o">.</span><span class="n">ForceString</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09&#39;</span><span class="p">:</span></pre></div>
     </div>
   </div>
@@ -467,11 +474,10 @@ certain line/string in the following:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-23'>#</a>
       </div>
-      <p>Reading of Cartesian force constant matrix  </p>
+      <p>in case of G09-files, test an other string:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;Force constants in Cartesian coordinates: [\n\d .+-D]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
-         <span class="k">if</span> <span class="n">f</span><span class="o">==</span><span class="p">[]:</span></pre></div>
+      <div class="highlight"><pre>         <span class="k">if</span> <span class="n">f</span><span class="o">==</span><span class="p">[]:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -480,7 +486,7 @@ certain line/string in the following:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-24'>#</a>
       </div>
-      <p>if Freq was not specified in Gaussian-file:</p>
+      <p>try to find matrix from option "Force"</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>            <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;The second derivative matrix:[XYZ\n\d .-]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span></pre></div>
@@ -492,10 +498,12 @@ certain line/string in the following:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-25'>#</a>
       </div>
-      <p>try to find matrix from option "Force"</p>
+      <p>else: return 0; no force constant matrix given.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="k">assert</span> <span class="n">f</span><span class="o">!=</span><span class="p">[],</span> <span class="s1">&#39;The input-file does not contain information on the force-constants!&#39;</span></pre></div>
+      <div class="highlight"><pre>            <span class="n">second</span><span class="o">=</span><span class="bp">True</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">second</span><span class="o">=</span><span class="bp">False</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -504,18 +512,14 @@ certain line/string in the following:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-26'>#</a>
       </div>
-      <p>else: error message. The matrix is really needed...</p>
+      <p>Now, do general preparation for the FC-matrix:
+Reading of Cartesian force constant matrix  </p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span><span class="c1">#</span>
-            <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span>
-            <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
-            <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
-            <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
-            <span class="n">line</span><span class="o">=</span><span class="mi">0</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t find any forces. Force constants given in unknown format.&quot;</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
-               <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">2</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">f</span><span class="o">==</span><span class="p">[]:</span>
+         <span class="k">return</span> <span class="mi">0</span>
+      <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+      <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -523,6 +527,27 @@ certain line/string in the following:</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>Reading of Cartesian force constant matrix  </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
+      <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+
+      <span class="k">if</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09&#39;</span><span class="p">:</span>
+         <span class="n">line</span><span class="o">=</span><span class="mi">0</span>
+         <span class="k">if</span> <span class="n">second</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Can&#39;t find any forces. Force constants given in unknown format.&quot;</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+               <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">2</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <p>these are those lines where no forces are written to</p>
     </div>
@@ -535,10 +560,10 @@ certain line/string in the following:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-29'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-29'>#</a>
       </div>
       <p>line=int(re.findall(r"[\d]+", lines[i].split()[0])[0])+(i-2-n)</p>
     </div>
@@ -547,12 +572,8 @@ certain line/string in the following:</p>
                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span>
                   <span class="n">F</span><span class="p">[</span><span class="n">line</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
                   <span class="n">F</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="p">][</span><span class="n">line</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">F</span>
          <span class="k">else</span><span class="p">:</span>
-            <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span><span class="c1">#[2:-2]</span>
-            <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span>
-            <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
-            <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
-            <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">2</span><span class="p">:</span> 
                   <span class="n">k</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span>
@@ -562,64 +583,23 @@ certain line/string in the following:</p>
                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span>
                   <span class="n">F</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
                   <span class="n">F</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">n</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
-               <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span> <span class="p">(</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="o">//</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="p">])</span> 
-      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09_fchk&#39;</span><span class="p">:</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-29'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
-      </div>
-      <p>Reading of Cartesian force constant matrix  </p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
-         <span class="k">try</span><span class="p">:</span>
-            <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
-         <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="mi">1</span><span class="o">==</span><span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;the intput-file </span><span class="si">%s</span><span class="s2"> has no information about Force-constant</span><span class="se">\n</span><span class="s2">sorry. I can&#39;t work like this!&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">fileN</span><span class="p">)</span>
-         <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span>
-         <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
-         <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+
+      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09_fchk&#39;</span><span class="p">:</span>
          <span class="n">m</span><span class="o">=</span><span class="mi">0</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span> <span class="c1"># the first line is not part of the matrix</span>
             <span class="n">elements</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">m</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">F</span><span class="p">):</span> <span class="c1"># break this outer loop if inner is broken</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">F</span><span class="p">):</span> <span class="c1"># break this outer loop if inner is broken</span>
                <span class="k">break</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">elements</span><span class="p">)):</span>
-               <span class="n">F</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">m</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="n">m</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-               <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
-                  <span class="n">m</span><span class="o">+=</span><span class="mi">1</span>
-                  <span class="k">if</span> <span class="n">m</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">F</span><span class="p">):</span> <span class="c1"># matrix is full; there will be only waste</span>
+               <span class="n">F</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+               <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">n</span><span class="p">:</span>
+                  <span class="n">n</span><span class="o">+=</span><span class="mi">1</span>
+                  <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="nb">len</span><span class="p">(</span><span class="n">F</span><span class="p">):</span> <span class="c1"># matrix is full; there will be only waste</span>
                      <span class="k">break</span>
                   <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
                <span class="k">else</span><span class="p">:</span>
                   <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
-         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
-               <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span> <span class="p">(</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="o">//</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="p">])</span> 
-      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span><span class="p">:</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-30'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-30'>#</a>
-      </div>
-      <p>Reading of Cartesian force constant matrix  </p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=MASS-WEIGHTED PROJECTED HESSIAN \(Hartree/Bohr/Bohr/Kamu\)\n)[\dD \.\-\+\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
-         <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
-         <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)</span>
-         <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
-         <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
-         <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span><span class="p">:</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">dim</span><span class="o">+</span><span class="n">k</span><span class="o">-</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">8</span><span class="p">:</span> <span class="c1">#this is due to the lines after the first row</span>
                <span class="n">k</span><span class="o">=</span><span class="n">i</span><span class="o">-</span><span class="mi">4</span>
@@ -632,45 +612,32 @@ certain line/string in the following:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-31'>
+  <div class='section' id='section-30'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-31'>#</a>
+        <a class='octothorpe' href='#section-30'>#</a>
       </div>
       <p>convert to a.u.  (masses)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>               <span class="n">F</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">1000</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span>
                <span class="n">F</span><span class="p">[</span><span class="n">j</span><span class="o">-</span><span class="mi">1</span><span class="o">+</span><span class="mi">10</span><span class="o">*</span><span class="n">n</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">elements</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">1000</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span>
-      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;GAMESS&#39;</span><span class="p">:</span></pre></div>
+         <span class="k">return</span> <span class="n">F</span>
+
+      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;GAMESS&#39;</span><span class="p">:</span>
+         <span class="n">lines</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-32'>
+  <div class='section' id='section-31'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
-      </div>
-      <p>Reading of Cartesian force constant matrix  </p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=CARTESIAN FORCE CONSTANT MATRIX\n)[\d\w \.\-\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
-         <span class="n">f_str</span><span class="o">=</span><span class="nb">str</span><span class="p">([</span><span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
-         <span class="n">lines</span><span class="o">=</span><span class="n">f_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">n&quot;</span><span class="p">)[</span><span class="mi">5</span><span class="p">:]</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-33'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-31'>#</a>
       </div>
       <p>lines include each three six elements.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
-         <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
-         <span class="n">s</span><span class="o">=</span><span class="mi">0</span>
+      <div class="highlight"><pre>         <span class="n">s</span><span class="o">=</span><span class="mi">0</span>
          <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
             <span class="n">f</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;[ -]\d\.[\d]+&quot;</span><span class="p">,</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">s</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span> <span class="c1">#this is one number each</span>
@@ -682,10 +649,10 @@ certain line/string in the following:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-34'>
+  <div class='section' id='section-32'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
+        <a class='octothorpe' href='#section-32'>#</a>
       </div>
       <p>this will finally finish this loop (since the last lines are no more in the
 force constant matrix; I just don't know, how to make it easier</p>
@@ -697,21 +664,49 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-35'>
+  <div class='section' id='section-33'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
+        <a class='octothorpe' href='#section-33'>#</a>
       </div>
       <p>some numbers will be counted twice but this shouldn't matter</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>               <span class="n">F</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">n</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">F</span><span class="p">[</span><span class="n">n</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">f</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-            <span class="n">k</span><span class="o">+=</span><span class="mi">1</span>
-
-         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
-               <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span> <span class="p">(</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="o">//</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="p">])</span> 
+            <span class="n">k</span><span class="o">+=</span><span class="mi">1</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>mass-weight the Force-constant matrix. This is reached for all 
+routines where no return-statement is given in place.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">dim</span><span class="p">):</span>
+            <span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span> <span class="p">(</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="o">//</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="n">mass</span><span class="p">[</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="p">])</span> 
       <span class="k">return</span> <span class="n">F</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__Read_Coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">,</span> <span class="n">rtype</span><span class="p">):</span>
+      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+      <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -720,16 +715,20 @@ force constant matrix; I just don't know, how to make it easier</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-36'>#</a>
       </div>
-      
+      <p>Reading Cartesian coordinates</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__Read_Coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">,</span> <span class="n">rtype</span><span class="p">):</span>
-      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
-      <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
-      <span class="n">files</span><span class="o">.</span><span class="n">close</span>
-      <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span>
+      <div class="highlight"><pre>      <span class="n">temp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">rtype</span><span class="o">.</span><span class="n">CoordS</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
+      <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">))</span>
+      
       <span class="k">if</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09&#39;</span><span class="p">:</span>
-         <span class="n">temp</span><span class="o">=</span><span class="p">[]</span></pre></div>
+         <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d]+.[\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)):</span>
+            <span class="n">Coord</span><span class="p">[</span><span class="n">j</span><span class="o">%</span><span class="mi">3</span><span class="p">][</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+         <span class="n">Coord</span><span class="o">*=</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span>
+   
+      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09_fchk&#39;</span><span class="p">:</span>
+         <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d.]+E[+-][\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -741,14 +740,18 @@ force constant matrix; I just don't know, how to make it easier</p>
       <p>Reading Cartesian coordinates</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">temp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39; Number     Number       Type             X           Y           Z[\n -.\d]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
-         <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d]+.[\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-         <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">))</span>
-         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)):</span>
-            <span class="n">Coord</span><span class="p">[</span><span class="n">j</span><span class="o">%</span><span class="mi">3</span><span class="p">][</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">tmp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-         <span class="n">Coord</span><span class="o">*=</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span>
-   
-      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09_fchk&#39;</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)):</span>
+            <span class="n">Coord</span><span class="p">[</span><span class="n">j</span><span class="o">%</span><span class="mi">3</span><span class="p">][</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span> <span class="c1"># need to convert by some factor!!</span>
+
+      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span><span class="p">:</span>
+         <span class="k">if</span> <span class="n">temp</span><span class="o">!=</span><span class="p">[]:</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -]\d\.[\dD\.\+\-]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+               <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                  <span class="n">Coord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span>
+               <span class="n">k</span><span class="o">+=</span><span class="mi">1</span> <span class="c1"># important to skip masses in tmp </span>
+         <span class="k">else</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -757,12 +760,15 @@ force constant matrix; I just don't know, how to make it easier</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-38'>#</a>
       </div>
-      <p>get geometry of the molecule</p>
+      <p>this is coordinate set, if no frequencies are calculated.
+Maybe I should use this in all cases.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">temp</span><span class="o">=</span><span class="p">[]</span>
-         <span class="n">temp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;Current cartesian coordinates  [RN\=\n \-\+.\d E]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
-         <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d.]+E[+-][\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></pre></div>
+      <div class="highlight"><pre>            <span class="n">temp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;No.       Tag          Charge          X              Y              Z[\d\w\-\+ \.\n]+&quot;</span><span class="p">,</span><span class="n">log</span><span class="p">)</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -]\d\.[\d]{5,10}&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+               <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                  <span class="n">Coord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">])</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -771,14 +777,10 @@ force constant matrix; I just don't know, how to make it easier</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-39'>#</a>
       </div>
-      <p>Reading Cartesian coordinates</p>
+      <p>depending on the units: need to convert to a.u.!</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">/</span><span class="mi">3</span><span class="p">))</span>
-         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tmp</span><span class="p">)):</span>
-            <span class="n">Coord</span><span class="p">[</span><span class="n">j</span><span class="o">%</span><span class="mi">3</span><span class="p">][</span><span class="n">j</span><span class="o">/</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span> <span class="c1"># need to convert by some factor!!</span>
-
-      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">r&quot;Output coordinates in angstroms &quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -787,54 +789,12 @@ force constant matrix; I just don't know, how to make it easier</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-40'>#</a>
       </div>
-      <p>Reading Cartesian coordinates</p>
+      <p>need them in atomic units later:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">WeightCoord</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=atom    #        X              Y              Z            mass\n)[\d\w\-\+ \.\n]+&quot;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
-         <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -]\d\.[\dD\.\+\-]+&#39;</span><span class="p">,</span> <span class="n">WeightCoord</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-         <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">))</span>
-         <span class="n">k</span><span class="o">=</span><span class="mi">0</span>
-         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-               <span class="n">Coord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;D&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span>
-            <span class="n">k</span><span class="o">+=</span><span class="mi">1</span> <span class="c1"># important to skip masses in tmp</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-41'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
-      </div>
-      <p>Coord*=self.Angs2Bohr are given in a.u.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;GAMESS&#39;</span><span class="p">:</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-42'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
-      </div>
-      <p>Reading Cartesian coordinates</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="n">temp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;(?&lt;=ATOM             X              Y              Z\n\n)[\n -.\d\w]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-43'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-43'>#</a>
-      </div>
-      <p>need even more in structure</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="n">tmp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;[ -][\d]+.[\d]+&#39;</span><span class="p">,</span> <span class="n">temp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-         <span class="n">Coord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">))</span>
+      <div class="highlight"><pre>               <span class="n">Coord</span><span class="o">*=</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span> 
+
+      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;GAMESS&#39;</span><span class="p">:</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
                <span class="n">Coord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="p">])</span>
@@ -843,10 +803,10 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-44'>
+  <div class='section' id='section-41'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       
     </div>
@@ -854,7 +814,7 @@ force constant matrix; I just don't know, how to make it easier</p>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__Read_Energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logfile</span><span class="p">,</span> <span class="n">rtype</span><span class="p">):</span>
       <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
       <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
-      <span class="n">files</span><span class="o">.</span><span class="n">close</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
       <span class="n">Etemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">rtype</span><span class="o">.</span><span class="n">Estring</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;G09&#39;</span><span class="p">:</span>
@@ -864,10 +824,10 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-45'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       <p>this is only for Gaussian-case but doesn't disturb otherwise..</p>
     </div>
@@ -879,10 +839,10 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-46'>
+  <div class='section' id='section-43'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-43'>#</a>
       </div>
       <p>this number is already given in Hartree.</p>
     </div>
@@ -893,16 +853,55 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-44'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-44'>#</a>
+      </div>
+      <p>replacement has only effect in case of G09_fchk but doesn't disturb for GAMESS.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">E</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span>
+      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-45'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-45'>#</a>
+      </div>
+      <p>Etemp is energy of the (excited) state</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">if</span> <span class="n">Etemp</span><span class="o">==</span><span class="p">[]:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-46'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-46'>#</a>
+      </div>
+      <p>if the ground state is calculated</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="n">Etemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;(?&lt;=Total DFT energy =)[\-\d. ]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Etemp</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Some error occured! The states energy can not be read.&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-47'>#</a>
       </div>
-      <p>replacement has only effect in case of G09_fchk but doesn't disturb for GAMESS.</p>
+      <p>FIXME: need to fix it for tddft-case.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">Etemp</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">,</span><span class="s1">&#39;e&#39;</span><span class="p">))</span>
-      <span class="k">elif</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Etemp</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Some error occured! The states energy can not be read.&#39;</span>
+         <span class="n">E</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> 
+      <span class="k">return</span> <span class="n">E</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -911,46 +910,6 @@ force constant matrix; I just don't know, how to make it easier</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-48'>#</a>
       </div>
-      <p>get energy of the (excited) state</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="k">if</span> <span class="n">Etemp</span><span class="o">==</span><span class="p">[]:</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-49'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
-      </div>
-      <p>if the ground state is calculated</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>            <span class="n">Etemp</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">r&#39;(?&lt;=Total DFT energy =)[\-\d. ]+&#39;</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
-         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Etemp</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Some error occured! The states energy can not be read.&#39;</span>
-         <span class="n">E</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#energy is negative (bound state)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-50'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
-      </div>
-      <p>FIXME: need to fix it for tddft-case.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Etemp</span><span class="p">)</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Some error occured! The states energy can not be read.&#39;</span>
-         <span class="n">E</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Etemp</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1">#energy is negative (bound state)</span>
-      <span class="k">return</span> <span class="n">E</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-51'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
-      </div>
       <p>This function reads the required quantities from logfiles</p>
     </div>
     <div class='code'>
@@ -958,10 +917,10 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-52'>
+  <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-52'>#</a>
+        <a class='octothorpe' href='#section-49'>#</a>
       </div>
       <p>of variable format and returns the gradient, if given.
   <strong>PARAMETERS</strong>
@@ -973,10 +932,41 @@ force constant matrix; I just don't know, how to make it easier</p>
     <div class='code'>
       <div class="highlight"><pre>      <span class="n">files</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
       <span class="n">log</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">files</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
-      <span class="n">files</span><span class="o">.</span><span class="n">close</span>
+      <span class="n">files</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
       <span class="n">grad</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">rtype</span><span class="o">.</span><span class="n">gradString</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span>
       <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;ERROR: No gradient given.&quot;</span>
-      <span class="n">Grad</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">rtype</span><span class="o">.</span><span class="n">gradPolishString</span><span class="p">,</span> <span class="n">grad</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+      <span class="k">if</span> <span class="n">rtype</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;NWChem&#39;</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>in this case, I need to do it differently:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">Grad</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">rtype</span><span class="o">.</span><span class="n">gradPolishString</span><span class="p">,</span> <span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+         <span class="n">grad</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">Grad</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Grad</span><span class="p">)):</span>
+            <span class="n">tmp</span><span class="o">=</span><span class="n">Grad</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span>
+               <span class="n">grad</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">tmp</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+         <span class="k">return</span> <span class="n">grad</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
+      </div>
+      <p>if self.type!='NWChem': </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">Grad</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">rtype</span><span class="o">.</span><span class="n">gradPolishString</span><span class="p">,</span> <span class="n">grad</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
       <span class="n">grad</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">Grad</span><span class="p">),</span><span class="mi">1</span><span class="p">))</span>
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Grad</span><span class="p">)):</span>
          <span class="n">grad</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Grad</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
@@ -984,10 +974,10 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-53'>
+  <div class='section' id='section-52'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-53'>#</a>
+        <a class='octothorpe' href='#section-52'>#</a>
       </div>
       <p>END: FUNCTIONS TO READ THE NEEDED DATA FROM OUTPUT-FILES IN DIFFERENT FORMATS.</p>
     </div>
@@ -996,16 +986,27 @@ force constant matrix; I just don't know, how to make it easier</p>
     </div>
   </div>
   <div class='clearall'></div>
+  <div class='section' id='section-53'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-53'>#</a>
+      </div>
+      <p>USER-FUNCTIONS ASKING FOR CERTAIN DATA:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">Gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
   <div class='section' id='section-54'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-54'>#</a>
       </div>
-      <p>USER-FUNCTIONS ASKING FOR CERTAIN DATA:</p>
+      <p>the gradient makes only sense when given for the final state.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">Gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">state</span><span class="p">):</span>
-      <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Grad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">itype</span><span class="p">)</span> <span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">__Read_Grad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="p">)]</span></pre></div>
+      <div class="highlight"><pre>      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__Read_Grad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">final</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ftype</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -1078,7 +1079,7 @@ force constant matrix; I just don't know, how to make it easier</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-60'>#</a>
       </div>
-      <p>version=0.1.0
+      <p>version=0.1.5
 End of Read.py</p>
     </div>
     <div class='code'>

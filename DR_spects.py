@@ -33,6 +33,7 @@ class URDR_spect(Spect.Spect):
          calculated.
       """
       # first, initialise as done for all spectra:
+      self.type='URDR'
       Spect.Spect.__init__(self, f)
       # now, calculate additional quantities for the iteration:
       self.GetQuants()
@@ -394,6 +395,17 @@ class SDR_spect(Spect.Spect):
    """
    Hartree2cm_1=219474.63 
    Threshold=3e-10
+   def __init__(self, f): 
+      """In addition to the initialisation of
+         Spect( see first line of code), here the number
+         of modes is evaluated and the matrices/vectors
+         needed for evaluation of the recursive equations are
+         calculated.
+      """
+      # first, initialise as done for all spectra:
+      self.type='URDR'
+      Spect.Spect.__init__(self, f)
+      # now, calculate additional quantities for the iteration:
 
    class OPA:
       """ This class containes the functions and objects for the calculation of vibronic spectra 

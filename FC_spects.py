@@ -7,6 +7,9 @@ import numpy as np
 
 #  CHANGELOG 
 # ===========
+# to version 0.1.5:  
+#  1) removed GFC-class  
+#
 # to version 0.1.0:  
 #  1) Added some sense to GFC  
 #  2) Removed the HR-classes from the code  
@@ -20,6 +23,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
    """
    def __init__(self, f): 
       # first, initialise as done for all spectra:
+      self.type='FC'
       Spect.Spect.__init__(self, f)
       # now, calculate HR-spect in addition.
       HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",self.opt,re.M)
@@ -28,7 +32,6 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       else: 
          HRthresh=float(HRthresh[-1])
       self.HuangR(HRthresh)
-      self.type='FC'
 
       # get N, M from opt
 
@@ -125,7 +128,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
                    FC[a][j*M+i-1]=tmp*FC00*npexp(-(f[a]*j)/self.T)
                    uency[a][j*M+i-1]=(sgnE*E+sgnE*f[a]*(j-i))*self.Hartree2cm_1
                 except IndexError:
-                   loggingwrite("truncated spectrum for mode nr. %d"%(a))
+                   loggingwrite("WARNING: truncated spectrum for mode nr. %d\n"%(a))
                    break
        self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
 
@@ -170,7 +173,6 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        HR=np.zeros(lenK)
        fsort=np.zeros(lenK)
        uniFall=[]
-       #print K
        for j in range(lenK):
           HR[j]=self.K[j]*self.K[j]*self.f[0][j]*.5 
        index=np.argsort(HR, kind='heapsort')
@@ -188,10 +190,10 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        loggingwrite=self.logging[1].write
        if sortHR[-1]>=10: 
           #if larges HR-factor is too large
-          loggingwrite(u'\n!! WARNING: THE HUANG-RHYS FACTOR SEEMS TO BE'+\
+          loggingwrite(u'\nWARNING: THE HUANG-RHYS FACTOR SEEMS TO BE'+\
                                                             ' TOO LARGE !!\n')
           loggingwrite(u'the spectrum will be calculated, but most probably'+\
-                                         ' the input-stat is inconsistent.\n')
+                                         ' the input-state is inconsistent.\n')
        # the HR-factors are printed allways.
        loggingwrite(u'HR-fact           freq     delta\n')
        #print(u'HR-fact           freq\n')
@@ -214,11 +216,10 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        self.f=uniFall
     
 class CFC_spect(FC_spect):
-
    def __init__(self, f): 
       # first, initialise as done for all spectra:
-      FC_spect.__init__(self, f)
       self.type='CFC'
+      FC_spect.__init__(self, f)
 
    def calcspect(self):
        """This is used to calculate the line spectrum assuming no mode mixing 
@@ -341,63 +342,9 @@ class CFC_spect(FC_spect):
                    FC[a][j*M+i-1]=tmp*FC00*npexp(-(freq[0][a]*j)/T)
                    uency[a][j*M+i-1]=sgnE*(E+(freq[0][a]*j-freq[1][a]*i))*self.Hartree2cm_1
                 except IndexError:
-                   logwrite("truncated spectrum for mode nr. %d"%(a))
+                   logwrite("WARNING: truncated spectrum for mode nr. %d"%(a))
                    break
        self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
-
-class GFC_spect(FC_spect):
-   """The class GFC (gradient-Franck-Condon) is, from its model, similar to FC_spect.
-      In contrast to that, how ever, here the gradient of nuclear energies in excited 
-      state is used only.  
-      Its only function inherited from FC_Spect is HuangR().
-   """
-   def __init__(self,f):
-      """This function initialises spectra that are calculated using the gradient.
-         It uses here the __init__ from Spectra but not from FC_Spect!
-      """
-      #first, initialise all general spectrum-things:
-      Spect.Spect.__init__(self, f)
-      #now, I need to read the gradient from final state:
-      read =ReadGrad(self,'f')
-      #than, recalculate K, J with its own Duschinsky!
-      self.Duschinsky()
-      # finally, calculate the Huang-Rhys factors:
-      HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",self.opt,re.M)
-      if HRthresh==[]:
-         HRthresh=0.015
-      else: 
-         HRthresh=float(HRthresh[-1])
-      self.HuangR(HRthresh)
-      self.type='GFC'
-
-   def Duschinsky(self):
-      """ This function calculates the 'shift' between excited state and ground 
-         state from the gradient of the excited state  at ground state geometry 
-         assuming coinciding frequencies and harmonic potentials.
-
-         **PARAMETERS**
-         L        Eigen-vectors of force-constant matrix (matrix)
-         Grad     gradient vector of final states PES at ground state equilibr.
-         Freq     (2xn -matrix) containing frequencies in initial/final state
-      """
-      #get dimensionality of the problem and initialise quantitios
-      dim=len(mass)*3
-      self.J=np.zeros(( len(L)-1,dim-6,dim-6 ))
-      self.M=np.zeros((dim,dim)) 
-      #K becomes now gradient in massweighted internal coordinates
-      #self.K=Grad.T.dot(M).dot(L[0])[0]
-      self.K=Grad.T.dot(self.Lmassw[0])
-      # scale consistently: Now it is really the shift in terms of normal modes
-      K/=Freq*Freq*np.sqrt(2)  #
-      
-      #calculate Duschinsky-matrix
-      self.J=np.dot(L[0].T, L[1])
    
-      if self.logging[0]<2:
-         self.logging[1].write('Duschinsky rotation matrix:\n')
-         self.printMat(self.J)
-         self.logging[1].write('\nDuschinsky displacement vector:\n')
-         self.printVec(self.K)
-   
-#version 0.1.0  
+#version 0.1.5  
 #end of FC_Spects.py

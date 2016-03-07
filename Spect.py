@@ -5,15 +5,25 @@ from scipy.linalg.lapack import dsyev
 import re, mmap, os.path, math, sys
 import Read
 import MultiPart
+import random
 
 Hartree2GHz=6.579684e6                                     
 Hartree2cm_1=219474.63 
 
 # CHANGELOG
 # =========
-#to version 0.1.5:  
-#   a) Add function for reorientation of Cartesian Coordinates (Manipulate)
-#to version 0.1.0:  
+#in version 0.1.6:  
+#   a) added RMSD_reorient
+#
+#in version 0.1.5:  
+#   a) Add function for reorientation of Cartesian Coordinates (Manipulate)   
+#   b) removed the oldinvokelogging. I think, I will not need it (it was looking
+#       for whole as logging-level instead of just a letter)   
+#   c) Manipulate is changed and still not working.
+#   d) Fixed some issues when working with gradients.
+#   e) changed Manipulate to MOI_reorient and changed the function.
+#
+#in version 0.1.0:  
 #   a) added some documentation/doc-strings  
 #   b) added the functions printMat and printVec, taken from Duschinksy().  
 #   c) fixed some errors  
@@ -94,46 +104,6 @@ class  Spect:
          which has the output-file and the level of output-information is defined.
          All variables/functions that are common to all spectral tyes are initialised here.
       """
-      
-      def oldinvokeLogging(logfile, mode="important"):
-         """ initialises the logging-functionality
-            **PARAMETERS**
-            logfile   name of file to be used as log-file. It is expected to be an array of 
-                   length 0 or one.
-            mode:     5 different values are possible (see below); the lowest means: print 
-                     much, higher values mean 
-                     less printing
-
-            **RETURNS**
-            log:      opened file to write in
-         """
-         if logfile==[]:
-            log=open("calculation.log", "a")
-         else:
-            s=logfile[-1].strip()
-            log=open(s, "a")
-
-         #remove all white spaces
-         mode= mode.strip()
-         #search, which option was set.
-         if mode in ['all', "ALL", "All", "0", 0]:
-            logging=0
-            log.write('use log-level all\n')
-         elif mode in ['detailed', 'DETAILED', 'Detailed', "1"]:
-            logging=1
-            log.write('use log-level detailed\n')
-         elif mode in ['medium', 'MEDIUM','Medium', '2']:
-            logging=2
-            log.write('use log-level medium\n')
-         elif mode in ['important', 'IMPORTANT','Important', '3']:
-            logging=3
-         elif mode in ['short', 'SHORT','Short', '4']:
-            logging=4
-         else:
-            logging=3
-            log.write("logging-mode "+mode+" not recognized. Using 'important' instead\n")
-         return logging, log
-      
       def invokeLogging(logfile, mode="important"):
          """ initialises the logging-functionality
             **PARAMETERS**
@@ -148,11 +118,12 @@ class  Spect:
          """
          if logfile==[]:
             log=open("calculation.log", "a")
+            self.logfile="calculation.log"
          else:
             s=logfile[-1].strip()
             log=open(s, "a")
+            self.logfile=s
          
-         self.logfile=s
          #remove all white spaces and take only first character.
          mode= mode.strip()[0]
          #search, which option was set.
@@ -272,7 +243,8 @@ class  Spect:
       #changes the orientation of the molecules to coincide with
       # the main axes of inertia. Input-orientations may
       # give too large or just unphysical HR-factors.
-      self.Manipulate()
+      #self.MOI_reorient()
+      self.RMSD_reorient()
    
       #Calculate Frequencies and normal modes
       self.GetL()
@@ -345,9 +317,9 @@ class  Spect:
          if (re.search(r"stick", opt, re.I) is not None) is True:
             stick=True
    
-         spectfile=re.findall(r"(?<=spectfile=)[\w.]+", opt, re.I)
+         spectfile=re.findall(r"(?<=spectfile=)[\w._\-]+", opt, re.I)
          if spectfile==[]:
-            spectfile=re.findall(r"(?<=spectfile= )[\w.]+", opt, re.I)
+            spectfile=re.findall(r"(?<=spectfile= )[\w._\-]+", opt, re.I)
             if spectfile==[]:
                spectfile=None
             else:
@@ -507,8 +479,12 @@ class  Spect:
       """
       self.logging[1].close()
       #count warnings in self.logging[1]:
-      warnings=re.findall('WARNING:',self.logfile)
-      warnings=len(warnings)
+      logf=open(self.logfile,"r")
+      warnings=0
+      for line in logf:
+         if 'WARNING:' in line:
+            warnings+=1
+      logf.close()
       foo=open(self.logfile, 'a')
       if warnings==0:
          foo.write("\n==================================================================\n"
@@ -516,7 +492,7 @@ class  Spect:
                   "==================================================================\n\n")
       else:
          foo.write("\n==================================================================\n"
-                  "========= VISPER FINISHED WITH "+repr(warnings)+" WARNINGS.  ===========\n"
+                  "============== VISPER FINISHED WITH "+repr(warnings)+" WARNINGS.  ===============\n"
                   "==================================================================\n\n")
       foo.close()
    # END OF FUNCTION DEFINITIONS
@@ -570,8 +546,12 @@ class  Spect:
       self.Energy[0], self.Energy[1]=self.reader.Energy()
       
       self.mass=self.reader.mass()
-      assert IsZero(self.mass[0]-self.mass[1]), "It seems as if the masses don't coincide within files."
-      self.mass=self.mass[0]
+      if np.any(self.mass[0]==0):
+         if np.any(self.mass[1]==0):
+            assert 1==2, "Your input-files don't contain any mass."
+         self.mass=self.mass[1]
+      else:
+         self.mass=self.mass[0]
       
       self.dim=len(self.mass)*3
       if self.logging[0]<2:
@@ -582,17 +562,28 @@ class  Spect:
       self.F=self.reader.Force()
       if IsZero(self.F[0]):
          self.F[0]=self.F[1]
-         self.write("WARNING: Only one force constant matrix given.")
+         self.logging[1].write("WARNING: Only one force constant matrix given.\n")
          assert (self.type=='FC'), "You must specify both force constant matrices in this model."
       elif IsZero(self.F[1]):
          self.F[1]=self.F[0]
-         self.write("WARNING: Only one force constant matrix given.")
+         self.logging[1].write("WARNING: Only one force constant matrix given.\n")
          assert (self.type=='FC'), "You must specify both force constant matrices in this model."
       assert not IsZero(self.F[0]), "ERROR: No force constant matrix given."
       
       self.CartCoord=self.reader.Coordinates()
-      if IsZero(self.CartCoord[0]-self.CartCoord[1]):
+      #this ugly statement is true if the molecule is just shifted (not rotated or deformed)
+      # between states. I need to allow for shifts as it seems from looking at 
+      # results obtained from NWChem. 
+      # Moreover, I allow for very small changes that could occur due to shifting or
+      # roundoff e.g. when converting units.
+      if all(abs(self.CartCoord[0][i][j]-self.CartCoord[1][i][j] - 
+                  self.CartCoord[0][i][0]+self.CartCoord[1][i][0]) <0.00001
+                      for i in range(3) for j in range(self.dim//3) ):
          self.Grad=self.reader.Gradient() 
+      else: 
+         #define this for easier syntax in function MOI_reorient
+         # and Duschinsky.
+         self.Grad=[0,0]
       
       if self.logging[0]<3:
          self.logging[1].write('difference of minimum energy between states:'
@@ -772,43 +763,41 @@ class  Spect:
       self.J=np.linalg.pinv(self.Lmassw[0]).dot(self.Lmassw[1]) # for Lmassw
    
       #print "J\n", J
-      DeltaX=np.array(self.CartCoord[1]-self.CartCoord[0]).flatten('F')  # need initial - final here.
-      if self.logging[0] <1:
-         self.logging[1].write('changes of Cartesian coordinates:\n')
-         self.printVec(DeltaX)
-    #  K=(DeltaX.dot(M)).dot(L[0])
-      #K=M.dot(L[0]).T.dot(DeltaX)  # with Lsorted
-      self.K=np.linalg.pinv(self.Lmassw[0]).dot(DeltaX)  # w p Lmassw
-      #K=L[0].T.dot(M).dot(M).dot(DeltaX)  # with Lmassw
-   
-      #K*=np.sqrt(np.pi)/2. #correction factor due to some magic reason  --> want to get rid of this!!!
-   
+      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
+         self.K=self.Grad.T.dot(self.Lmassw[0])
+         # scale consistently: Now it is really the shift in terms of normal modes
+         self.K/=self.f[0]*self.f[0]*np.sqrt(2)  #
+         self.K=self.K[0] # it is matrix and needs to be a vector...
+
+      else:
+         DeltaX=np.array(self.CartCoord[1]-self.CartCoord[0]).flatten('F')  # need initial - final here.
+         if self.logging[0] <1:
+            self.logging[1].write('changes of Cartesian coordinates:\n')
+            self.printVec(DeltaX)
+         self.K=np.linalg.pinv(self.Lmassw[0]).dot(DeltaX)  # w p Lmassw
+      
       if self.logging[0]<2:
          # print the Duschinsky matrix in a nice format
          self.logging[1].write('Duschinsky rotation matrix:\n')
          self.printMat(self.J)
          self.logging[1].write('\nDuschinsky displacement vector:\n')
          self.printVec(self.K)
+ 
+ # FIXME: new class/file for the manipulation of data: 
+ #        there is the L-matrix (reordering) and coordinate-changes (2 methods)
 
-   def Manipulate(self):
-      """This function reorients the molecules in space. 
-         Therefore, it first detects axis-flips (changes between coordinate-
-         axes as x<->y or y-> -y or similar).
-         Than the moment of inertia and its main-axes are computed and both 
-         states are rotated to have them as their respective axes.
+   def MOI_reorient(self):
+      """This function reorients the final state in space such that
+         the moment of inertia frames coincide.
+         The function will fail when the order of the moments changes
+         or are close to degenerate and hence are rotated towards each other.
+         FIXME: I want to add a threshold to make the programme decide itself,
+         whether this method is applicable or not.
       """
-      # FIRST STEP: Correct for axis-flips as they can occur in 
-      # Gaussian-output, if option 'NoSymm' not given.
-      # Here I need to invent some code...  
-      #  a) look for possible flips
-      #  b) look for coordinate-switches: x<->y, x<->z, y<->z  , +-
-      #  c) look for coordinate-rotations: x->y->z->x , x->z->y->x, +-
-
-      #temporary vector to transform Force-constant matrix (later on)
-      Y=np.zeros( (self.dim,self.dim) )
-
-      #SECOND STEP: move the center of mass (COM) to origin:
+      #FIRST STEP: move the center of mass (COM) to origin:
       COM=np.zeros(3)
+      X=np.zeros( (2,3,3) )
+      diagI=np.zeros( (2,3) )
       #do it for initial and final state:
       for i in [0,1]:
          #loop over coordinates:
@@ -826,8 +815,8 @@ class  Spect:
             #displacement of molecule into center of mass:
             self.CartCoord[i][j]-=COM[j]
       
-         #THIRD STEP: Calculate the inertia-system and rotate the coordinate systems 
-         # accordingly. MOI: Moment Of Inertia
+         #SECOND STEP: Calculate the inertia-system.
+         #  (MOI: Moment Of Inertia)
          MOI=np.zeros((3,3))# this is Moment Of Inertia
          #loop over coordinates:
          for j in [0,1,2]:
@@ -838,27 +827,196 @@ class  Spect:
                MOI[j][k]=np.sum(self.mass*self.mass*(self.CartCoord[i][j]*self.CartCoord[i][k]))
                MOI[k][j]=MOI[j][k]
          #calculate the eigen-system of MOI
-         diagI,X=np.linalg.eig(MOI) 
-         #sorting by eigenvalues
-         index=np.argsort(diagI, kind='heapsort')
-         diagI=diagI[index]
-         if self.logging[0]==0:
-            if i==0:
-               self.logging[1].write("Initial state:\n")
-            else:
-               self.logging[1].write("Final state:\n")
-            self.logging[1].write("Moments of inertia (a.u.) in principal axes\n"+repr(diagI.T)+\
-               '\nRotational constants (GHz) in principle axes\n'+ repr(1/(2*diagI.T)*Hartree2GHz)+\
-               "Rotation matrix\n")
-            self.printMat(X)
-         # finally, perform the transformation:
-         # only F and CartCoordinate are coordinate-dependent so far.
-         self.CartCoord[i]=X.dot(self.CartCoord[i])
-         for j in range(self.dim//3):
-            Y[3*j:3*j+3].T[3*j:3*j+3]=X
-         # Returning the read values
-         self.F[i]=np.dot(Y.T.dot(self.F[i]),Y)
-      #end for i
+         diagI[i],X[i]=np.linalg.eig(MOI) 
+         # sort it such, that the rotation is minimal. Therefore, first check
+         # that it is not too big; otherwise, this simple code might fail.
+         index=np.argsort(diagI[i], kind='heapsort')
+         X[i]=(X[i].T[index]).T
+         diagI[i]=diagI[i][index]
+      #end for i in [0,1].
+      
+      #overlap of the moi-systems: gives the rotation of the respective frames
+      # but is free in sign; correct this in the following:
+      O=X[0].dot(X[1].T) 
 
-#version=0.1.5  
+      rmsdi=[]
+      # now: test all combinations of signs. criterion is the least square of 
+      # Cartesian coordinates.
+      sign=np.eye(3)
+      for i in range(13):
+         #indeed, this gives all combinations 
+         # after another...
+         sign[int((i//3+i)%3)][int((i//3+i)%3)]*=-1
+         if i in [4,7,8,10, 11]:
+            #they give redundant results.
+            continue
+         U=sign.dot(O)
+         rmsdi.append(RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])))
+
+         #print  RMSD(self.CartCoord[0]-self.CartCoord[1]), RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
+      rmsd=RMSD(self.CartCoord[0]-self.CartCoord[1])
+      rmsdi.append(rmsd)
+      #reassign i 
+      i=np.argmin(rmsdi)
+      if i==len(rmsdi)-1:
+         # no rotation into MOI-frame should be done because initial 
+         # geometry is the best. This is the case especially, if there
+         # are (almost) degenerate moments of intertia.
+         return
+      #recover the sing-combination with least squares:
+      if i>=4:
+         i+=1
+         if i>=7:
+            i+=1
+            if i>=8:
+               i+=1
+               if i>=10:
+                  i+=1
+                  if i>=11:
+                     i+=1
+      sign=np.eye(3)
+      for j in range(i):
+         sign[int((j//3+j)%3)][int((j//3+j)%3)]*=-1
+      U=sign.dot(O)
+      #apply this combination to coordinates of final state
+      self.CartCoord[1]=U.dot(self.CartCoord[1])
+      # produce respective matrix to rotate Force-constant matrix as well
+      Y=np.zeros( (self.dim,self.dim) )
+      for j in range(self.dim//3):
+         Y[3*j:3*j+3].T[3*j:3*j+3]=U
+      # apply the respective rotation:
+      self.F[1]=np.dot(Y.T.dot(self.F[1]),Y)
+      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
+         self.Grad=Y.dot(self.Grad)
+   
+      # finally: print what is done.
+      if self.logging[0]==0:
+         self.logging[1].write('\nRotational constants (GHz) in principle axes\n')
+         self.logging[1].write('initial state: '+ repr(1/(2*diagI[0].T)*Hartree2GHz)+"\n")
+         self.logging[1].write('final state: '+ repr(1/(2*diagI[1].T)*Hartree2GHz)+"\n")
+         self.logging[1].write("Inertia system in Cartesion Coordinates of initial state:\n")
+         self.printMat(X[0])
+         self.logging[1].write("Inertia system in Cartesion Coordinates of final state:\n")
+         self.printMat(X[1])
+         self.logging[1].write("Rotation of final state::\n")
+         self.printMat(U)
+      #Attention: Here I don't print the updated geometries. This might be wished at some point.
+      #end MOI_reorient
+   
+   def RMSD_reorient(self):
+      """This function reorients the final state in space such that
+         the moment of inertia of coordinates is minimized.
+         I assume that there might be coordinate flips and/or switches
+         but no strong rotations by ~40 degree
+      """
+      #FIRST STEP: move the center of mass (COM) to origin:
+      COM=np.zeros(3)
+      X=np.zeros( (2,3,3) )
+      diagI=np.zeros( (2,3) )
+      #do it for initial and final state:
+      for i in [0,1]:
+         #loop over coordinates:
+         for j in [0,1,2]:
+            COM[j]=np.sum(self.CartCoord[i][j]*self.mass)
+            COM[j]/=np.sum(self.mass) 
+         #now it is Cartesian center of mass
+         if self.logging[0]<2:
+            if i==0:
+               self.logging[1].write("Center of mass (initial) coordinates (Bohr):\n")
+            else:
+               self.logging[1].write("Center of mass (final) coordinates (Bohr):\n")
+            self.printVec(COM)
+         for j in [0,1,2]:
+            #displacement of molecule into center of mass:
+            self.CartCoord[i][j]-=COM[j]
+      
+      #SECOND STEP: check for all combinations of axis-flips and coordinate-switches.
+      # test all combinations of signs. and permutations:
+      rotated=self.CartCoord[1]
+      for j in range(6):
+         #loop over all permutations:
+         O=np.zeros( (3,3) )
+         if j%2==0:
+            #for cyclic permutations
+            for i in range(3):
+               #for cyclic ones, this works...
+               O[(i+j//2)%3][(i-j//2)%3]=1
+         else:
+            #for anti-cyclic permutations
+            for i in range(3):
+               #for cyclic ones, this works...
+               O[-((i+j//2)%3)-1][(i-j//2)%3]=1
+         sign=np.eye(3)
+         for i in range(13):
+            #loop over all sing-combinations.
+            #indeed, this gives all combinations 
+            # after another...
+            sign[int((j//3+j)%3)][int((j//3+j)%3)]*=-1
+            if i in [4,7,8,10, 11]:
+               #they give redundant results.
+               continue
+            U=sign.dot(O)
+            #print np.shape(rotated) ,np.shape(self.CartCoord[0]), np.shape(U.dot(self.CartCoord[1]))
+            if RMSD(self.CartCoord[0]-rotated) >RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])):
+               #if the current combination is the best, save it.
+               rotated=U.dot(self.CartCoord[1])
+      #save the flipped/switched system in CartCoord:
+      self.CartCoord[1]=rotated
+
+      #THIRD STEP: follow some Monte Carlo scheme.
+      # comparatively small angles. Do 200 steps.
+      U=np.eye(3)
+      for i in range(40):
+         #chose some angle:
+         #for every level: do 5 tests and the refine the search...
+         for j in range(50):
+            #a rotation-matrix with small rotations:
+            theta=0.063*(random.random()-.5)/(i+1)
+            eta=0.063*(random.random()-.5)/(i+1)
+            nu=0.063*(random.random()-.5)/(i+1)
+            R_x=np.matrix([ [1,0,0],
+                  [0,np.cos(theta),-np.sin(theta)],
+                  [0,np.sin(theta),np.cos(theta)] ], dtype=float)
+            R_y=np.matrix([[np.cos(eta),0,-np.sin(eta)],
+                  [0,1,0],
+                  [np.sin(eta),0,np.cos(eta)]], dtype=float)
+            R_z=np.matrix([[np.cos(nu),-np.sin(nu),0],
+                  [np.sin(nu),np.cos(nu),0],
+                  [0,0,1] ], dtype=float)
+            R=R_x.dot(R_y).dot(R_z)
+            test=R.A.dot(self.CartCoord[1])
+            if RMSD(self.CartCoord[0]-self.CartCoord[1])> RMSD(self.CartCoord[0]-test):
+               #if it gets better: apply the change.
+               self.CartCoord[1]=test
+               U=R.A.dot(U)
+               print(theta,eta,nu,i,j)
+      
+      #FOURTH STEP: apply the rotation.
+
+      # produce respective matrix to rotate Force-constant matrix as well
+      Y=np.zeros( (self.dim,self.dim) )
+      for j in range(self.dim//3):
+         Y[3*j:3*j+3].T[3*j:3*j+3]=U
+      # apply the respective rotation:
+      self.F[1]=np.dot(Y.T.dot(self.F[1]),Y)
+      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
+         self.Grad=Y.dot(self.Grad)
+   
+      # finally: print what is done.
+      if self.logging[0]==0:
+         self.logging[1].write("Rotation of final state::\n")
+         self.printMat(U)
+
+def RMSD(Delta):
+   """This function calculates the RMSD of a matrix (intended
+      for self.CartCoords)
+   """
+   rmsd=0
+   for i in range(len(Delta)):
+      for j in range(len(Delta[0])):
+         rmsd+=Delta[i][j]*Delta[i][j]
+   return rmsd
+
+#version=0.1.6   
+
 # End of Spect.py
