@@ -14,6 +14,8 @@ Hartree2cm_1=219474.63
 # =========
 #in version 0.1.6:  
 #   a) added RMSD_reorient
+#   b) added options to force gradient and chose the reorientation.
+#   c) opt- parameter is now read as whole line.
 #
 #in version 0.1.5:  
 #   a) Add function for reorientation of Cartesian Coordinates (Manipulate)   
@@ -185,7 +187,7 @@ class  Spect:
                final+' is not a valid file name or not readable.'
       
       #read options from input-file:
-      opt=re.findall(r"(?<=opt:)[\d\s\w.,\(\) \=;:-]+", f, re.M)
+      opt=re.findall(r"(?<=opt:).*(?=\n)", f, re.M)
       if opt!=[]:
          self.opt=opt[-1]
       else:
@@ -243,8 +245,13 @@ class  Spect:
       #changes the orientation of the molecules to coincide with
       # the main axes of inertia. Input-orientations may
       # give too large or just unphysical HR-factors.
-      #self.MOI_reorient()
-      self.RMSD_reorient()
+      manipulate=re.findall(r"(?<=manipulate:)[\w ,]*", self.opt, re.M)
+      if manipulate!=[]:
+         manipulate=manipulate[0].strip()
+         if manipulate in ["moi", "MOI"]:
+            self.MOI_reorient()
+         if manipulate in ["rmsd" ,"RMSD"]:
+            self.RMSD_reorient()
    
       #Calculate Frequencies and normal modes
       self.GetL()
@@ -523,10 +530,14 @@ class  Spect:
       """
       num = self.width//2
       self.logging[1].write("\n")
-      for j in range(len(vec)//num):
-         for k in range(num):
-            self.logging[1].write("    %03d  %e \t"%(j+k*len(vec)//num+1, vec[j+k*len(vec)//num]))
-         self.logging[1].write("\n")
+      if len(vec)>num:
+         for j in range(len(vec)//num):
+            for k in range(num):
+               self.logging[1].write("    %03d  %e \t"%(j+k*len(vec)//num+1, vec[j+k*len(vec)//num]))
+            self.logging[1].write("\n")
+      else:
+         for k in range(len(vec)):
+            self.logging[1].write("    %03d  %e \t"%(k+1, vec[k]))
       self.logging[1].write("\n")
 
    def ReadData(self):
@@ -580,11 +591,12 @@ class  Spect:
                   self.CartCoord[0][i][0]+self.CartCoord[1][i][0]) <0.00001
                       for i in range(3) for j in range(self.dim//3) ):
          self.Grad=self.reader.Gradient() 
+      elif re.search(r"gradient", self.opt, re.M) is not None:
+         self.Grad=self.reader.Gradient2() 
       else: 
          #define this for easier syntax in function MOI_reorient
          # and Duschinsky.
          self.Grad=[0,0]
-      
       if self.logging[0]<3:
          self.logging[1].write('difference of minimum energy between states:'
                         ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*Hartree2cm_1))
@@ -767,7 +779,8 @@ class  Spect:
          self.K=self.Grad.T.dot(self.Lmassw[0])
          # scale consistently: Now it is really the shift in terms of normal modes
          self.K/=self.f[0]*self.f[0]*np.sqrt(2)  #
-         self.K=self.K[0] # it is matrix and needs to be a vector...
+         #self.K=self.K[0] # it is matrix and needs to be a vector...
+         #FIXME: this seems to be inconsistent! may be matrix or vector...
 
       else:
          DeltaX=np.array(self.CartCoord[1]-self.CartCoord[0]).flatten('F')  # need initial - final here.
@@ -835,6 +848,16 @@ class  Spect:
          diagI[i]=diagI[i][index]
       #end for i in [0,1].
       
+      #output on the information gathered above
+      if self.logging[0]==0:
+         self.logging[1].write('\nRotational constants (GHz) in principle axes\n')
+         self.logging[1].write('initial state: '+ repr(1/(2*diagI[0].T)*Hartree2GHz)+"\n")
+         self.logging[1].write('final state: '+ repr(1/(2*diagI[1].T)*Hartree2GHz)+"\n")
+         self.logging[1].write("Inertia system in Cartesion Coordinates of initial state:\n")
+         self.printMat(X[0])
+         self.logging[1].write("Inertia system in Cartesion Coordinates of final state:\n")
+         self.printMat(X[1])
+      
       #overlap of the moi-systems: gives the rotation of the respective frames
       # but is free in sign; correct this in the following:
       O=X[0].dot(X[1].T) 
@@ -850,7 +873,8 @@ class  Spect:
          if i in [4,7,8,10, 11]:
             #they give redundant results.
             continue
-         U=sign.dot(O)
+         U=sign.dot(O.T)
+         print sign
          rmsdi.append(RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])))
 
          #print  RMSD(self.CartCoord[0]-self.CartCoord[1]), RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
@@ -858,6 +882,7 @@ class  Spect:
       rmsdi.append(rmsd)
       #reassign i 
       i=np.argmin(rmsdi)
+      print i, rmsdi
       if i==len(rmsdi)-1:
          # no rotation into MOI-frame should be done because initial 
          # geometry is the best. This is the case especially, if there
@@ -891,15 +916,14 @@ class  Spect:
    
       # finally: print what is done.
       if self.logging[0]==0:
-         self.logging[1].write('\nRotational constants (GHz) in principle axes\n')
-         self.logging[1].write('initial state: '+ repr(1/(2*diagI[0].T)*Hartree2GHz)+"\n")
-         self.logging[1].write('final state: '+ repr(1/(2*diagI[1].T)*Hartree2GHz)+"\n")
-         self.logging[1].write("Inertia system in Cartesion Coordinates of initial state:\n")
-         self.printMat(X[0])
-         self.logging[1].write("Inertia system in Cartesion Coordinates of final state:\n")
-         self.printMat(X[1])
-         self.logging[1].write("Rotation of final state::\n")
+         self.logging[1].write("Rotation of final state:\n")
          self.printMat(U)
+         self.logging[1].write("Coordinates after manipulation::\n")
+         self.logging[1].write('Cartesian coordinates of initial state: \n')
+         self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
+         self.logging[1].write('Cartesian coordinates of final state: \n')
+         self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
+
       #Attention: Here I don't print the updated geometries. This might be wished at some point.
       #end MOI_reorient
    
@@ -951,11 +975,13 @@ class  Spect:
             #loop over all sing-combinations.
             #indeed, this gives all combinations 
             # after another...
-            sign[int((j//3+j)%3)][int((j//3+j)%3)]*=-1
+            sign[int((i//3+i)%3)][int((i//3+i)%3)]*=-1
             if i in [4,7,8,10, 11]:
                #they give redundant results.
                continue
             U=sign.dot(O)
+            print U
+            print "   ",RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
             #print np.shape(rotated) ,np.shape(self.CartCoord[0]), np.shape(U.dot(self.CartCoord[1]))
             if RMSD(self.CartCoord[0]-rotated) >RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])):
                #if the current combination is the best, save it.
@@ -989,7 +1015,7 @@ class  Spect:
                #if it gets better: apply the change.
                self.CartCoord[1]=test
                U=R.A.dot(U)
-               print(theta,eta,nu,i,j)
+               print RMSD(self.CartCoord[0]-test)
       
       #FOURTH STEP: apply the rotation.
 
@@ -1006,6 +1032,11 @@ class  Spect:
       if self.logging[0]==0:
          self.logging[1].write("Rotation of final state::\n")
          self.printMat(U)
+         self.logging[1].write("Coordinates after manipulation::\n")
+         self.logging[1].write('Cartesian coordinates of initial state: \n')
+         self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
+         self.logging[1].write('Cartesian coordinates of final state: \n')
+         self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
 
 def RMSD(Delta):
    """This function calculates the RMSD of a matrix (intended

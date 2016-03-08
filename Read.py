@@ -6,11 +6,15 @@ import re, mmap, os.path, math, sys
 
 # CHANGELOG 
 # =========
+#to version=0.1.6   
+#
 #to version=0.1.5   
 # 1. Reduced amount of redundant code; added strings to rtype.
 # 2. Gradients for NWChem work now. Gradient() returns now only
 #    final states gradient.
 # 3. repaired Estring of G09
+# 4. repaired gradpolishstring of g09_fchk
+# 5. Added function Grad2; this will require some redesigning.
 #
 #to version=0.1.0  
 # 1. Resorted the class: reads data-based, not logfile-based.  
@@ -94,7 +98,7 @@ class Read:
 
          if typestring=="G09_fchk":
             self.gradString=r"(?<=Cartesian Gradient)[R N=\d.\+\- E\n]+"
-            self.gradPolishString=r"[\-\d\.\+E]+"
+            self.gradPolishString=r"[ -]\d\.[\d\-\+E]+"
             self.Estring=r'(?<=Total Energy                               R  )[ \-\d.E\+]+'
             self.ForceString=r"(?<=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+"
             self.MassString=r"(?<=Real atomic weights     )[RN\=\-\+\d \.E\n]+"
@@ -165,6 +169,10 @@ class Read:
 
       atmwgt=re.findall(rtype.MassString, log)
       if rtype.type=='G09':
+         if atmwgt==[]:
+            #it may happen, that the masses are not given in the above format. Then let's see,
+            #if we can recognise some other format.
+            atmwgt=re.findall(r"(?<= and mass  )[\d. ]+", log)
          # Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
          mtemp=[]
          for j in range(len(atmwgt)/2): # because atomic masses are printed twize in log-files...
@@ -178,14 +186,14 @@ class Read:
          tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
          if dim!=len(tmp):
             # this is necessary since they are not always printed twice...
-            atmwgt=re.findall(r"AtmWgt= [\d .]+",log)
+            #atmwgt=re.findall(r"AtmWgt= [\d .]+",log) -> do not look for the same twice!!
             mtemp=[]
-            for j in range(len(atmwgt)): 
+            for j in range(len(atmwgt)):
                mtemp.append(re.findall(r'[\d.]+',atmwgt[j]))
             dim=0
             for j in range(len(mtemp)):
                   # dim will be sum over all elements of temp
-                  dim+=len(mtemp[j]) 
+                  dim+=len(mtemp[j])
             dim*=3
          #if still something is wrong with the dimensionality:
          assert len(tmp)==dim, 'Not all atoms were found! Something went wrong...{0}, {1}'.format(len(tmp),dim)
@@ -445,7 +453,7 @@ class Read:
       if rtype.type=='NWChem':
          # in this case, I need to do it differently:
          Grad=re.findall(rtype.gradPolishString, grad[0])
-         grad=np.zeros((len(Grad)*3,1))
+         grad=np.zeros(len(Grad)*3)
          for i in xrange(len(Grad)):
             tmp=Grad[i].split()
             for j in [0,1,2]:
@@ -453,16 +461,40 @@ class Read:
          return grad
       #if self.type!='NWChem': 
       Grad=re.findall(rtype.gradPolishString, grad[-1])
-      grad=np.zeros((len(Grad),1))
+      grad=np.zeros(len(Grad))
       for i in xrange(len(Grad)):
          grad[i]=float(Grad[i])
       return grad
+   
+   def __Read_Grad2(self, logfile, rtype):
+      if rtype.type!='G09':
+         assert 1==2, "This method is not avalable for non-G09-files so far."
+      files=open(logfile, "r")
+      log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
+      files.close()
+
+      grad=re.findall(r"(?<=Symbolic Z-Matrix:\n)[\w \+\-\.\d\n]+", log)
+      assert len(grad)>0, "ERROR: No gradient given."
+      Grad=re.findall("r[\+\-\.\d]+", grad[-1])
+      grad=np.zeros(len(Grad))
+      for i in xrange(len(Grad)):
+         grad[i]=float(Grad[i])
+      return grad
+
    # END: FUNCTIONS TO READ THE NEEDED DATA FROM OUTPUT-FILES IN DIFFERENT FORMATS.
 
    #USER-FUNCTIONS ASKING FOR CERTAIN DATA:
    def Gradient(self):
       # the gradient makes only sense when given for the final state.
       return self.__Read_Grad(self.final, self.ftype)
+   
+   def Gradient2(self):
+      #at least in Gaussian, one can calculate the gradient of ground state
+      # at excited states geometry; hence, I can calculate the spectrum on the
+      # basis of that gradient as well and it might be more reliable.
+      # This way is available via this function and is gone by specifying the 
+      # option "gradient" in the VispeR-input file.
+      return self.__Read_Grad2(self.init, self.itype)
    
    def Energy(self):
       return [self.__Read_Energy(self.init, self.itype) ,self.__Read_Energy(self.final, self.ftype)]
@@ -477,5 +509,5 @@ class Read:
       return [self.__Read_Force(self.init, self.itype), self.__Read_Force(self.final, self.itype)]
    #END USER-FUNCTIONS ASKING FOR CERTAIN DATA:
 
-#version=0.1.5
+#version=0.1.6
 # End of Read.py
