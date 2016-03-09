@@ -192,8 +192,10 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
           #if larges HR-factor is too large
           loggingwrite(u'\nWARNING: THE HUANG-RHYS FACTOR SEEMS TO BE'+\
                                                             ' TOO LARGE !!\n')
-          loggingwrite(u'the spectrum will be calculated, but most probably'+\
+          loggingwrite(u'        the spectrum will be calculated, but most probably'+\
                                          ' the input-state is inconsistent.\n')
+          loggingwrite(u'        Please check the xyz-file created.\n')
+          self.makeXYZ()
        # the HR-factors are printed allways.
        loggingwrite(u'HR-fact           freq     delta\n')
        #print(u'HR-fact           freq\n')
@@ -214,7 +216,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        # now, make the new results being objects of that class:
        self.HR=uniHR
        self.f=uniFall
-    
+
 class CFC_spect(FC_spect):
    def __init__(self, f): 
       # first, initialise as done for all spectra:

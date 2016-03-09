@@ -7,15 +7,13 @@ import Read
 import MultiPart
 import random
 
-Hartree2GHz=6.579684e6                                     
-Hartree2cm_1=219474.63 
-
 # CHANGELOG
 # =========
 #in version 0.1.6:  
 #   a) added RMSD_reorient
 #   b) added options to force gradient and chose the reorientation.
 #   c) opt- parameter is now read as whole line.
+#   d) added getXYZ to speed-up my current calculations.
 #
 #in version 0.1.5:  
 #   a) Add function for reorientation of Cartesian Coordinates (Manipulate)   
@@ -87,7 +85,8 @@ class  Spect:
    
    # The following additional elements are members of all instances:
    #
-   #  logging #  f  (frequencies in a 2-D array) #  Lmassw
+   #  logging 
+   #  f  (frequencies in a 2-D array) #  Lmassw
    #  T  (temperature of the system)
    #  broadopt
    #  states1, states2
@@ -592,14 +591,14 @@ class  Spect:
                       for i in range(3) for j in range(self.dim//3) ):
          self.Grad=self.reader.Gradient() 
       elif re.search(r"gradient", self.opt, re.M) is not None:
-         self.Grad=self.reader.Gradient2() 
+         self.Grad=self.reader.Gradient() 
       else: 
          #define this for easier syntax in function MOI_reorient
          # and Duschinsky.
          self.Grad=[0,0]
       if self.logging[0]<3:
          self.logging[1].write('difference of minimum energy between states:'
-                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*Hartree2cm_1))
+                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1))
          if self.logging[0]<2:
             self.logging[1].write('Cartesian coordinates of initial state: \n')
             self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
@@ -611,6 +610,43 @@ class  Spect:
                self.logging[1].write('final state: \n')
                self.printMat(F[1])
    
+   def makeXYZ(self):
+      """This function creates an .xyz-file for opening e.g. with Chemcraft.
+         It is intended to be called whenever it is likely that the input-states do not
+         fit together or harmonic approximation will not hold.
+         Hence, this is for backup only but in these cases might be helpful.
+      """
+      output=open("molecule.xyz", "w")
+
+      #first, print the initial state:
+      output.write("%d\n    inital state\n"%(self.dim//3))
+      for i in range(len(self.CartCoord[0][0])):
+         output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
+                                             self.CartCoord[0][0][i]/self.Angs2Bohr,
+                                             self.CartCoord[0][1][i]/self.Angs2Bohr,
+                                             self.CartCoord[0][2][i]/self.Angs2Bohr) )
+      #second, print the final state:
+      output.write("\n%d\n    final state\n"%(self.dim//3))
+      for i in range(len(self.CartCoord[0][0])):
+         output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
+                                             self.CartCoord[1][0][i]/self.Angs2Bohr,
+                                             self.CartCoord[1][1][i]/self.Angs2Bohr,
+                                             self.CartCoord[1][2][i]/self.Angs2Bohr) )
+
+      #finally, print block with both states after another:
+      output.write("\n%d\n    inital state\n"%(self.dim//3)*2)
+      for i in range(len(self.CartCoord[0][0])):
+         output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
+                                             self.CartCoord[0][0][i]/self.Angs2Bohr,
+                                             self.CartCoord[0][1][i]/self.Angs2Bohr,
+                                             self.CartCoord[0][2][i]/self.Angs2Bohr) )
+      for i in range(len(self.CartCoord[0][0])):
+         output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
+                                             self.CartCoord[1][0][i]/self.Angs2Bohr,
+                                             self.CartCoord[1][1][i]/self.Angs2Bohr,
+                                             self.CartCoord[1][2][i]/self.Angs2Bohr) )
+      output.close()
+
    def GetL(self):
       """Function that calculates the frequencies and normal modes from force constant matrix.It
          mainly calls a hermitian eigenvalue-solver and computes the frequencies as 
@@ -735,7 +771,7 @@ class  Spect:
             else:
                self.logging[1].write("Final states:\n")
             self.logging[1].write("Frequencies (cm-1)\n")
-            self.printVec(f[i]*Hartree2cm_1)
+            self.printVec(f[i]*self.Hartree2cm_1)
             #indeed, this matrix is not resorted yet and yes, the user is not informed
             #that there are manipulations done on it afterwards.
             self.logging[1].write("L-matrix \n")
@@ -851,8 +887,8 @@ class  Spect:
       #output on the information gathered above
       if self.logging[0]==0:
          self.logging[1].write('\nRotational constants (GHz) in principle axes\n')
-         self.logging[1].write('initial state: '+ repr(1/(2*diagI[0].T)*Hartree2GHz)+"\n")
-         self.logging[1].write('final state: '+ repr(1/(2*diagI[1].T)*Hartree2GHz)+"\n")
+         self.logging[1].write('initial state: '+ repr(1/(2*diagI[0].T)*self.Hartree2GHz)+"\n")
+         self.logging[1].write('final state: '+ repr(1/(2*diagI[1].T)*self.Hartree2GHz)+"\n")
          self.logging[1].write("Inertia system in Cartesion Coordinates of initial state:\n")
          self.printMat(X[0])
          self.logging[1].write("Inertia system in Cartesion Coordinates of final state:\n")
@@ -882,7 +918,6 @@ class  Spect:
       rmsdi.append(rmsd)
       #reassign i 
       i=np.argmin(rmsdi)
-      print i, rmsdi
       if i==len(rmsdi)-1:
          # no rotation into MOI-frame should be done because initial 
          # geometry is the best. This is the case especially, if there
@@ -923,9 +958,6 @@ class  Spect:
          self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
          self.logging[1].write('Cartesian coordinates of final state: \n')
          self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
-
-      #Attention: Here I don't print the updated geometries. This might be wished at some point.
-      #end MOI_reorient
    
    def RMSD_reorient(self):
       """This function reorients the final state in space such that
@@ -980,8 +1012,6 @@ class  Spect:
                #they give redundant results.
                continue
             U=sign.dot(O)
-            print U
-            print "   ",RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
             #print np.shape(rotated) ,np.shape(self.CartCoord[0]), np.shape(U.dot(self.CartCoord[1]))
             if RMSD(self.CartCoord[0]-rotated) >RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])):
                #if the current combination is the best, save it.
@@ -1015,7 +1045,6 @@ class  Spect:
                #if it gets better: apply the change.
                self.CartCoord[1]=test
                U=R.A.dot(U)
-               print RMSD(self.CartCoord[0]-test)
       
       #FOURTH STEP: apply the rotation.
 
