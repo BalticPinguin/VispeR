@@ -9,18 +9,18 @@ import re, mmap, os.path, math, sys
 #to version=0.1.6   
 #
 #to version=0.1.5   
-# 1. Reduced amount of redundant code; added strings to rtype.
+# 1. Reduced amount of redundant code; added strings to rtype.  
 # 2. Gradients for NWChem work now. Gradient() returns now only
-#    final states gradient.
-# 3. repaired Estring of G09
-# 4. repaired gradpolishstring of g09_fchk
+#    final states gradient.  
+# 3. repaired Estring of G09  
+# 4. repaired gradpolishstring of g09_fchk  
 #
-#to version=0.1.0  
-# 1. Resorted the class: reads data-based, not logfile-based.  
-#    This might be slower at runtime but is better structured  
+#to version=0.1.0    
+# 1. Resorted the class: reads data-based, not logfile-based.
+#    This might be slower at runtime but is better structured
 #    and easier to read. Moreover, it avoids redundant code.  
-# 2. Added class rtype that knows the strings to search for 
-#    some of the data.
+# 2. Added class rtype that knows the strings to search for
+#    some of the data.  
 #  
 #to version=0.0.1  
 # 1. I deleted the functions reading L and f from the log-file.  
@@ -79,8 +79,8 @@ class Read:
          if typestring=="G09":
             self.gradString=r"Number     Number              X              Y              Z\n [\-\.\d \n]+"
             self.gradPolishString=r"[\-\d\.]+[\d]{9}"
-            self.Estring=r"(?<=Total Energy, E\(TD-HF/TD-KS\) =)[\d .\-]+"
-            self.Estring2=r"HF=-[\d.\n ]+"
+            self.Estring=r"(?<=SCF Done:  E)[\d.\n \(\)\w\+\-=]+"
+            self.Estring2=r"(?<=SCF Done:  E)[\d.\n \(\)\w\+\-=]+"
             self.ForceString=r"Force constants in Cartesian coordinates: [\n\d .+-D]+"
             self.MassString=r"AtmWgt= [\d .]+"
             self.CoordS=r' Number     Number       Type             X           Y           Z[\n -.\d]+'
@@ -422,7 +422,7 @@ class Read:
             E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
          else:
             #this number is already given in Hartree.
-            E=float(Etemp[-1].strip())
+            E=float(Etemp[-2].split()[2])
       elif rtype.type=='G09_fchk' or rtype=='GAMESS':
          assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
          # replacement has only effect in case of G09_fchk but doesn't disturb for GAMESS.

@@ -10,18 +10,19 @@ import random
 # CHANGELOG
 # =========
 #in version 0.1.6:  
-#   a) added RMSD_reorient
-#   b) added options to force gradient and chose the reorientation.
-#   c) opt- parameter is now read as whole line.
-#   d) added getXYZ to speed-up my current calculations.
+#   a) added RMSD_reorient   
+#   b) added options to force gradient and chose the reorientation.   
+#   c) opt- parameter is now read as whole line.   
+#   d) added getXYZ to speed-up my current calculations.   
+#   e) Re-added projector onto frequencies.   
 #
 #in version 0.1.5:  
-#   a) Add function for reorientation of Cartesian Coordinates (Manipulate)   
-#   b) removed the oldinvokelogging. I think, I will not need it (it was looking
+#   a) Add function for reorientation of Cartesian Coordinates (Manipulate)      
+#   b) removed the oldinvokelogging. I think, I will not need it (it was looking   
 #       for whole as logging-level instead of just a letter)   
-#   c) Manipulate is changed and still not working.
-#   d) Fixed some issues when working with gradients.
-#   e) changed Manipulate to MOI_reorient and changed the function.
+#   c) Manipulate is changed and still not working.   
+#   d) Fixed some issues when working with gradients.   
+#   e) changed Manipulate to MOI_reorient and changed the function.   
 #
 #in version 0.1.0:  
 #   a) added some documentation/doc-strings  
@@ -93,6 +94,7 @@ class  Spect:
    #  read 
    #  mass (sqrt(masses))
    #  logfile
+   #  F  mass-weighted hessian
  
    # END OF DATA-DEF.
 
@@ -672,6 +674,61 @@ class  Spect:
       L=np.zeros(( 2, lenF, lenF-6 )) 
       Lmass=np.zeros(( 2, lenF, lenF-6 ))
       f=np.zeros(( 2, lenF-6 ))
+
+      def gs(A):
+         """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
+            code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
+         """
+         X=A.T # I want to orthogonalize row-wise
+         Y = []
+         npdot=np.dot
+         for i in range(len(X)):
+            temp_vec = X[i]
+            for inY in Y :
+               #proj_vec = proj(inY, X[i])
+               proj_vec = map(lambda x : x *(npdot(X[i],inY) / npdot(inY, inY)) , inY)
+               temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)
+            Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
+         return np.matrix(Y).T # undo transposition in the beginning
+
+      def GetProjector(self, i):
+         """ 
+         """
+         # Getting tensor of inertia, transforming to principlas axes
+         moi=np.zeros((3,3))# this is Moment Of Inertia
+         # print Coord[1]
+         for j in [0,1,2]:
+            for k in [0,1,2]:
+               if k == j:
+                  moi[j][j]=np.sum(self.mass*self.mass*(self.CartCoord[i][0]*self.CartCoord[i][0]+\
+                           self.CartCoord[i][1]*self.CartCoord[i][1]+self.CartCoord[i][2]*self.CartCoord[i][2]-\
+                           self.CartCoord[i][j]*self.CartCoord[i][k]))
+               else:
+                  moi[j][k]=np.sum(self.mass*self.mass*(self.CartCoord[i][j]*self.CartCoord[i][k]))
+         diagI,Moi_trafo=np.linalg.eig(moi) # this can be shortened of course!
+         index=np.argsort(diagI,kind='heapsort')
+         #X=np.matrix(X[index]) #sorting by eigenvalues
+         Moi_trafo=np.matrix(Moi_trafo) #notsorting by eigenvalues
+      
+         #now, construct the projector onto frame of rotation and translation using Sayvetz conditions
+         D=np.zeros((self.dim,6))
+         for k in [0,1,2]:# first three rows in D: The translational vectors
+            for j in range(self.dim//3):
+               #translations in mass-weighted coordinates
+               D[3*j+k][k]=self.mass[j]
+         for k in range(self.dim):# next three rows in D: The rotational vectors
+            #rotations in mass-weighted coordinates
+            D[k][3:6]=(np.cross(np.dot(Moi_trafo,self.CartCoord[i])[:].T[k//3],Moi_trafo[:].T[k%3]))*self.mass[k//3]
+         D_orthog=gs(np.array(D)) #orhogonalize it
+         ones=np.identity(self.dim)
+         one_P=ones-np.dot(D_orthog,D_orthog.T)
+         prob_vec=(D_orthog.T[1]+D_orthog.T[4]+D_orthog.T[0]+D_orthog.T[5]).T #what is this actually??
+         assert not np.any(np.abs(prob_vec-np.dot(np.dot(D_orthog,D_orthog.T),prob_vec))>0.00001), \
+                  'Translations and rotations are affected by projection operator.'+\
+                  repr(np.abs(prob_vec-np.dot(np.dot(D_orthog,D_orthog.T),prob_vec)))
+         assert not  np.any(np.abs(np.dot(one_P,prob_vec))>0.00001), \
+                  "Projecting out translations and rotations from probe vector"
+         return one_P
       
       def SortL(J,L,f):
          """This functions resorts the normal modes (L, f) such that the Duschinsky-Rotation
@@ -733,20 +790,41 @@ class  Spect:
          #  END OF SortL
   
       # do the following for both states:
-      for i in range(2):
+      for i in [0,1]:
          # solve the eigenvalue-equation for F:
 
-         # here one can choose between the methods: result is more or less 
-         #  independent
-         #ftemp,Ltemp=np.linalg.eig(self.F[i])
-         #ftemp,Ltemp=np.linalg.eigh(self.F[i])
-         ftemp,Ltemp,info=dsyev(self.F[i])
-         
-         #sort the results with increasing frequency (to make sure it really is)
-         index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
-         # and then cut off the 6 smallest values: rotations and vibrations.
-         f[i]=np.real(ftemp[index]).T[:].T[6:].T
-         L[i]=(Ltemp.T[index].T)[:].T[6:].T
+         #REMOVE ROTATIONS AND TRANSLATIONS FROM HESSIAN.
+         #project=False
+         project=True
+         #project out the rotations and vibrations and not just throw away the smallest 6 eigen values
+         # and respective eigen modes.
+         if project:
+            D=GetProjector(self, i)
+            #ftemp,Ltemp=np.linalg.eig(np.dot(np.dot(D.T,self.F[i]),D))
+            ftemp,Ltemp,info=dsyev(np.dot(np.dot(D.T,self.F[i]),D))
+            #ftemp,Ltemp,info=dsyev(self.F[i])
+            
+            #Why can I not construct D such that I don't need to throw away anything?
+
+            index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
+            # and then cut off the 6 smallest values: rotations and vibrations.
+            f[i]=np.real(ftemp[index]).T[:].T[6:].T
+            L[i]=(Ltemp.T[index].T)[:].T[6:].T
+         else: #disabled right now, maybe I will reenable it later on!?
+            #ftemp,Ltemp=np.linalg.eigh(self.F[i])
+            ftemp,Ltemp,info=dsyev(self.F[i])
+            for j in range(0,self.dim):
+               norm=np.sum(Ltemp.T[j].T.dot(Ltemp.T[j]))
+               print norm
+               if np.abs(norm)>1e-12:
+                  Ltemp.T[j]/=np.sqrt(norm)
+
+            #sort the results with increasing frequency (to make sure it really is)
+            index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
+            # and then cut off the 6 smallest values: rotations and vibrations.
+            f[i]=np.real(ftemp[index]).T[:].T[6:].T
+            L[i]=(Ltemp.T[index].T)[:].T[6:].T
+         #END REMOVING ROTATIONS AND TRANSLATIONS.
    
          #the frequencies are square root of the eigen values of F
          # Here, we need to take care for values <0 due to bad geometry
