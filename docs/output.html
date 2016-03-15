@@ -1,73 +1,42 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
 <head>
-  <meta http-equiv="content-type" content="text/html;charset=utf-8">
-  <title>Output of the smallscript</title>
-  <link rel="stylesheet" href="pycco.css">
-  <style>
-  table, th, td {
-      border: 1px solid black;
+   <meta http-equiv="content-type" content="text/html;charset=utf-8">
+   <title>Documentation for Visper</title>
+   <link rel="stylesheet" href="visper.css">
+   <style>
+   table, th, td {
+      border: 1px solid white;
       border-collapse: collapse;
    }
    th, td {
-      padding: 15px;
+      padding: 10px;
    }
    </style>
+   <div style="margit-left: 10%">
 </head>
 
 <body>
-
+<h1><center>Description of  Vispers ouptut file</center></h1>
 <h1>Contents:</h1>
 <nav role="navigation" class="table-of-contents">
    <h2>List of contents:</h2>
    <ul>
-      <li><a href="#main">General information</a></li>
-      <li><a href="#HR">What to expect from the Huang-Rhys factors</a></li>
-      <li><a href="#FC">What to expect form the calculation of spectrum in Franck-Condon picture</a></li>
-      <li><a href="#DR">What to expect form the calculation of spectrum including Duschinsky-effect </a></li>
-      <li><a href="#broaden">Output of the Broadening-calculation</a></li>
+      <li><a href="#intro">General Words in advance</a></li>
    </ul>
 </nav>
 
-<h1 id="#main">General information</h1>
-The output is written in a file specified by  <tt> out: </tt> in the 
-<a href="DOCUMENTATION.html#input">input</a> file. Most of the information is 
-printed only if the logging-level is low enough. 
-For details about the possible levels see <a href="DOCUMENTATIO.html#HR">print=...</a>.
-<p>If a file with the name of the log-file exists already, the information will be appended to it
-(which can lead to large files, if the same calculation is performed multiple times).</p>
-<p>Each output starts by a header : </p>
-================================================================== <br>
-===================  output of smallscript  ====================== <br>
-================================================================== <br>
-and a copy of the input-file.
-<p>After this, the string <tt>calculations to be done:</tt> followed by 
-a number  encoding the options is shown.
-Here 1 denotes the calculation of Huang-Rhys-factors (and Duschinsky-matrix), 
-2 denotes the calculation of a line-spectrum in FC-scheme, 
-4 is the calculation of a line-spectrum with Duschinsky-rotation and 
-8 means that a broadened spectrum has to be calculated. 
-The printed number is the sum of the requested options and determines uniquely, what has to be done. </p>
-<p> Further, each of these tasks has it's own logging-flag (how detailed the print-out is).</p>
-<h1 id="#HR">Output from the calculation of Huang-Rhys factors</h1>
-   This part will be introduced by the line <tt>Use method ... for the calculation of all quantities.</tt> in any case.
-<h1 id="#FC">spectrum in Franck-Condon picture</h1>
-   The calculation of FC-spectra is introduced by <tt> Calculate the line-spectrum in FC-picture with %s excitations.</tt>
-   in the log-file (besides some minor information as temperature of the system, depending on the niveau of output).
-   <p>The line-spectrum in onp-particle-approximation (independent of the option to nPA) is printed if 
-      <tt>loglevel=0</tt>. It starts with the string <tt> Line-spectrum in One-Particle approximation:</tt>
-      and has frequencies (in cm^-1) in first, intensities in second column and the mode that changes it's state
-      in third culumn. With these informations, a full nPA-spectrum can be calculated.</p>
-<h1 id="#DR">spectrum including Duschinsky-effect </h1>
-   The calculation of spectra taking Duschinsky-effect into account starts with 
-   <tt> Use the model ... for the calculation of linespectrum.</tt> followed by additional 
-   statements depending on the <a href="models.html#DR-m">model</a> used.
-   <p> if <tt>logging=0</tt>, the change of Cartesian coordinates is printed after the key words 
-      <tt> changes of Cartesian coordinates</tt> .</p>
-   <p> if <tt>logging</tt> is 0 or 1,  the Duschinsky-rotation matrix and displacement vector are printed after the 
-      key words <tt> Duschinsky rotation matrix, state</tt> and <tt>Duschinsky displacement vector:</tt> respectively.</p>
-<h1 id="#broaden">Broadening-calculation</h1>
-   The output of this section mainly consists of all data-points 
+<h1 id='intro'> Introduction </h1>
+<p> The output of a Visper-Calculation shows some general information about the calculation performed. Depending on the details level chosen, most of these data
+are not calculated inside that programme but are imported from the log-files given. </p>
+<p>The information given can be divided into three kinds:
+<ul>
+   <li> Static output </li>
+   <li> More or less detailed information about the performed calculations</li>
+   <li> Informations about the calculation itself such as warnings, errors or similar information.</li>
+   <!-- For this information I will defitely need some regex to find it easily  -->
+</ul>
+</p>
 
 </body>
 </html>

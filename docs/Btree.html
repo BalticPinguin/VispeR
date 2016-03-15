@@ -6,8 +6,8 @@
   <link rel="stylesheet" href="pycco.css">
 </head>
 <body>
-<div id="background"></div>
 <div id='container'>
+  <div id="background"></div>
   <div class='section'>
     <div class='docs'><h1>Btree.py</h1></div>
   </div>
@@ -29,7 +29,7 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
-      <p>contstant is important for <a href="Btree.html#extract">Btree.pyx</a></p>
+      <p>contstant is important for  <a href="Btree.html#extract">Btree.pyx</a></p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="n">DATATHRESHOLD</span><span class="o">=</span><span class="mf">1e-6</span></pre></div>
@@ -54,7 +54,7 @@
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
       <p>and (n+apha-1)!/(n!(alpha-1)!) data-points.
-For better structurisation, it has  4 different data-types:</p>
+   For better structurisation, it has  4 different data-types:</p>
 <ol>
 <li>n: has two child-trees attached ('left' and <em>right</em>)</li>
 <li>l: has one child-tree ('left') and one data-point</li>
@@ -63,16 +63,16 @@ For better structurisation, it has  4 different data-types:</p>
 </ol>
 <p>in addition, for the 0-th order tree there is a type '_' having only one data-point attached.</p>
 <p>the 'data' moreover consists of an array (due to the fill-procedure in Dusch_unrest.py &gt; iterate
-with the content
-         I_nn                   - square root of intensity
-         Delta E                - the transition energy
-         Freq_init              - the energy of initial state above its ground (for thermal weighting)
-that are needed for the further working with the transitions.</p>
+   with the content<br />
+            I_nn                   - square root of intensity<br />
+            Delta E                - the transition energy<br />
+            Freq_init              - the energy of initial state above its ground (for thermal weighting)<br />
+   that are needed for the further working with the transitions.</p>
 <p>all possible attributes; it saves memory especially for huge trees, (saves about 1/3)
 see http://tech.oyster.com/save-ram-with-python-slots/</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">__slots__</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="s">&#39;left&#39;</span><span class="p">,</span><span class="s">&#39;right&#39;</span><span class="p">,</span><span class="s">&#39;alpha&#39;</span><span class="p">]</span> <span class="c">#why is &#39;type&#39; not neccesary?</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">__slots__</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span><span class="s1">&#39;right&#39;</span><span class="p">,</span><span class="s1">&#39;alpha&#39;</span><span class="p">]</span> <span class="c1">#why is &#39;type&#39; not neccesary?</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -93,7 +93,7 @@ see http://tech.oyster.com/save-ram-with-python-slots/</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
-      <p>here alph is twize the number of modes, decreasing within the tree.</p>
+      <p>where alph is twize the number of modes, decreasing within the tree.</p>
 <p>self.alpha is not the same for different ns in the tree.
 For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational modes</p>
     </div>
@@ -122,30 +122,30 @@ For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational
       
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">!=</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;There must be at least 1 vibrational mode!!&#39;</span>
-      <span class="k">assert</span> <span class="n">n</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;The dimensionality of a tree can not be smaller 0&#39;</span>
+      <div class="highlight"><pre>      <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">!=</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;There must be at least 1 vibrational mode!!&#39;</span>
+      <span class="k">assert</span> <span class="n">n</span><span class="o">&gt;=</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;The dimensionality of a tree can not be smaller 0&#39;</span>
       <span class="k">if</span> <span class="n">n</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="c">#this is extra-tree</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;_&#39;</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1">#this is extra-tree</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;_&#39;</span>
       <span class="k">elif</span> <span class="n">n</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> <span class="c">#saves memory</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;u&#39;</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span> <span class="c1">#saves memory</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;u&#39;</span>
       <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">=</span><span class="n">Tree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;l&#39;</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;l&#39;</span>
       <span class="k">elif</span> <span class="n">n</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">=</span><span class="n">Tree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;r&#39;</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;r&#39;</span>
       <span class="k">else</span><span class="p">:</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">=</span><span class="n">Tree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">=</span><span class="n">Tree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s">&#39;n&#39;</span></pre></div>
+         <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;n&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -166,17 +166,17 @@ For the main-tree self.alpha =2*alpha-1 where alpha is the number of vibrational
       <div class='octowrap'>
         <a class='octothorpe' href='#section-9'>#</a>
       </div>
-      <p>note: 2*alpha-1 is 'self.alpha' of the main n)</p>
-<p><em>PARAMETERS:</em><em> 
-:  A 2</em>alpha-dimensional array 'attention: The size is never checked.<br />
-C  The data to be filled into the respective n (2x1)-array</p>
-<p><em>RETURNS:</em>*
-othing</p>
-<p><em>NOTE:</em>*
-rong-sized arrays will can lead to unexpected beaviour.
-dditionally the sum over all elemens has to coincide with 'n' used for 
-he function 'fill()'. This is not checked as well and will NOT lead 
-o asserts but will fill the element into wrong ns'</p>
+      <p>(note: 2*alpha-1 is 'self.alpha' of the main n)</p>
+<p><strong>PARAMETERS:</strong> 
+  N:  A 2*alpha-dimensional array 'attention: The size is never checked.<br />
+  FC  The data to be filled into the respective n (2x1)-array</p>
+<p><strong>RETURNS:</strong>
+  nothing</p>
+<p><strong>NOTE:</strong>
+  Wrong-sized arrays will can lead to unexpected beaviour.
+  Additionally the sum over all elemens has to coincide with 'n' used for 
+  the function 'fill()'. This is not checked as well and will NOT lead 
+  to asserts but will fill the element into wrong ns'</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
@@ -187,28 +187,28 @@ o asserts but will fill the element into wrong ns'</p>
 
       <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
       <span class="n">m</span><span class="o">=</span><span class="n">summ</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">N</span><span class="p">)):</span> <span class="c">#self.alpha==alpha since this is root-n</span>
-         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;n&#39;</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">N</span><span class="p">)):</span> <span class="c1">#self.alpha==alpha since this is root-n</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;n&#39;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
                <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span>
-               <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">n</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
+               <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">n</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
                   <span class="k">break</span>
             <span class="k">if</span> <span class="n">n</span><span class="o">+</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">FC</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> 
                <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
                <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span>
-         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;l&#39;</span><span class="p">:</span>
+         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;l&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">n</span><span class="o">+</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">FC</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> 
                <span class="k">break</span>
             <span class="k">else</span><span class="p">:</span>
                <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span>
                <span class="n">n</span><span class="o">+=</span><span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;r&#39;</span><span class="p">:</span>
+         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;r&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">FC</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> 
             <span class="k">break</span>
-         <span class="k">else</span><span class="p">:</span><span class="c"># self.type==&#39;u&#39; or &#39;_&#39;</span>
+         <span class="k">else</span><span class="p">:</span><span class="c1"># self.type==&#39;u&#39; or &#39;_&#39;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">FC</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> 
             <span class="k">break</span>
          <span class="n">n</span><span class="o">+=</span><span class="nb">int</span><span class="p">(</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></pre></div>
@@ -221,14 +221,14 @@ o asserts but will fill the element into wrong ns'</p>
         <a class='octothorpe' href='#section-10'>#</a>
       </div>
       <p><strong>extract</strong>
-This function is for ordered extraction of all elements in the tree and additionally can be used 
-instead of print (by 'print instance.extract()').
-the returned statement is a vector containing all values created by the inner function</p>
-<p><em>RETURN:</em>
-two-dimensional array containing intensities([0]) and frequencies([1])</p>
+   This function is for ordered extraction of all elements in the tree and additionally can be used 
+   instead of print (by 'print instance.extract()').
+   the returned statement is a vector containing all values created by the inner function</p>
+<p><strong>RETURN:</strong>
+   two-dimensional array containing intensities([0]) and frequencies([1])</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c">#extract all elements</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c1">#extract all elements</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -267,18 +267,18 @@ result:     2-dimensional array containing data already read from the tree, data
             side effects</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;n&#39;</span><span class="p">:</span>
+      <div class="highlight"><pre>         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;n&#39;</span><span class="p">:</span>
             <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
             <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
-         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;r&#39;</span><span class="p">:</span>
+         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;r&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">DATATHRESHOLD</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;-</span><span class="n">DATATHRESHOLD</span><span class="p">:</span>
                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
             <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
-         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;l&#39;</span><span class="p">:</span>
+         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;l&#39;</span><span class="p">:</span>
             <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">DATATHRESHOLD</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;-</span><span class="n">DATATHRESHOLD</span><span class="p">:</span>
                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;u&#39;</span><span class="p">:</span>
+         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;u&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&gt;</span><span class="n">DATATHRESHOLD</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;-</span><span class="n">DATATHRESHOLD</span><span class="p">:</span>
                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
          <span class="k">else</span><span class="p">:</span>
@@ -286,7 +286,7 @@ result:     2-dimensional array containing data already read from the tree, data
                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 
       <span class="n">extra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">result</span><span class="p">)</span>
-      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="c">#if no intensity is higher than DATATHRESHOLD</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span> <span class="c1">#if no intensity is higher than DATATHRESHOLD</span>
          <span class="k">return</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
       <span class="k">return</span> <span class="n">result</span></pre></div>
     </div>
@@ -310,9 +310,9 @@ result:     2-dimensional array containing data already read from the tree, data
         <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <p><strong>Input-Arguments:</strong>
-Vector of length 2*alpha</p>
+   Vector of length 2*alpha</p>
 <p><strong>returns:</strong>
-the Franck-Condon factor for this state</p>
+   the Franck-Condon factor for this state</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="k">def</span> <span class="nf">summ</span><span class="p">(</span><span class="n">array</span><span class="p">):</span>
@@ -323,26 +323,26 @@ the Franck-Condon factor for this state</p>
 
       <span class="n">m</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">summ</span><span class="p">(</span><span class="n">N</span><span class="p">))</span>
       <span class="n">n</span><span class="o">=</span><span class="mi">0</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">N</span><span class="p">)):</span> <span class="c">#self.alpha==alpha since this is root-n</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">N</span><span class="p">)):</span> <span class="c1">#self.alpha==alpha since this is root-n</span>
          <span class="n">N_i</span><span class="o">=</span><span class="n">N</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;n&#39;</span><span class="p">:</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;n&#39;</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_i</span><span class="p">):</span>
                <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">right</span>
-               <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">N_i</span><span class="o">+</span><span class="n">n</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
+               <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">N_i</span><span class="o">+</span><span class="n">n</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
                   <span class="k">break</span>
             <span class="k">if</span> <span class="n">n</span><span class="o">+</span><span class="n">N_i</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
             <span class="k">else</span><span class="p">:</span>
                <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span>
-         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;l&#39;</span><span class="p">:</span>
+         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;l&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">n</span><span class="o">+</span><span class="n">N_i</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
             <span class="k">else</span><span class="p">:</span>
                <span class="bp">self</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span>
                <span class="n">n</span><span class="o">+=</span><span class="nb">int</span><span class="p">(</span><span class="n">N_i</span><span class="p">)</span>
-         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;r&#39;</span><span class="p">:</span>
+         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;r&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
-         <span class="k">else</span><span class="p">:</span><span class="c"># self.type==&#39;u&#39; or &#39;_&#39;</span>
+         <span class="k">else</span><span class="p">:</span><span class="c1"># self.type==&#39;u&#39; or &#39;_&#39;</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
          <span class="n">n</span><span class="o">+=</span><span class="n">N_i</span></pre></div>
     </div>
@@ -365,17 +365,17 @@ the Franck-Condon factor for this state</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-17'>#</a>
       </div>
-      <p>t is needed for temporary needs and debugging only since the size can be calculated
-y the input-argumens of '<strong>init</strong>' and 'fill'.</p>
+      <p>It is needed for temporary needs and debugging only since the size can be calculated
+  by the input-argumens of '<strong>init</strong>' and 'fill'.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;u&#39;</span><span class="p">:</span>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;u&#39;</span><span class="p">:</span>
          <span class="k">return</span> <span class="mi">2</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;r&#39;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;r&#39;</span><span class="p">:</span>
          <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;l&#39;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;l&#39;</span><span class="p">:</span>
          <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;n&#39;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;n&#39;</span><span class="p">:</span>
          <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
 
 <span class="n">version</span><span class="o">=</span><span class="mf">1.4</span></pre></div>
