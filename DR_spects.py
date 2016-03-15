@@ -3,7 +3,9 @@ import Spect
 import Btree as bt
 from copy import deepcopy
 import numpy as np
+from ctypes import *
 import re, mmap, math
+import os
 
 #  CHANGELOG 
 # ===========
@@ -100,7 +102,7 @@ class URDR_spect(Spect.Spect):
       self.logging[1].write("Displacement vector:\n")
       self.printVec(self.K)
    
-      # finally, calculate the Duschinsky-rotated stick spectrum in this picture
+      # finally, calculate the stick spectrum in this picture
       self.spect=self.FCf(self.states1+ self.states2, self.T)
    
    def FCf(self,N, T):
@@ -292,7 +294,6 @@ class URDR_spect(Spect.Spect):
                This recursive generator function was designed to be returned by
                `unlabeled_balls_in_labeled_boxes`.
                """
-         
                # If there are no balls, all boxes must be empty:
                if not balls:
                   yield len(box_sizes) * (0,)
@@ -310,52 +311,37 @@ class URDR_spect(Spect.Spect):
                   # Iterate over the number of balls in the first box (from the maximum
                   # possible down to zero), recursively invoking the generator to distribute
                   # the remaining balls among the remaining boxes.
-                  for balls_in_first_box in xrange( min(balls, box_sizes[0]), -1, -1 ):
+                  for balls_in_first_box in range( min(balls, box_sizes[0]), -1, -1 ):
                      balls_in_other_boxes= balls - balls_in_first_box
                      for distribution_other in _unlabeled_balls_in_labeled_boxes(
                      balls_in_other_boxes, box_sizes[1:]):
                         yield (balls_in_first_box,) + distribution_other
                # end three alternative blocks
-      
-            if not isinstance(balls, int):
-                  raise TypeError("balls must be a non-negative integer.")
-            if balls < 0:
-               raise ValueError("balls must be a non-negative integer.")
-         
-            if not isinstance(box_sizes,list):
-               raise ValueError("box_sizes must be a non-empty list.")
-         
-            capacity= 0
-            for size in box_sizes:
-               if not isinstance(size, int):
-                  raise TypeError("box_sizes must contain only positive integers.")
-               if size < 1:
-                  raise ValueError("box_sizes must contain only positive integers.")
-               capacity+= size
-         
-            if capacity < balls:
-               raise ValueError("The total capacity of the boxes is less than the "
-               "number of balls to be distributed.")
+     
+            
+            #skip error-checks: balls is not integer, <0 or not a non-empty list
+            #capacity= 0
+            #for size in box_sizes:
+            #   capacity+= size
+            #
+            #if capacity < balls:
+            #   raise ValueError("The total capacity of the boxes is less than the "
+            #   "number of balls to be distributed.")
       
             return _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
-            # end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)
+            # end def unlabeled_balls_in_labeled_boxes(balls, box_sizes)
       
          #States=np.zeros((math.factorial(n+alpha-1)/(math.factorial(n)*
                                  #math.factorial(alpha-1)),alpha))
          States2=[]
          a=np.ones(alpha).tolist()
          for i in range(len(a)):
-            a[i]=n*int(a[i]) #create the needed list
-         i=0
+            a[i]=n #create the needed list
+         #box=CDLL('/home/tm162/bin/smallscript/unlabeled_balls.so')
+         #for distributions in cbox.unlabeled_balls_in_labeled_boxes(c_int(n),c_int(alpha)):
          for distributions in unlabeled_balls_in_labeled_boxes(n,a):
             #States[i]=np.matrix(distributions)
-            try:
-               States2.append(np.array(distributions, dtype=np.int8)) #save memory!
-            except MemoryError: 
-               #if the memory is not enough: don't add further states and use what is availibleA
-               print('Memory is full for state',n,'having only', len(States2),'objects in it. Use these states only.')
-               break #in principle: do more stuff here!
-            i+=1
+            States2.append(np.array(distributions, dtype=np.int8)) #save memory!
          return States2
    
       lines=[]
@@ -374,7 +360,7 @@ class URDR_spect(Spect.Spect):
             #only by assert: MemoryError
             break # kill calculation
          spect=L2.extract()
-         for j in range(len(spect)):
+         for j in xrange(len(spect)):
             #I_nn is stored; the intensity is I_nn*I_nn
             lineapp(spect[j][0]*spect[j][0])  
             freqapp(spect[j][1])             #energy of respective transition 
@@ -382,11 +368,13 @@ class URDR_spect(Spect.Spect):
       result=np.zeros((3, len(lines) ))
       #print freqs
       result[0]=freqs
-      T=self.T*self.Hartree2cm_1
+      #T=self.T*self.Hartree2cm_1
+      tmpW=CDLL('/home/tm162/bin/smallscript/tempW.so')
       for i in range(len(result[0])):
          #arbitrary but constant number for mode
          result[2][i]=42
-         result[1][i]=lines[i]*np.exp(-initF[i]/T) #thermally weighting of transitions
+         result[1][i]=tmpW.temp(lines[i], initF[i], T)
+         #result[1][i]=lines[i]*np.exp(-initF[i]/T) #thermally weighting of transitions
       return result
    
 class SDR_spect(Spect.Spect):

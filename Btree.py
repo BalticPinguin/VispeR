@@ -4,6 +4,13 @@ import numpy as np
 #contstant is important for [[Btree.pyx#extract]]
 DATATHRESHOLD=1e-6
 
+# CHANGELOG
+# =========
+#in version 1.4:  
+#
+#
+
+# These functions are very time-consuming. Maybe it should be ported to C or at least cython.
 class Tree:
    """the class Tree is a binary tree having a certain structure depending on 'alpha' 
       and (n+apha-1)!/(n!(alpha-1)!) data-points.
@@ -25,7 +32,7 @@ class Tree:
    """
    #all possible attributes; it saves memory especially for huge trees, (saves about 1/3)
    #see http://tech.oyster.com/save-ram-with-python-slots/
-   __slots__=['data', 'left','right','alpha'] #why is 'type' not neccesary?
+   __slots__=['data', 'left','right','alpha', 'summ'] #why is 'type' not neccesary?
 
    def __init__(self,alph):
       """ initializes the tree root of a (sub-) tree
@@ -88,31 +95,32 @@ class Tree:
 
       n=0
       m=summ(N)
-      for i in xrange(len(N)): #self.alpha==alpha since this is root-n
+      #for i in range(len(N)): #self.alpha==alpha since this is root-n
+      for i,N_i in enumerate(N): #self.alpha==alpha since this is root-n
          if self.type=='n':
-            for j in range(N[i]):
+            for j in range(N_i):
                self=self.right
-               if self.type=='l' and N[i]+n==m:
+               if self.type=='l' and N_i+n==m:
                   break
-            if n+N[i]==m:
+            if n+N_i==m:
                self.data=np.array(FC, dtype=np.float32) 
                break
             else:
                self=self.left
          elif self.type=='l':
-            if n+N[i]==m:
+            if n+N_i==m:
                self.data=np.array(FC, dtype=np.float32) 
                break
             else:
                self=self.left
-               n+=int(N[i])
+               n+=int(N_i)
          elif self.type=='r':
             self.data=np.array(FC, dtype=np.float32) 
             break
          else:# self.type=='u' or '_'
             self.data=np.array(FC, dtype=np.float32) 
             break
-         n+=int(N[i])
+         n+=int(N_i)
 
    def extract(self): #extract all elements 
       """
@@ -167,8 +175,9 @@ class Tree:
       """
       def summ(array):
          total=0
-         for i,n in enumerate(array):
-            total+=n
+         #for i,n in enumerate(array):
+         for i in range(len(array)):
+            total+=array[i]
          return total
 
       m=int(summ(N))

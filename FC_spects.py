@@ -9,6 +9,8 @@ import numpy as np
 # ===========
 # to version 0.1.5:  
 #  1) removed GFC-class  
+#  2) Added term for energy-correction in case of gradient.
+#  3) Changed setting self.type.
 #
 # to version 0.1.0:  
 #  1) Added some sense to GFC  
@@ -23,7 +25,9 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
    """
    def __init__(self, f): 
       # first, initialise as done for all spectra:
-      self.type='FC'
+      if self.type=="Spect":
+         #don't set it if this is CFC-calculation.
+         self.type='FC'
       Spect.Spect.__init__(self, f)
       # now, calculate HR-spect in addition.
       HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",self.opt,re.M)
@@ -155,7 +159,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        return np.matrix(Y).T # undo transposition in the beginning
     
    def HuangR(self, HRthresh): #what is with different frequencies???
-       """ Function that calculates the Huang-Rhys factors for all 
+      """ Function that calculates the Huang-Rhys factors for all 
          vibrational states
             
          **PARAMETERS**
@@ -167,55 +171,58 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
    
          **RETURNES**
          nothing. All results are members of class  FC_Spect.
-       """
-       lenK=len(self.K)
-       sortHR=np.zeros(lenK)
-       HR=np.zeros(lenK)
-       fsort=np.zeros(lenK)
-       uniFall=[]
-       for j in range(lenK):
-          HR[j]=self.K[j]*self.K[j]*self.f[0][j]*.5 
-       index=np.argsort(HR, kind='heapsort')
-       sortHR=HR[index]
-       fsort0=self.f[0][index]
-       fsort1=self.f[1][index]
-       if np.any(fsort)<0:
-          self.logging[1].write('WARNING: some HR-factors are <0.\
-                   In the following their absolute value is used.')
-          fsort1=np.abs(fsort1)
-          fsort0=np.abs(fsort0)
-       uniHR=[]
-       uniF1=[]
-       uniF0=[]
-       loggingwrite=self.logging[1].write
-       if sortHR[-1]>=10: 
-          #if larges HR-factor is too large
-          loggingwrite(u'\nWARNING: THE HUANG-RHYS FACTOR SEEMS TO BE'+\
-                                                            ' TOO LARGE !!\n')
-          loggingwrite(u'        the spectrum will be calculated, but most probably'+\
-                                         ' the input-state is inconsistent.\n')
-          loggingwrite(u'        Please check the xyz-file created.\n')
-          self.makeXYZ()
-       # the HR-factors are printed allways.
-       loggingwrite(u'HR-fact           freq     delta\n')
-       #print(u'HR-fact           freq\n')
-       for j in range(len(sortHR)-1,-1,-1):
-          #select all 'big' HR-factors 
-          if sortHR[j]>=HRthresh:
-             uniHR.append(sortHR[j])
-             uniF1.append(fsort1[j])
-             uniF0.append(fsort0[j])
-             loggingwrite(u"%f   %f   %f\n"%(sortHR[j], fsort1[j]*self.Hartree2cm_1, 
-                                                np.sqrt(fsort1[j]/fsort0[j]) ))
-          else:
-             # there will come only smaller ones.
-             break
-       #keep order: First one is initial, second is final state.
-       uniFall.append(uniF0)
-       uniFall.append(uniF1)
-       # now, make the new results being objects of that class:
-       self.HR=uniHR
-       self.f=uniFall
+      """
+      lenK=len(self.K)
+      sortHR=np.zeros(lenK)
+      HR=np.zeros(lenK)
+      fsort=np.zeros(lenK)
+      uniFall=[]
+      for j in range(lenK):
+         HR[j]=self.K[j]*self.K[j]*self.f[0][j]*.5 
+      index=np.argsort(HR, kind='heapsort')
+      sortHR=HR[index]
+      fsort0=self.f[0][index]
+      fsort1=self.f[1][index]
+      if np.any(fsort)<0:
+         self.logging[1].write('WARNING: some HR-factors are <0.\
+                  In the following their absolute value is used.')
+         fsort1=np.abs(fsort1)
+         fsort0=np.abs(fsort0)
+      uniHR=[]
+      uniF1=[]
+      uniF0=[]
+      loggingwrite=self.logging[1].write
+      if sortHR[-1]>=10: 
+         #if larges HR-factor is too large
+         loggingwrite(u'\nWARNING: THE HUANG-RHYS FACTOR SEEMS TO BE'+\
+                                                         ' TOO LARGE !!\n')
+         loggingwrite(u'        the spectrum will be calculated, but most probably'+\
+                                       ' the input-state is inconsistent.\n')
+         loggingwrite(u'        Please check the xyz-file created.\n')
+         self.makeXYZ()
+      # the HR-factors are printed allways.
+      loggingwrite(u'HR-fact           freq     delta\n')
+      #print(u'HR-fact           freq\n')
+      for j in range(len(sortHR)-1,-1,-1):
+         #select all 'big' HR-factors 
+         if sortHR[j]>=HRthresh:
+            uniHR.append(sortHR[j])
+            uniF1.append(fsort1[j])
+            uniF0.append(fsort0[j])
+            loggingwrite(u"%f   %f   %f\n"%(sortHR[j], fsort1[j]*self.Hartree2cm_1, 
+                                             np.sqrt(fsort1[j]/fsort0[j]) ))
+         else:
+            # there will come only smaller ones.
+            break
+      #keep order: First one is initial, second is final state.
+      uniFall.append(uniF0)
+      uniFall.append(uniF1)
+      # now, make the new results being objects of that class:
+      self.HR=uniHR
+      self.f=uniFall
+      #finally, enlargen the energy up to vibrational ground state.
+      for i in range(len(self.HR)):
+         self.Energy[1]+=np.sign(self.Energy[0]-self.Energy[1])*self.f[1][i]*self.HR[i]
 
 class CFC_spect(FC_spect):
    def __init__(self, f): 

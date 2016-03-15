@@ -228,12 +228,12 @@ class  Spect:
                # two numbers given, try to extract them
                self.states1=int(states[0].split(",")[0])
                self.states2=int(states[0].split(",")[1])
-               logging[1].write("number of states: %d and %d \n"%(states1, states2))
+               self.logging[1].write("number of states: %d and %d \n"%(self.states1, self.states2))
             except ValueError:
                #unknown format. Use default and give a respective message.
                self.states1=5
                self.states2=0
-               logging[1].write("!!number of vibrational states {0} is not an integer.",
+               self.logging[1].write("!!number of vibrational states {0} is not an integer.",
                                     " Use default instead.\n".format(self.states1, self.states2))
       
       self.reader=Read.Read(initial, final)
@@ -634,7 +634,7 @@ class  Spect:
                                              self.CartCoord[1][2][i]/self.Angs2Bohr) )
 
       #finally, print block with both states after another:
-      output.write("\n%d\n    inital state\n"%(self.dim//3)*2)
+      output.write("\n%d\n    Both states\n"%(self.dim//3)*2)
       for i in range(len(self.CartCoord[0][0])):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
                                              self.CartCoord[0][0][i]/self.Angs2Bohr,
@@ -813,8 +813,9 @@ class  Spect:
       #print "J\n", J
       if any(self.Grad[i]>0 for i in range(len(self.Grad))):
          self.K=self.Grad.T.dot(self.Lmassw[0])
+         #self.K=(np.linalg.pinv(self.Lmassw[0]).dot(self.Grad)).T  # w p Lmassw
          # scale consistently: Now it is really the shift in terms of normal modes
-         self.K/=self.f[0]*self.f[0]*np.sqrt(2)  #
+         self.K/=self.f[0]*self.f[0]#*np.sqrt(2)  #
          #self.K=self.K[0] # it is matrix and needs to be a vector...
          #FIXME: this seems to be inconsistent! may be matrix or vector...
 

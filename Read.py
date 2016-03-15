@@ -14,7 +14,6 @@ import re, mmap, os.path, math, sys
 #    final states gradient.
 # 3. repaired Estring of G09
 # 4. repaired gradpolishstring of g09_fchk
-# 5. Added function Grad2; this will require some redesigning.
 #
 #to version=0.1.0  
 # 1. Resorted the class: reads data-based, not logfile-based.  
@@ -101,7 +100,7 @@ class Read:
             self.gradPolishString=r"[ -]\d\.[\d\-\+E]+"
             self.Estring=r'(?<=Total Energy                               R  )[ \-\d.E\+]+'
             self.ForceString=r"(?<=Cartesian Force Constants   )[RN\=\d\+\-E \.\n]+"
-            self.MassString=r"(?<=Real atomic weights     )[RN\=\-\+\d \.E\n]+"
+            self.MassString=r"(?<=Real atomic weights     )[RN\=\-\+\d\. E\n]+"
             self.CoordS=r'Current cartesian coordinates  [RN\=\n \-\+.\d E]+'
 
    #attributes:
@@ -173,6 +172,10 @@ class Read:
             #it may happen, that the masses are not given in the above format. Then let's see,
             #if we can recognise some other format.
             atmwgt=re.findall(r"(?<= and mass  )[\d. ]+", log)
+            if atmwgt==[]:
+               # sometimes this format is not available as well.
+               # So just leave it away and take masses of other file.
+               return [0,0]
          # Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
          mtemp=[]
          for j in range(len(atmwgt)/2): # because atomic masses are printed twize in log-files...
@@ -208,6 +211,7 @@ class Read:
 
       elif rtype.type=='G09_fchk':
          # Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
+         assert len(atmwgt)>0, "Formcheck-file not complete. No masses available."
          mtemp=re.findall(r'[\d.]+E[+-][\d]+',atmwgt[0])
          dim=int(re.findall("(?<=N\= )[\d ]+", atmwgt[0])[0])
          dim*=3
@@ -465,21 +469,6 @@ class Read:
       for i in xrange(len(Grad)):
          grad[i]=float(Grad[i])
       return grad
-   
-   def __Read_Grad2(self, logfile, rtype):
-      if rtype.type!='G09':
-         assert 1==2, "This method is not avalable for non-G09-files so far."
-      files=open(logfile, "r")
-      log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
-      files.close()
-
-      grad=re.findall(r"(?<=Symbolic Z-Matrix:\n)[\w \+\-\.\d\n]+", log)
-      assert len(grad)>0, "ERROR: No gradient given."
-      Grad=re.findall("r[\+\-\.\d]+", grad[-1])
-      grad=np.zeros(len(Grad))
-      for i in xrange(len(Grad)):
-         grad[i]=float(Grad[i])
-      return grad
 
    # END: FUNCTIONS TO READ THE NEEDED DATA FROM OUTPUT-FILES IN DIFFERENT FORMATS.
 
@@ -488,25 +477,17 @@ class Read:
       # the gradient makes only sense when given for the final state.
       return self.__Read_Grad(self.final, self.ftype)
    
-   def Gradient2(self):
-      #at least in Gaussian, one can calculate the gradient of ground state
-      # at excited states geometry; hence, I can calculate the spectrum on the
-      # basis of that gradient as well and it might be more reliable.
-      # This way is available via this function and is gone by specifying the 
-      # option "gradient" in the VispeR-input file.
-      return self.__Read_Grad2(self.init, self.itype)
-   
    def Energy(self):
       return [self.__Read_Energy(self.init, self.itype) ,self.__Read_Energy(self.final, self.ftype)]
 
    def mass(self):
-      return [self.__Read_Mass(self.init, self.itype), self.__Read_Mass(self.final, self.itype)]
+      return [self.__Read_Mass(self.init, self.itype), self.__Read_Mass(self.final, self.ftype)]
    
    def Coordinates(self):
-      return [self.__Read_Coords(self.init, self.itype), self.__Read_Coords(self.final, self.itype)]
+      return [self.__Read_Coords(self.init, self.itype), self.__Read_Coords(self.final, self.ftype)]
 
    def Force(self):
-      return [self.__Read_Force(self.init, self.itype), self.__Read_Force(self.final, self.itype)]
+      return [self.__Read_Force(self.init, self.itype), self.__Read_Force(self.final, self.ftype)]
    #END USER-FUNCTIONS ASKING FOR CERTAIN DATA:
 
 #version=0.1.6
