@@ -24,7 +24,9 @@
 <span class="kn">import</span> <span class="nn">Btree</span> <span class="kn">as</span> <span class="nn">bt</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">math</span></pre></div>
+<span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -99,7 +101,8 @@
 <p>first, initialise as done for all spectra:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">Spect</span><span class="o">.</span><span class="n">Spect</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;URDR&#39;</span>
+      <span class="n">Spect</span><span class="o">.</span><span class="n">Spect</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -144,12 +147,12 @@
       <span class="n">sqGammap</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
       <span class="n">unity</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">))</span>
 
-      <span class="n">TMP</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gammap</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">=</span><span class="mf">2.</span><span class="o">*</span><span class="n">sqGammap</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGammap</span><span class="p">)</span> <span class="o">-</span><span class="n">unity</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="o">=</span><span class="mf">2.</span><span class="o">*</span><span class="n">sqGammap</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span> <span class="n">unity</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gammap</span><span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">)</span>
+      <span class="n">TMP</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gammap</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Gamma</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">=</span><span class="mf">2.</span><span class="o">*</span><span class="n">sqGammap</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGammap</span><span class="p">)</span> <span class="o">-</span><span class="n">unity</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="o">=</span><span class="mf">2.</span><span class="o">*</span><span class="n">sqGammap</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span> <span class="n">unity</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gammap</span><span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="p">)</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">C</span><span class="o">=</span><span class="mf">2.</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGammap</span><span class="p">)</span> <span class="o">-</span><span class="n">unity</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">=-</span><span class="mf">2.</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gammap</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">)))</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">E</span><span class="o">=</span><span class="mf">4.</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGammap</span><span class="p">)</span></pre></div>
+      <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">=-</span><span class="mf">2.</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Gammap</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="p">)))</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">E</span><span class="o">=</span><span class="mf">4.</span><span class="o">*</span><span class="n">sqGamma</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">TMP</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sqGammap</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -174,26 +177,26 @@
 <p>first: resort the elements of J, K, f to make J most closely to unity</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">resort</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">))</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">)):</span>
-         <span class="n">j</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-         <span class="n">k</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;-</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]:</span>
+      <div class="highlight"><pre>      <span class="n">resort</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">)):</span>
+         <span class="n">j</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+         <span class="n">k</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;-</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]:</span>
            <span class="n">resort</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span>
          <span class="k">else</span><span class="p">:</span>
             <span class="n">resort</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=-</span><span class="mi">1</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">=</span><span class="n">resort</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="o">=</span><span class="n">resort</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">=</span><span class="n">resort</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="o">=</span><span class="n">resort</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">resort</span><span class="p">)):</span>
          <span class="n">k</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">resort</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
          <span class="k">if</span> <span class="n">resort</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span>
             <span class="n">resort</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="mi">1</span> <span class="c1">#use absolute value only.</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">resort</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;before truncation:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Duschinsky-Matrix:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Displacement vector:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">)</span></pre></div>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;before truncation:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Duschinsky-Matrix:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Displacement vector:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -205,11 +208,11 @@
       <p>truncate only, if this really is truncation.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">):</span> 
-         <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;heapsort&quot;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">):</span> 
+         <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;heapsort&quot;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
          <span class="n">ind</span><span class="o">=</span><span class="n">index</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">]</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">J</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
          <span class="n">f</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span> <span class="mi">2</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">m</span><span class="p">))</span>
          <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">ind</span><span class="p">]</span>
          <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">ind</span><span class="p">]</span>
@@ -226,11 +229,11 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">GetQuants</span><span class="p">()</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;After truncation:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Duschinsky-Matrix:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">logging</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Displacement vector:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">)</span></pre></div>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;After truncation:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Duschinsky-Matrix:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">J</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Displacement vector:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -239,7 +242,7 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-13'>#</a>
       </div>
-      <p>finally, calculate the Duschinsky-rotated stick spectrum in this picture</p>
+      <p>finally, calculate the stick spectrum in this picture</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">FCf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></pre></div>
@@ -287,9 +290,9 @@
     </div>
     <div class='code'>
       <div class="highlight"><pre>   
-         <span class="n">Tree</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">Tree</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">))</span>
+         <span class="n">Tree</span><span class="o">=</span><span class="n">bt</span><span class="o">.</span><span class="n">Tree</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="p">))</span>
          <span class="n">Tree</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-         <span class="n">Zero</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">K</span><span class="p">))</span></pre></div>
+         <span class="n">Zero</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">K</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -615,18 +618,7 @@ class-based code into a generator function.</p>
       </div>
       <p>This recursive generator function was designed to be returned by
 <code>unlabeled_balls_in_labeled_boxes</code>.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-35'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
-      </div>
-      <p>If there are no balls, all boxes must be empty:</p>
+<p>If there are no balls, all boxes must be empty:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>               <span class="k">if</span> <span class="ow">not</span> <span class="n">balls</span><span class="p">:</span>
@@ -636,10 +628,10 @@ class-based code into a generator function.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       <p>If the single available box has sufficient capacity to store the balls,
 there is only one possible distribution, and we return it to the caller
@@ -654,21 +646,33 @@ function, triggering a <code>StopIteration</code> exception.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
+  <div class='section' id='section-36'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
+        <a class='octothorpe' href='#section-36'>#</a>
       </div>
       <p>Iterate over the number of balls in the first box (from the maximum
 possible down to zero), recursively invoking the generator to distribute
 the remaining balls among the remaining boxes.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>                  <span class="k">for</span> <span class="n">balls_in_first_box</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span> <span class="nb">min</span><span class="p">(</span><span class="n">balls</span><span class="p">,</span> <span class="n">box_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="p">):</span>
+      <div class="highlight"><pre>                  <span class="k">for</span> <span class="n">balls_in_first_box</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span> <span class="nb">min</span><span class="p">(</span><span class="n">balls</span><span class="p">,</span> <span class="n">box_sizes</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="p">):</span>
                      <span class="n">balls_in_other_boxes</span><span class="o">=</span> <span class="n">balls</span> <span class="o">-</span> <span class="n">balls_in_first_box</span>
                      <span class="k">for</span> <span class="n">distribution_other</span> <span class="ow">in</span> <span class="n">_unlabeled_balls_in_labeled_boxes</span><span class="p">(</span>
                      <span class="n">balls_in_other_boxes</span><span class="p">,</span> <span class="n">box_sizes</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
                         <span class="k">yield</span> <span class="p">(</span><span class="n">balls_in_first_box</span><span class="p">,)</span> <span class="o">+</span> <span class="n">distribution_other</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      <p>end three alternative blocks</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -677,30 +681,16 @@ the remaining balls among the remaining boxes.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-38'>#</a>
       </div>
-      <p>end three alternative blocks</p>
+      <p>skip error-checks: balls is not integer, &lt;0 or not a non-empty list
+capacity= 0
+for size in box_sizes:
+  capacity+= size</p>
+<p>if capacity &lt; balls:
+  raise ValueError("The total capacity of the boxes is less than the "
+  "number of balls to be distributed.")</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">balls</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                  <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;balls must be a non-negative integer.&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">balls</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-               <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;balls must be a non-negative integer.&quot;</span><span class="p">)</span>
-         
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">box_sizes</span><span class="p">,</span><span class="nb">list</span><span class="p">):</span>
-               <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;box_sizes must be a non-empty list.&quot;</span><span class="p">)</span>
-         
-            <span class="n">capacity</span><span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">box_sizes</span><span class="p">:</span>
-               <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                  <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;box_sizes must contain only positive integers.&quot;</span><span class="p">)</span>
-               <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-                  <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;box_sizes must contain only positive integers.&quot;</span><span class="p">)</span>
-               <span class="n">capacity</span><span class="o">+=</span> <span class="n">size</span>
-         
-            <span class="k">if</span> <span class="n">capacity</span> <span class="o">&lt;</span> <span class="n">balls</span><span class="p">:</span>
-               <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The total capacity of the boxes is less than the &quot;</span>
-               <span class="s2">&quot;number of balls to be distributed.&quot;</span><span class="p">)</span>
-      
             <span class="k">return</span> <span class="n">_unlabeled_balls_in_labeled_boxes</span><span class="p">(</span><span class="n">balls</span><span class="p">,</span> <span class="n">box_sizes</span><span class="p">)</span></pre></div>
     </div>
   </div>
@@ -710,7 +700,7 @@ the remaining balls among the remaining boxes.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-39'>#</a>
       </div>
-      <p>end def _unlabeled_balls_in_labeled_boxes(balls, box_sizes)</p>
+      <p>end def unlabeled_balls_in_labeled_boxes(balls, box_sizes)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -729,9 +719,7 @@ math.factorial(alpha-1)),alpha))</p>
       <div class="highlight"><pre>         <span class="n">States2</span><span class="o">=</span><span class="p">[]</span>
          <span class="n">a</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)):</span>
-            <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">n</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="c1">#create the needed list</span>
-         <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
-         <span class="k">for</span> <span class="n">distributions</span> <span class="ow">in</span> <span class="n">unlabeled_balls_in_labeled_boxes</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">a</span><span class="p">):</span></pre></div>
+            <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">n</span> <span class="c1">#create the needed list</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -740,12 +728,11 @@ math.factorial(alpha-1)),alpha))</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-41'>#</a>
       </div>
-      <p>States[i]=np.matrix(distributions)</p>
+      <p>box=CDLL('/home/tm162/bin/smallscript/unlabeled_balls.so')
+for distributions in cbox.unlabeled_balls_in_labeled_boxes(c_int(n),c_int(alpha)):</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="k">try</span><span class="p">:</span>
-               <span class="n">States2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">distributions</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">))</span> <span class="c1">#save memory!</span>
-            <span class="k">except</span> <span class="ne">MemoryError</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>         <span class="k">for</span> <span class="n">distributions</span> <span class="ow">in</span> <span class="n">unlabeled_balls_in_labeled_boxes</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">a</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -754,12 +741,10 @@ math.factorial(alpha-1)),alpha))</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-42'>#</a>
       </div>
-      <p>if the memory is not enough: don't add further states and use what is availibleA</p>
+      <p>States[i]=np.matrix(distributions)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>               <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Memory is full for state&#39;</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="s1">&#39;having only&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">States2</span><span class="p">),</span><span class="s1">&#39;objects in it. Use these states only.&#39;</span><span class="p">)</span>
-               <span class="k">break</span> <span class="c1">#in principle: do more stuff here!</span>
-            <span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+      <div class="highlight"><pre>            <span class="n">States2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">distributions</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">))</span> <span class="c1">#save memory!</span>
          <span class="k">return</span> <span class="n">States2</span>
    
       <span class="n">lines</span><span class="o">=</span><span class="p">[]</span>
@@ -798,7 +783,7 @@ math.factorial(alpha-1)),alpha))</p>
     <div class='code'>
       <div class="highlight"><pre>            <span class="k">break</span> <span class="c1"># kill calculation</span>
          <span class="n">spect</span><span class="o">=</span><span class="n">L2</span><span class="o">.</span><span class="n">extract</span><span class="p">()</span>
-         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spect</span><span class="p">)):</span></pre></div>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">spect</span><span class="p">)):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -825,9 +810,7 @@ math.factorial(alpha-1)),alpha))</p>
       <p>print freqs</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">freqs</span>
-      <span class="n">T</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span></pre></div>
+      <div class="highlight"><pre>      <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">freqs</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -836,12 +819,11 @@ math.factorial(alpha-1)),alpha))</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-47'>#</a>
       </div>
-      <p>arbitrary but constant number for mode</p>
+      <p>T=self.T*self.Hartree2cm_1</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="mi">42</span>
-         <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">initF</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">T</span><span class="p">)</span> <span class="c1">#thermally weighting of transitions</span>
-      <span class="k">return</span> <span class="n">result</span></pre></div>
+      <div class="highlight"><pre>      <span class="n">tmpW</span><span class="o">=</span><span class="n">CDLL</span><span class="p">(</span><span class="s1">&#39;/home/tm162/bin/smallscript/tempW.so&#39;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -850,10 +832,11 @@ math.factorial(alpha-1)),alpha))</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-48'>#</a>
       </div>
-      <p>This class is not working at the moment.</p>
+      <p>arbitrary but constant number for mode</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">SDR_spect</span><span class="p">(</span><span class="n">Spect</span><span class="o">.</span><span class="n">Spect</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>         <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="mi">42</span>
+         <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">tmpW</span><span class="o">.</span><span class="n">temp</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">initF</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">T</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -861,6 +844,30 @@ math.factorial(alpha-1)),alpha))</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-49'>#</a>
+      </div>
+      <p>result[1][i]=lines[i]*np.exp(-initF[i]/T) #thermally weighting of transitions</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">return</span> <span class="n">result</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-50'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-50'>#</a>
+      </div>
+      <p>This class is not working at the moment.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">SDR_spect</span><span class="p">(</span><span class="n">Spect</span><span class="o">.</span><span class="n">Spect</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
       </div>
       <p>I am not sure yet whether to enable it or through it away...</p>
     </div>
@@ -870,10 +877,51 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-52'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-52'>#</a>
+      </div>
+      <p>In addition to the initialisation of</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-53'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-53'>#</a>
+      </div>
+      <p>Spect( see first line of code), here the number
+   of modes is evaluated and the matrices/vectors
+   needed for evaluation of the recursive equations are
+   calculated.</p>
+<p>first, initialise as done for all spectra:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="s1">&#39;URDR&#39;</span>
+      <span class="n">Spect</span><span class="o">.</span><span class="n">Spect</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-54'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-54'>#</a>
+      </div>
+      <p>now, calculate additional quantities for the iteration:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-55'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-55'>#</a>
       </div>
       <p>This class containes the functions and objects for the calculation of vibronic spectra</p>
     </div>
@@ -882,10 +930,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-51'>
+  <div class='section' id='section-56'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
+        <a class='octothorpe' href='#section-56'>#</a>
       </div>
       <p>in Duschinski-rotated systems.
    ==OBJECTS==
@@ -898,10 +946,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-52'>
+  <div class='section' id='section-57'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-52'>#</a>
+        <a class='octothorpe' href='#section-57'>#</a>
       </div>
       <p>alpha: number of vibrational modes
   L:     number of states excited</p>
@@ -912,10 +960,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-53'>
+  <div class='section' id='section-58'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-53'>#</a>
+        <a class='octothorpe' href='#section-58'>#</a>
       </div>
       <p>first index in mat:number of mode, second: excitation number</p>
     </div>
@@ -924,10 +972,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-54'>
+  <div class='section' id='section-59'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-54'>#</a>
+        <a class='octothorpe' href='#section-59'>#</a>
       </div>
       
     </div>
@@ -943,10 +991,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-55'>
+  <div class='section' id='section-60'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-55'>#</a>
+        <a class='octothorpe' href='#section-60'>#</a>
       </div>
       
     </div>
@@ -961,10 +1009,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-56'>
+  <div class='section' id='section-61'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-56'>#</a>
+        <a class='octothorpe' href='#section-61'>#</a>
       </div>
       
     </div>
@@ -992,10 +1040,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-57'>
+  <div class='section' id='section-62'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-57'>#</a>
+        <a class='octothorpe' href='#section-62'>#</a>
       </div>
       <p>Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA</p>
     </div>
@@ -1004,10 +1052,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-58'>
+  <div class='section' id='section-63'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-58'>#</a>
+        <a class='octothorpe' href='#section-63'>#</a>
       </div>
       <p><strong>PARAMETERS:</strong><br />
    J:      Duschisky-matrix<br />
@@ -1026,10 +1074,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-59'>
+  <div class='section' id='section-64'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-59'>#</a>
+        <a class='octothorpe' href='#section-64'>#</a>
       </div>
       <p>This function calculates the overlap-integral for zero vibrations</p>
     </div>
@@ -1038,10 +1086,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-60'>
+  <div class='section' id='section-65'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-60'>#</a>
+        <a class='octothorpe' href='#section-65'>#</a>
       </div>
       
     </div>
@@ -1056,10 +1104,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-61'>
+  <div class='section' id='section-66'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-61'>#</a>
+        <a class='octothorpe' href='#section-66'>#</a>
       </div>
       <p>Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2</p>
     </div>
@@ -1068,10 +1116,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-62'>
+  <div class='section' id='section-67'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-62'>#</a>
+        <a class='octothorpe' href='#section-67'>#</a>
       </div>
       <p><strong>PARAMETERS:</strong><br />
   L1:     binary tree where i-2 quanta are excited (structure:  <a href="Btree.html">Btree.py</a><br />
@@ -1091,10 +1139,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-63'>
+  <div class='section' id='section-68'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-63'>#</a>
+        <a class='octothorpe' href='#section-68'>#</a>
       </div>
       <p><strong>PARAMETERS:</strong><br />
    alpha: number of degrees of freedom<br />
@@ -1115,10 +1163,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-64'>
+  <div class='section' id='section-69'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-64'>#</a>
+        <a class='octothorpe' href='#section-69'>#</a>
       </div>
       <p>initialize new OPA-object</p>
     </div>
@@ -1133,10 +1181,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-65'>
+  <div class='section' id='section-70'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-65'>#</a>
+        <a class='octothorpe' href='#section-70'>#</a>
       </div>
       <p>need first iteration formula</p>
     </div>
@@ -1145,10 +1193,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-66'>
+  <div class='section' id='section-71'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-66'>#</a>
+        <a class='octothorpe' href='#section-71'>#</a>
       </div>
       <p>if there excists excitation in initial state: need first iteration formula</p>
     </div>
@@ -1157,10 +1205,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-67'>
+  <div class='section' id='section-72'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-67'>#</a>
+        <a class='octothorpe' href='#section-72'>#</a>
       </div>
       <p>need first iteration-formula</p>
     </div>
@@ -1171,10 +1219,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-68'>
+  <div class='section' id='section-73'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-68'>#</a>
+        <a class='octothorpe' href='#section-73'>#</a>
       </div>
       <p>if not math.isnan(Ps):</p>
     </div>
@@ -1186,10 +1234,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-69'>
+  <div class='section' id='section-74'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-69'>#</a>
+        <a class='octothorpe' href='#section-74'>#</a>
       </div>
       <p>if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</p>
     </div>
@@ -1203,10 +1251,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-70'>
+  <div class='section' id='section-75'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-70'>#</a>
+        <a class='octothorpe' href='#section-75'>#</a>
       </div>
       <p>if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</p>
     </div>
@@ -1217,10 +1265,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-71'>
+  <div class='section' id='section-76'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-71'>#</a>
+        <a class='octothorpe' href='#section-76'>#</a>
       </div>
       <p>else: need the other iteration-formula</p>
     </div>
@@ -1237,10 +1285,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-72'>
+  <div class='section' id='section-77'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-72'>#</a>
+        <a class='octothorpe' href='#section-77'>#</a>
       </div>
       <p>if not math.isnan(Ps) and abs(Ps)&gt;1e-8:</p>
     </div>
@@ -1255,10 +1303,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-73'>
+  <div class='section' id='section-78'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-73'>#</a>
+        <a class='octothorpe' href='#section-78'>#</a>
       </div>
       
     </div>
@@ -1267,10 +1315,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-74'>
+  <div class='section' id='section-79'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-74'>#</a>
+        <a class='octothorpe' href='#section-79'>#</a>
       </div>
       <p>F=np.zeros(( len(index),3 ))</p>
     </div>
@@ -1286,10 +1334,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-75'>
+  <div class='section' id='section-80'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-75'>#</a>
+        <a class='octothorpe' href='#section-80'>#</a>
       </div>
       <p>if F[-1][1]&gt;0.0001:
    print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*Hartree2cm_1</p>
@@ -1306,10 +1354,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-76'>
+  <div class='section' id='section-81'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-76'>#</a>
+        <a class='octothorpe' href='#section-81'>#</a>
       </div>
       <p>correct for vibrational groundstates:</p>
     </div>
@@ -1319,10 +1367,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-77'>
+  <div class='section' id='section-82'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-77'>#</a>
+        <a class='octothorpe' href='#section-82'>#</a>
       </div>
       <p>this is already extracted to linspect (using side-effects)</p>
     </div>
@@ -1343,10 +1391,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-78'>
+  <div class='section' id='section-83'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-78'>#</a>
+        <a class='octothorpe' href='#section-83'>#</a>
       </div>
       <p>Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA</p>
     </div>
@@ -1355,10 +1403,10 @@ math.factorial(alpha-1)),alpha))</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-79'>
+  <div class='section' id='section-84'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-79'>#</a>
+        <a class='octothorpe' href='#section-84'>#</a>
       </div>
       <p><strong>PARAMETERS:</strong>  <br />
 J:      Duschisky-matrix <br />
@@ -1379,10 +1427,10 @@ f[0]=f[1]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-80'>
+  <div class='section' id='section-85'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-80'>#</a>
+        <a class='octothorpe' href='#section-85'>#</a>
       </div>
       <p>J=np.eye(len(f[0]))
 K*=np.sqrt(np.pi)/2.  # --&gt; do it in functions_smsc.Duschinsky now.</p>
@@ -1409,10 +1457,10 @@ K*=np.sqrt(np.pi)/2.  # --&gt; do it in functions_smsc.Duschinsky now.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-81'>
+  <div class='section' id='section-86'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-81'>#</a>
+        <a class='octothorpe' href='#section-86'>#</a>
       </div>
       <p>Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA</p>
     </div>
@@ -1421,10 +1469,10 @@ K*=np.sqrt(np.pi)/2.  # --&gt; do it in functions_smsc.Duschinsky now.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-82'>
+  <div class='section' id='section-87'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-82'>#</a>
+        <a class='octothorpe' href='#section-87'>#</a>
       </div>
       <p><em>PARAMETERS:</em>
 J:      Duschisky-matrix
@@ -1462,10 +1510,10 @@ linespectrum </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-83'>
+  <div class='section' id='section-88'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-83'>#</a>
+        <a class='octothorpe' href='#section-88'>#</a>
       </div>
       <p>print simpleFCfOPA(logging, J, K, f, Energy, N, T,E0).T</p>
     </div>
@@ -1476,10 +1524,10 @@ linespectrum </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-84'>
+  <div class='section' id='section-89'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-84'>#</a>
+        <a class='octothorpe' href='#section-89'>#</a>
       </div>
       <p>which is due to full OPA-scheme</p>
     </div>
@@ -1517,10 +1565,10 @@ linespectrum </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-85'>
+  <div class='section' id='section-90'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-85'>#</a>
+        <a class='octothorpe' href='#section-90'>#</a>
       </div>
       <p>print "J", J,"\n"</p>
     </div>
@@ -1530,10 +1578,10 @@ linespectrum </p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-86'>
+  <div class='section' id='section-91'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-86'>#</a>
+        <a class='octothorpe' href='#section-91'>#</a>
       </div>
       <p>spect2.append(temp[1:])# do not take the 0-0 transititon a second time
 print (simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)[:].T[1:])</p>

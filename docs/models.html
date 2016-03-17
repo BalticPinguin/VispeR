@@ -33,10 +33,10 @@ keyword since it is inconsistent in this respect.</p>
    <ol>
       <li><a href="#FC">FC-based models</a></li>
       <li><a href="#DR">DR-based models</a></li>
+      <li><a href="#manipulation">Data-manipulation</a></li>
       <li><a href="#FC-n">Particle-generalisation</a></li>
    </ol>
 </nav>
-
 
 <h1 id="FC">FC-based models</h1>
 Assuming harmonic approximation, there are two methods for deterining the shift of the two coordinates.
@@ -129,12 +129,18 @@ is the shift of the modes in normal coordinates.
 <h3 id="DR-m,d">Distributing</h3>
    In this model, besides the resorting of the modes, also OPA-transitions to other modes are allowed.
    It is not clear whether this model is valid..?
-<h3 id="DR-m,u">URDR</h2>
+<h3 id="DR-m,u">URDR</h3>
    Here no one-particle approximation is applied. Instead the number of normal modes taken into 
    account is truncated as it is done in the Franck-Condon scheme.
    As in the Franck-Condon scheme, the modes taken into account explicitly are chosen by the size 
    of the respecive shift. But for these modes, the sub-system is
    calculated in full scheme.
+
+<h1 id="manipulation">Data-manipulations</h1>
+<p>Some of the data given (ether calculated or given via the input-files) need some manipulation to get best results. These include:</p>
+<p>Shifting and rotating the coordinates into the same frame</p>
+<p>projecting out rotations and vibrations</p>
+<p>assign the modes in the respective states physically.</p>
 
 <h1 id="FC-n">Particle-approximations (Franck-Condon scheme)</h1>
    In the Franck-Condon picture, the intensity is determined by the Franck-Condon 

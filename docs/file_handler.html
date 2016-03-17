@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>file_handler.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>file_handler.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>filename: file_handler.py</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <h1>CHANGELOG</h1>
+<p>in version 0.1.0:<br />
+ 1) Intialised class</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">logging</span><span class="p">():</span>
+   <span class="n">logfile</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+   <span class="n">level</span><span class="o">=</span><span class="s1">&#39;0&#39;</span>
+   <span class="n">numWarn</span><span class="o">=</span><span class="mi">0</span>
+   <span class="n">width</span><span class="o">=</span><span class="mi">5</span>  <span class="c1"># determines, how many rows of a matrix are writen aside each other.</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">logfile</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>initialises the logging-functionality</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">def</span> <span class="nf">invokeLogging</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;important&quot;</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p><strong>PARAMETERS</strong>
+  logfile   name of file to be used as log-file. It is expected to be an array of 
+         length 0 or one.
+  mode:     5 different values are possible (see below); the lowest means: print 
+           much, higher values mean 
+           less printing</p>
+<p><strong>RETURNS</strong>
+  log:      opened file to write in</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">if</span> <span class="n">logfile</span><span class="o">==</span><span class="p">[]:</span>
+            <span class="n">log</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;calculation.log&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logfile</span><span class="o">=</span><span class="s2">&quot;calculation.log&quot;</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">=</span><span class="n">logfile</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">log</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logfile</span><span class="o">=</span><span class="n">s</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>remove all white spaces and take only first character.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">mode</span><span class="o">=</span> <span class="n">mode</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>search, which option was set.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">=</span><span class="mi">0</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;use log-level all</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+         <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">=</span><span class="mi">1</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;use log-level detailed</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+         <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span><span class="s1">&#39;2&#39;</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">=</span><span class="mi">2</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;use log-level medium</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+         <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;i&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span><span class="s1">&#39;3&#39;</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">=</span><span class="mi">3</span>
+         <span class="k">elif</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;4&#39;</span><span class="p">]:</span>
+            <span class="n">logging</span><span class="o">=</span><span class="mi">4</span>
+         <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">=</span><span class="mi">3</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;logging-mode &quot;</span><span class="o">+</span><span class="n">mode</span><span class="o">+</span><span class="s2">&quot; not recognized. Using &#39;important&#39; instead</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+         <span class="k">return</span> <span class="n">logging</span><span class="p">,</span> <span class="n">log</span>
+      
+      <span class="bp">self</span><span class="o">.</span><span class="n">logfile</span><span class="o">=</span><span class="n">logfile</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span> <span class="o">=</span> <span class="n">invokeLogging</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">==================================================================</span><span class="se">\n</span><span class="s2">&quot;</span>
+               <span class="s2">&quot;=====================  output of Visper  =========================</span><span class="se">\n</span><span class="s2">&quot;</span>
+               <span class="s2">&quot;==================================================================</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>This simple function has the only task to close the log-file after</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>calculation as it is nice. 
+   More over, it gives the user feedback about successfull finish;
+   also nice if some warnings appeared before.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>count warnings in self.loghandler:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">logf</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logfile</span><span class="p">,</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">warnings</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">logf</span><span class="p">:</span>
+         <span class="k">if</span> <span class="s1">&#39;WARNING:&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">+=</span><span class="mi">1</span>
+      <span class="n">logf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+      <span class="n">foo</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logfile</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">warnings</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+         <span class="n">foo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">==================================================================</span><span class="se">\n</span><span class="s2">&quot;</span>
+                  <span class="s2">&quot;=========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============</span><span class="se">\n</span><span class="s2">&quot;</span>
+                  <span class="s2">&quot;==================================================================</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="n">foo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">==================================================================</span><span class="se">\n</span><span class="s2">&quot;</span>
+                  <span class="s2">&quot;============== VISPER FINISHED WITH &quot;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; WARNINGS.  ===============</span><span class="se">\n</span><span class="s2">&quot;</span>
+                  <span class="s2">&quot;==================================================================</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="n">foo</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">70</span><span class="p">):</span>
+      <span class="k">if</span> <span class="n">level</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>This funcion is no that tricky but better than rewriting it everywhere it is</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">printVec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">vec</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>indeed.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="o">//</span><span class="mi">2</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span><span class="o">&gt;</span><span class="n">num</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span><span class="o">//</span><span class="n">num</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%03d</span><span class="s2">  </span><span class="si">%e</span><span class="s2"> </span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="n">k</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span><span class="o">//</span><span class="n">num</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">vec</span><span class="p">[</span><span class="n">j</span><span class="o">+</span><span class="n">k</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span><span class="o">//</span><span class="n">num</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vec</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%03d</span><span class="s2">  </span><span class="si">%e</span><span class="s2"> </span><span class="se">\t</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">vec</span><span class="p">[</span><span class="n">k</span><span class="p">]))</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>Function to print matrices in a nice way to the log-file.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">printMat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">mat</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>To keep it general, the matrix needs to be given as argument.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">k</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+      <span class="n">s</span><span class="o">=</span><span class="mi">0</span>
+      <span class="n">t</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">s</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+      <span class="k">while</span> <span class="n">s</span><span class="o">&lt;</span><span class="nb">len</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">temp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">t</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;          </span><span class="si">%03d</span><span class="s2"> &quot;</span><span class="o">%</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="n">temp</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mat</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">%03d</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">temp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">t</span><span class="p">):</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">%+.5e</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">[</span><span class="n">temp</span><span class="p">]]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+         <span class="n">s</span><span class="o">=</span><span class="n">t</span>
+         <span class="n">t</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">s</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">mat</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <p>version 0.1.0
+End of file_handler.py</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
