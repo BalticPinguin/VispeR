@@ -3,12 +3,16 @@
 import numpy as np
 from scipy.linalg.lapack import dsyev
 import re, mmap, os.path, math, sys
+import random
 import Read
 import MultiPart
-import random
 
 # CHANGELOG
 # =========
+#in version 0.1.7:  
+#   a) fixed rmsd-reorient: forgot to reorder Forces, transform of 
+#       gradient was wrong. Lead to ceveir errors.  
+#
 #in version 0.1.6:  
 #   a) added RMSD_reorient   
 #   b) added options to force gradient and chose the reorientation.   
@@ -55,10 +59,6 @@ class  Spect:
          This function performs the actual calculation of the spectrum in the respect.
          model. This function is not present here at all!!! It is defined only for the
          derived classes (is there some virtual function in python!?)  
-      
-      outspect()
-         This function performs the broadening of the line-spectrum calculated in 
-         calcspect().  
       
       finish()
          This function maybe will be changed to be a destructor, if there exists such 
@@ -194,7 +194,7 @@ class  Spect:
       else:
          self.opt=" " 
          #make some empty string that the search-commands don't fail in ReadData.
-
+      
       #find the information for the broadening
       broadopt=re.findall(r"(?<=broaden:)[\d\s\w.,\(\) \=;:\-_]+", f, re.M)
       if broadopt!=[]:
@@ -258,6 +258,43 @@ class  Spect:
       self.GetL()
       self.Duschinsky()
       
+   def quantity(self, dim):
+      """ Here some frequencies are defined; it is just for clearer code.
+         This function is called by CalculationHR.
+   
+         **PARAMETERS**
+         dim      dimension of matrices/vectors
+      """
+      F=np.zeros((2, dim, dim)) 
+      self.CartCoord=np.zeros((2, 3, dim//3))
+      P=np.zeros((2, dim,dim))
+      return F, P
+   
+   def finish(self):
+      """This simple function has the only task to close the log-file after 
+         calculation as it is nice. 
+         More over, it gives the user feedback about successfull finish;
+         also nice if some warnings appeared before.
+      """
+      self.logging[1].close()
+      #count warnings in self.logging[1]:
+      logf=open(self.logfile,"r")
+      warnings=0
+      for line in logf:
+         if 'WARNING:' in line:
+            warnings+=1
+      logf.close()
+      foo=open(self.logfile, 'a')
+      if warnings==0:
+         foo.write("\n==================================================================\n"
+                  "=========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============\n"
+                  "==================================================================\n\n")
+      else:
+         foo.write("\n==================================================================\n"
+                  "============== VISPER FINISHED WITH "+repr(warnings)+" WARNINGS.  ===============\n"
+                  "==================================================================\n\n")
+      foo.close()
+   
    def outspect(self, E=0):
       """This function calculates the broadened spectrum given the line spectrum, 
       frequency-rage and output-file whose name is first argument. 
@@ -466,44 +503,6 @@ class  Spect:
       if spectfile!=None:
          #only close file if it was opened here
          out.close()
-
-   def quantity(self, dim):
-      """ Here some frequencies are defined; it is just for clearer code.
-         This function is called by CalculationHR.
-   
-         **PARAMETERS**
-         dim      dimension of matrices/vectors
-      """
-      F=np.zeros((2, dim, dim)) 
-      self.CartCoord=np.zeros((2, 3, dim//3))
-      P=np.zeros((2, dim,dim))
-      return F, P
-   
-   def finish(self):
-      """This simple function has the only task to close the log-file after 
-         calculation as it is nice. 
-         More over, it gives the user feedback about successfull finish;
-         also nice if some warnings appeared before.
-      """
-      self.logging[1].close()
-      #count warnings in self.logging[1]:
-      logf=open(self.logfile,"r")
-      warnings=0
-      for line in logf:
-         if 'WARNING:' in line:
-            warnings+=1
-      logf.close()
-      foo=open(self.logfile, 'a')
-      if warnings==0:
-         foo.write("\n==================================================================\n"
-                  "=========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============\n"
-                  "==================================================================\n\n")
-      else:
-         foo.write("\n==================================================================\n"
-                  "============== VISPER FINISHED WITH "+repr(warnings)+" WARNINGS.  ===============\n"
-                  "==================================================================\n\n")
-      foo.close()
-   # END OF FUNCTION DEFINITIONS
    
    def printMat(self,mat):
       """Function to print matrices in a nice way to the log-file.
@@ -527,7 +526,7 @@ class  Spect:
 
    def printVec(self,vec):
       """This funcion is no that tricky but better than rewriting it everywhere it is
-      indeed.
+         indeed.
       """
       num = self.width//2
       self.logging[1].write("\n")
@@ -618,7 +617,8 @@ class  Spect:
          fit together or harmonic approximation will not hold.
          Hence, this is for backup only but in these cases might be helpful.
       """
-      output=open("molecule.xyz", "w")
+      molfile=self.logfile.split(".")[0]
+      output=open(molfile+".xyz", "w")
 
       #first, print the initial state:
       output.write("%d\n    inital state\n"%(self.dim//3))
@@ -692,7 +692,9 @@ class  Spect:
          return np.matrix(Y).T # undo transposition in the beginning
 
       def GetProjector(self, i):
-         """ 
+         """ This function calculates a projection-matrix that is used to project the mass-weighted
+            Hessian onto the space of vibrations. Therefore, we first construct a projector D onto
+            translations and rotations and than apply 1-D onto F.
          """
          # Getting tensor of inertia, transforming to principlas axes
          moi=np.zeros((3,3))# this is Moment Of Inertia
@@ -732,10 +734,10 @@ class  Spect:
       
       def SortL(J,L,f):
          """This functions resorts the normal modes (L, f) such that the Duschinsky-Rotation
-         matrix J becomes most close to unity (as possible just by sorting).
-         In many cases, here chosing max(J[i]) does not help since there will be rows/columns occur
-         more often. 
-         Since I don't know any closed theory for calculating this, it is done by cosidering all possible cases.
+            matrix J becomes most close to unity (as possible just by sorting).
+            In many cases, here chosing max(J[i]) does not help since there will be rows/columns occur
+            more often. 
+            Since I don't know any closed theory for calculating this, it is done by cosidering all possible cases.
          """
          
          #initialize the matrix that resorts the states:
@@ -806,24 +808,19 @@ class  Spect:
             
             #Why can I not construct D such that I don't need to throw away anything?
 
-            index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
-            # and then cut off the 6 smallest values: rotations and vibrations.
-            f[i]=np.real(ftemp[index]).T[:].T[6:].T
-            L[i]=(Ltemp.T[index].T)[:].T[6:].T
          else: #disabled right now, maybe I will reenable it later on!?
             #ftemp,Ltemp=np.linalg.eigh(self.F[i])
             ftemp,Ltemp,info=dsyev(self.F[i])
             for j in range(0,self.dim):
                norm=np.sum(Ltemp.T[j].T.dot(Ltemp.T[j]))
-               print norm
                if np.abs(norm)>1e-12:
                   Ltemp.T[j]/=np.sqrt(norm)
 
-            #sort the results with increasing frequency (to make sure it really is)
-            index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
-            # and then cut off the 6 smallest values: rotations and vibrations.
-            f[i]=np.real(ftemp[index]).T[:].T[6:].T
-            L[i]=(Ltemp.T[index].T)[:].T[6:].T
+         #sort the results with increasing frequency (to make sure it really is)
+         index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
+         # and then cut off the 6 smallest values: rotations and vibrations.
+         f[i]=np.real(ftemp[index]).T[:].T[6:].T
+         L[i]=(Ltemp.T[index].T)[:].T[6:].T
          #END REMOVING ROTATIONS AND TRANSLATIONS.
    
          #the frequencies are square root of the eigen values of F
@@ -989,7 +986,6 @@ class  Spect:
             #they give redundant results.
             continue
          U=sign.dot(O.T)
-         print sign
          rmsdi.append(RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])))
 
          #print  RMSD(self.CartCoord[0]-self.CartCoord[1]), RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
@@ -1038,6 +1034,19 @@ class  Spect:
          self.logging[1].write('Cartesian coordinates of final state: \n')
          self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
    
+   def apply_change(self, U):
+      """ produce respective matrix to rotate Force-constant matrix as well
+      """
+      self.CartCoord[1]=U.dot(self.CartCoord[1])
+      Y=np.zeros( (self.dim,self.dim) )
+      for j in range(self.dim//3):
+         Y[3*j:3*j+3].T[3*j:3*j+3]=U
+      # apply the respective rotation:
+      self.F[1]=np.dot(Y.T.dot(self.F[1]),Y)
+      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
+         for j in range(self.dim//3):
+            self.Grad[3*j:3*j+3]=U.dot(self.Grad[3*j:3*j+3])
+
    def RMSD_reorient(self):
       """This function reorients the final state in space such that
          the moment of inertia of coordinates is minimized.
@@ -1094,9 +1103,16 @@ class  Spect:
             #print np.shape(rotated) ,np.shape(self.CartCoord[0]), np.shape(U.dot(self.CartCoord[1]))
             if RMSD(self.CartCoord[0]-rotated) >RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])):
                #if the current combination is the best, save it.
-               rotated=U.dot(self.CartCoord[1])
-      #save the flipped/switched system in CartCoord:
-      self.CartCoord[1]=rotated
+               U_min=U
+               rotated=U_min.dot(self.CartCoord[1])
+               #print RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
+      try:
+         #if U_min is known: coordinate system changed.
+         # This change is applied to the other quantities as well:
+         self.apply_change(U_min)
+      except NameError:
+         #do nothing
+         U=0
 
       #THIRD STEP: follow some Monte Carlo scheme.
       # comparatively small angles. Do 200 steps.
@@ -1119,22 +1135,15 @@ class  Spect:
                   [np.sin(nu),np.cos(nu),0],
                   [0,0,1] ], dtype=float)
             R=R_x.dot(R_y).dot(R_z)
-            test=R.A.dot(self.CartCoord[1])
-            if RMSD(self.CartCoord[0]-self.CartCoord[1])> RMSD(self.CartCoord[0]-test):
+            test=R.A.dot(U.dot(self.CartCoord[1]))
+            if RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))> RMSD(self.CartCoord[0]-test):
                #if it gets better: apply the change.
-               self.CartCoord[1]=test
+               #self.CartCoord[1]=test
                U=R.A.dot(U)
       
       #FOURTH STEP: apply the rotation.
 
-      # produce respective matrix to rotate Force-constant matrix as well
-      Y=np.zeros( (self.dim,self.dim) )
-      for j in range(self.dim//3):
-         Y[3*j:3*j+3].T[3*j:3*j+3]=U
-      # apply the respective rotation:
-      self.F[1]=np.dot(Y.T.dot(self.F[1]),Y)
-      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
-         self.Grad=Y.dot(self.Grad)
+      self.apply_change(U)
    
       # finally: print what is done.
       if self.logging[0]==0:
@@ -1145,6 +1154,7 @@ class  Spect:
          self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
          self.logging[1].write('Cartesian coordinates of final state: \n')
          self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
+   # END OF FUNCTION DEFINITIONS
 
 def RMSD(Delta):
    """This function calculates the RMSD of a matrix (intended
@@ -1156,6 +1166,6 @@ def RMSD(Delta):
          rmsd+=Delta[i][j]*Delta[i][j]
    return rmsd
 
-#version=0.1.6   
+#version=0.1.7   
 
 # End of Spect.py

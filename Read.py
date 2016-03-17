@@ -7,6 +7,8 @@ import re, mmap, os.path, math, sys
 # CHANGELOG 
 # =========
 #to version=0.1.6   
+# 1. Changed the Estring of G09 again; hopefully this is the best 
+#    way reading it.  
 #
 #to version=0.1.5   
 # 1. Reduced amount of redundant code; added strings to rtype.  
@@ -422,7 +424,10 @@ class Read:
             E=-float(re.findall(r'[\d.]+', Etemp[-1])[0]) #energy is negative (bound state)
          else:
             #this number is already given in Hartree.
-            E=float(Etemp[-2].split()[2])
+            if len(Etemp)>1:
+               E=float(Etemp[-2].split()[2])
+            else:
+               E=float(Etemp[0].split()[2])
       elif rtype.type=='G09_fchk' or rtype=='GAMESS':
          assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
          # replacement has only effect in case of G09_fchk but doesn't disturb for GAMESS.

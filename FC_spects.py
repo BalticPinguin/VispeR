@@ -183,17 +183,24 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       sortHR=HR[index]
       fsort0=self.f[0][index]
       fsort1=self.f[1][index]
-      if np.any(fsort)<0:
+      if np.any(sortHR)<0:
          self.logging[1].write('WARNING: some HR-factors are <0.\
                   In the following their absolute value is used.')
-         fsort1=np.abs(fsort1)
-         fsort0=np.abs(fsort0)
+         sortHR=np.abs(sortHR)
       uniHR=[]
       uniF1=[]
       uniF0=[]
       loggingwrite=self.logging[1].write
+      # now remove modes with too low frequency;
+      # they can easily make some trouble!
+      for j in range(len(fsort1)):
+         if  fsort1[j]*self.Hartree2cm_1<5:
+            fsort1=np.delete(fsort1,j)
+            fsort0=np.delete(fsort0,j)
+            sortHR=np.delete(sortHR,j)
       if sortHR[-1]>=10: 
          #if larges HR-factor is too large
+
          loggingwrite(u'\nWARNING: THE HUANG-RHYS FACTOR SEEMS TO BE'+\
                                                          ' TOO LARGE !!\n')
          loggingwrite(u'        the spectrum will be calculated, but most probably'+\
@@ -220,9 +227,12 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       # now, make the new results being objects of that class:
       self.HR=uniHR
       self.f=uniFall
-      #finally, enlargen the energy up to vibrational ground state.
-      for i in range(len(self.HR)):
-         self.Energy[1]+=np.sign(self.Energy[0]-self.Energy[1])*self.f[1][i]*self.HR[i]
+      Esign=np.sign(self.Energy[0]-self.Energy[1])
+      if Esign==0:
+         self.Energy[1]-=self.f[1][i]*self.HR[i]
+      else:
+         for i in range(len(self.HR)):
+            self.Energy[1]+=Esign*self.f[1][i]*self.HR[i]
 
 class CFC_spect(FC_spect):
    def __init__(self, f): 
