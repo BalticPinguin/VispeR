@@ -107,7 +107,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
        uency=np.zeros((n,self.states2*self.states1-1)) #frequency
 
        #avoiding dots accelerates python quite a lot
-       loggingwrite=self.logging[1].write
+       loggingwrite=self.log.write
        npexp=np.exp 
        E=self.Energy[0]-self.Energy[1]
        #set  0->0 transition:
@@ -172,32 +172,36 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
          **RETURNES**
          nothing. All results are members of class  FC_Spect.
       """
-      lenK=len(self.K)
+      lenK=len(self.nm.K)
       sortHR=np.zeros(lenK)
       HR=np.zeros(lenK)
       fsort=np.zeros(lenK)
       uniFall=[]
       for j in range(lenK):
-         HR[j]=self.K[j]*self.K[j]*self.f[0][j]*.5 
+         HR[j]=self.nm.K[j]*self.nm.K[j]*self.f[0][j]*.5 
       index=np.argsort(HR, kind='heapsort')
       sortHR=HR[index]
       fsort0=self.f[0][index]
       fsort1=self.f[1][index]
       if np.any(sortHR)<0:
-         self.logging[1].write('WARNING: some HR-factors are <0.\
+         self.log.write('WARNING: some HR-factors are <0.\
                   In the following their absolute value is used.')
          sortHR=np.abs(sortHR)
       uniHR=[]
       uniF1=[]
       uniF0=[]
-      loggingwrite=self.logging[1].write
+      loggingwrite=self.log.write
       # now remove modes with too low frequency;
       # they can easily make some trouble!
+      i=0
       for j in range(len(fsort1)):
-         if  fsort1[j]*self.Hartree2cm_1<5:
-            fsort1=np.delete(fsort1,j)
-            fsort0=np.delete(fsort0,j)
-            sortHR=np.delete(sortHR,j)
+         if fsort1[i]*self.Hartree2cm_1<5:
+            fsort1=np.delete(fsort1,i)
+            fsort0=np.delete(fsort0,i)
+            sortHR=np.delete(sortHR,i)
+         else:
+            i+=1
+
       if sortHR[-1]>=10: 
          #if larges HR-factor is too large
 
@@ -333,7 +337,7 @@ class CFC_spect(FC_spect):
        #calculate 0->0 transition
        FC00=1
        #print 0,0,0, 10
-       loggingwrite=self.logging[1].write #avoid dots!
+       loggingwrite=self.log.write #avoid dots!
        npexp=np.exp                  #to accelerates python quite a lot
        freq=self.f
 

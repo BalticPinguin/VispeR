@@ -110,7 +110,7 @@ def main(argv=None):
    spect.outspect()
 
    #This function prints some final statements.
-   spect.finish()
+   # spect.finish() -> should be automated now.
    #END PERFORMING CALCULATION OF SPECTRA
     
 if __name__ == "__main__":

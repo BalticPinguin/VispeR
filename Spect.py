@@ -1,17 +1,24 @@
 #!/usr/bin/python2
 # filename: Spect.py
 import numpy as np
-from scipy.linalg.lapack import dsyev
 import re, mmap, os.path, math, sys
-import random
 import Read
 import MultiPart
+import file_handler as logger
+import normal_modes as NormalModes
+import atoms_align as AtAl
 
 # CHANGELOG
 # =========
+#in version 0.2.0:  
+#
+#
 #in version 0.1.7:  
 #   a) fixed rmsd-reorient: forgot to reorder Forces, transform of 
 #       gradient was wrong. Lead to ceveir errors.  
+#   b) outsourced logging to file_handler.  
+#   c) outsourced calculation of normal modes to to normal_modes.  
+#   c) outsourced coordinate-transformations.
 #
 #in version 0.1.6:  
 #   a) added RMSD_reorient   
@@ -60,10 +67,6 @@ class  Spect:
          model. This function is not present here at all!!! It is defined only for the
          derived classes (is there some virtual function in python!?)  
       
-      finish()
-         This function maybe will be changed to be a destructor, if there exists such 
-         in python. It cleans up everything uncleaned.
-   
       **USER-RELEVANT MEMBERS**
       In principle, no relevant data should be required from here. But of course,
       many quantities are members of this class. These are, besides conversion factors,
@@ -81,19 +84,17 @@ class  Spect:
    CartCoord=[]
    read=[]  # this object is valid only after __init__. Maybe it doesn't belong here...
    spect=[[0],[0],[0]]
-   width=5  # determines, how many rows of a matrix are writen aside each other.
    type="Spect"
    
    # The following additional elements are members of all instances:
    #
-   #  logging 
    #  f  (frequencies in a 2-D array) #  Lmassw
    #  T  (temperature of the system)
    #  broadopt
    #  states1, states2
    #  read 
    #  mass (sqrt(masses))
-   #  logfile
+   #  log  handler of class logging
    #  F  mass-weighted hessian
  
    # END OF DATA-DEF.
@@ -107,69 +108,24 @@ class  Spect:
          which has the output-file and the level of output-information is defined.
          All variables/functions that are common to all spectral tyes are initialised here.
       """
-      def invokeLogging(logfile, mode="important"):
-         """ initialises the logging-functionality
-            **PARAMETERS**
-            logfile   name of file to be used as log-file. It is expected to be an array of 
-                   length 0 or one.
-            mode:     5 different values are possible (see below); the lowest means: print 
-                     much, higher values mean 
-                     less printing
-
-            **RETURNS**
-            log:      opened file to write in
-         """
-         if logfile==[]:
-            log=open("calculation.log", "a")
-            self.logfile="calculation.log"
-         else:
-            s=logfile[-1].strip()
-            log=open(s, "a")
-            self.logfile=s
-         
-         #remove all white spaces and take only first character.
-         mode= mode.strip()[0]
-         #search, which option was set.
-         if mode in ['a', "A", "0", 0]:
-            logging=0
-            log.write('use log-level all\n')
-         elif mode in ['d', 'D', "1"]:
-            logging=1
-            log.write('use log-level detailed\n')
-         elif mode in ['m', 'M','2']:
-            logging=2
-            log.write('use log-level medium\n')
-         elif mode in ['i', 'I','3']:
-            logging=3
-         elif mode in ['s', 'S', '4']:
-            logging=4
-         else:
-            logging=3
-            log.write("logging-mode "+mode+" not recognized. Using 'important' instead\n")
-         return logging, log
-      
       #START LOG-FILE DEFINITION     
       #invoke logging (write results into file specified by 'out: ' or into 'calculation.log')
       logfile=re.findall(r"(?<=out: )[\w.,\(\) \=;:\-_]+", f, re.I)
       try:
          loglevel=re.findall(r"(?<=print:)[\w \d]+",f, re.I)[-1]
-         self.logging = invokeLogging(logfile, loglevel )
       except IndexError:
          #else, try an other syntax
          try:
             loglevel=re.findall(r"(?<=print=)[\w \d]+",f, re.I)[-1]
-            self.logging = invokeLogging(logfile, loglevel )
          except IndexError:
-            self.logging = invokeLogging(logfile)
+            loglevel='important'
+      self.log=logger.logging(loglevel,logfile)
       
       # now,  write the header to the output-file.
-      self.logging[1].write("\n==================================================================\n"
-               "=====================  output of Visper  ========================\n"
-               "==================================================================\n\n")
-      self.logging[1].write("   INPUT-FILE:\n")
-      self.logging[1].write(f)
-      self.logging[1].write(" \n   END OF INPUT-FILE \n\n")
-      #self.logging[1].write("calculations to be done: %s\n"%(todo))
+      self.log.write("   INPUT-FILE:\n")
+      self.log.write(f)
+      self.log.write(" \n   END OF INPUT-FILE \n\n")
+      #self.log.write("calculations to be done: %s\n"%(todo))
       #END LOG-FILE DEFINITION     
       
       self.Energy=np.zeros(2)
@@ -211,7 +167,7 @@ class  Spect:
       self.T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
       
       if (re.search(r"(?<=width=)[\d .]+", self.opt, re.M)) is not None:
-         self.width=int(re.findall(r"(?<=width=)[\d .]+", self.opt, re.M)[-1])
+         self.log.width=int(re.findall(r"(?<=width=)[\d .]+", self.opt, re.M)[-1])
 
       # get number of maximal excited/ground from opt:
       states=re.findall(r"(?<=states=)[\d ,]*", self.opt, re.I)
@@ -224,18 +180,18 @@ class  Spect:
             #i.e. 1 number given (else, the 'int' will give an error)
 	    self.states1=int(states[0])
 	    self.states2=0
-	    self.logging[1].write("number of states: %d and %d \n"%(self.states1, self.states2))
+	    self.log.write("number of states: %d and %d \n"%(self.states1, self.states2))
 	 except ValueError:
             try:
                # two numbers given, try to extract them
                self.states1=int(states[0].split(",")[0])
                self.states2=int(states[0].split(",")[1])
-               self.logging[1].write("number of states: %d and %d \n"%(self.states1, self.states2))
+               self.log.write("number of states: %d and %d \n"%(self.states1, self.states2))
             except ValueError:
                #unknown format. Use default and give a respective message.
                self.states1=5
                self.states2=0
-               self.logging[1].write("!!number of vibrational states {0} is not an integer.",
+               self.log.write("!!number of vibrational states {0} is not an integer.",
                                     " Use default instead.\n".format(self.states1, self.states2))
       
       self.reader=Read.Read(initial, final)
@@ -249,14 +205,26 @@ class  Spect:
       manipulate=re.findall(r"(?<=manipulate:)[\w ,]*", self.opt, re.M)
       if manipulate!=[]:
          manipulate=manipulate[0].strip()
-         if manipulate in ["moi", "MOI"]:
-            self.MOI_reorient()
-         if manipulate in ["rmsd" ,"RMSD"]:
-            self.RMSD_reorient()
+         #initialise object of the respective class
+         self.manipulate=AtAl.align_atoms(manipulate, self)
+         #perform the calculation
+         self.manipulate.perform()
+      else:
+         #initialise object of the respective class
+         self.manipulate=AtAl.align_atoms(manipulate, self)
+         # just shift the molecules both to their center of mass
+         self.manipulate.shift()
+         #copy the manipulated data back here.
+         self.CartCoord=self.manipulate.CartCoord
+
    
-      #Calculate Frequencies and normal modes
-      self.GetL()
-      self.Duschinsky()
+      #Calculate Frequencies and normal modes. Therefore, intialise
+      # an object of the respective class and do the respect. calculations
+      self.nm=NormalModes.NormalMode(self.log, self.F, self.mass, self.CartCoord, self.Grad)
+      self.nm.GetL()
+      self.nm.Duschinsky()
+      #give me a copy of the frequencies
+      self.f=self.nm.f
       
    def quantity(self, dim):
       """ Here some frequencies are defined; it is just for clearer code.
@@ -269,31 +237,6 @@ class  Spect:
       self.CartCoord=np.zeros((2, 3, dim//3))
       P=np.zeros((2, dim,dim))
       return F, P
-   
-   def finish(self):
-      """This simple function has the only task to close the log-file after 
-         calculation as it is nice. 
-         More over, it gives the user feedback about successfull finish;
-         also nice if some warnings appeared before.
-      """
-      self.logging[1].close()
-      #count warnings in self.logging[1]:
-      logf=open(self.logfile,"r")
-      warnings=0
-      for line in logf:
-         if 'WARNING:' in line:
-            warnings+=1
-      logf.close()
-      foo=open(self.logfile, 'a')
-      if warnings==0:
-         foo.write("\n==================================================================\n"
-                  "=========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============\n"
-                  "==================================================================\n\n")
-      else:
-         foo.write("\n==================================================================\n"
-                  "============== VISPER FINISHED WITH "+repr(warnings)+" WARNINGS.  ===============\n"
-                  "==================================================================\n\n")
-      foo.close()
    
    def outspect(self, E=0):
       """This function calculates the broadened spectrum given the line spectrum, 
@@ -374,7 +317,7 @@ class  Spect:
          return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick
 
       minint=0
-      self.logging[1].write("\n STARTING TO CALCULATE BROADENED SPECTRUM.\n")
+      self.log.write("\n STARTING TO CALCULATE BROADENED SPECTRUM.\n")
       omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick=handel_input(self.broadopt)
       #read file in format of spect
       #sort spectrum with respect to size of elements
@@ -389,23 +332,21 @@ class  Spect:
          if self.spect[1][i]>=1e-6*self.spect[1][-1]:
             minint=i
             break
-      if self.logging[0]<3:
-         self.logging[1].write('neglect '+repr(minint)+' transitions, use only '+
-                                repr(len(self.spect[1])-minint)+" instead.\n")
+      self.log.write('neglect '+repr(minint)+' transitions, use only '+
+                                repr(len(self.spect[1])-minint)+" instead.\n", 3)
    
-         if self.logging[0]<2:
-            self.logging[1].write('minimal and maximal intensities:\n'+
-              repr(self.spect[1][minint])+' '+repr(self.spect[1][-1])+"\n")
+      self.log.write('minimal and maximal intensities:\n'+
+              repr(self.spect[1][minint])+' '+repr(self.spect[1][-1])+"\n", 2)
       
       #important for later loops: avoiding '.'s speeds python-codes up!!
-      logwrite=self.logging[1].write  
+      logwrite=self.log.write  
      
       #make nPA from OPA if requested.
       n=re.findall(r"(?<=to nPA:)[ \d]*", self.broadopt, re.I)
       if n!=[]:
          MakeFull=MultiPart.OPAtoNPA(float(n[-1].strip()))
-         self.logging[1].write("\n REACHING OPA TO NPA-PART. \n")
-         self.logging[1].write(" ----------------------------------------"+
+         self.log.write("\n REACHING OPA TO NPA-PART. \n")
+         self.log.write(" ----------------------------------------"+
                                                  "-------- \n")
          MakeFull.GetSpect(self.spect, minint)
          TPAintens, TPAfreq=MakeFull.Calc()
@@ -414,9 +355,9 @@ class  Spect:
          TPAintens=self.spect[1][minint:]
       
       if stick:
-         self.logging[1].write(" Intensity  \t frequency \n")
+         self.log.write(" Intensity  \t frequency \n")
          for i in range(len(TPAfreq)):
-            self.logging[1].write(" %3.6g  \t %3.6f\n"%(TPAintens[i],TPAfreq[i]))
+            self.log.write(" %3.6g  \t %3.6f\n"%(TPAintens[i],TPAfreq[i]))
             
       #find transition with minimum intensity to be respected
       #the range of frequency ( should be greater than the transition-frequencies)
@@ -428,18 +369,16 @@ class  Spect:
       else:
          minfreq=omega[0]
          maxfreq=omega[-1]
-      if self.logging[0]<3:
-         self.logging[1].write('maximal and minimal frequencies:\n {0} {1}\n'.format(maxfreq, minfreq))
+      self.log.write('maximal and minimal frequencies:\n {0} {1}\n'.format(maxfreq, minfreq), 3)
       #if no other grid is defined: use linspace in range
       if omega==None:
          omega=np.linspace(minfreq,maxfreq,gridpt)
-         if self.logging[0]<2:
-            self.logging[1].write("omega is equally spaced\n")
+         self.log.write("omega is equally spaced\n",2)
    
       sigma=gamma*2/2.355 #if gaussian used: same FWHM
       
       if gamma*1.1<=(maxfreq-minfreq)/gridpt:
-         self.logging[1].write("\n WARNING: THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
+         self.log.write("\n WARNING: THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
               "THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!")
    
       index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
@@ -448,7 +387,7 @@ class  Spect:
    
       mini=0
       if spectfile==None:
-         out=self.logging[1]
+         out=self.log
       else:
          out = open(spectfile, "w")
    
@@ -504,42 +443,6 @@ class  Spect:
          #only close file if it was opened here
          out.close()
    
-   def printMat(self,mat):
-      """Function to print matrices in a nice way to the log-file.
-         To keep it general, the matrix needs to be given as argument.
-      """
-      k=range(0,len(mat[0]))
-      s=0
-      t=min(s+self.width,len(mat[0]))
-      while s<len(mat[0]):
-         self.logging[1].write("\n")
-         for temp in range(s,t):
-            self.logging[1].write("          %03d "%(k[temp]+1))
-         self.logging[1].write("\n")
-         for j in range(len(mat)):
-            self.logging[1].write(" %03d"%(j+1))
-            for temp in range(s,t):
-               self.logging[1].write("  %+.5e"%(mat[j][k[temp]]))
-            self.logging[1].write("\n")
-         s=t
-         t=min(s+self.width,len(mat[0]))
-
-   def printVec(self,vec):
-      """This funcion is no that tricky but better than rewriting it everywhere it is
-         indeed.
-      """
-      num = self.width//2
-      self.logging[1].write("\n")
-      if len(vec)>num:
-         for j in range(len(vec)//num):
-            for k in range(num):
-               self.logging[1].write("    %03d  %e \t"%(j+k*len(vec)//num+1, vec[j+k*len(vec)//num]))
-            self.logging[1].write("\n")
-      else:
-         for k in range(len(vec)):
-            self.logging[1].write("    %03d  %e \t"%(k+1, vec[k]))
-      self.logging[1].write("\n")
-
    def ReadData(self):
       """ This function gathers most essential parts for calculation of
          HR-factors from g09-files. That is: read neccecary information from the
@@ -565,19 +468,18 @@ class  Spect:
          self.mass=self.mass[0]
       
       self.dim=len(self.mass)*3
-      if self.logging[0]<2:
-         self.logging[1].write("Dimensions: %d\n" %self.dim)
-         self.logging[1].write(" Masses: \n")
-         self.printVec(self.mass*self.mass) # print not the square-root!
+      self.log.write("Dimensions: %d\n" %self.dim,2)
+      self.log.write(" Masses: \n",2)
+      self.log.printVec(self.mass*self.mass) # print not the square-root!
    
       self.F=self.reader.Force()
       if IsZero(self.F[0]):
          self.F[0]=self.F[1]
-         self.logging[1].write("WARNING: Only one force constant matrix given.\n")
+         self.log.write("WARNING: Only one force constant matrix given.\n")
          assert (self.type=='FC'), "You must specify both force constant matrices in this model."
       elif IsZero(self.F[1]):
          self.F[1]=self.F[0]
-         self.logging[1].write("WARNING: Only one force constant matrix given.\n")
+         self.log.write("WARNING: Only one force constant matrix given.\n")
          assert (self.type=='FC'), "You must specify both force constant matrices in this model."
       assert not IsZero(self.F[0]), "ERROR: No force constant matrix given."
       
@@ -597,19 +499,18 @@ class  Spect:
          #define this for easier syntax in function MOI_reorient
          # and Duschinsky.
          self.Grad=[0,0]
-      if self.logging[0]<3:
-         self.logging[1].write('difference of minimum energy between states:'
-                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1))
-         if self.logging[0]<2:
-            self.logging[1].write('Cartesian coordinates of initial state: \n')
-            self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
-            self.logging[1].write('Cartesian coordinates of final state: \n')
-            self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
-            if self.logging==0:
-               self.logging[1].write('initial state: \n')
-               self.printMat(F[0])
-               self.logging[1].write('final state: \n')
-               self.printMat(F[1])
+      self.log.write('difference of minimum energy between states:'
+                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
+      if self.log.level<2:
+            self.log.write('Cartesian coordinates of initial state: \n')
+            self.log.printMat(self.CartCoord[0].T/self.Angs2Bohr)
+            self.log.write('Cartesian coordinates of final state: \n')
+            self.log.printMat(self.CartCoord[1].T/self.Angs2Bohr)
+            if self.log.level==0:
+               self.log.write('initial state: \n')
+               self.log.printMat(self.F[0])
+               self.log.write('final state: \n')
+               self.log.printMat(self.F[1])
    
    def makeXYZ(self):
       """This function creates an .xyz-file for opening e.g. with Chemcraft.
@@ -617,7 +518,7 @@ class  Spect:
          fit together or harmonic approximation will not hold.
          Hence, this is for backup only but in these cases might be helpful.
       """
-      molfile=self.logfile.split(".")[0]
+      molfile=self.log.logfile.split(".")[0]
       output=open(molfile+".xyz", "w")
 
       #first, print the initial state:
@@ -648,524 +549,8 @@ class  Spect:
                                              self.CartCoord[1][1][i]/self.Angs2Bohr,
                                              self.CartCoord[1][2][i]/self.Angs2Bohr) )
       output.close()
-
-   def GetL(self):
-      """Function that calculates the frequencies and normal modes from force constant matrix.It
-         mainly calls a hermitian eigenvalue-solver and computes the frequencies as 
-         srqrt(eigenvalue) and the normal modes by cutting the translation/rotation off.
-         A projection method once has been in use but turned out to be pointless.
-   
-         This function is a member of Spect but syntactically not bound to it at the moment.
-         Hence, it has access to member-variables.
-      
-         **PARAMETERS** 
-         self -> it is member of class
-         F    -> two matrices, F[0] and F[1] ; the respective nuclear energy Hessians.
-   
-         **RETURN**
-         f  -> frequencies of initial (f[0]) and final (f[1]) state. The dimesion is (2, dim-6)
-         L  -> unitary matrices (L[0], L[1]) that diagonalise M*F (massweighted Hessian). Its columns are normal modes 
-               in Cartesian Coordinats The dimension is (2, dim, dim-6)
-         Lmass -> L*M where M_ij=1/sqrt(m_i m_j). This is mass-weighted L and will be used later for most systems.
-        
-      """
-      # Defining arrays
-      lenF=len(self.F[0])
-      L=np.zeros(( 2, lenF, lenF-6 )) 
-      Lmass=np.zeros(( 2, lenF, lenF-6 ))
-      f=np.zeros(( 2, lenF-6 ))
-
-      def gs(A):
-         """This function does row-wise Gram-Schmidt orthonormalization of matrices. 
-            code for Gram-Schmidt adapted from iizukak, see https://gist.github.com/iizukak/1287876
-         """
-         X=A.T # I want to orthogonalize row-wise
-         Y = []
-         npdot=np.dot
-         for i in range(len(X)):
-            temp_vec = X[i]
-            for inY in Y :
-               #proj_vec = proj(inY, X[i])
-               proj_vec = map(lambda x : x *(npdot(X[i],inY) / npdot(inY, inY)) , inY)
-               temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)
-            Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
-         return np.matrix(Y).T # undo transposition in the beginning
-
-      def GetProjector(self, i):
-         """ This function calculates a projection-matrix that is used to project the mass-weighted
-            Hessian onto the space of vibrations. Therefore, we first construct a projector D onto
-            translations and rotations and than apply 1-D onto F.
-         """
-         # Getting tensor of inertia, transforming to principlas axes
-         moi=np.zeros((3,3))# this is Moment Of Inertia
-         # print Coord[1]
-         for j in [0,1,2]:
-            for k in [0,1,2]:
-               if k == j:
-                  moi[j][j]=np.sum(self.mass*self.mass*(self.CartCoord[i][0]*self.CartCoord[i][0]+\
-                           self.CartCoord[i][1]*self.CartCoord[i][1]+self.CartCoord[i][2]*self.CartCoord[i][2]-\
-                           self.CartCoord[i][j]*self.CartCoord[i][k]))
-               else:
-                  moi[j][k]=np.sum(self.mass*self.mass*(self.CartCoord[i][j]*self.CartCoord[i][k]))
-         diagI,Moi_trafo=np.linalg.eig(moi) # this can be shortened of course!
-         index=np.argsort(diagI,kind='heapsort')
-         #X=np.matrix(X[index]) #sorting by eigenvalues
-         Moi_trafo=np.matrix(Moi_trafo) #notsorting by eigenvalues
-      
-         #now, construct the projector onto frame of rotation and translation using Sayvetz conditions
-         D=np.zeros((self.dim,6))
-         for k in [0,1,2]:# first three rows in D: The translational vectors
-            for j in range(self.dim//3):
-               #translations in mass-weighted coordinates
-               D[3*j+k][k]=self.mass[j]
-         for k in range(self.dim):# next three rows in D: The rotational vectors
-            #rotations in mass-weighted coordinates
-            D[k][3:6]=(np.cross(np.dot(Moi_trafo,self.CartCoord[i])[:].T[k//3],Moi_trafo[:].T[k%3]))*self.mass[k//3]
-         D_orthog=gs(np.array(D)) #orhogonalize it
-         ones=np.identity(self.dim)
-         one_P=ones-np.dot(D_orthog,D_orthog.T)
-         prob_vec=(D_orthog.T[1]+D_orthog.T[4]+D_orthog.T[0]+D_orthog.T[5]).T #what is this actually??
-         assert not np.any(np.abs(prob_vec-np.dot(np.dot(D_orthog,D_orthog.T),prob_vec))>0.00001), \
-                  'Translations and rotations are affected by projection operator.'+\
-                  repr(np.abs(prob_vec-np.dot(np.dot(D_orthog,D_orthog.T),prob_vec)))
-         assert not  np.any(np.abs(np.dot(one_P,prob_vec))>0.00001), \
-                  "Projecting out translations and rotations from probe vector"
-         return one_P
-      
-      def SortL(J,L,f):
-         """This functions resorts the normal modes (L, f) such that the Duschinsky-Rotation
-            matrix J becomes most close to unity (as possible just by sorting).
-            In many cases, here chosing max(J[i]) does not help since there will be rows/columns occur
-            more often. 
-            Since I don't know any closed theory for calculating this, it is done by cosidering all possible cases.
-         """
-         
-         #initialize the matrix that resorts the states:
-         resort=np.zeros(np.shape(J))
-         #FIRST, DO SOME GUESS HOW THE MATRIX COULD LOOK LIKE
-         #chose largest elements in lines
-         for i in range(len(J)):
-            j=np.argmax(J[i])
-            k=np.argmin(J[i])
-            if J[i][j]>-J[i][k]:
-               resort[i][j]=1
-            else:
-               resort[i][k]=1
-         #now, go through rows and check if they are ok:
-         #print "resortJ\n",resort
-         resort=resort.T
-         Nos=[]
-         freePlaces=[]
-
-         # NOW LOOK FOR ERRORS IN THE GUESS
-         for i in range(len(J)):
-            if sum(resort[i])==1:
-               #this is the normal case: the order of
-               # states did not change.
-               continue
-            elif sum(resort[i])==0:
-               Nos.append(i)
-            else:
-               index=np.where(resort[i]==1)
-               x=np.argmax(np.abs(J[index,i]))
-               index=np.delete(index,x)
-               resort[i][index]=0 #only x remains
-               freePlaces=np.append(freePlaces,index)
-         # By construction, this should always be true!
-         assert len(Nos)==len(freePlaces), "dodododo!"
-         freePlaces=np.array(freePlaces,dtype=int)
-         
-         #FIXING THE ERRORS NOW:
-         #fill remaining lines. Therefore, set that element to one
-         # whose value is largest under all remaining ones.
-         # This method is not fair since the first has most choise but should
-         # be fair enough in most cases
-         for i in range(len(Nos)):
-               x=np.argmax(np.abs(J[freePlaces,Nos[i]]))
-               resort[Nos[i],freePlaces[x]]=1 #only x remains
-               freePlaces=np.delete(freePlaces,x) # does it work the way I want it to work?
-         assert len(freePlaces)==0, "the matrix is not readily processed."
-         #FIX DONE.
-         
-         #since resort is a permutation matrix, it is unitary. Using this:
-         return f.dot(resort), L.dot(resort)
-         #  END OF SortL
-  
-      # do the following for both states:
-      for i in [0,1]:
-         # solve the eigenvalue-equation for F:
-
-         #REMOVE ROTATIONS AND TRANSLATIONS FROM HESSIAN.
-         #project=False
-         project=True
-         #project out the rotations and vibrations and not just throw away the smallest 6 eigen values
-         # and respective eigen modes.
-         if project:
-            D=GetProjector(self, i)
-            #ftemp,Ltemp=np.linalg.eig(np.dot(np.dot(D.T,self.F[i]),D))
-            ftemp,Ltemp,info=dsyev(np.dot(np.dot(D.T,self.F[i]),D))
-            #ftemp,Ltemp,info=dsyev(self.F[i])
-            
-            #Why can I not construct D such that I don't need to throw away anything?
-
-         else: #disabled right now, maybe I will reenable it later on!?
-            #ftemp,Ltemp=np.linalg.eigh(self.F[i])
-            ftemp,Ltemp,info=dsyev(self.F[i])
-            for j in range(0,self.dim):
-               norm=np.sum(Ltemp.T[j].T.dot(Ltemp.T[j]))
-               if np.abs(norm)>1e-12:
-                  Ltemp.T[j]/=np.sqrt(norm)
-
-         #sort the results with increasing frequency (to make sure it really is)
-         index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
-         # and then cut off the 6 smallest values: rotations and vibrations.
-         f[i]=np.real(ftemp[index]).T[:].T[6:].T
-         L[i]=(Ltemp.T[index].T)[:].T[6:].T
-         #END REMOVING ROTATIONS AND TRANSLATIONS.
-   
-         #the frequencies are square root of the eigen values of F
-         # Here, we need to take care for values <0 due to bad geometry
-         for j in range(len(f[i])):
-            f[i][j]=np.sign(f[i][j])*np.sqrt(np.abs(f[i][j]))
-
-         #through a warning if imaginary frequencies occured and take their pos. values for that.
-         if np.any(f[i]<0):
-            self.logging[1].write('WARNING: imaginary frequencies occured. The absolute'
-                    ' values are used in the following.\n{0}\n'.format(f[i]))
-            f[i]=np.abs(f[i])
-
-         #calculate the mass matrix, for Lmass
-         M=np.eye(self.dim)
-         for j in range(self.dim):
-            M[j,j]/=self.mass[j//3]
-         Lmass[i]=M.dot(L[i])
-         #if log level=0 or 1:
-         if self.logging[0]<2:
-            if i==0:
-               self.logging[1].write("Initial states:\n")
-            else:
-               self.logging[1].write("Final states:\n")
-            self.logging[1].write("Frequencies (cm-1)\n")
-            self.printVec(f[i]*self.Hartree2cm_1)
-            #indeed, this matrix is not resorted yet and yes, the user is not informed
-            #that there are manipulations done on it afterwards.
-            self.logging[1].write("L-matrix \n")
-            self.printMat(Lmass[i])
-      
-      # to account for the effect that the frequencies independently change between the states 
-      #  and hence may change their order, the final states L and f are resorted via the
-      #  largest overlap. When strong changes occur, there is no fair method. This one tries
-      #  to be as fair as possible.
-      f[1],L[1]=SortL(np.linalg.pinv(L[0]).dot(L[1]),L[1],f[1])
-
-      #recalculate Lmass for final state.
-      Lmass[1]=M.dot(L[1]) # recalculate Lmass!
-      self.Lmassw=Lmass
-      self.f=f
-      self.L=L
-   
-   def Duschinsky(self):
-      """This function calculates the shift between two electronic states 
-         (whose geometry is known, see x) as well as the
-         Duschinsky-rotation matrix.
-
-         **PARAMETERS:**
-         mass:    array of square-roots of nuclear masses (length: N)
-
-         **RETURN:**
-         J:    Duschinsky-rotation matrix
-         K:    displacement-vector of energy-minima in normal coordinates
-      """
-      self.J=np.zeros((self.dim-6,self.dim-6))
-      self.K=np.zeros(self.dim-6)
-      M=np.zeros((self.dim,self.dim))
-   
-      for i in range(self.dim):
-         M[i][i]=self.mass[i//3] #square root of inverse masses
-      #J=np.dot(L[0].T, L[1])  # for Lsorted
-      self.J=np.linalg.pinv(self.Lmassw[0]).dot(self.Lmassw[1]) # for Lmassw
-   
-      #print "J\n", J
-      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
-         self.K=self.Grad.T.dot(self.Lmassw[0])
-         #self.K=(np.linalg.pinv(self.Lmassw[0]).dot(self.Grad)).T  # w p Lmassw
-         # scale consistently: Now it is really the shift in terms of normal modes
-         self.K/=self.f[0]*self.f[0]#*np.sqrt(2)  #
-         #self.K=self.K[0] # it is matrix and needs to be a vector...
-         #FIXME: this seems to be inconsistent! may be matrix or vector...
-
-      else:
-         DeltaX=np.array(self.CartCoord[1]-self.CartCoord[0]).flatten('F')  # need initial - final here.
-         if self.logging[0] <1:
-            self.logging[1].write('changes of Cartesian coordinates:\n')
-            self.printVec(DeltaX)
-         self.K=np.linalg.pinv(self.Lmassw[0]).dot(DeltaX)  # w p Lmassw
-      
-      if self.logging[0]<2:
-         # print the Duschinsky matrix in a nice format
-         self.logging[1].write('Duschinsky rotation matrix:\n')
-         self.printMat(self.J)
-         self.logging[1].write('\nDuschinsky displacement vector:\n')
-         self.printVec(self.K)
  
- # FIXME: new class/file for the manipulation of data: 
- #        there is the L-matrix (reordering) and coordinate-changes (2 methods)
-
-   def MOI_reorient(self):
-      """This function reorients the final state in space such that
-         the moment of inertia frames coincide.
-         The function will fail when the order of the moments changes
-         or are close to degenerate and hence are rotated towards each other.
-         FIXME: I want to add a threshold to make the programme decide itself,
-         whether this method is applicable or not.
-      """
-      #FIRST STEP: move the center of mass (COM) to origin:
-      COM=np.zeros(3)
-      X=np.zeros( (2,3,3) )
-      diagI=np.zeros( (2,3) )
-      #do it for initial and final state:
-      for i in [0,1]:
-         #loop over coordinates:
-         for j in [0,1,2]:
-            COM[j]=np.sum(self.CartCoord[i][j]*self.mass)
-            COM[j]/=np.sum(self.mass) 
-         #now it is Cartesian center of mass
-         if self.logging[0]<2:
-            if i==0:
-               self.logging[1].write("Center of mass (initial) coordinates (Bohr):\n")
-            else:
-               self.logging[1].write("Center of mass (final) coordinates (Bohr):\n")
-            self.printVec(COM)
-         for j in [0,1,2]:
-            #displacement of molecule into center of mass:
-            self.CartCoord[i][j]-=COM[j]
-      
-         #SECOND STEP: Calculate the inertia-system.
-         #  (MOI: Moment Of Inertia)
-         MOI=np.zeros((3,3))# this is Moment Of Inertia
-         #loop over coordinates:
-         for j in [0,1,2]:
-            MOI[j][j]=np.sum(self.mass*self.mass*(self.CartCoord[i][0]*self.CartCoord[i][0]+\
-                     self.CartCoord[i][1]*self.CartCoord[i][1]+self.CartCoord[i][2]*self.CartCoord[i][2]-\
-                     self.CartCoord[i][j]*self.CartCoord[i][j]))
-            for k in range(j):
-               MOI[j][k]=np.sum(self.mass*self.mass*(self.CartCoord[i][j]*self.CartCoord[i][k]))
-               MOI[k][j]=MOI[j][k]
-         #calculate the eigen-system of MOI
-         diagI[i],X[i]=np.linalg.eig(MOI) 
-         # sort it such, that the rotation is minimal. Therefore, first check
-         # that it is not too big; otherwise, this simple code might fail.
-         index=np.argsort(diagI[i], kind='heapsort')
-         X[i]=(X[i].T[index]).T
-         diagI[i]=diagI[i][index]
-      #end for i in [0,1].
-      
-      #output on the information gathered above
-      if self.logging[0]==0:
-         self.logging[1].write('\nRotational constants (GHz) in principle axes\n')
-         self.logging[1].write('initial state: '+ repr(1/(2*diagI[0].T)*self.Hartree2GHz)+"\n")
-         self.logging[1].write('final state: '+ repr(1/(2*diagI[1].T)*self.Hartree2GHz)+"\n")
-         self.logging[1].write("Inertia system in Cartesion Coordinates of initial state:\n")
-         self.printMat(X[0])
-         self.logging[1].write("Inertia system in Cartesion Coordinates of final state:\n")
-         self.printMat(X[1])
-      
-      #overlap of the moi-systems: gives the rotation of the respective frames
-      # but is free in sign; correct this in the following:
-      O=X[0].dot(X[1].T) 
-
-      rmsdi=[]
-      # now: test all combinations of signs. criterion is the least square of 
-      # Cartesian coordinates.
-      sign=np.eye(3)
-      for i in range(13):
-         #indeed, this gives all combinations 
-         # after another...
-         sign[int((i//3+i)%3)][int((i//3+i)%3)]*=-1
-         if i in [4,7,8,10, 11]:
-            #they give redundant results.
-            continue
-         U=sign.dot(O.T)
-         rmsdi.append(RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])))
-
-         #print  RMSD(self.CartCoord[0]-self.CartCoord[1]), RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
-      rmsd=RMSD(self.CartCoord[0]-self.CartCoord[1])
-      rmsdi.append(rmsd)
-      #reassign i 
-      i=np.argmin(rmsdi)
-      if i==len(rmsdi)-1:
-         # no rotation into MOI-frame should be done because initial 
-         # geometry is the best. This is the case especially, if there
-         # are (almost) degenerate moments of intertia.
-         return
-      #recover the sing-combination with least squares:
-      if i>=4:
-         i+=1
-         if i>=7:
-            i+=1
-            if i>=8:
-               i+=1
-               if i>=10:
-                  i+=1
-                  if i>=11:
-                     i+=1
-      sign=np.eye(3)
-      for j in range(i):
-         sign[int((j//3+j)%3)][int((j//3+j)%3)]*=-1
-      U=sign.dot(O)
-      #apply this combination to coordinates of final state
-      self.CartCoord[1]=U.dot(self.CartCoord[1])
-      # produce respective matrix to rotate Force-constant matrix as well
-      Y=np.zeros( (self.dim,self.dim) )
-      for j in range(self.dim//3):
-         Y[3*j:3*j+3].T[3*j:3*j+3]=U
-      # apply the respective rotation:
-      self.F[1]=np.dot(Y.T.dot(self.F[1]),Y)
-      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
-         self.Grad=Y.dot(self.Grad)
-   
-      # finally: print what is done.
-      if self.logging[0]==0:
-         self.logging[1].write("Rotation of final state:\n")
-         self.printMat(U)
-         self.logging[1].write("Coordinates after manipulation::\n")
-         self.logging[1].write('Cartesian coordinates of initial state: \n')
-         self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
-         self.logging[1].write('Cartesian coordinates of final state: \n')
-         self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
-   
-   def apply_change(self, U):
-      """ produce respective matrix to rotate Force-constant matrix as well
-      """
-      self.CartCoord[1]=U.dot(self.CartCoord[1])
-      Y=np.zeros( (self.dim,self.dim) )
-      for j in range(self.dim//3):
-         Y[3*j:3*j+3].T[3*j:3*j+3]=U
-      # apply the respective rotation:
-      self.F[1]=np.dot(Y.T.dot(self.F[1]),Y)
-      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
-         for j in range(self.dim//3):
-            self.Grad[3*j:3*j+3]=U.dot(self.Grad[3*j:3*j+3])
-
-   def RMSD_reorient(self):
-      """This function reorients the final state in space such that
-         the moment of inertia of coordinates is minimized.
-         I assume that there might be coordinate flips and/or switches
-         but no strong rotations by ~40 degree
-      """
-      #FIRST STEP: move the center of mass (COM) to origin:
-      COM=np.zeros(3)
-      X=np.zeros( (2,3,3) )
-      diagI=np.zeros( (2,3) )
-      #do it for initial and final state:
-      for i in [0,1]:
-         #loop over coordinates:
-         for j in [0,1,2]:
-            COM[j]=np.sum(self.CartCoord[i][j]*self.mass)
-            COM[j]/=np.sum(self.mass) 
-         #now it is Cartesian center of mass
-         if self.logging[0]<2:
-            if i==0:
-               self.logging[1].write("Center of mass (initial) coordinates (Bohr):\n")
-            else:
-               self.logging[1].write("Center of mass (final) coordinates (Bohr):\n")
-            self.printVec(COM)
-         for j in [0,1,2]:
-            #displacement of molecule into center of mass:
-            self.CartCoord[i][j]-=COM[j]
-      
-      #SECOND STEP: check for all combinations of axis-flips and coordinate-switches.
-      # test all combinations of signs. and permutations:
-      rotated=self.CartCoord[1]
-      for j in range(6):
-         #loop over all permutations:
-         O=np.zeros( (3,3) )
-         if j%2==0:
-            #for cyclic permutations
-            for i in range(3):
-               #for cyclic ones, this works...
-               O[(i+j//2)%3][(i-j//2)%3]=1
-         else:
-            #for anti-cyclic permutations
-            for i in range(3):
-               #for cyclic ones, this works...
-               O[-((i+j//2)%3)-1][(i-j//2)%3]=1
-         sign=np.eye(3)
-         for i in range(13):
-            #loop over all sing-combinations.
-            #indeed, this gives all combinations 
-            # after another...
-            sign[int((i//3+i)%3)][int((i//3+i)%3)]*=-1
-            if i in [4,7,8,10, 11]:
-               #they give redundant results.
-               continue
-            U=sign.dot(O)
-            #print np.shape(rotated) ,np.shape(self.CartCoord[0]), np.shape(U.dot(self.CartCoord[1]))
-            if RMSD(self.CartCoord[0]-rotated) >RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])):
-               #if the current combination is the best, save it.
-               U_min=U
-               rotated=U_min.dot(self.CartCoord[1])
-               #print RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
-      try:
-         #if U_min is known: coordinate system changed.
-         # This change is applied to the other quantities as well:
-         self.apply_change(U_min)
-      except NameError:
-         #do nothing
-         U=0
-
-      #THIRD STEP: follow some Monte Carlo scheme.
-      # comparatively small angles. Do 200 steps.
-      U=np.eye(3)
-      for i in range(40):
-         #chose some angle:
-         #for every level: do 5 tests and the refine the search...
-         for j in range(50):
-            #a rotation-matrix with small rotations:
-            theta=0.063*(random.random()-.5)/(i+1)
-            eta=0.063*(random.random()-.5)/(i+1)
-            nu=0.063*(random.random()-.5)/(i+1)
-            R_x=np.matrix([ [1,0,0],
-                  [0,np.cos(theta),-np.sin(theta)],
-                  [0,np.sin(theta),np.cos(theta)] ], dtype=float)
-            R_y=np.matrix([[np.cos(eta),0,-np.sin(eta)],
-                  [0,1,0],
-                  [np.sin(eta),0,np.cos(eta)]], dtype=float)
-            R_z=np.matrix([[np.cos(nu),-np.sin(nu),0],
-                  [np.sin(nu),np.cos(nu),0],
-                  [0,0,1] ], dtype=float)
-            R=R_x.dot(R_y).dot(R_z)
-            test=R.A.dot(U.dot(self.CartCoord[1]))
-            if RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))> RMSD(self.CartCoord[0]-test):
-               #if it gets better: apply the change.
-               #self.CartCoord[1]=test
-               U=R.A.dot(U)
-      
-      #FOURTH STEP: apply the rotation.
-
-      self.apply_change(U)
-   
-      # finally: print what is done.
-      if self.logging[0]==0:
-         self.logging[1].write("Rotation of final state::\n")
-         self.printMat(U)
-         self.logging[1].write("Coordinates after manipulation::\n")
-         self.logging[1].write('Cartesian coordinates of initial state: \n')
-         self.printMat(self.CartCoord[0].T/self.Angs2Bohr)
-         self.logging[1].write('Cartesian coordinates of final state: \n')
-         self.printMat(self.CartCoord[1].T/self.Angs2Bohr)
    # END OF FUNCTION DEFINITIONS
 
-def RMSD(Delta):
-   """This function calculates the RMSD of a matrix (intended
-      for self.CartCoords)
-   """
-   rmsd=0
-   for i in range(len(Delta)):
-      for j in range(len(Delta[0])):
-         rmsd+=Delta[i][j]*Delta[i][j]
-   return rmsd
-
-#version=0.1.7   
-
+#version=0.2.0   
 # End of Spect.py

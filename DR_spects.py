@@ -51,56 +51,56 @@ class URDR_spect(Spect.Spect):
       sqGammap=np.diag(np.sqrt(self.f[1]))
       unity=np.eye(len(self.Gamma))
 
-      TMP=np.linalg.inv(self.J.T.dot(self.Gammap).dot(self.J) + self.Gamma)
-      self.A=2.*sqGammap.dot(self.J).dot(TMP).dot(self.J.T).dot(sqGammap) -unity
-      self.b=2.*sqGammap.dot( unity - self.J.dot(TMP).dot(self.J.T).dot(self.Gammap) ).dot(self.K)
+      TMP=np.linalg.inv(self.nm.J.T.dot(self.Gammap).dot(self.nm.J) + self.Gamma)
+      self.A=2.*sqGammap.dot(self.nm.J).dot(TMP).dot(self.nm.J.T).dot(sqGammap) -unity
+      self.b=2.*sqGammap.dot( unity - self.nm.J.dot(TMP).dot(self.nm.J.T).dot(self.Gammap) ).dot(self.nm.K)
       self.C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
-      self.d=-2.*sqGamma.dot(TMP).dot(self.J.T.dot(self.Gammap.dot(self.K)))
-      self.E=4.*sqGamma.dot(TMP).dot(self.J.T).dot(sqGammap)
+      self.d=-2.*sqGamma.dot(TMP).dot(self.nm.J.T.dot(self.Gammap.dot(self.nm.K)))
+      self.E=4.*sqGamma.dot(TMP).dot(self.nm.J.T).dot(sqGammap)
 
    def calcspect(self):
       """This function prepares all variables according to the given 
          options to calculate the spectrum.
       """
       #first: resort the elements of J, K, f to make J most closely to unity
-      resort=np.zeros(np.shape(self.J))
-      for i in xrange(len(self.J)):
-         j=np.argmax(self.J[i])
-         k=np.argmin(self.J[i])
-         if self.J[i][j]>-self.J[i][k]:
+      resort=np.zeros(np.shape(self.nm.J))
+      for i in xrange(len(self.nm.J)):
+         j=np.argmax(self.nm.J[i])
+         k=np.argmin(self.nm.J[i])
+         if self.nm.J[i][j]>-self.nm.J[i][k]:
            resort[i][j]=1
          else:
             resort[i][k]=-1
-      self.J=resort.dot(self.J.T)
-      self.K=resort.dot(self.K.T)
+      self.nm.J=resort.dot(self.nm.J.T)
+      self.nm.K=resort.dot(self.nm.K.T)
       for i in xrange(len(resort)):
          k=np.argmin(resort[i])
          if resort[i][k]==-1:
             resort[i][k]=1 #use absolute value only.
       self.f[1]=resort.dot(self.f[1].T)
-      self.logging[1].write("before truncation:\n")
-      self.logging[1].write("Duschinsky-Matrix:\n")
-      self.printMat(self.J)
-      self.logging[1].write("Displacement vector:\n")
-      self.printVec(self.K)
+      self.log.write("before truncation:\n")
+      self.log.write("Duschinsky-Matrix:\n")
+      self.log.printMat(self.nm.J)
+      self.log.write("Displacement vector:\n")
+      self.log.printVec(self.nm.K)
    
       #truncate only, if this really is truncation.
-      if self.m<len(self.J): 
-         index=np.argsort(np.abs(self.K), kind="heapsort")[::-1]
+      if self.m<len(self.nm.J): 
+         index=np.argsort(np.abs(self.nm.K), kind="heapsort")[::-1]
          ind=index[:self.m]
-         self.K=self.K[ind]
-         self.J=self.J[ind].T[ind]
+         self.nm.K=self.nm.K[ind]
+         self.nm.J=self.nm.J[ind].T[ind]
          f=np.zeros(( 2,self.m))
          f[1]=self.f[1][ind]
          f[0]=self.f[0][ind]
          self.f=f
          # now recalculate the matrices A,C,E,...
          self.GetQuants()
-      self.logging[1].write("After truncation:\n")
-      self.logging[1].write("Duschinsky-Matrix:\n")
-      self.printMat(self.J)
-      self.logging[1].write("Displacement vector:\n")
-      self.printVec(self.K)
+      self.log.write("After truncation:\n")
+      self.log.write("Duschinsky-Matrix:\n")
+      self.log.printMat(self.J)
+      self.log.write("Displacement vector:\n")
+      self.log.printVec(self.nm.K)
    
       # finally, calculate the stick spectrum in this picture
       self.spect=self.FCf(self.states1+ self.states2, self.T)
@@ -121,9 +121,9 @@ class URDR_spect(Spect.Spect):
          """This function calculates the overlap-integral for zero vibrations 
          """
    
-         Tree=bt.Tree(2*len(self.K))
+         Tree=bt.Tree(2*len(self.nm.K))
          Tree.fill(0)
-         Zero=np.zeros(2*len(self.K))
+         Zero=np.zeros(2*len(self.nm.K))
          # correct for vibrational groundstates
          E=self.Energy[0]-self.Energy[1]
          for i in range(len(self.Gammap)):
