@@ -197,24 +197,17 @@ class align_atoms():
       Y=np.zeros( (self.dim,self.dim) )
       for j in range(self.dim//3):
          Y[3*j:3*j+3].T[3*j:3*j+3]=U
-      # apply the respective rotation:
+      # apply the respective rotation to gradient or Hessian as well:
       if any(self.spect.Grad[i]>0 for i in range(len(self.spect.Grad))):
-        # temp=np.zeros( (3,len(self.spect.Grad)//3) )
-        # for i in [0,1,2]:
-        #    for j in range(len(temp)):
-        #       temp[i][j]=self.spect.Grad[j*3+i]
-        # temp=U.dot(temp)
-        # for i in [0,1,2]:
-        #    for j in range(len(temp)):
-        #       self.spect.Grad[j*3+i]=temp[i][j]
 
-         #self.spect.Grad=Y.dot(self.spect.Grad)
-
-         for j in range(self.dim//3):
-            self.spect.Grad[3*j:3*j+3]=U.dot(self.spect.Grad[3*j:3*j+3])
-
+         self.spect.Grad=Y.dot(self.spect.Grad)
+         
+         #this is atomic version of the above code. Since Grad is a
+         # row-vector, we need the transposition.
+         #for j in range(self.dim//3):
+         #  self.spect.Grad[3*j:3*j+3]=U.T.dot(self.spect.Grad[3*j:3*j+3])
       else:
-         # if there is a gradient given, only one force constant matrix is used. 
+         #if there is a gradient given, only one force constant matrix is used. 
          #In that case, no transformation should be conducted because it will
          # be given in the initial state.
          self.spect.F[1]=np.dot(Y.dot(self.spect.F[1]),Y.T)
