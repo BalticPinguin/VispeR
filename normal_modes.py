@@ -33,16 +33,17 @@ class NormalMode():
    Coord=[]
    dim=0
 
-   def __init__(self, log, F, mass, Coords, Grad):
+   def __init__(self, parent):
       """Here, I just need to initialise the respective data.
          The rest will be done at the respective places in Spect.
       """
-      self.log=log
-      self.F=F
-      self.mass=mass
-      self.Coord=Coords
-      self.dim=len(F[0])
-      self.Grad=Grad
+      self.log=parent.log
+      self.F=parent.F
+      self.mass=parent.mass
+      self.Coord=parent.CartCoord
+      self.dim=len(self.F[0])
+      self.Grad=parent.Grad
+      self.parent=parent
 
    def GetL(self):
       """Function that calculates the frequencies and normal modes from force constant matrix.It
@@ -75,14 +76,22 @@ class NormalMode():
          # solve the eigenvalue-equation for F:
 
          #REMOVE ROTATIONS AND TRANSLATIONS FROM HESSIAN.
-         #project=False
          project=True
+         #don't do this, if the force-constant matrix is just a copy
+         # of the initial state to keep the results consistent.
+         if self.parent.sameF==True:
+            if i==1:
+               project=False
          #project out the rotations and vibrations and not just throw away the smallest 6 eigen values
          # and respective eigen modes.
          if project:
             D=self.GetProjector(i)
             self.F[i]=np.dot(np.dot(D.T,self.F[i]),D)
             #Why can I not construct D such that I don't need to throw away anything?
+         else:
+            #A copy of F was used before, so I need to recopy it to have the projected
+            # version here as well.
+            self.F[i]=self.F[0]
 
          #ftemp,Ltemp=np.linalg.eigh(self.F[i])
          ftemp,Ltemp,info=dsyev(self.F[i])

@@ -87,6 +87,7 @@ class  Spect:
    CartCoord=[]
    read=[]  # this object is valid only after __init__. Maybe it doesn't belong here...
    spect=[[0],[0],[0]]
+   sameF=False #remembers, whether two different force constant matrices are in use.
    type="Spect"
    
    # The following additional elements are members of all instances:
@@ -223,7 +224,7 @@ class  Spect:
    
       #Calculate Frequencies and normal modes. Therefore, intialise
       # an object of the respective class and do the respect. calculations
-      self.nm=NormalModes.NormalMode(self.log, self.F, self.mass, self.CartCoord, self.Grad)
+      self.nm=NormalModes.NormalMode(self)
       self.nm.GetL()
       self.nm.Duschinsky()
       #give me a copy of the frequencies
@@ -274,10 +275,12 @@ class  Spect:
       if IsZero(self.F[0]):
          self.F[0]=self.F[1]
          self.log.write("WARNING: Only one force constant matrix given.\n")
+         self.sameF=True
          assert (self.type=='FC'), "You must specify both force constant matrices in this model."
       elif IsZero(self.F[1]):
          self.F[1]=self.F[0]
          self.log.write("WARNING: Only one force constant matrix given.\n")
+         self.sameF=True
          assert (self.type=='FC'), "You must specify both force constant matrices in this model."
       assert not IsZero(self.F[0]), "ERROR: No force constant matrix given."
       
