@@ -43,14 +43,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
       </div>
-      
+      <p>This class does everything related to output of the printed information.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="k">class</span> <span class="nc">logging</span><span class="p">():</span>
-   <span class="n">logfile</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
-   <span class="n">level</span><span class="o">=</span><span class="s1">&#39;0&#39;</span>
-   <span class="n">numWarn</span><span class="o">=</span><span class="mi">0</span>
-   <span class="n">width</span><span class="o">=</span><span class="mi">5</span>  <span class="c1"># determines, how many rows of a matrix are writen aside each other.</span></pre></div>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">logging</span><span class="p">():</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -59,10 +55,15 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
-      
+      <p>Its main job is to hold an open file handler (loghandler) and to write texts
+   into a log-file.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">logfile</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>   <span class="n">logfile</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+   <span class="n">level</span><span class="o">=</span><span class="s1">&#39;0&#39;</span>
+   <span class="n">loghandler</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+   <span class="n">numWarn</span><span class="o">=</span><span class="mi">0</span>
+   <span class="n">width</span><span class="o">=</span><span class="mi">5</span>  <span class="c1"># determines, how many rows of a matrix are writen aside each other.</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -71,10 +72,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-4'>#</a>
       </div>
-      <p>initialises the logging-functionality</p>
+      <p>initialise the quantities important for writing.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">def</span> <span class="nf">invokeLogging</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;important&quot;</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">logfile</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -82,6 +83,18 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>initialises the logging-functionality</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">def</span> <span class="nf">invokeLogging</span><span class="p">(</span><span class="n">logfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;important&quot;</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
       </div>
       <p><strong>PARAMETERS</strong>
   logfile   name of file to be used as log-file. It is expected to be an array of 
@@ -103,10 +116,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-6'>
+  <div class='section' id='section-7'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-6'>#</a>
+        <a class='octothorpe' href='#section-7'>#</a>
       </div>
       <p>remove all white spaces and take only first character.</p>
     </div>
@@ -115,10 +128,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-7'>
+  <div class='section' id='section-8'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
       <p>search, which option was set.</p>
     </div>
@@ -149,10 +162,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-8'>
+  <div class='section' id='section-9'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <p>This simple function has the only task to close the log-file after</p>
     </div>
@@ -161,10 +174,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-10'>#</a>
       </div>
       <p>calculation as it is nice. 
    More over, it gives the user feedback about successfull finish;
@@ -175,10 +188,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-10'>
+  <div class='section' id='section-11'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-10'>#</a>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <p>count warnings in self.loghandler:</p>
     </div>
@@ -196,23 +209,9 @@
                   <span class="s2">&quot;==================================================================</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
          <span class="n">foo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">==================================================================</span><span class="se">\n</span><span class="s2">&quot;</span>
-                  <span class="s2">&quot;============== VISPER FINISHED WITH &quot;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; WARNINGS.  ===============</span><span class="se">\n</span><span class="s2">&quot;</span>
+                  <span class="s2">&quot;=============== VISPER FINISHED WITH &quot;</span><span class="o">+</span><span class="nb">repr</span><span class="p">(</span><span class="n">warnings</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot; WARNINGS.  ================</span><span class="se">\n</span><span class="s2">&quot;</span>
                   <span class="s2">&quot;==================================================================</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
       <span class="n">foo</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-11'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-11'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">70</span><span class="p">):</span>
-      <span class="k">if</span> <span class="n">level</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">:</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -221,10 +220,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-12'>#</a>
       </div>
-      <p>This funcion is no that tricky but better than rewriting it everywhere it is</p>
+      <p>write a given text to the log-file if its priority (level) is larger</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">printVec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">vec</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">70</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -232,6 +231,31 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>than the threshold-priority for printing information</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="n">level</span><span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">loghandler</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>This funcion is no that tricky but better than rewriting it everywhere it is</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">printVec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">vec</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <p>indeed.</p>
     </div>
@@ -250,10 +274,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-14'>
+  <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
+        <a class='octothorpe' href='#section-16'>#</a>
       </div>
       <p>Function to print matrices in a nice way to the log-file.</p>
     </div>
@@ -262,10 +286,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-15'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       <p>To keep it general, the matrix needs to be given as argument.</p>
     </div>
@@ -288,12 +312,12 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-16'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
-      <p>version 0.1.0
+      <p>version=0.1.0
 End of file_handler.py</p>
     </div>
     <div class='code'>

@@ -46,7 +46,16 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
       </div>
-      
+      <p>This class handles objects related to normal mode analysis.
+   Hence, the calculation of normal modes and frequencies is performed
+   here (GetL) and their shift-vector/couplings are calculated (Duschinsky).
+   The other functions (SortL and GetProjector) are functions to manipulate the 
+   data: SortL assignes the normal modes of final state to fit the initial states
+   coordinates best (which might become problematic when almost degenerate frequencies
+   occur) and GetProjector projects out the rotations and vibrations from the force
+   constant matrix. 
+   This is also mostly for numerical purposes and turned out to be not that
+   easy in practice.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="n">Hartree2cm_1</span><span class="o">=</span><span class="mf">219474.63</span> 
@@ -205,9 +214,9 @@ and respective eigen modes.</p>
     <div class='code'>
       <div class="highlight"><pre>         <span class="n">ftemp</span><span class="p">,</span><span class="n">Ltemp</span><span class="p">,</span><span class="n">info</span><span class="o">=</span><span class="n">dsyev</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
          <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">):</span>
-            <span class="n">norm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Ltemp</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Ltemp</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+            <span class="n">norm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">Ltemp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Ltemp</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span><span class="o">&gt;</span><span class="mf">1e-12</span><span class="p">:</span>
-               <span class="n">Ltemp</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span></pre></div>
+               <span class="n">Ltemp</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -228,7 +237,8 @@ and respective eigen modes.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-14'>#</a>
       </div>
-      <p>and then cut off the 6 smallest values: rotations and vibrations.</p>
+      <p>and then cut off the 6 smallest values: rotations and vibrations.
+print np.sqrt(np.real(ftemp[index]).T[:].T[:6].T)*self.Hartree2cm_1</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>         <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">ftemp</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">[:]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span><span class="o">.</span><span class="n">T</span>
@@ -795,7 +805,7 @@ FIXME: this seems to be inconsistent! may be matrix or vector...</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-52'>#</a>
       </div>
-      <p>version 0.1.0
+      <p>version=0.1.0
 End of normal_modes.py</p>
     </div>
     <div class='code'>
