@@ -3,7 +3,22 @@
 import numpy as np
 import random
 
+# CHANGELOG
+# =========
+#in version 0.1.0:  
+#  1) Intialised class
+#  2) Corrected shift: take square of mass
+#     since mass is sqrt(atomic mass).   
+#  3) Corrected apply_change: don't transform the
+#     force constant matrix, if gradient is used.
+#
+
 class align_atoms():
+   """This class is intended to solve situations where the coordinate systems of initial and
+      final state do not coincide; espacially in Gaussian-files, the coordonates can flip or 
+      change their sign. But also shifts occur often.
+   """
+   #required constants and variables:
    Angs2Bohr=1/0.52917721092                                  
    CartCoord=[]
    spect=[]
@@ -11,39 +26,56 @@ class align_atoms():
    dim=0
 
    def __init__(self, method, spect):
+      """
+         ===PARAMETERS===
+         method: a string; either moi or rmsd that describes, which criterion to
+                 use for reorientation of final state.
+         spect:  the self-pointer of the parent class. Via this pointer, most quantities
+                 are brought to this class.
+      """
       if method in ["moi", "MOI"]:
          self.type='moi'
       if method in ["rmsd" ,"RMSD"]:
          self.type='rmsd'
+      else:
+         self.type='shift'
       self.CartCoord=spect.CartCoord
       self.log=spect.log
       self.spect=spect
       self.dim=spect.dim
 
    def perform(self):
+      """ intitiates the reorientation of the coordinate-system of final
+         state. In principle this could be also put into the init-function
+         since it is almost the only functionality of this class.
+      """
       if self.type=='rmsd':
          self.RMSD_reorient()
-      elif self.type=='rmsd':
+      elif self.type=='moi':
          self.MOI_reorient()
+      else:
+         self.shift()
       #now, copy the coordinates back to parent-class
       self.spect.CartCoord=self.CartCoord
 
    def shift(self):
+      """This function performs a shift of both states into the center
+         of mass frame.
+      """
       COM=np.zeros(3)
-      X=np.zeros( (2,3,3) )
-      diagI=np.zeros( (2,3) )
       #do for initial and final state:
       for i in [0,1]:
          #loop over coordinates:
          for j in [0,1,2]:
-            COM[j]=np.sum(self.CartCoord[i][j]*self.spect.mass)
-            COM[j]/=np.sum(self.spect.mass) 
+            #self.spect.mass is the square root of the respective mass.
+            COM[j]=np.sum(self.CartCoord[i][j]*self.spect.mass*self.spect.mass)
+            COM[j]/=np.sum(self.spect.mass*self.spect.mass) 
          #now it is Cartesian center of mass
          if self.log.level<2:
             if i==0:
-               self.log.write("Center of mass (initial) coordinates (Bohr):\n")
+               self.log.write("Center of mass initial state coordinates (Bohr):\n")
             else:
-               self.log.write("Center of mass (final) coordinates (Bohr):\n")
+               self.log.write("Center of mass final state coordinates (Bohr):\n")
             self.log.printVec(COM)
          for j in [0,1,2]:
             #displacement of molecule into center of mass:
@@ -63,7 +95,6 @@ class align_atoms():
       #SECOND STEP: Calculate the inertia-system.
       # do the following for the initial and final state:
       for i in [0,1]:
-      
          #  (MOI: Moment Of Inertia)
          MOI=np.zeros((3,3))# this is Moment Of Inertia
          #loop over coordinates:
@@ -141,25 +172,32 @@ class align_atoms():
    
       # finally: print what is done.
       if self.log.level==0:
-         self.log.write("Rotation of final state:\n")
+         self.log.write("Rotation of final state: \n")
          self.log.printMat(U)
-         self.log.write("Coordinates after manipulation::\n")
+         self.log.write("Coordinates after manipulation: \n")
          self.log.write('Cartesian coordinates of initial state: \n')
          self.log.printMat(self.CartCoord[0].T/self.Angs2Bohr)
          self.log.write('Cartesian coordinates of final state: \n')
          self.log.printMat(self.CartCoord[1].T/self.Angs2Bohr)
    
    def apply_change(self, U):
-      """ produce respective matrix to rotate Force-constant matrix 
+      """ This function applies the rotation matrix U to the coordinates
+          of final staten and generates a matrix to rotate the Hessian
           and gradient (if given) as well.
           This function is only needed by RMSD_reorient and MOI_reorient.
       """
       self.CartCoord[1]=U.dot(self.CartCoord[1])
+      #print information on the manipulation conducted:
+      if self.log.level<2:
+         self.log.write("Rotation matrix for final state:\n")
+         self.log.printMat(U)
+         self.log.write("RMSD-value after rotation: %f\n" %(self.RMSD(self.CartCoord[0]-self.CartCoord[1])))
+
+
       Y=np.zeros( (self.dim,self.dim) )
       for j in range(self.dim//3):
          Y[3*j:3*j+3].T[3*j:3*j+3]=U
       # apply the respective rotation:
-      self.spect.F[1]=np.dot(Y.dot(self.spect.F[1]),Y.T)
       if any(self.spect.Grad[i]>0 for i in range(len(self.spect.Grad))):
         # temp=np.zeros( (3,len(self.spect.Grad)//3) )
         # for i in [0,1,2]:
@@ -170,10 +208,16 @@ class align_atoms():
         #    for j in range(len(temp)):
         #       self.spect.Grad[j*3+i]=temp[i][j]
 
-         self.spect.Grad=Y.dot(self.spect.Grad)
+         #self.spect.Grad=Y.dot(self.spect.Grad)
 
-        # for j in range(self.dim//3):
-        #    self.spect.Grad[3*j:3*j+3]=U.dot(self.spect.Grad[3*j:3*j+3])
+         for j in range(self.dim//3):
+            self.spect.Grad[3*j:3*j+3]=U.dot(self.spect.Grad[3*j:3*j+3])
+
+      else:
+         # if there is a gradient given, only one force constant matrix is used. 
+         #In that case, no transformation should be conducted because it will
+         # be given in the initial state.
+         self.spect.F[1]=np.dot(Y.dot(self.spect.F[1]),Y.T)
 
    def RMSD_reorient(self):
       """This function reorients the final state in space such that
@@ -256,14 +300,11 @@ class align_atoms():
    
       # finally: print what is done.
       if self.log.level==0:
-         self.log.write("Rotation of final state::\n")
-         self.log.printMat(U)
-         self.log.write("Coordinates after manipulation::\n")
+         self.log.write("Coordinates after manipulation: \n")
          self.log.write('Cartesian coordinates of initial state: \n')
          self.log.printMat(self.CartCoord[0].T/self.Angs2Bohr)
          self.log.write('Cartesian coordinates of final state: \n')
          self.log.printMat(self.CartCoord[1].T/self.Angs2Bohr)
-   # END OF FUNCTION DEFINITIONS
 
    def RMSD(self,Delta):
       """This function calculates the RMSD of a matrix (intended
@@ -274,6 +315,7 @@ class align_atoms():
          for j in range(len(Delta[0])):
             rmsd+=Delta[i][j]*Delta[i][j]
       return rmsd
+   # END OF FUNCTION DEFINITIONS
 
-#version 0.0
+#version=0.1  
 # End of atoms_align.py

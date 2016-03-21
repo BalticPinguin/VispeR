@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 #include [[readLogs.py]]
 import readLogs as rl
 #include further dicts
@@ -39,6 +39,7 @@ def main(argv=None):
                #print "norm of difference:", np.linalg.norm(F[i]-F[j]), E[i]-E[j], np.linalg.norm(coord[i]-coord[j]), i,j
                print "norm of difference:", np.linalg.norm(np.matrix(F[i])-np.matrix(F[j])), E[i]-E[j],\
                      np.linalg.norm(np.matrix(coord[i])-np.matrix(coord[j])), i, j
+               #print F[i],"\n", F[j]
          print "done"
 
    if todo==2 or todo==3:

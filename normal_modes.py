@@ -11,6 +11,16 @@ from scipy.linalg.lapack import dsyev
 #
 class NormalMode():
    """Frament the functions below as well.
+      This class handles objects related to normal mode analysis.
+      Hence, the calculation of normal modes and frequencies is performed
+      here (GetL) and their shift-vector/couplings are calculated (Duschinsky).
+      The other functions (SortL and GetProjector) are functions to manipulate the 
+      data: SortL assignes the normal modes of final state to fit the initial states
+      coordinates best (which might become problematic when almost degenerate frequencies
+      occur) and GetProjector projects out the rotations and vibrations from the force
+      constant matrix. 
+      This is also mostly for numerical purposes and turned out to be not that
+      easy in practice.
    """
    Hartree2cm_1=219474.63 
    L=[]
@@ -77,13 +87,14 @@ class NormalMode():
          #ftemp,Ltemp=np.linalg.eigh(self.F[i])
          ftemp,Ltemp,info=dsyev(self.F[i])
          for j in range(0,self.dim):
-            norm=np.sum(Ltemp.T[j].T.dot(Ltemp.T[j]))
+            norm=np.sum(Ltemp[j].T.dot(Ltemp[j]))
             if np.abs(norm)>1e-12:
-               Ltemp.T[j]/=np.sqrt(norm)
+               Ltemp[j]/=np.sqrt(norm)
 
          #sort the results with increasing frequency (to make sure it really is)
          index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
          # and then cut off the 6 smallest values: rotations and vibrations.
+         #print np.sqrt(np.real(ftemp[index]).T[:].T[:6].T)*self.Hartree2cm_1
          f[i]=np.real(ftemp[index]).T[:].T[6:].T
          L[i]=(Ltemp.T[index].T)[:].T[6:].T
          #END REMOVING ROTATIONS AND TRANSLATIONS.
@@ -289,5 +300,5 @@ class NormalMode():
          self.log.write('\nDuschinsky displacement vector:\n')
          self.log.printVec(self.K)
 
-#version 0.1.0
+#version=0.1.0
 #End of normal_modes.py

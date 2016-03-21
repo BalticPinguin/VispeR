@@ -3,11 +3,15 @@
 
 #include [[Spect.py]]
 import Spect
+
 #include [[FC_spects.py]]
 import FC_spects as FC
 
 #include [[DR_spects.py]]
 import DR_spects as DR
+
+#include [[output_spect.py]]
+import output_spect
 
 #include further dicts
 import sys, re, mmap, numpy as np
@@ -107,10 +111,9 @@ def main(argv=None):
    #FINISHED PERFORM CALCULATION OF SPECTRA
    
    #with this, the broadened spectrum is calculated.
-   spect.outspect()
+   broaden=output_spect.broaden(spect)
+   broaden.outspect()
 
-   #This function prints some final statements.
-   # spect.finish() -> should be automated now.
    #END PERFORMING CALCULATION OF SPECTRA
     
 if __name__ == "__main__":

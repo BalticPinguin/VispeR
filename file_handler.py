@@ -8,12 +8,19 @@
 #
 
 class logging():
+   """This class does everything related to output of the printed information.
+      Its main job is to hold an open file handler (loghandler) and to write texts
+      into a log-file.
+   """
    logfile=''
    level='0'
+   loghandler=""
    numWarn=0
    width=5  # determines, how many rows of a matrix are writen aside each other.
 
    def __init__(self, level, logfile):
+      """initialise the quantities important for writing.
+      """
       def invokeLogging(logfile, mode="important"):
          """ initialises the logging-functionality
             **PARAMETERS**
@@ -82,11 +89,14 @@ class logging():
                   "==================================================================\n\n")
       else:
          foo.write("\n==================================================================\n"
-                  "============== VISPER FINISHED WITH "+repr(warnings)+" WARNINGS.  ===============\n"
+                  "=============== VISPER FINISHED WITH "+repr(warnings)+" WARNINGS.  ================\n"
                   "==================================================================\n\n")
       foo.close()
    
    def write(self, text, level=70):
+      """ write a given text to the log-file if its priority (level) is larger
+         than the threshold-priority for printing information
+      """
       if level>self.level:
          self.loghandler.write(text)
 
@@ -126,5 +136,5 @@ class logging():
          s=t
          t=min(s+self.width,len(mat[0]))
 
-#version 0.1.0
+#version=0.1.0
 # End of file_handler.py

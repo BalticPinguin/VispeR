@@ -1,6 +1,8 @@
 #!/usr/bin/python2
 #filename: FC_Spects.py
+
 #including the class everything stems from:
+#include [[Spect.py]]
 import Spect
 import re, mmap, math
 import numpy as np
@@ -192,10 +194,14 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       uniF0=[]
       loggingwrite=self.log.write
       # now remove modes with too low frequency;
-      # they can easily make some trouble!
+      # they can easily cause some trouble!
       i=0
       for j in range(len(fsort1)):
          if fsort1[i]*self.Hartree2cm_1<5:
+            #print fsort1[i]*self.Hartree2cm_1, sortHR[i]
+            loggingwrite(u'\nWARNING: VERY SMALL FREQUENCIES OCCURED.\n'+\
+                        '        the mode %d will be disabled.\n'%(i))
+            loggingwrite('      freq: %f,  HR-factor: %f \n'%(fsort1[i]*self.Hartree2cm_1, sortHR[i]) )
             fsort1=np.delete(fsort1,i)
             fsort0=np.delete(fsort0,i)
             sortHR=np.delete(sortHR,i)
@@ -233,7 +239,8 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       self.f=uniFall
       Esign=np.sign(self.Energy[0]-self.Energy[1])
       if Esign==0:
-         self.Energy[1]-=self.f[1][i]*self.HR[i]
+         for i in range(len(self.HR)):
+            self.Energy[1]-=self.f[1][i]*self.HR[i]
       else:
          for i in range(len(self.HR)):
             self.Energy[1]+=Esign*self.f[1][i]*self.HR[i]
@@ -369,5 +376,5 @@ class CFC_spect(FC_spect):
                    break
        self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
    
-#version 0.1.5  
-#end of FC_Spects.py
+#version=0.1.5  
+#End of FC_Spects.py

@@ -1,14 +1,21 @@
 #!/usr/bin/python2
+# filename: DR_spects.py
+
+#include [[Spect.py]]
 import Spect
+
+#include [[Btree.py]]
 import Btree as bt
+
 from copy import deepcopy
 import numpy as np
 from ctypes import *
-import re, mmap, math
-import os
+import re, mmap, math, os
 
 #  CHANGELOG 
 # ===========
+#in version 1.0:  
+#
 
 class URDR_spect(Spect.Spect):
    """The class to calculate full Duschinsky-spectra.
@@ -98,7 +105,7 @@ class URDR_spect(Spect.Spect):
          self.GetQuants()
       self.log.write("After truncation:\n")
       self.log.write("Duschinsky-Matrix:\n")
-      self.log.printMat(self.J)
+      self.log.printMat(self.nm.J)
       self.log.write("Displacement vector:\n")
       self.log.printVec(self.nm.K)
    
@@ -368,13 +375,11 @@ class URDR_spect(Spect.Spect):
       result=np.zeros((3, len(lines) ))
       #print freqs
       result[0]=freqs
-      #T=self.T*self.Hartree2cm_1
-      tmpW=CDLL('/home/tm162/bin/smallscript/tempW.so')
+      T=self.T*self.Hartree2cm_1
       for i in range(len(result[0])):
          #arbitrary but constant number for mode
          result[2][i]=42
-         result[1][i]=tmpW.temp(lines[i], initF[i], T)
-         #result[1][i]=lines[i]*np.exp(-initF[i]/T) #thermally weighting of transitions
+         result[1][i]=lines[i]*np.exp(-initF[i]/T) #thermally weighting of transitions
       return result
    
 class SDR_spect(Spect.Spect):
@@ -732,3 +737,5 @@ class SDR_spect(Spect.Spect):
    
       return spect.T
 
+#version=1.0
+# End of DR_spects.py

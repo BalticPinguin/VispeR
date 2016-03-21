@@ -2,23 +2,26 @@
 # filename: Spect.py
 import numpy as np
 import re, mmap, os.path, math, sys
+#include [[Read.py]]
 import Read
-import MultiPart
+#include [[file_handler.py]]
 import file_handler as logger
+#include [[normal_modes.py]]
 import normal_modes as NormalModes
+#include [[atoms_align.py]]
 import atoms_align as AtAl
 
 # CHANGELOG
 # =========
 #in version 0.2.0:  
 #
-#
 #in version 0.1.7:  
 #   a) fixed rmsd-reorient: forgot to reorder Forces, transform of 
 #       gradient was wrong. Lead to ceveir errors.  
 #   b) outsourced logging to file_handler.  
 #   c) outsourced calculation of normal modes to to normal_modes.  
-#   c) outsourced coordinate-transformations.
+#   d) outsourced coordinate-transformations.
+#   e) outsourced broadening of spectrum
 #
 #in version 0.1.6:  
 #   a) added RMSD_reorient   
@@ -238,211 +241,6 @@ class  Spect:
       P=np.zeros((2, dim,dim))
       return F, P
    
-   def outspect(self, E=0):
-      """This function calculates the broadened spectrum given the line spectrum, 
-      frequency-rage and output-file whose name is first argument. 
-      As basis-function a Lorentzian is assumed with a common width.
-      
-      **PARAMETERS:**
-      E:       energy-shift of the 0-0 transition. Important if the excited 
-               state is not the lowest and
-               thermal equilibration with the lower states should be considered
-   
-      **RETURNS:**
-      nothing; the key values (broadened spectra/ many-particle-app. 
-               linespectra) are printed into log-files.
-      
-      """
-      def handel_input(opt):
-         #set default values (to have all variables set)
-         gridfile=None
-         gamma=1 #by default: only slight broadening
-         gridpt=5000
-         omega=None
-         minfreq=0
-         maxfreq=0
-         shape='g'
-         stick=False
-      
-         tmpgrid=re.findall(r"(?<=grid=)[ \=\s\w\.;]+", opt, re.M)
-         if len(tmpgrid)==1: 
-         # i.e. if grid is specified
-            grid=re.findall(r"[\w\.]+", tmpgrid[0], re.M)
-            if len(grid)==1:
-               #that means, if either one number (# of gridpoints or a file) is given
-               try:
-                  gridpt=float(grid[0])
-               except ValueError: # if grid is no a number
-                  gridfile=grid[0]
-            elif len(grid)==3:
-               # that means there is the number of gridpoints, min- and max frequency given
-               gridpt=float(grid[0])
-               minfreq=float(grid[1])
-               maxfreq=float(grid[2])
-            if gridfile!=None:
-               #read file in format of spect
-               grid=[]
-               with open(gridfile) as f:
-                  lis=[line.split() for line in f]  # create a list of lists
-                  for i,x in enumerate(lis):        # get the list items 
-                     grid.append(float(x[0]))
-               omega=np.zeros(len(grid))
-               for i in range(len(grid)):
-                  omega[i]=grid[i]
-         #see, whether a broadening is given
-         if (re.search(r"(?<=gamma=)[ \d\.,]+", opt, re.I) is not None)  is True:
-            gamma=re.findall(r"(?<=gamma=)[ \d\.]+", opt, re.I)
-            gamma=float(gamma[0])
-      
-         shape=re.findall(r"(?<=shape=)[ \w]+", opt, re.I)
-         if len(shape)>0:
-         # there are several options each
-            if shape[0] in ["lorentzian", "Lorentzian", "L", "l"]:
-               shape="l"
-            elif shape[0] in ["gaussian", "Gaussian", "G", "g"]:
-               shape="g"
-   
-         if (re.search(r"stick", opt, re.I) is not None) is True:
-            stick=True
-   
-         spectfile=re.findall(r"(?<=spectfile=)[\w._\-]+", opt, re.I)
-         if spectfile==[]:
-            spectfile=re.findall(r"(?<=spectfile= )[\w._\-]+", opt, re.I)
-            if spectfile==[]:
-               spectfile=None
-            else:
-               spectfile=spectfile[-1]
-         else:
-            spectfile=spectfile[-1]
-         return omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick
-
-      minint=0
-      self.log.write("\n STARTING TO CALCULATE BROADENED SPECTRUM.\n")
-      omega, spectfile, gamma, gridpt, minfreq, maxfreq, shape, stick=handel_input(self.broadopt)
-      #read file in format of spect
-      #sort spectrum with respect to size of elements
-      index=np.argsort(self.spect[1], kind='heapsort')
-      self.spect[0]=self.spect[0][index] #frequency
-      self.spect[1]=self.spect[1][index] #intensity
-      self.spect[2]=self.spect[2][index] #mode
-      #find transition with minimum intensity to be respected
-   
-      #truncate all transitions having less than 0.0001% of
-      for i in range(len(self.spect[1])):
-         if self.spect[1][i]>=1e-6*self.spect[1][-1]:
-            minint=i
-            break
-      self.log.write('neglect '+repr(minint)+' transitions, use only '+
-                                repr(len(self.spect[1])-minint)+" instead.\n", 3)
-   
-      self.log.write('minimal and maximal intensities:\n'+
-              repr(self.spect[1][minint])+' '+repr(self.spect[1][-1])+"\n", 2)
-      
-      #important for later loops: avoiding '.'s speeds python-codes up!!
-      logwrite=self.log.write  
-     
-      #make nPA from OPA if requested.
-      n=re.findall(r"(?<=to nPA:)[ \d]*", self.broadopt, re.I)
-      if n!=[]:
-         MakeFull=MultiPart.OPAtoNPA(float(n[-1].strip()))
-         self.log.write("\n REACHING OPA TO NPA-PART. \n")
-         self.log.write(" ----------------------------------------"+
-                                                 "-------- \n")
-         MakeFull.GetSpect(self.spect, minint)
-         TPAintens, TPAfreq=MakeFull.Calc()
-      else: 
-         TPAfreq=self.spect[0][minint:]
-         TPAintens=self.spect[1][minint:]
-      
-      if stick:
-         self.log.write(" Intensity  \t frequency \n")
-         for i in range(len(TPAfreq)):
-            self.log.write(" %3.6g  \t %3.6f\n"%(TPAintens[i],TPAfreq[i]))
-            
-      #find transition with minimum intensity to be respected
-      #the range of frequency ( should be greater than the transition-frequencies)
-      if omega==None:
-         if minfreq==0:
-            minfreq=np.min(TPAfreq)-20-gamma*15
-         if maxfreq==0:
-            maxfreq=np.max(TPAfreq)+20+gamma*15
-      else:
-         minfreq=omega[0]
-         maxfreq=omega[-1]
-      self.log.write('maximal and minimal frequencies:\n {0} {1}\n'.format(maxfreq, minfreq), 3)
-      #if no other grid is defined: use linspace in range
-      if omega==None:
-         omega=np.linspace(minfreq,maxfreq,gridpt)
-         self.log.write("omega is equally spaced\n",2)
-   
-      sigma=gamma*2/2.355 #if gaussian used: same FWHM
-      
-      if gamma*1.1<=(maxfreq-minfreq)/gridpt:
-         self.log.write("\n WARNING: THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
-              "THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!")
-   
-      index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
-      freq=TPAfreq[index]
-      intens=TPAintens[index]
-   
-      mini=0
-      if spectfile==None:
-         out=self.log
-      else:
-         out = open(spectfile, "w")
-   
-      if spectfile==None: #that means spectrum is printed into log-file
-         logwrite("broadened spectrum:\n frequency      intensity\n")
-      outwrite=out.write
-      #this shrinks the size of the spectral lines; hopefully accelerates the script.
-      #intens, freq=concise(intens,freq, sigma)
-      lenfreq=len(freq)
-      maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too low
-      for i in range(0,lenfreq-1):
-         if freq[i]>=10*gamma+freq[0]:
-            maxi=i
-            break
-      if shape=='g':
-         sigmasigma=2.*sigma*sigma # these two lines are to avoid multiple calculations of the same
-         npexp=np.exp
-         intens/=sigma # scale all transitions according to their width.
-         for i in xrange(len(omega)): 
-            omegai=omega[i]
-            for j in range(maxi,lenfreq):
-               if freq[j]>=10*gamma+omegai:
-                  maxi=j
-                  break
-            for j in range(mini,maxi):
-               if freq[j]>=omegai-10*gamma:
-                  # else it becomes -1 and hence the spectrum is wrong
-                  mini=max(j-1,0) 
-                  break
-            spect=0
-            for k in range(mini,maxi+1):
-               spect+=intens[k]*npexp(-(omegai-freq[k])*(omegai-freq[k])/(sigmasigma))
-            outwrite(u" %f  %e\n" %(omegai, spect))
-      else:  #shape=='l':
-         gammagamma=gamma*gamma
-         for i in xrange(len(omega)): 
-            omegai=omega[i]
-            for j in range(maxi,lenfreq):
-               if freq[j]>=30*gamma+omegai:
-                  maxi=j
-                  break
-            for j in range(mini,maxi):
-               if freq[j]>=omegai-30*gamma:
-                  # else it becomes -1 and hence the spectrum is wrong
-                  mini=max(j-1,0) 
-                  break
-            omegai=omega[i]
-            spect=0
-            for k in range(mini,maxi+1):
-               spect+=intens[k]*gamma/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
-            outwrite(u" %f   %e\n" %(omegai, spect))
-      if spectfile!=None:
-         #only close file if it was opened here
-         out.close()
-   
    def ReadData(self):
       """ This function gathers most essential parts for calculation of
          HR-factors from g09-files. That is: read neccecary information from the
@@ -549,7 +347,6 @@ class  Spect:
                                              self.CartCoord[1][1][i]/self.Angs2Bohr,
                                              self.CartCoord[1][2][i]/self.Angs2Bohr) )
       output.close()
- 
    # END OF FUNCTION DEFINITIONS
 
 #version=0.2.0   
