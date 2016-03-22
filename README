@@ -42,3 +42,4 @@ There are several known issues at this point:
   > Only the models FC, GFC and URDR are tested and might work 
   > There might be issues with some units, especially the energy of
     electronic transition is problematic.
+  > transformation of coordinates has certain bugs, work in progress.

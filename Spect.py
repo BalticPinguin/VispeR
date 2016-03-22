@@ -14,6 +14,8 @@ import atoms_align as AtAl
 # CHANGELOG
 # =========
 #in version 0.2.0:  
+#   a) removed function 'quantity()'; it was not in use any more.
+#   b) removed the function IsZero() since it didn't do anything
 #
 #in version 0.1.7:  
 #   a) fixed rmsd-reorient: forgot to reorder Forces, transform of 
@@ -112,7 +114,7 @@ class  Spect:
          which has the output-file and the level of output-information is defined.
          All variables/functions that are common to all spectral tyes are initialised here.
       """
-      #START LOG-FILE DEFINITION     
+      #START DEFINITION OF LOG-FUNCTION
       #invoke logging (write results into file specified by 'out: ' or into 'calculation.log')
       logfile=re.findall(r"(?<=out: )[\w.,\(\) \=;:\-_]+", f, re.I)
       try:
@@ -129,16 +131,15 @@ class  Spect:
       self.log.write("   INPUT-FILE:\n")
       self.log.write(f)
       self.log.write(" \n   END OF INPUT-FILE \n\n")
-      #self.log.write("calculations to be done: %s\n"%(todo))
-      #END LOG-FILE DEFINITION     
+      #END DEFINITION OF LOG-FUNCTION
       
       self.Energy=np.zeros(2)
       #START READING DATA FROM FILE
       # get files with electronic states:
       final=re.findall(r"(?<=final: )[\w.\-]+",f, re.I)
       initial=re.findall(r"(?<=initial: )[\w.\-]+",f, re.I)
-      assert len(initial)==1, 'there must be one initial state'
-      assert len(final)==1, 'there must be one final state'
+      assert len(initial)==1,'there must be one initial state'
+      assert len(final)==1,  'there must be one final state'
       initial=initial[0]
       final=final[0]
       #check, if they are valid files and through an error if not.
@@ -198,10 +199,10 @@ class  Spect:
                self.log.write("!!number of vibrational states {0} is not an integer.",
                                     " Use default instead.\n".format(self.states1, self.states2))
       
-      self.reader=Read.Read(initial, final)
       #The ReadData class finds out which format the input-files have
-      # and reads the most important data from them.
-      self.ReadData()
+      # and reads all important data from them. 
+      self.reader=Read.Read(initial, final) #initialise class
+      self.ReadData()                       #do the actual work
 
       #changes the orientation of the molecules to coincide with
       # the main axes of inertia. Input-orientations may
@@ -221,27 +222,17 @@ class  Spect:
          #copy the manipulated data back here.
          self.CartCoord=self.manipulate.CartCoord
 
-   
       #Calculate Frequencies and normal modes. Therefore, intialise
-      # an object of the respective class and do the respect. calculations
+      # an object of the respective class and do the calculations there.
+      # Except for the frequencies, the normal-mode based quantities are
+      # always taken from self.nm.
       self.nm=NormalModes.NormalMode(self)
       self.nm.GetL()
       self.nm.Duschinsky()
-      #give me a copy of the frequencies
+      #give a copy of the frequencies to Spect because they are used more 
+      # frequently.
       self.f=self.nm.f
       
-   def quantity(self, dim):
-      """ Here some frequencies are defined; it is just for clearer code.
-         This function is called by CalculationHR.
-   
-         **PARAMETERS**
-         dim      dimension of matrices/vectors
-      """
-      F=np.zeros((2, dim, dim)) 
-      self.CartCoord=np.zeros((2, 3, dim//3))
-      P=np.zeros((2, dim,dim))
-      return F, P
-   
    def ReadData(self):
       """ This function gathers most essential parts for calculation of
          HR-factors from g09-files. That is: read neccecary information from the
@@ -249,11 +240,6 @@ class  Spect:
          matrix and the shift between minima (needed later if the option Duschinsky
          is specified)
       """ 
-      def IsZero(mat):
-         """checks, if a matrix is zero
-         """
-         return np.all(mat==0)
-
       #read coordinates, force constant, binding energies from log-files and 
       # from the file, using the type of file that is known now...
       self.Energy[0], self.Energy[1]=self.reader.Energy()
@@ -269,20 +255,21 @@ class  Spect:
       self.dim=len(self.mass)*3
       self.log.write("Dimensions: %d\n" %self.dim,2)
       self.log.write(" Masses: \n",2)
-      self.log.printVec(self.mass*self.mass) # print not the square-root!
+      # print not the square-root! Print in amu for convenience.
+      self.log.printVec(self.mass*self.mass/self.AMU2au)
    
       self.F=self.reader.Force()
-      if IsZero(self.F[0]):
+      if np.all(self.F[0]==0):
          self.F[0]=self.F[1]
          self.log.write("WARNING: Only one force constant matrix given.\n")
          self.sameF=True
          assert (self.type=='FC'), "You must specify both force constant matrices in this model."
-      elif IsZero(self.F[1]):
+      elif np.all(self.F[1]==0):
          self.F[1]=self.F[0]
          self.log.write("WARNING: Only one force constant matrix given.\n")
          self.sameF=True
          assert (self.type=='FC'), "You must specify both force constant matrices in this model."
-      assert not IsZero(self.F[0]), "ERROR: No force constant matrix given."
+      assert not np.all(self.F[0]==0), "ERROR: No force constant matrix given."
       
       self.CartCoord=self.reader.Coordinates()
       #this ugly statement is true if the molecule is just shifted (not rotated or deformed)
@@ -296,11 +283,17 @@ class  Spect:
          self.Grad=self.reader.Gradient() 
       elif re.search(r"gradient", self.opt, re.M) is not None:
          self.Grad=self.reader.Gradient() 
+         self.log.write("gradient in input-format")
+         self.log.printVec(self.Grad)
       else: 
          #define this for easier syntax in function MOI_reorient
          # and Duschinsky.
          self.Grad=[0,0]
-      self.log.write('difference of minimum energy between states:'
+      if self.Energy[0]-self.Energy[1]<0:
+         self.log.write('vertical relaxation energy:'
+                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
+      else:
+         self.log.write('vertical excitation energy:'
                         ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
       if self.log.level<2:
             self.log.write('Cartesian coordinates of initial state: \n')
@@ -308,9 +301,9 @@ class  Spect:
             self.log.write('Cartesian coordinates of final state: \n')
             self.log.printMat(self.CartCoord[1].T/self.Angs2Bohr)
             if self.log.level==0:
-               self.log.write('initial state: \n')
+               self.log.write('Hessian of initial state: \n')
                self.log.printMat(self.F[0])
-               self.log.write('final state: \n')
+               self.log.write('Hessian of final state: \n')
                self.log.printMat(self.F[1])
    
    def makeXYZ(self):

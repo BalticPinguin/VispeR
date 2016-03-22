@@ -95,15 +95,11 @@ class NormalMode():
 
          #ftemp,Ltemp=np.linalg.eigh(self.F[i])
          ftemp,Ltemp,info=dsyev(self.F[i])
-         for j in range(0,self.dim):
-            norm=np.sum(Ltemp[j].T.dot(Ltemp[j]))
-            if np.abs(norm)>1e-12:
-               Ltemp[j]/=np.sqrt(norm)
 
          #sort the results with increasing frequency (to make sure it really is)
-         index=np.argsort(np.real(ftemp),kind='heapsort') # ascending sorting f
+         # use absolute values for this.
+         index=np.argsort(np.abs(ftemp),kind='heapsort') # ascending sorting f
          # and then cut off the 6 smallest values: rotations and vibrations.
-         #print np.sqrt(np.real(ftemp[index]).T[:].T[:6].T)*self.Hartree2cm_1
          f[i]=np.real(ftemp[index]).T[:].T[6:].T
          L[i]=(Ltemp.T[index].T)[:].T[6:].T
          #END REMOVING ROTATIONS AND TRANSLATIONS.
@@ -126,16 +122,12 @@ class NormalMode():
          Lmass[i]=M.dot(L[i])
          #if log level=0 or 1:
          if i==0:
-            self.log.write("Initial states:\n",2)
+            self.log.write("Initial states ",2)
          else:
-            self.log.write("Final states:\n",2)
-         self.log.write("Frequencies (cm-1)\n",2)
+            self.log.write("Final states ",2)
+         self.log.write("frequencies (cm-1)\n",2)
          if self.log.level<2:
             self.log.printVec(f[i]*self.Hartree2cm_1)
-            #indeed, this matrix is not resorted yet and yes, the user is not informed
-            #that there are manipulations done on it afterwards.
-            self.log.write("L-matrix \n")
-            self.log.printMat(Lmass[i])
       
       # to account for the effect that the frequencies independently change between the states 
       #  and hence may change their order, the final states L and f are resorted via the
@@ -148,6 +140,12 @@ class NormalMode():
       self.Lmassw=Lmass
       self.f=f
       self.L=L
+      #finally, print the L-matrices as well:
+      if self.log.level<2:
+         self.log.write("initial state L-matrix \n")
+         self.log.printMat(Lmass[0])
+         self.log.write("final state L-matrix \n")
+         self.log.printMat(Lmass[1])
    
    def __gs(self, A):
       """This function does row-wise Gram-Schmidt orthonormalization of matrices. 

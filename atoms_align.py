@@ -57,6 +57,8 @@ class align_atoms():
          self.shift()
       #now, copy the coordinates back to parent-class
       self.spect.CartCoord=self.CartCoord
+      self.log.write("gradient after realignment:")
+      self.log.printVec(self.spect.Grad)
 
    def shift(self):
       """This function performs a shift of both states into the center
@@ -196,21 +198,17 @@ class align_atoms():
 
       Y=np.zeros( (self.dim,self.dim) )
       for j in range(self.dim//3):
-         Y[3*j:3*j+3].T[3*j:3*j+3]=U
+         Y[3*j:3*j+3, 3*j:3*j+3]=U
       # apply the respective rotation to gradient or Hessian as well:
       if any(self.spect.Grad[i]>0 for i in range(len(self.spect.Grad))):
-
          self.spect.Grad=Y.dot(self.spect.Grad)
-         
-         #this is atomic version of the above code. Since Grad is a
-         # row-vector, we need the transposition.
-         #for j in range(self.dim//3):
-         #  self.spect.Grad[3*j:3*j+3]=U.T.dot(self.spect.Grad[3*j:3*j+3])
       else:
          #if there is a gradient given, only one force constant matrix is used. 
          #In that case, no transformation should be conducted because it will
          # be given in the initial state.
-         self.spect.F[1]=np.dot(Y.dot(self.spect.F[1]),Y.T)
+         self.log.printMat(self.spect.F[1][:6,:6])
+         self.spect.F[1]=Y.dot(self.spect.F[1]).dot(Y.T)
+         self.log.printMat(self.spect.F[1][:6,:6])
 
    def RMSD_reorient(self):
       """This function reorients the final state in space such that
