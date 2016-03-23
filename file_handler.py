@@ -1,10 +1,12 @@
 #!/usr/bin/python2
 # filename: file_handler.py
+import math  # needed for function ceil in printNormalModes
 
 # CHANGELOG
 # =========
 #in version 0.1.0:  
 #  1) Intialised class
+#  2) Added function printNormalModes()
 #
 
 class logging():
@@ -116,6 +118,57 @@ class logging():
             self.loghandler.write("    %03d  %e \t"%(k+1, vec[k]))
       self.loghandler.write("\n")
    
+   def printNormalModes(self,L,coords, mass, freq):
+      nm_file=self.logfile.split(".")[0]
+      output=open(nm_file+".nm", "w")
+      # keyword for Chemcraft that the file specifies a G09-format
+      output.write(" Entering Gaussian System\n") 
+      output.write(" ----------------------------------------------------------------------\n"+
+           " #P BLYP/6-31G(d) Freq\n -----------------------------------------------------------------------\n")
+      # introducing the geometry:
+      output.write("                          Input orientation:\n")
+      output.write(" ---------------------------------------------------------------------\n"+
+        " Center     Atomic      Atomic             Coordinates (Angstroms)\n"+
+        " Number     Number       Type             X           Y           Z\n"+
+        " ---------------------------------------------------------------------\n")
+      #print molecular geometry:
+      for i,coord in enumerate(coords.T):
+         output.write("    %3d"%(i+1))
+         output.write("        %3d"%math.ceil(mass[i]/2.)) 
+         output.write("           0") 
+         output.write("        %.6f    %.6f   %.6f\n"%(coord[0],coord[1],coord[2]))
+      output.write(" ---------------------------------------------------------------------\n\n")
+      #print the frequencies:
+      s=0
+      t=min(s+3,len(L[0]//3))
+      while s<len(L[0]//3):
+         for k in range(s,t):
+            output.write("                   %3d "%(k+1))
+         output.write("\n")
+         for k in range(s,t):
+            output.write("                     A ")
+         output.write("\n Frequencies --    ")
+         for k in range(s,t):
+            output.write("%3.4f               "%(freq[k]))
+         output.write("\n")
+         #some dummy-values that need to be there but are not used. Set them 0 therefore.
+         output.write(" Red. masses --     0.0000                 0.0000                 0.0000\n")
+         output.write(" Frc consts  --     0.0000                 0.0000                 0.0000\n")
+         output.write(" IR Inten    --     0.0000                 0.0000                 0.0000\n")
+         output.write("  Atom  AN")
+         for k in range(s,t):
+            output.write("      X      Y      Z  ")
+         output.write("\n")
+         for i in range(len(L)//3):
+            output.write("   %3d"%(i+1))
+            output.write(" %3d"%math.ceil(mass[i]/2.))
+            for k in range(s,t):
+               output.write("     %3.2f   %3.2f  %3.2f"%(L[3*i][k],L[3*i+1][k],L[3*i+2][k]))
+            output.write("\n")
+         s=t
+         t=min(s+3,len(L[0]))
+      output.close()
+
    def printMat(self,mat):
       """Function to print matrices in a nice way to the log-file.
          To keep it general, the matrix needs to be given as argument.
