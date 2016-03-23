@@ -232,8 +232,8 @@ class  Spect:
       #give a copy of the frequencies to Spect because they are used more 
       # frequently.
       self.f=self.nm.f
-      # this is how to use the function to print normal modes:
-      self.log.printNormalModes(self.nm.L[0],self.CartCoord[0]/self.Angs2Bohr,self.mass*self.mass/self.AMU2au,self.f[0]*self.Hartree2cm_1)
+      # this is how to use the function to print normal modes of final state
+      #self.log.printNormalModes(self,1) # use 0 for initial state.
       
    def ReadData(self):
       """ This function gathers most essential parts for calculation of

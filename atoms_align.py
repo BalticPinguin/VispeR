@@ -14,8 +14,7 @@ import random
 #
 
 class align_atoms():
-   """This class is intended to solve situations where the coordinate systems of initial and
-      final state do not coincide; espacially in Gaussian-files, the coordonates can flip or 
+   """This class is intended to solve situations where the coordinate systems of initial and final state do not coincide; espacially in Gaussian-files, the coordonates can flip or 
       change their sign. But also shifts occur often.
    """
    #required constants and variables:
@@ -195,7 +194,6 @@ class align_atoms():
          self.log.printMat(U)
          self.log.write("RMSD-value after rotation: %f\n" %(self.RMSD(self.CartCoord[0]-self.CartCoord[1])))
 
-
       Y=np.zeros( (self.dim,self.dim) )
       for j in range(self.dim//3):
          Y[3*j:3*j+3, 3*j:3*j+3]=U
@@ -206,9 +204,7 @@ class align_atoms():
          #if there is a gradient given, only one force constant matrix is used. 
          #In that case, no transformation should be conducted because it will
          # be given in the initial state.
-         self.log.printMat(self.spect.F[1][:6,:6])
          self.spect.F[1]=Y.dot(self.spect.F[1]).dot(Y.T)
-         self.log.printMat(self.spect.F[1][:6,:6])
 
    def RMSD_reorient(self):
       """This function reorients the final state in space such that

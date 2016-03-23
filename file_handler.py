@@ -118,7 +118,17 @@ class logging():
             self.loghandler.write("    %03d  %e \t"%(k+1, vec[k]))
       self.loghandler.write("\n")
    
-   def printNormalModes(self,L,coords, mass, freq):
+   def printNormalModes(self,parent,i):
+      L=parent.nm.Lmassw[i].T
+      coords=parent.CartCoord[i]/parent.Angs2Bohr
+      mass=parent.mass*parent.mass/parent.AMU2au
+      freq=parent.f[i]*parent.Hartree2cm_1
+      #normalise the L-matrix:
+      for i in range(len(L)):
+         norm=np.sum(L[i]*L[i])
+         L[i]=L[i]/np.sqrt(norm)
+      L=L.T
+
       nm_file=self.logfile.split(".")[0]
       output=open(nm_file+".nm", "w")
       # keyword for Chemcraft that the file specifies a G09-format
