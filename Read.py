@@ -209,11 +209,11 @@ class Read:
             for k in range(len(mtemp[j])):
                mass[k+foonum]=np.sqrt(float(mtemp[j][k])*self.AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
             foonum+=len(mtemp[j])
-         assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file! {0}".format(mass)
+         assert not np.any(mass==0) , "some atomic masses are zero. Please check the input-file!\n {0}".format(mass)
 
       elif rtype.type=='G09_fchk':
          # Determine atomic masses in a.u. Note mass contains sqrt of mass!!!
-         assert len(atmwgt)>0, "Formcheck-file not complete. No masses available."
+         assert len(atmwgt)>0, "Formcheck-file not complete. No masses available.\n Searched for %s"%rtype.MassString
          mtemp=re.findall(r'[\d.]+E[+-][\d]+',atmwgt[0])
          dim=int(re.findall("(?<=N\= )[\d ]+", atmwgt[0])[0])
          dim*=3
@@ -274,7 +274,7 @@ class Read:
       if rtype.type=='G09':
          line=0
          if second:
-            assert len(lines)>2, "Can't find any forces. Force constants given in unknown format."
+            assert len(lines)>2, "Can't find any forces. Force constants given in unknown format. \n Searched for %s"%rtype.ForcString
             for i in xrange(2,len(lines)):
                if i == dim+k-5*n+2: 
                   #these are those lines where no forces are written to
@@ -417,7 +417,7 @@ class Read:
       if rtype.type=='G09':
          if Etemp==[]:
             Etemp=re.findall(rtype.Estring2, log, re.M)
-            assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
+            assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.\n Searched for %s'%rtype.Estring2
             #this is only for Gaussian-case but doesn't disturb otherwise..
             if re.search(r'\n ', Etemp[-1]) is not None:
                Etemp[-1]=Etemp[-1].replace("\n ", "") 
@@ -429,7 +429,7 @@ class Read:
             else:
                E=float(Etemp[0].split()[2])
       elif rtype.type=='G09_fchk' or rtype=='GAMESS':
-         assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
+         assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.\n Searched for %s'%rtype.Estring
          # replacement has only effect in case of G09_fchk but doesn't disturb for GAMESS.
          E=float(Etemp[-1].replace('E','e'))
       elif rtype.type=='NWChem':
@@ -437,9 +437,9 @@ class Read:
          if Etemp==[]:
             #if the ground state is calculated
             Etemp=re.findall(r'(?<=Total DFT energy =)[\-\d. ]+', log, re.M)
-         assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
+         assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.\n Searched for %s'%rtype.Estring
          #FIXME: need to fix it for tddft-case.
-         assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.'
+         assert len(Etemp)>=1, 'Some error occured! The states energy can not be read.\n Searched for %s'%rtype.Estring
          E=float(Etemp[-1]) 
       return E
 
@@ -458,7 +458,7 @@ class Read:
       files.close()
 
       grad=re.findall(rtype.gradString, log)
-      assert len(grad)>0, "ERROR: No gradient given."
+      assert len(grad)>0, "ERROR: No gradient given. Searched for: \n      %s"%rtyp.gradString
       if rtype.type=='NWChem':
          # in this case, I need to do it differently:
          Grad=re.findall(rtype.gradPolishString, grad[0])
@@ -495,5 +495,5 @@ class Read:
       return [self.__Read_Force(self.init, self.itype), self.__Read_Force(self.final, self.ftype)]
    #END USER-FUNCTIONS ASKING FOR CERTAIN DATA:
 
-#version=0.1.6
+version='0.1.6'
 # End of Read.py
