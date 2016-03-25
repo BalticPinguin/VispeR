@@ -19,6 +19,7 @@ class logging():
    loghandler=""
    numWarn=0
    width=5  # determines, how many rows of a matrix are writen aside each other.
+   # also, vectors are subdivided into width//2 blocks that are written aside each other.
 
    def __init__(self, level, logfile):
       """initialise the quantities important for writing.
@@ -119,6 +120,18 @@ class logging():
       self.loghandler.write("\n")
    
    def printNormalModes(self,parent,i):
+      """This function prints the normal modes (in Cartesian basis)
+         to an extra file (*.nm) in the G09-log format. These files are understood
+         by Chemcraft.
+         ==PARAMETERS==
+          parent - pointer to the Spect-class (or respectively inherited one)
+          i      - state, for which the normal modes should be printed 
+                   i=0: initial state
+                   i=1: final state
+      """
+
+      #first, copy the quantities needed from the Spect-class
+      # and normalise the mass-weighted transformation matrix locally.
       L=parent.nm.Lmassw[i].T
       coords=parent.CartCoord[i]/parent.Angs2Bohr
       mass=parent.mass*parent.mass/parent.AMU2au
@@ -128,14 +141,22 @@ class logging():
          norm=np.sum(L[i]*L[i])
          L[i]=L[i]/np.sqrt(norm)
       L=L.T
-
+      
+      #construct the ouptut-file:
       nm_file=self.logfile.split(".")[0]
-      output=open(nm_file+".nm", "w")
-      # keyword for Chemcraft that the file specifies a G09-format
+      if i==0:
+         output=open(nm_file+"_init.nm", "w")
+      else:
+         output=open(nm_file+"_final.nm", "w")
+
+      #print the header of the files for Chemcraft to recognise the G09-format
+      #HEADER
       output.write(" Entering Gaussian System\n") 
       output.write(" ----------------------------------------------------------------------\n"+
            " #P BLYP/6-31G(d) Freq\n -----------------------------------------------------------------------\n")
+      
       # introducing the geometry:
+      #GEOMETRY
       output.write("                          Input orientation:\n")
       output.write(" ---------------------------------------------------------------------\n"+
         " Center     Atomic      Atomic             Coordinates (Angstroms)\n"+
@@ -148,7 +169,9 @@ class logging():
          output.write("           0") 
          output.write("        %.6f    %.6f   %.6f\n"%(coord[0],coord[1],coord[2]))
       output.write(" ---------------------------------------------------------------------\n\n")
+     
       #print the frequencies:
+      #NORMAL MODES
       s=0
       t=min(s+3,len(L[0]//3))
       while s<len(L[0]//3):
@@ -199,5 +222,5 @@ class logging():
          s=t
          t=min(s+self.width,len(mat[0]))
 
-#version=0.1.0
+version='0.1.0'
 # End of file_handler.py

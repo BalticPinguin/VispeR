@@ -26,6 +26,11 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       init()-function is needed.
    """
    def __init__(self, f): 
+      """Initialisation of the function.
+         In addition to the main class Spect, here only the Huang-Rhys factors
+         are computed and a respective threshold for smallest HR-factors to be 
+         accounted for is set.
+      """
       # first, initialise as done for all spectra:
       if self.type=="Spect":
          #don't set it if this is CFC-calculation.
@@ -39,16 +44,18 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
          HRthresh=float(HRthresh[-1])
       self.HuangR(HRthresh)
 
-      # get N, M from opt
-
    def calcspect(self):
-       # M,N are maximal numbers of vibrational modes 
-       #     (+1, since they should be arrived really; count from 0)
-       self.states1+=1
-       self.states2+=1
-       #as frequency, use the final states frequency.
-       f=self.f[1]
-       def FCeqf( Deltag, M, N):
+      """The main function of this class, calculating the spectrum in one-particle 
+         approximation.
+      """
+      # M,N are maximal numbers of vibrational modes 
+      #     (+1, since they should be arrived really; count from 0)
+      self.states1+=1
+      self.states2+=1
+      #as frequency, use the final states frequency.
+      f=self.f[1]
+
+      def FCeqf( Deltag, M, N):
           """Calculate Franck-Condon factors under assumption of equal frequencies 
             for only one vibrational mode
             
@@ -94,49 +101,49 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
                 spect[0][i*J+j+1]=freqs[i][j]
           return spect
     
-       n=len(self.HR) #=len(freq)
-       setM=False
-       if self.states2==1: 
-          # there was not specified, how many vibr. states in ground-state 
-          #     should be taken into account
-          setM=True
-          self.states2=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+9.))
-          #i.e. take M following an empirical value as function of the HR-file
-       assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
+      n=len(self.HR) #=len(freq)
+      setM=False
+      if self.states2==1: 
+         # there was not specified, how many vibr. states in ground-state 
+         #     should be taken into account
+         setM=True
+         self.states2=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+9.))
+         #i.e. take M following an empirical value as function of the HR-file
+      assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
                                         "threshold. No mode to be calculated."
-       #if setM: the size of these arrays will be overestimated.
-       FC=np.zeros((n,self.states2*self.states1-1))
-       uency=np.zeros((n,self.states2*self.states1-1)) #frequency
+      #if setM: the size of these arrays will be overestimated.
+      FC=np.zeros((n,self.states2*self.states1-1))
+      uency=np.zeros((n,self.states2*self.states1-1)) #frequency
 
-       #avoiding dots accelerates python quite a lot
-       loggingwrite=self.log.write
-       npexp=np.exp 
-       E=self.Energy[0]-self.Energy[1]
-       #set  0->0 transition:
-       sgnE=np.sign(E)
-       uency00=E*self.Hartree2cm_1 #zero-zero transition
-       FC00=1.00
-       if sgnE==0:
-          sgnE=1;
-       #here a goes over all modes
-       for a in xrange(n):
-          #print a, HR[a]
-          for j in range(self.states1):  # initial state
-             if setM:
-                # set M to fit best to the value at that moment.
-                M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
-             for i in range(self.states2):  #final states
-                if i==0 and j==0:
-                   #skip 0-0 transitions
-                   continue
-                tmp=FCeqf(self.HR[a], i, j)
-                try:
-                   FC[a][j*M+i-1]=tmp*FC00*npexp(-(f[a]*j)/self.T)
-                   uency[a][j*M+i-1]=(sgnE*E+sgnE*f[a]*(j-i))*self.Hartree2cm_1
-                except IndexError:
-                   loggingwrite("WARNING: truncated spectrum for mode nr. %d\n"%(a))
-                   break
-       self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
+      #avoiding dots accelerates python quite a lot
+      loggingwrite=self.log.write
+      npexp=np.exp 
+      E=self.Energy[0]-self.Energy[1]
+      #set  0->0 transition:
+      sgnE=np.sign(E)
+      uency00=E*self.Hartree2cm_1 #zero-zero transition
+      FC00=1.00
+      if sgnE==0:
+         sgnE=1;
+      #here a goes over all modes
+      for a in xrange(n):
+         #print a, HR[a]
+         for j in range(self.states1):  # initial state
+            if setM:
+               # set M to fit best to the value at that moment.
+               M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
+            for i in range(self.states2):  #final states
+               if i==0 and j==0:
+                  #skip 0-0 transitions
+                  continue
+               tmp=FCeqf(self.HR[a], i, j)
+               try:
+                  FC[a][j*M+i-1]=tmp*FC00*npexp(-(f[a]*j)/self.T)
+                  uency[a][j*M+i-1]=(sgnE*E+sgnE*f[a]*(j-i))*self.Hartree2cm_1
+               except IndexError:
+                  loggingwrite("WARNING: truncated spectrum for mode nr. %d\n"%(a))
+                  break
+      self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
 
    def gs(A):
        """This function does row-wise Gram-Schmidt orthonormalization of 
@@ -246,8 +253,16 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
             self.Energy[1]+=Esign*self.f[1][i]*self.HR[i]
 
 class CFC_spect(FC_spect):
+   """This is more general class compared to FC_spect. Here, both states need to have different
+      force constant matrices and the change of the respective frequencies are taken into account
+      also for the intensity of the transition.
+      The only difference hence is a modified variant of computing the intensities, all other functions
+      are inhericed from FC_spect or Spect respectively.
+   """
    def __init__(self, f): 
-      # first, initialise as done for all spectra:
+      """The initialisation of this class is the same as for FC_spect
+         except for the name.
+      """
       self.type='CFC'
       FC_spect.__init__(self, f)
 
@@ -376,5 +391,5 @@ class CFC_spect(FC_spect):
                    break
        self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
    
-#version=0.1.5  
+version='0.1.5'  
 #End of FC_Spects.py

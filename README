@@ -18,6 +18,7 @@ parameters blow up the calculation exponentially in time as well as in memory re
        ====================================================
        ******************    Usage   **********************
        ====================================================
+
 Visper is easy to use: Unpack the files in a folder, make the main file,
 smallscript.py, executable and execute it, followed by the name of your 
 input-file that specifies all options.
@@ -27,12 +28,15 @@ Some example-calculations (input-files, log-files and results) will follow.
 The examples given in the folder 'tests' are out-of date and may contain results
 that are obtaind with options/models that are no more available in this way.
 
+
        ====================================================
        ******************  Licence   **********************
        ====================================================
+
 Visper is licensed under GPL, so you are free to use it and change as you
 like. 
-       
+      
+
        ====================================================
        **************  Current Issues   *******************
        ====================================================
