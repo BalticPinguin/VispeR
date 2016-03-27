@@ -15,12 +15,16 @@ import re, mmap, math, os
 #  CHANGELOG 
 # ===========
 #in version 1.0:  
+#  1) remove dist_FCfOPA(); the model behind is inconsistent.   
+#  2) renamed resortFCfOPA to calcspect and made the interface
+#     accordingly.  
+#  3) SDR_spect class runs now, but seems to be buggy
 #
 
 class URDR_spect(Spect.Spect):
-   """The class to calculate full Duschinsky-spectra.
-      At this point, it is the only working class including
-      Duschinksy effect.
+   """The class to calculate full Duschinsky-spectra. Due to its computational structure,
+      integral prescreaning is not possible, therefore really all transitions need to be 
+      computed.
    """
    Hartree2cm_1=219474.63 
    Threshold=3e-10
@@ -52,6 +56,9 @@ class URDR_spect(Spect.Spect):
          self.m=modes[-1]
 
    def GetQuants(self):
+      """This function computes the matrices and vectors needed interally for the computation
+         of intensities.
+      """
       self.Gamma=np.diag(self.f[0])   # in atomic units. It is equivalent to 4pi^2/h f_i
       self.Gammap=np.diag(self.f[1])  # for initial state
       sqGamma=np.diag(np.sqrt(self.f[0]))
@@ -132,7 +139,7 @@ class URDR_spect(Spect.Spect):
          Tree.fill(0)
          Zero=np.zeros(2*len(self.nm.K))
          # correct for vibrational groundstates
-         E=self.Energy[0]-self.Energy[1]
+         E=abs(self.Energy[0]-self.Energy[1])
          for i in range(len(self.Gammap)):
             E+=.5*(self.Gammap[i][i]-self.Gamma[i][i])
          Tree.insert(Zero, np.array([1.0, (self.Energy[0]-self.Energy[1])*self.Hartree2cm_1, 0]) )
@@ -210,11 +217,25 @@ class URDR_spect(Spect.Spect):
                   Ps=L1.getState(n)[0]
                   I_nn+=npsqrt(2.0*(n_m-1))*self.A[m][m]*Ps          # second term
                   n[m]+=1
-               if n[m+leng]>0:
+               #now, the two sums follow:
+               if n[m+leng]>0:   #first summand in second sum:
                   n[m+leng]-=1
                   Ps=L1.getState(n)[0]
                   n[m+leng]+=1
                   I_nn+=npsqrt(n[m+leng]*0.5)*(self.E[m][m])*Ps # second term
+               for k in range(m+1,leng):                           # rest of the sums
+                  #first summand
+                  if n[k]>0:    
+                     n[k]-=1
+                     Ps=L1.getState(n)[0]
+                     n[k]+=1
+                     I_nn+=npsqrt(n[k]*0.5)*(self.A[k][m]+self.A[m][k])*Ps # second term
+                  #second summand
+                  if n[k+leng]>0:
+                     n[k+leng]-=1
+                     Ps=L1.getState(n)[0]
+                     n[k+leng]+=1
+                     I_nn+=npsqrt(n[k+leng]*0.5)*(self.E[k][m])*Ps # second term
    
                n[m]+=1
             #else: need the other iteration-formula
@@ -228,6 +249,19 @@ class URDR_spect(Spect.Spect):
                   Ps=L1.getState(n)[0]
                   I_nn+=npsqrt(2.0*(n_m-1.))*self.C[mp][mp]*Ps           # second term
                   n[mp+leng]+=1
+               #compute terms in the two sums:
+               for k in range(mp+1, leng):
+                  if n[k]>0: #first sum
+                     n[k]-=1
+                     Ps=L1.getState(n)[0]
+                     n[k]+=1
+                     I_nn+=npsqrt(.5*n[k])*(self.C[mp][k]+self.C[k][mp])*Ps
+                  if n[k+leng]>0: #second sum
+                     n[k+leng]-=1
+                     Ps=L1.getState(n)[0]
+                     n[k+leng]+=1
+                     I_nn+=npsqrt(.5*(n[k+leng]-1.))*self.E[mp][k]*Ps  
+
                n[mp+leng]+=1
             I_nn/=npsqrt(2.*n_m)
             assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn:"+\
@@ -344,10 +378,7 @@ class URDR_spect(Spect.Spect):
          a=np.ones(alpha).tolist()
          for i in range(len(a)):
             a[i]=n #create the needed list
-         #box=CDLL('/home/tm162/bin/smallscript/unlabeled_balls.so')
-         #for distributions in cbox.unlabeled_balls_in_labeled_boxes(c_int(n),c_int(alpha)):
-         for distributions in unlabeled_balls_in_labeled_boxes(n,a):
-            #States[i]=np.matrix(distributions)
+         for distributions in unlabeled_balls_in_labeled_boxes(n, a):
             States2.append(np.array(distributions, dtype=np.int8)) #save memory!
          return States2
    
@@ -383,11 +414,13 @@ class URDR_spect(Spect.Spect):
       return result
    
 class SDR_spect(Spect.Spect):
-   """This class is not working at the moment.   
-      I am not sure yet whether to enable it or through it away...
+   """The class to calculate Duschinsky-spectra in a pseudo one-particle approximation. 
+      This makes the computation much faster than in URDR-spect, but in fact the model behind
+      is inconsistent. If the Duschinsky effect is large, this model is no more applicable.
    """
-   Hartree2cm_1=219474.63 
-   Threshold=3e-10
+   m = 10
+   Threshold=3e-7
+
    def __init__(self, f): 
       """In addition to the initialisation of
          Spect( see first line of code), here the number
@@ -398,64 +431,31 @@ class SDR_spect(Spect.Spect):
       # first, initialise as done for all spectra:
       self.type='URDR'
       Spect.Spect.__init__(self, f)
-      # now, calculate additional quantities for the iteration:
-
-   class OPA:
-      """ This class containes the functions and objects for the calculation of vibronic spectra 
-          in Duschinski-rotated systems.
-          ==OBJECTS==
-          L   number of excited states (in total: initial+final)
-          mat matrix containing FC-factors: first index: number of mode being excited, second index is exc. number
+      #get m from opt. (-> number of states considered)
+      modes=re.findall(r"(?<=modes\=)[\d]+",self.opt, re.I)
+      if modes!=[]:
+         self.m=modes[-1]
+      else:
+         self.m=len(self.nm.J)
+   
+   def GetQuants(self):
+      """This function computes the matrices and vectors needed interally for the computation
+         of intensities.
       """
-      def __init__(self, alpha, L): #should it be __new__?
-         """ initialises the class
-            alpha: number of vibrational modes
-            L:     number of states excited
-         """
-         assert alpha>0, "There must be at least one degree of freedom!"
-         self.L=L
-         # first index in mat:number of mode, second: excitation number
-         self.mat=np.zeros((2*alpha,L+1)) #change elements to some float32 or so...
-      
-      def insert(self, N, FC):
-         exc=int(N[len(N)//2:].max())
-         if exc>0:
-            index=np.matrix(N[len(N)//2:]).argmax()
-            self.mat[index][exc]=FC
-         else:
-            index=np.matrix(N[:len(N)//2]).argmax()
-            self.mat[index][0]=FC
-   
-      def getState(self, N): 
-         exc=int(max(N[len(N)//2:]))
-         if exc>0:
-            index=np.matrix(N[len(N)//2:]).argmax()
-         else:
-            index=np.matrix(N[:len(N)//2]).argmax()
-         return self.mat[index][exc]
-   
-      def extract(self): #extract all elements 
-         selfmat=self.mat
-         intens=[]
-         ind=[]
-         excs=[]
-         intapp=intens.append
-         indapp=ind.append
-         excapp=excs.append
-         for index in range(len(selfmat)):
-            for exc in range(len(selfmat[0])):
-               if selfmat[index][exc]>Threshold:
-                  intapp(selfmat[index][exc])
-                  indapp(index)
-                  excapp(exc)
-               elif selfmat[index][exc]<-Threshold:
-                  intapp(selfmat[index][exc])
-                  indapp(index)
-                  excapp(exc)
-   
-         return intens, ind, excs, self.L #I need squares as intensities
-   
-   def simpleFCfOPA(logging, J, K, f, Energy, N, T, E0):
+      self.Gamma=np.diag(self.f[0])   # in atomic units. It is equivalent to 4pi^2/h f_i
+      self.Gammap=np.diag(self.f[1])  # for initial state
+      sqGamma=np.diag(np.sqrt(self.f[0]))
+      sqGammap=np.diag(np.sqrt(self.f[1]))
+      unity=np.eye(len(self.Gamma))
+
+      TMP=np.linalg.inv(self.nm.J.T.dot(self.Gammap).dot(self.nm.J) + self.Gamma)
+      self.A=2.*sqGammap.dot(self.nm.J).dot(TMP).dot(self.nm.J.T).dot(sqGammap) -unity
+      self.b=2.*sqGammap.dot( unity - self.nm.J.dot(TMP).dot(self.nm.J.T).dot(self.Gammap) ).dot(self.nm.K)
+      self.C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
+      self.d=-2.*sqGamma.dot(TMP).dot(self.nm.J.T.dot(self.Gammap.dot(self.nm.K)))
+      self.E=4.*sqGamma.dot(TMP).dot(self.nm.J.T).dot(sqGammap)
+
+   def simpleFCfOPA(self, J, K, f, Energy, N, T, E0=0):
       """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
       
          **PARAMETERS:**  
@@ -473,22 +473,21 @@ class SDR_spect(Spect.Spect):
          linespectrum 
       """
    
-      def CalcI00(dim, E):
+      def CalcI00( E):
          """This function calculates the overlap-integral for zero vibrations """
-         opa=OPA(dim,0) #call OPA-class, initialize object for 0->0 trasition.
-         zeros=np.zeros(2*dim)
-         inten=1.00 #set intensity (scaled arbitrarily
-         opa.insert(zeros, np.sqrt(inten)) # insert the intensity (transition strength)
-   
-         linspect.append(np.matrix([E*Hartree2cm_1, inten, 0])) #append the 0->0 transition to the linspect-array
+         opa=OPA(self.dim,0) #call OPA-class, initialize object for 0->0 trasition.
+         zeros=np.zeros(2*self.dim)
+         #set intensity of pure electronic transition (scaled arbitrarily)
+         inten=1.00 
+         # insert the transition
+         opa.insert(zeros, np.sqrt(inten)) 
          return opa
    
-      def iterate(L1, L2, Energy,i, f, J, K):
+      def iterate(L1, L2, i, f, J, K):
          """ Calculates the Franck-Condon factors of an eletronic transition using the lower levels L1 and L2   
             **PARAMETERS:**  
             L1:     binary tree where i-2 quanta are excited (structure: [[Btree.py]]  
             L2:     binary tree where i-1 quanta are excited  
-            Energy: Energy-difference between the states (minimal energy)  
             i:      number of excitation-quanta  
             f:      (2xN) frequencies of both states  
             J:      Duschisky-rotation matrix  
@@ -518,68 +517,65 @@ class SDR_spect(Spect.Spect):
             return States
    
          #initialize new OPA-object
-         leng=len(b)
+         leng=len(self.b)
          L3=OPA(leng, i)                   # initialize root-node
          States=states(leng, i)           # States are all possible
          npsqrt=np.sqrt
    
-         for n in States: #for each possible state, described by n(vector)
-            I_nn=0
-            #need first iteration formula
+         for n in States: 
             m=np.argmax(n[:leng])  #if there is no excitation: it returns 0
-            # if there excists excitation in initial state: need first iteration formula
             if n[m]!=0:
                # need first iteration-formula
                n_m=n[m]
                n[m]-=1 #n[m] is at least 1
                Ps=L2.getState(n)
-               #if not math.isnan(Ps):
-               I_nn=b[m]*Ps                                     # first term 
+               I_nn=self.b[m]*Ps                                     # first term 
                if n[m]>0:
                   n[m]-=1
                   Ps=L1.getState(n)
-                  #if not math.isnan(Ps) and abs(Ps)>1e-8:
-                  I_nn+=npsqrt(2.0*(n_m-1))*A[m][m]*Ps         # second termA
+
+                  I_nn+=npsqrt(2.0*(n_m-1))*self.A[m][m]*Ps          # second term
                   n[m]+=1
                if n[m+leng]>0:
                   n[m+leng]-=1
                   Ps=L1.getState(n)
                   n[m+leng]+=1
-                  #if not math.isnan(Ps) and abs(Ps)>1e-8:
-                  I_nn+=npsqrt(n[m+leng]*0.5)*(E[m][m])*Ps # second term
+                  I_nn+=npsqrt(n[m+leng]*0.5)*(self.E[m][m])*Ps # second term
    
                n[m]+=1
             #else: need the other iteration-formula
             else: 
-               m=np.argmax(n[leng:])  #if there is no excitation: it returns 0
+               m=np.argmax(n[leng:])  #in this range must be an excitation.
                n_m=n[m+leng]
                n[m+leng]-=1
                Ps=L2.getState(n)
-               I_nn=d[m]*Ps                                    # first term 
+               I_nn=self.d[m]*Ps                                       # first term 
                if n[m+leng]>0:
                   n[m+leng]-=1
                   Ps=L1.getState(n)
-                  #if not math.isnan(Ps) and abs(Ps)>1e-8:
-                  I_nn+=npsqrt(2.0*(n_m-1))*C[m][m]*Ps         # second term
+                  I_nn+=npsqrt(2.0*(n_m-1.))*self.C[m][m]*Ps           # second term
                   n[m+leng]+=1
                n[m+leng]+=1
             I_nn/=npsqrt(2.*n_m)
-            assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn: {0}\n, n:{1}\n:".format(I_nn, n)
-            L3.insert(n, I_nn)
+            assert not math.isnan(I_nn) ,"I_nn is not a number! I_nn:"+\
+                                         " {0}\n, n:{1}\n:".format(I_nn, n)
+            # don't mess with too low intensities (<1e-16)
+            if np.abs(I_nn)>1e-8: 
+               L3.insert(n, I_nn)
          return L2, L3
-   
-      def makeLine(logging, intens, E0, T, index, ex, Gamma, Gammap, E, n):
+
+      def makeLine(intens, E0, T, index, ex, Gamma, Gammap, E, n):
          #F=np.zeros(( len(index),3 ))
          F=[]
          for i in xrange(len(index)):
             indi=index[i]
-            if intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) >Threshold:
+            if intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) >self.Threshold:
                F.append([(-np.sign(E)*Gamma[indi]*(n-ex[i])
-                         +np.sign(E)*Gammap[indi]*(ex[i])+E)*Hartree2cm_1,
+                         +np.sign(E)*Gammap[indi]*(ex[i])+np.abs(E))*self.Hartree2cm_1,
                         intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) ,
                         0])
               # if F[-1][1]>0.0001:
-              #    print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*Hartree2cm_1
+              #    print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*self.Hartree2cm_1
    
          if F==[]: # no transitions with enough intensity occured.
             F=[0,0,0]
@@ -587,17 +583,22 @@ class SDR_spect(Spect.Spect):
       
       dimen=0
    
-      linspect=[]
-   
       # correct for vibrational groundstates:
       Energy+=(sum(f[0])-sum(f[1]))*.5
-      L2=CalcI00(len(K), Energy)
+   
+      linspect=[]
+
+      #append the 0->0 transition to the linspect-array
+      inten=1.00 
+      linspect.append(np.matrix([abs(Energy)*self.Hartree2cm_1, inten, 0])) 
+
+      L2=CalcI00(Energy)
       #this is already extracted to linspect (using side-effects)
       L1=L2 
       for i in range(1, N+1):
-         L1, L2=iterate(L1, L2, Energy, i, f, J, K)
+         L1, L2=iterate(L1, L2, i, f, J, K)
          intens, index, excitation, N=L2.extract()
-         linspect.append(makeLine(logging, intens, E0, T, index, excitation, f[1], f[0], Energy, i))
+         linspect.append(makeLine(intens, E0, T, index, excitation, f[1], f[0], Energy, i))
          dimen+=len(linspect[i])+1
       spect=np.zeros((dimen,3))
       spect[:len(linspect[0])]=linspect[0]
@@ -607,135 +608,113 @@ class SDR_spect(Spect.Spect):
          dimen+=len(linspect[i])
       return spect.T
    
-   def resortFCfOPA(logging, J, K, f, Energy, N, T,E0):
-      """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
-      
-      **PARAMETERS:**    
-      J:      Duschisky-matrix   
-      K:      Displacement-Vector   
-      f:      frequency: two-dim array (freq_initial, freq_final)   
-      Energy: Energy-difference of minima   
-      N:      Max. number of excitation quanta state considered   
-      T:      temperature of the system (in atomic units)   
-      E0:     relative energy with respect to lowest triplet state   
-        
-      All arguments are obligatory.
-   
-      **RETURNS:**   
-      linespectrum 
+   def calcspect(self):
+      """This function prepares all variables according to the given 
+         options to calculate the spectrum.
       """
-      #quantities for the iterative spectrum-calculation
-      #f[0]=f[1]
-   
-      #J=np.eye(len(f[0]))
-      #K*=np.sqrt(np.pi)/2.  # --> do it in functions_smsc.Duschinsky now.
-   
-      resort=np.zeros(np.shape(J))
-      for i in range(len(J)):
-         j=np.argmax(J[i])
-         k=np.argmin(J[i])
-         if J[i][j]>-J[i][k]:
-            resort[i][j]=1
+      #first: resort the elements of J, K, f to make J most closely to unity
+      resort=np.zeros(np.shape(self.nm.J))
+      for i in xrange(len(self.nm.J)):
+         j=np.argmax(self.nm.J[i])
+         k=np.argmin(self.nm.J[i])
+         if self.nm.J[i][j]>-self.nm.J[i][k]:
+           resort[i][j]=1
          else:
             resort[i][k]=-1
-      J=resort.dot(J)
-      K=resort.dot(K)
-      for i in range(len(resort)):
-         k=np.argmin(resort[i])
-         if resort[i][k]==-1:
-            resort[i][k]=1 #use absolute value only.
-      f[1]=resort.dot(f[1])
-      spect=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
-      return spect
-   
-   def dist_FCfOPA(logging, J, K, f, Energy, N, T, E0, threshold):
-      """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
-      
-      *PARAMETERS:*
-      J:      Duschisky-matrix
-      K:      Displacement-Vector
-      f:      frequency: two-dim array (freq_initial, freq_final)
-      Energy: Energy-difference of minima
-      N:      Max. number of excitation quanta state considered
-      T:      temperature of the system (in atomic units)
-      E0:     relative energy with respect to lowest triplet state
-        
-      All arguments are obligatory.
-   
-      *RETURNS:*
-      linespectrum 
-      """
-   
-      K*=np.sqrt(np.pi)/2.  
-         
-      resort=np.zeros(np.shape(J))
-      for i in range(len(J)):
-         j=np.argmax(J[i])
-         k=np.argmin(J[i])
-         if J[i][j]>-J[i][k]:
-            resort[i][j]=1
-         else:
-            resort[i][k]=-1
-      J=resort.dot(J)
-      K=resort.dot(K)
-      for i in range(len(resort)):
-         k=np.argmin(resort[i])
-         if resort[i][k]==-1:
-            resort[i][k]=1 #use absolute value only.
-      f[1]=resort.dot(f[1])
-      spect2=[]
-      spect2.append(simpleFCfOPA(logging, J, K, f, Energy, N, T,E0))
-      #print simpleFCfOPA(logging, J, K, f, Energy, N, T,E0).T
-   
-      resort=np.eye(len(resort))
-      if threshold>len(resort)/2:
-         #which is due to full OPA-scheme
-         threshold=len(resort)/2
-   
-      Jo=deepcopy(J)
-      Ka=deepcopy(K)
-      f1=deepcopy(f[1])
-      f0=deepcopy(f[0])
-      for i in range(threshold):
-         vec=deepcopy(resort[0])
-         for j in range(len(resort)-1):
-            resort[j]=resort[j+1]
-         resort[-1]=vec
-   
-         J=resort.dot(Jo)
-         K=resort.dot(Ka)
-         f[1]=resort.dot(f1)
-         f[0]=resort.dot(f0)
-         temp=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
-         spect2.append(temp[:].T[1:].T)# do not take the 0-0 transititon a second time
-   
-      resort=np.eye(len(resort))
-      for i in range(threshold):
-         vec=deepcopy(resort[-1])
-         for j in range(len(resort)-1,-1,-1):
-            resort[j]=resort[j-1]
-         resort[0]=vec
-   
-         J=resort.dot(Jo.T)
-         K=resort.dot(Ka.T)
-         f[1]=resort.dot(f1.T)
-         f[0]=resort.dot(f0.T)
-         #print "J", J,"\n"
-         temp=simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)
-         spect2.append(temp[:].T[1:].T)# do not take the 0-0 transititon a second time
-         #spect2.append(temp[1:])# do not take the 0-0 transititon a second time
-         #print (simpleFCfOPA(logging, J, K, f, Energy, N, T,E0)[:].T[1:])
-   
-      dim=0
-      for i in range(len(spect2)):
-         dim+=len(spect2[i][0])
-      spect=np.zeros((dim, 3))
-      leng=0
-      for i in range(len(spect2)):
-         spect[leng:leng+len(spect2[i][0])]=spect2[i].T
-         leng+=len(spect2[i][0])
-   
-      return spect.T
 
-#version=1.0
+      self.nm.J=resort.dot(self.nm.J.T)
+      self.nm.K=resort.dot(self.nm.K.T)
+      for i in xrange(len(resort)):
+         k=np.argmin(resort[i])
+         if resort[i][k]==-1:
+            resort[i][k]=1 #use absolute value only.
+      self.f[1]=resort.dot(self.f[1].T)
+      self.log.write("before truncation:\n")
+      self.log.write("Duschinsky-Matrix:\n")
+      self.log.printMat(self.nm.J)
+      self.log.write("Displacement vector:\n")
+      self.log.printVec(self.nm.K)
+   
+      #truncate only, if this really is truncation.
+      if self.m<len(self.nm.J): 
+         index=np.argsort(np.abs(self.nm.K), kind="heapsort")[::-1]
+         ind=index[:self.m]
+         self.nm.K=self.nm.K[ind]
+         self.nm.J=self.nm.J[ind].T[ind]
+         f=np.zeros(( 2,self.m))
+         f[1]=self.f[1][ind]
+         f[0]=self.f[0][ind]
+         self.f=f
+
+      #print truncated quantites:
+      self.log.write("After truncation:\n")
+      self.log.write("Duschinsky-Matrix:\n")
+      self.log.printMat(self.nm.J)
+      self.log.write("Displacement vector:\n")
+      self.log.printVec(self.nm.K)
+   
+      # finally, calculate the stick spectrum in this picture
+      E=self.Energy[0]-self.Energy[1]
+      self.GetQuants()
+      self.spect=self.simpleFCfOPA(self.nm.J, self.nm.K, self.f, E, self.states1+ self.states2, self.T, 0)
+   
+class OPA:
+   """ This class containes the functions and objects for the calculation of vibronic spectra 
+       with the SDR_spect class.
+
+       ==OBJECTS==
+       L   number of excited states (in total: initial+final)
+       mat matrix containing FC-factors: first index: number of mode being excited, second index is exc. number
+   """
+   Threshold=3e-10
+
+   def __init__(self, alpha, L): #should it be __new__?
+      """ initialises the class
+         alpha: number of vibrational modes
+         L:     number of states excited
+      """
+      assert alpha>0, "There must be at least one degree of freedom!"
+      self.L=L
+      # first index in mat:number of mode, second: excitation number
+      self.mat=np.zeros((2*alpha,L+1)) #change elements to some float32 or so...
+   
+   def insert(self, N, FC):
+      exc=int(N[len(N)//2:].max())
+      if exc>0:
+         index=np.matrix(N[len(N)//2:]).argmax()
+         self.mat[index][exc]=FC
+      else:
+         index=np.matrix(N[:len(N)//2]).argmax()
+         self.mat[index][0]=FC
+
+   def getState(self, N): 
+      exc=int(max(N[len(N)//2:]))
+      if exc>0:
+         index=np.matrix(N[len(N)//2:]).argmax()
+      else:
+         index=np.matrix(N[:len(N)//2]).argmax()
+      return self.mat[index][exc]
+
+   def extract(self): #extract all elements 
+      selfmat=self.mat
+      intens=[]
+      ind=[]
+      excs=[]
+      intapp=intens.append
+      indapp=ind.append
+      excapp=excs.append
+      for index in range(len(selfmat)):
+         for exc in range(len(selfmat[0])):
+            if selfmat[index][exc]>self.Threshold:
+               intapp(selfmat[index][exc])
+               indapp(index)
+               excapp(exc)
+            elif selfmat[index][exc]<-self.Threshold:
+               intapp(selfmat[index][exc])
+               indapp(index)
+               excapp(exc)
+
+      return intens, ind, excs, self.L #I need squares as intensities
+
+version='1.0'
 # End of DR_spects.py

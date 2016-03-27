@@ -347,5 +347,5 @@ class  Spect:
       output.close()
    # END OF FUNCTION DEFINITIONS
 
-#version=0.2.0   
+version='0.2.0'   
 # End of Spect.py
