@@ -49,13 +49,13 @@ class URDR_spect(Spect.Spect):
       self.type='URDR'
       Spect.Spect.__init__(self, f)
       # now, calculate additional quantities for the iteration:
-      self.GetQuants()
+      self.__GetQuants()
       #get m from opt. (-> number of states considered)
       modes=re.findall(r"(?<=modes\=)[\d]+",self.opt, re.I)
       if modes!=[]:
          self.m=modes[-1]
 
-   def GetQuants(self):
+   def __GetQuants(self):
       """This function computes the matrices and vectors needed interally for the computation
          of intensities.
       """
@@ -109,7 +109,7 @@ class URDR_spect(Spect.Spect):
          f[0]=self.f[0][ind]
          self.f=f
          # now recalculate the matrices A,C,E,...
-         self.GetQuants()
+         self.__GetQuants()
       self.log.write("After truncation:\n")
       self.log.write("Duschinsky-Matrix:\n")
       self.log.printMat(self.nm.J)
@@ -438,7 +438,7 @@ class SDR_spect(Spect.Spect):
       else:
          self.m=len(self.nm.J)
    
-   def GetQuants(self):
+   def __GetQuants(self):
       """This function computes the matrices and vectors needed interally for the computation
          of intensities.
       """
@@ -455,7 +455,7 @@ class SDR_spect(Spect.Spect):
       self.d=-2.*sqGamma.dot(TMP).dot(self.nm.J.T.dot(self.Gammap.dot(self.nm.K)))
       self.E=4.*sqGamma.dot(TMP).dot(self.nm.J.T).dot(sqGammap)
 
-   def simpleFCfOPA(self, J, K, f, Energy, N, T, E0=0):
+   def __simpleFCfOPA(self, J, K, f, Energy, N, T, E0=0):
       """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
       
          **PARAMETERS:**  
@@ -573,12 +573,12 @@ class SDR_spect(Spect.Spect):
                F.append([(-np.sign(E)*Gamma[indi]*(n-ex[i])
                          +np.sign(E)*Gammap[indi]*(ex[i])+np.abs(E))*self.Hartree2cm_1,
                         intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) ,
-                        0])
+                        7])
               # if F[-1][1]>0.0001:
               #    print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*self.Hartree2cm_1
    
          if F==[]: # no transitions with enough intensity occured.
-            F=[0,0,0]
+            F=[0,0,7]
          return np.matrix(F)
       
       dimen=0
@@ -590,7 +590,7 @@ class SDR_spect(Spect.Spect):
 
       #append the 0->0 transition to the linspect-array
       inten=1.00 
-      linspect.append(np.matrix([abs(Energy)*self.Hartree2cm_1, inten, 0])) 
+      linspect.append(np.matrix([abs(Energy)*self.Hartree2cm_1, inten, 7])) 
 
       L2=CalcI00(Energy)
       #this is already extracted to linspect (using side-effects)
@@ -655,8 +655,8 @@ class SDR_spect(Spect.Spect):
    
       # finally, calculate the stick spectrum in this picture
       E=self.Energy[0]-self.Energy[1]
-      self.GetQuants()
-      self.spect=self.simpleFCfOPA(self.nm.J, self.nm.K, self.f, E, self.states1+ self.states2, self.T, 0)
+      self.__GetQuants()
+      self.spect=self.__simpleFCfOPA(self.nm.J, self.nm.K, self.f, E, self.states1+ self.states2, self.T, 0)
    
 class OPA:
    """ This class containes the functions and objects for the calculation of vibronic spectra 

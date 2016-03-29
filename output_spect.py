@@ -143,7 +143,6 @@ class broaden():
 
       #make nPA from OPA if requested.
       n=re.findall(r"(?<=to nPA:)[ \d]*", self.parent.broadopt, re.I)
-      print n
       if n!=[]:
          MakeFull=MultiPart.OPAtoNPA(float(n[-1].strip()))
          self.log.write("\n REACHING OPA TO NPA-PART. \n")
