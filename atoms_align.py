@@ -304,5 +304,5 @@ class align_atoms():
       return rmsd
    # END OF FUNCTION DEFINITIONS
 
-#version=0.1  
+version='0.1'  
 # End of atoms_align.py

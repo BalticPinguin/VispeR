@@ -9,6 +9,7 @@ import re, mmap, os.path, math, sys
 #to version=0.1.6   
 # 1. Changed the Estring of G09 again; hopefully this is the best 
 #    way reading it.  
+# 2. Error-output more informative. Hope, this helps.
 #
 #to version=0.1.5   
 # 1. Reduced amount of redundant code; added strings to rtype.  
@@ -22,7 +23,7 @@ import re, mmap, os.path, math, sys
 #    This might be slower at runtime but is better structured
 #    and easier to read. Moreover, it avoids redundant code.  
 # 2. Added class rtype that knows the strings to search for
-#    some of the data.  
+#    most of the data.  
 #  
 #to version=0.0.1  
 # 1. I deleted the functions reading L and f from the log-file.  

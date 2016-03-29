@@ -307,5 +307,5 @@ class NormalMode():
          self.log.write('\nDuschinsky displacement vector:\n')
          self.log.printVec(self.K)
 
-#version=0.1.0
+version='0.1.0'
 #End of normal_modes.py
