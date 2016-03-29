@@ -13,6 +13,7 @@ import numpy as np
 #  1) removed GFC-class  
 #  2) Added term for energy-correction in case of gradient.
 #  3) Changed setting self.type.
+#  4) repaired CFC_spect to work with the new structure.
 #
 # to version 0.1.0:  
 #  1) Added some sense to GFC  
@@ -75,7 +76,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
                    math.sqrt(faktNM)/fact(x)
           return FC*FC
        
-       def unifSpect(intens, freqs, E, FC00):
+      def unifSpect(intens, freqs, E, FC00):
           """ Calculation of the line spectrum respecting only shift of minima 
             (no Duschinsky rotation, no change if frequency) 
             and assuming coinciding frequencies for initial and final state
@@ -121,17 +122,15 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       E=self.Energy[0]-self.Energy[1]
       #set  0->0 transition:
       sgnE=np.sign(E)
-      uency00=E*self.Hartree2cm_1 #zero-zero transition
       FC00=1.00
       if sgnE==0:
-         sgnE=1;
+         sgnE=1
       #here a goes over all modes
       for a in xrange(n):
-         #print a, HR[a]
+         if setM:
+            # set M to fit best to the value at that moment.
+            M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
          for j in range(self.states1):  # initial state
-            if setM:
-               # set M to fit best to the value at that moment.
-               M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
             for i in range(self.states2):  #final states
                if i==0 and j==0:
                   #skip 0-0 transitions
@@ -283,10 +282,16 @@ class CFC_spect(FC_spect):
        """
        # M,N are maximal numbers of vibrational modes (+1, since they should 
        #      be arrived really; count from 0)
-       self.N+=1
-       self.M+=1
+       self.states1+=1
+       self.states2+=1
    
        def FCchf(HR,N,M,freq):
+          """This function calculates the FC-factors for a mode with HR-factor HR,
+            frequency freq and the highest achievable states N,M in initial and
+            final state respectively. 
+            Here, for the overlap the change in frequency between the modes is taken
+            into account.
+          """
           npsqrt=np.sqrt
           D=npsqrt(2.*HR) # define this to become consistent with given formula
           delta=npsqrt(freq[1]/freq[0])
@@ -348,46 +353,44 @@ class CFC_spect(FC_spect):
        # correct for vibrational groundstates:
        #E+=(sum(freq[0])-sum(freq[1]))*.5
        #print E, freq[0]
-       if self.M==1: 
+       if self.states2==1: 
           # there was not specified, how many vibr. states in ground-state 
           #           should be taken into account
           setM=True
-          self.M=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+5.))
+          M=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+5.))
        assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
                     " threshold. No mode to be calculated."
        #if setM: the size of these arrays will be overestimated.
        #calculate 0->0 transition
-       FC00=1
+       FC00=1.00
        #print 0,0,0, 10
-       loggingwrite=self.log.write #avoid dots!
        npexp=np.exp                  #to accelerates python quite a lot
        freq=self.f
 
-       FC=np.zeros((n,self.M*self.N))
-       uency=np.zeros((n,self.M*self.N)) #frequency
+       FC=np.zeros((n,M*self.states1))
+       uency=np.zeros((n,M*self.states1)) #frequency
        E=self.Energy[0]-self.Energy[1]
        #here a goes over all modes
        sgnE=np.sign(E)
        if np.sign(E)==0:
           sgnE=1
-       uency00=sgnE*E*self.Hartree2cm_1 #zero-zero transition
        for a in xrange(n):
           if setM:
              # set M to fit best to the value at that moment.
              M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+5.))
           #print a, HR[a]
-          R=FCchf(self.HR[a],N,M,[freq[0][a], freq[1][a]])
-          for j in range(self.N): 
-             for i in range(self.M):
+          R=FCchf(self.HR[a],self.states1,M,[freq[0][a], freq[1][a]])
+          for j in range(self.states1): 
+             for i in range(M):
                 if i==0 and j==0:
                    #skip 0-0 transitions
                    continue
                 tmp=R[i][j]*R[i][j]
                 try:
-                   FC[a][j*M+i-1]=tmp*FC00*npexp(-(freq[0][a]*j)/T)
+                   FC[a][j*M+i-1]=tmp*FC00*npexp(-(freq[0][a]*j)/self.T)
                    uency[a][j*M+i-1]=sgnE*(E+(freq[0][a]*j-freq[1][a]*i))*self.Hartree2cm_1
                 except IndexError:
-                   logwrite("WARNING: truncated spectrum for mode nr. %d"%(a))
+                   self.log.write("WARNING: truncated spectrum for mode nr. %d\n"%(a))
                    break
        self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
    

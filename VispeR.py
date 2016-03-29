@@ -51,6 +51,8 @@ def getModel(f):
       model = "CFC"
    elif model in ['URDR', 'urdr', 'UrDR', 'urDR']:
       model = "URDR"
+   elif model in ['DR', 'dr', 'Dr', 'dR']:
+      model = "DR"
    else:
       #else: a typo or unknown model is given.
       model = 'unknown'
@@ -98,10 +100,10 @@ def main(argv=None):
    elif model == "URDR":
       spect= DR.URDR_spect(f)
   # this model is not available at the moment.  
-  # elif model == "DR":  
-  #    spect = DR.SDR_spect(f)  
+   elif model == "DR":  
+      spect = DR.SDR_spect(f)  
    else:
-      print "WARNING: error in the model, ", model, "not known."
+      print "ERROR: error in the model, ", model, "not known."
       return 2
    #INTRODUCTION END
 
@@ -119,5 +121,5 @@ def main(argv=None):
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-#version=2.0.1
+version='2.0.1'
 # End of smallscript.py
