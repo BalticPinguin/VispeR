@@ -127,7 +127,7 @@ class align_atoms():
       
       #overlap of the moi-systems: gives the rotation of the respective frames
       # but is free in sign; correct this in the following:
-      O=X[0].dot(X[1].T) 
+      O=np.dot(X[0],X[1].T) 
 
       rmsdi=[]
       # now: test all combinations of signs. criterion is the least square of 
@@ -140,8 +140,8 @@ class align_atoms():
          if i in [4,7,8,10, 11]:
             #they give redundant results.
             continue
-         U=sign.dot(O.T)
-         rmsdi.append(self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])))
+         U=np.dot(sign,O.T)
+         rmsdi.append(self.RMSD(self.CartCoord[0]-np.dot(U,self.CartCoord[1])))
 
          #print  self.RMSD(self.CartCoord[0]-self.CartCoord[1]), self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
       rmsd=RMSD(self.CartCoord[0]-self.CartCoord[1])
@@ -167,7 +167,7 @@ class align_atoms():
       sign=np.eye(3)
       for j in range(i):
          sign[int((j//3+j)%3)][int((j//3+j)%3)]*=-1
-      U=sign.dot(O)
+      U=np.dot(sign,O)
       #apply this combination to coordinates of final state
       self.apply_change(U)
    
@@ -187,7 +187,7 @@ class align_atoms():
           and gradient (if given) as well.
           This function is only needed by RMSD_reorient and MOI_reorient.
       """
-      self.CartCoord[1]=U.dot(self.CartCoord[1])
+      self.CartCoord[1]=np.dot(U, self.CartCoord[1])
       #print information on the manipulation conducted:
       if self.log.level<2:
          self.log.write("Rotation matrix for final state:\n")
@@ -199,12 +199,12 @@ class align_atoms():
          Y[3*j:3*j+3, 3*j:3*j+3]=U
       # apply the respective rotation to gradient or Hessian as well:
       if any(self.spect.Grad[i]>0 for i in range(len(self.spect.Grad))):
-         self.spect.Grad=Y.dot(self.spect.Grad)
+         self.spect.Grad=np.dot(Y,self.spect.Grad)
       else:
          #if there is a gradient given, only one force constant matrix is used. 
          #In that case, no transformation should be conducted because it will
          # be given in the initial state.
-         self.spect.F[1]=Y.dot(self.spect.F[1]).dot(Y.T)
+         self.spect.F[1]=np.dot(np.dot(Y,self.spect.F[1]),Y.T)
 
    def RMSD_reorient(self):
       """This function reorients the final state in space such that
@@ -239,12 +239,12 @@ class align_atoms():
             if i in [4,7,8,10, 11]:
                #they give redundant results.
                continue
-            U=sign.dot(O)
+            U=np.dot(sign,O)
             #print np.shape(rotated) ,np.shape(self.CartCoord[0]), np.shape(U.dot(self.CartCoord[1]))
-            if self.RMSD(self.CartCoord[0]-rotated) >self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1])):
+            if self.RMSD(self.CartCoord[0]-rotated) >self.RMSD(self.CartCoord[0]-np.dot(U, self.CartCoord[1])):
                #if the current combination is the best, save it.
                U_min=U
-               rotated=U_min.dot(self.CartCoord[1])
+               rotated=np.dot(U_min,self.CartCoord[1])
                #print self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
       try:
          #if U_min is known: coordinate system changed.
@@ -274,12 +274,12 @@ class align_atoms():
             R_z=np.matrix([[np.cos(nu),-np.sin(nu),0],
                   [np.sin(nu),np.cos(nu),0],
                   [0,0,1] ], dtype=float)
-            R=R_x.dot(R_y).dot(R_z)
-            test=R.A.dot(U.dot(self.CartCoord[1]))
-            if self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))> self.RMSD(self.CartCoord[0]-test):
+            R=np.dot(R_x,np.dot(R_y,R_z))
+            test=np.dot(R.A, np.dot(U, self.CartCoord[1]))
+            if self.RMSD(self.CartCoord[0]-np.dot(U,self.CartCoord[1]))> self.RMSD(self.CartCoord[0]-test):
                #if it gets better: apply the change.
                #self.CartCoord[1]=test
-               U=R.A.dot(U)
+               U=np.dot(R.A, U)
       
       #FOURTH STEP: apply the rotation.
 
