@@ -2,7 +2,7 @@
 # filename: normal_modes.py
 import math, sys
 import numpy as np
-from scipy.linalg.lapack import dsyev
+#from scipy.linalg.lapack import dsyev
 
 # CHANGELOG
 # =========
@@ -93,8 +93,8 @@ class NormalMode():
             # version here as well.
             self.F[i]=self.F[0]
 
-         #ftemp,Ltemp=np.linalg.eigh(self.F[i])
-         ftemp,Ltemp,info=dsyev(self.F[i])
+         ftemp,Ltemp=np.linalg.eigh(self.F[i])
+         #ftemp,Ltemp,info=dsyev(self.F[i])
 
          #sort the results with increasing frequency (to make sure it really is)
          # use absolute values for this.
@@ -119,7 +119,7 @@ class NormalMode():
          M=np.eye(self.dim)
          for j in range(self.dim):
             M[j,j]/=self.mass[j//3]
-         Lmass[i]=M.dot(L[i])
+         Lmass[i]=np.dot(M,L[i])
          #if log level=0 or 1:
          if i==0:
             self.log.write("Initial states ",2)
@@ -133,10 +133,10 @@ class NormalMode():
       #  and hence may change their order, the final states L and f are resorted via the
       #  largest overlap. When strong changes occur, there is no fair method. This one tries
       #  to be as fair as possible.
-      f[1],L[1]=self.SortL(np.linalg.pinv(L[0]).dot(L[1]),L[1],f[1])
+      f[1],L[1]=self.SortL(np.dot(np.linalg.pinv(L[0]),L[1]),L[1],f[1])
 
       #recalculate Lmass for final state.
-      Lmass[1]=M.dot(L[1]) # recalculate Lmass!
+      Lmass[1]=np.dot(M, L[1]) # recalculate Lmass!
       self.Lmassw=Lmass
       self.f=f
       self.L=L
@@ -260,7 +260,7 @@ class NormalMode():
       #FIX DONE.
       
       #since resort is a permutation matrix, it is unitary. Using this:
-      return f.dot(resort), L.dot(resort)
+      return np.dot(f,resort), np.dot(L,resort)
       #  END OF SortL
    
    def Duschinsky(self):
@@ -282,11 +282,11 @@ class NormalMode():
       for i in range(self.dim):
          M[i][i]=self.mass[i//3] #square root of inverse masses
       #J=np.dot(L[0].T, L[1])  # for Lsorted
-      self.J=np.linalg.pinv(self.Lmassw[0]).dot(self.Lmassw[1]) # for Lmassw
+      self.J=np.dot(np.linalg.pinv(self.Lmassw[0]),self.Lmassw[1]) # for Lmassw
    
       #print "J\n", J
       if any(self.Grad[i]>0 for i in range(len(self.Grad))):
-         self.K=self.Grad.T.dot(self.Lmassw[0])
+         self.K=np.dot(self.Grad.T,self.Lmassw[0])
          #self.K=(np.linalg.pinv(self.Lmassw[0]).dot(self.Grad)).T  # w p Lmassw
          # scale consistently: Now it is really the shift in terms of normal modes
          self.K/=self.f[0]*self.f[0]#*np.sqrt(2)  #
@@ -298,7 +298,7 @@ class NormalMode():
          if self.log.level <1:
             self.log.write('changes of Cartesian coordinates:\n')
             self.log.printVec(DeltaX)
-         self.K=np.linalg.pinv(self.Lmassw[0]).dot(DeltaX)  # w p Lmassw
+         self.K=np.dot(np.linalg.pinv(self.Lmassw[0]), DeltaX)  # w p Lmassw
       
       if self.log.level<2:
          # print the Duschinsky matrix in a nice format

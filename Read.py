@@ -1,7 +1,6 @@
 #!/usr/bin/python2
 # filename: Read.py
 import numpy as np
-from scipy.linalg.lapack import dsyev
 import re, mmap, os.path, math, sys
 
 # CHANGELOG 
