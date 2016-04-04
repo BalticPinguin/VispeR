@@ -1,0 +1,60 @@
+diff --git a/atoms_align.py b/atoms_align.py
+index 0407321..07fd364 100644
+--- a/atoms_align.py
++++ b/atoms_align.py
+@@ -59,13 +59,39 @@ class align_atoms():
+       self.log.write("gradient after realignment:")
+       self.log.printVec(self.spect.Grad)
+ 
++   def shift_init(self):
++      COM=np.zeros(3)
++      #do for initial and final state:
++      i=0
++      #loop over coordinates:
++      for j in [0,1,2]:
++         #self.spect.mass is the square root of the respective mass.
++         COM[j]=np.sum(self.CartCoord[i][j]*self.spect.mass*self.spect.mass)
++         COM[j]/=np.sum(self.spect.mass*self.spect.mass) 
++      #now it is Cartesian center of mass
++      if self.log.level<2:
++         if i==0:
++            self.log.write("Center of mass initial state coordinates (Bohr):\n")
++         else:
++            self.log.write("Center of mass final state coordinates (Bohr):\n")
++         self.log.printVec(COM)
++      # shift final state into the same frame as initial is.
++      for j in [0,1,2]:
++         #displacement of molecule into center of mass:
++         self.CartCoord[1][j]+=COM[j]
++
+    def shift(self):
++      self.shift_fin()
++
++   def shift_fin(self):
+       """This function performs a shift of both states into the center
+          of mass frame.
+       """
+       COM=np.zeros(3)
+       #do for initial and final state:
+       for i in [0,1]:
++         if i==0:
++            continue
+          #loop over coordinates:
+          for j in [0,1,2]:
+             #self.spect.mass is the square root of the respective mass.
+@@ -170,6 +196,7 @@ class align_atoms():
+       U=sign.dot(O)
+       #apply this combination to coordinates of final state
+       self.apply_change(U)
++      self.shift_init()
+    
+       # finally: print what is done.
+       if self.log.level==0:
+@@ -284,6 +311,7 @@ class align_atoms():
+       #FOURTH STEP: apply the rotation.
+ 
+       self.apply_change(U)
++      self.shift_init()
+    
+       # finally: print what is done.
+       if self.log.level==0:

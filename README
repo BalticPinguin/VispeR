@@ -28,6 +28,17 @@ Some example-calculations (input-files, log-files and results) will follow.
 The examples given in the folder 'tests' are out-of date and may contain results
 that are obtaind with options/models that are no more available in this way.
 
+       ====================================================
+       ******************  Versions  **********************
+       ====================================================
+
+There is only one version (being at the newest state) available. However, variants can be achieved
+using patches. The variants available are:
+   -by applying align_in_initial_state_frame.patch the coordinates are not both shifted to the center
+    of mass but the final state is shifted to the center of mass and after manipulation its center
+    of mass is shifted to the center of mass of initial state. This keeps the coordinates of initial
+    state untouched.
+
 
        ====================================================
        ******************  Licence   **********************
