@@ -4,6 +4,9 @@
 #include [[Spect.py]]
 import Spect
 
+#include [[HR_spects.py]]
+import HR_spects as HR
+
 #include [[FC_spects.py]]
 import FC_spects as FC
 
@@ -45,7 +48,9 @@ def getModel(f):
      #if no model is specified:
      print "You must specify a model to be used."
      model = 'unknown'
-   if model in ['FC', 'fc', 'Fc']:
+   if model in ['HR', 'hr', 'Hr']:
+      model = "HR"
+   elif model in ['FC', 'fc', 'Fc']:
       model = "FC"
    elif model in ['CFC', 'cfc', 'Cfc']:
       model = "CFC"
@@ -88,15 +93,12 @@ def main(argv=None):
    #look, what kind of spectrum is to be obtained and initialise 
    # an object of respective class. The initialisation-routine
    # already does most of the calculations needed.
-   if model == "FC":
+   if model == "HR":
+      spect = HR.HR_spect(f)
+   elif model == "FC":
       spect = FC.FC_spect(f)
    elif model == "CFC":
       spect = FC.CFC_spect(f)
-  # these two options are not available at the moment.
-  # elif model == "HRs":  
-  #    spect = FC.HR_spect(f)  
-  # elif model == "HRf":  
-  #    spect = FC.HR_factors(f)  
    elif model == "URDR":
       spect= DR.URDR_spect(f)
   # this model is not available at the moment.  

@@ -133,8 +133,8 @@ There are three mandatory keywords:
 
 <h1 id="model">Available models</h1>
       <ul>
-         <!-- <li>HF -> This model is a bit special and not supported at the moment. It will be used to calculate a spectrum using just the Huang-Rhys factors
-                    and respective frequencies to calculate a fully harmonic spectrum.</li>  -->
+         <li>HF -> This model is special in the syntax of required input-file. It is used to calculate a spectrum using just the Huang-Rhys factors
+                    and respective frequencies to calculate a fully harmonic spectrum.<a href="HR-model">Details see here.</a></li> 
           <li>FC -> In this model, a purely harmonic spectrum is calculated in Franck-Condon picture.</li>
           <li>CFC -> This model is also Franck-Condon based but includes a correction due frequencies differing between the initial and final electronic states. </li>
         <!--  <li>DR  -> With this option, a spectrum is calculated that takes also Duschinsky rotation into account. In this model restrictions due to the
@@ -156,6 +156,15 @@ There are multiple file-types possible:
 It is possible to combine outputs from different packages. None the less, both files specified should contain the geometry and energy
 of the respective state. Moreover, the force constant matrix should be given at least in one file (in case of the model FC, the others 
 need two force constant matrices)
+
+<h2 id="HR-model">Options: HR-model</h2>
+<p> In this model, most options are similar to the cases given above. In contrast to them, how ever, no log-files are needed, hence the
+   keywords <b>initial:</b> and <b>final:</b> are not needed (if given, they are just ignored).
+   In contrast, here the key word <b>HR-file:</b> is required. It specifies the file containing the HR-factors. The syntax of that file
+   follows:</p>
+<p> The purely electronic energy is specified with the keyword <b>Delta E=</b>, in cm^-1.</p>
+<p> before or after this, a table with HR-factors and frequencies follows that needs to be introduced by a line
+<b>HR-fact   freq</b> with arbitrarily many spaces between the rows. The frequencies are in cm^-1 as well.</p>
 
 <h1 href="broaden">Calculate a line-shaped spectrum</h1>
 One of the main features is the broadening of the spectrum with some line-shape.

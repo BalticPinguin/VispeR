@@ -41,10 +41,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
       </div>
-      <p>include  <a href="FC_spects.html">FC_spects.py</a></p>
+      <p>include  <a href="HR_spects.html">HR_spects.py</a></p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">FC_spects</span> <span class="kn">as</span> <span class="nn">FC</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">HR_spects</span> <span class="kn">as</span> <span class="nn">HR</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -53,10 +53,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
-      <p>include  <a href="DR_spects.html">DR_spects.py</a></p>
+      <p>include  <a href="FC_spects.html">FC_spects.py</a></p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">DR_spects</span> <span class="kn">as</span> <span class="nn">DR</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">FC_spects</span> <span class="kn">as</span> <span class="nn">FC</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -65,10 +65,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-4'>#</a>
       </div>
-      <p>include  <a href="output_spect.html">output_spect.py</a></p>
+      <p>include  <a href="DR_spects.html">DR_spects.py</a></p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">output_spect</span></pre></div>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">DR_spects</span> <span class="kn">as</span> <span class="nn">DR</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -76,6 +76,18 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>include  <a href="output_spect.html">output_spect.py</a></p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">output_spect</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
       </div>
       <p>include further dicts</p>
     </div>
@@ -85,10 +97,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-6'>
+  <div class='section' id='section-7'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-6'>#</a>
+        <a class='octothorpe' href='#section-7'>#</a>
       </div>
       <p>============ CHANGELOG =================<br />
 version=2.0.1
@@ -99,10 +111,10 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-7'>
+  <div class='section' id='section-8'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-7'>#</a>
+        <a class='octothorpe' href='#section-8'>#</a>
       </div>
       
     </div>
@@ -112,10 +124,10 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-8'>
+  <div class='section' id='section-9'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-8'>#</a>
+        <a class='octothorpe' href='#section-9'>#</a>
       </div>
       <p>This function looks into the input-file 'f' and searches for the option model.</p>
     </div>
@@ -124,10 +136,10 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-9'>
+  <div class='section' id='section-10'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-9'>#</a>
+        <a class='octothorpe' href='#section-10'>#</a>
       </div>
       <p>If it is given, it is evaluated, whether this model is one of the known models.
    If not, or if no model is specified, than the model 'unknown' is used.</p>
@@ -145,30 +157,34 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-10'>
+  <div class='section' id='section-11'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-10'>#</a>
+        <a class='octothorpe' href='#section-11'>#</a>
       </div>
       <p>if no model is specified:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>     <span class="k">print</span> <span class="s2">&quot;You must specify a model to be used.&quot;</span>
      <span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
-   <span class="k">if</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;FC&#39;</span><span class="p">,</span> <span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="s1">&#39;Fc&#39;</span><span class="p">]:</span>
+   <span class="k">if</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;HR&#39;</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">,</span> <span class="s1">&#39;Hr&#39;</span><span class="p">]:</span>
+      <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;HR&quot;</span>
+   <span class="k">elif</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;FC&#39;</span><span class="p">,</span> <span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="s1">&#39;Fc&#39;</span><span class="p">]:</span>
       <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;FC&quot;</span>
    <span class="k">elif</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;CFC&#39;</span><span class="p">,</span> <span class="s1">&#39;cfc&#39;</span><span class="p">,</span> <span class="s1">&#39;Cfc&#39;</span><span class="p">]:</span>
       <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;CFC&quot;</span>
    <span class="k">elif</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;URDR&#39;</span><span class="p">,</span> <span class="s1">&#39;urdr&#39;</span><span class="p">,</span> <span class="s1">&#39;UrDR&#39;</span><span class="p">,</span> <span class="s1">&#39;urDR&#39;</span><span class="p">]:</span>
       <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;URDR&quot;</span>
+   <span class="k">elif</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;DR&#39;</span><span class="p">,</span> <span class="s1">&#39;dr&#39;</span><span class="p">,</span> <span class="s1">&#39;Dr&#39;</span><span class="p">,</span> <span class="s1">&#39;dR&#39;</span><span class="p">]:</span>
+      <span class="n">model</span> <span class="o">=</span> <span class="s2">&quot;DR&quot;</span>
    <span class="k">else</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-11'>
+  <div class='section' id='section-12'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-11'>#</a>
+        <a class='octothorpe' href='#section-12'>#</a>
       </div>
       <p>else: a typo or unknown model is given.</p>
     </div>
@@ -178,10 +194,10 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-12'>
+  <div class='section' id='section-13'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-12'>#</a>
+        <a class='octothorpe' href='#section-13'>#</a>
       </div>
       <p>This is the main-function of Visper (smallscript).</p>
     </div>
@@ -190,10 +206,10 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-13'>
+  <div class='section' id='section-14'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-13'>#</a>
+        <a class='octothorpe' href='#section-14'>#</a>
       </div>
       <p>Its input-argument is a file containing all options. </p>
 <p>The main part of the evaluaten of options as well as the
@@ -205,10 +221,10 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-14'>
+  <div class='section' id='section-15'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-14'>#</a>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <p>INTRODUCTION START</p>
     </div>
@@ -217,10 +233,10 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-15'>
+  <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
+        <a class='octothorpe' href='#section-16'>#</a>
       </div>
       <p>open input-file (if existent and readable) and map it to f</p>
     </div>
@@ -229,10 +245,10 @@ version=2.0.1
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-16'>
+  <div class='section' id='section-17'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-16'>#</a>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       <p>try to open the input-file. If it doesn't exist or one is not alowed to open it,
 print a usage-information and quit calculation.</p>
@@ -249,10 +265,10 @@ print a usage-information and quit calculation.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       <p>If the input-file exists, get tasks and their options:</p>
     </div>
@@ -261,36 +277,23 @@ print a usage-information and quit calculation.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-18'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       <p>look, what kind of spectrum is to be obtained and initialise 
 an object of respective class. The initialisation-routine
 already does most of the calculations needed.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;FC&quot;</span><span class="p">:</span>
+      <div class="highlight"><pre>   <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;HR&quot;</span><span class="p">:</span>
+      <span class="n">spect</span> <span class="o">=</span> <span class="n">HR</span><span class="o">.</span><span class="n">HR_spect</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;FC&quot;</span><span class="p">:</span>
       <span class="n">spect</span> <span class="o">=</span> <span class="n">FC</span><span class="o">.</span><span class="n">FC_spect</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;CFC&quot;</span><span class="p">:</span>
-      <span class="n">spect</span> <span class="o">=</span> <span class="n">FC</span><span class="o">.</span><span class="n">CFC_spect</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-19'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
-      </div>
-      <p>these two options are not available at the moment.
-elif model == "HRs":<br />
-   spect = FC.HR_spect(f)<br />
-elif model == "HRf":<br />
-   spect = FC.HR_factors(f)  </p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>   <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;URDR&quot;</span><span class="p">:</span>
+      <span class="n">spect</span> <span class="o">=</span> <span class="n">FC</span><span class="o">.</span><span class="n">CFC_spect</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+   <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;URDR&quot;</span><span class="p">:</span>
       <span class="n">spect</span><span class="o">=</span> <span class="n">DR</span><span class="o">.</span><span class="n">URDR_spect</span><span class="p">(</span><span class="n">f</span><span class="p">)</span></pre></div>
     </div>
   </div>
@@ -300,13 +303,13 @@ elif model == "HRf":<br />
       <div class='octowrap'>
         <a class='octothorpe' href='#section-20'>#</a>
       </div>
-      <p>this model is not available at the moment.<br />
-elif model == "DR":<br />
-   spect = DR.SDR_spect(f)  </p>
+      <p>this model is not available at the moment.  </p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">else</span><span class="p">:</span>
-      <span class="k">print</span> <span class="s2">&quot;WARNING: error in the model, &quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s2">&quot;not known.&quot;</span>
+      <div class="highlight"><pre>   <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;DR&quot;</span><span class="p">:</span>  
+      <span class="n">spect</span> <span class="o">=</span> <span class="n">DR</span><span class="o">.</span><span class="n">SDR_spect</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>  
+   <span class="k">else</span><span class="p">:</span>
+      <span class="k">print</span> <span class="s2">&quot;ERROR: error in the model, &quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="s2">&quot;not known.&quot;</span>
       <span class="k">return</span> <span class="mi">2</span></pre></div>
     </div>
   </div>
@@ -371,7 +374,9 @@ At this point, already all necessary quantities are calculated.</p>
     <div class='code'>
       <div class="highlight"><pre>    
 <span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-   <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span></pre></div>
+   <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+<span class="n">version</span><span class="o">=</span><span class="s1">&#39;2.0.1&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -380,8 +385,7 @@ At this point, already all necessary quantities are calculated.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-26'>#</a>
       </div>
-      <p>version=2.0.1
-End of smallscript.py</p>
+      <p>End of smallscript.py</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

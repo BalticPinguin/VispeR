@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>HR_spects.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>HR_spects.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>filename: HR_spects.py</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">mmap</span><span class="o">,</span> <span class="nn">os.path</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">sys</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>include  <a href="file_handler.html">file_handler.py</a></p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">file_handler</span> <span class="kn">as</span> <span class="nn">logger</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <p>include  <a href="FC_spects.html">FC_spects.py</a></p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">FC_spects</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <h1>CHANGELOG</h1>
+<p>in version 0.0.1:<br />
+ 1) initialisation of class</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>This class is intended to calculate FC-spectra using HR-factors and frequencies</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">HR_spect</span><span class="p">(</span><span class="n">FC_spects</span><span class="o">.</span><span class="n">FC_spect</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>read from a file.</p>
+<p>This function initialises the Spect-object and creates its first.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>The INPUT, 'f', is the input-file to smallscript. In this function,
+  only the information for output is read and the logging object,
+  which has the output-file and the level of output-information is defined.
+  All variables/functions that are common to all spectral tyes are initialised here.</p>
+<p>START DEFINITION OF LOG-FUNCTION
+invoke logging (write results into file specified by 'out: ' or into 'calculation.log')</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">logfile</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=out: )[\w.,\(\) \=;:\-_]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="n">loglevel</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=print:)[\w \d]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>else, try an other syntax</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">try</span><span class="p">:</span>
+            <span class="n">loglevel</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=print=)[\w \d]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+         <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="n">loglevel</span><span class="o">=</span><span class="s1">&#39;important&#39;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">logging</span><span class="p">(</span><span class="n">loglevel</span><span class="p">,</span><span class="n">logfile</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>now,  write the header to the output-file.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;   INPUT-FILE:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="se">\n</span><span class="s2">   END OF INPUT-FILE </span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>END DEFINITION OF LOG-FUNCTION</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      
+      <span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>START READING DATA FROM FILE
+get files with electronic states:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">hr_file</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=HR-file: )[\w.\-]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hr_file</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;there must be one initial state&#39;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">hr_file</span><span class="o">=</span><span class="n">hr_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>check, if they are valid files and through an error if not.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hr_file</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hr_file</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">R_OK</span><span class="p">),</span>\
+               <span class="bp">self</span><span class="o">.</span><span class="n">hr_file</span><span class="o">+</span><span class="s1">&#39; is not a valid file name or not readable.&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>read options from input-file:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">opt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=opt:).*(?=\n)&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">opt</span><span class="o">!=</span><span class="p">[]:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">=</span><span class="n">opt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="o">=</span><span class="s2">&quot; &quot;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>make some empty string that the search-commands don't fail in ReadData.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>find the information for the broadening</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">broadopt</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=broaden:)[\d\s\w.,\(\) \=;:\-_]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">broadopt</span><span class="o">!=</span><span class="p">[]:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">broadopt</span><span class="o">=</span><span class="n">broadopt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">broadopt</span><span class="o">=</span><span class="s2">&quot; &quot;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>find information on the systems temperature</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=T=)[\d .]+&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">==</span><span class="p">[]:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">=</span><span class="mi">300</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">*=</span><span class="mf">8.6173324e-5</span><span class="o">/</span><span class="mf">27.21138386</span> <span class="c1"># multiplied by k_B in hartree/K</span>
+      
+      <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=width=)[\d .]+&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">))</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">width</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=width=)[\d .]+&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <p>get number of maximal excited/ground from opt:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">states</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=states=)[\d ,]*&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>i.e. no states given</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	 <span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="o">=</span><span class="mi">5</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="o">=</span><span class="mi">0</span>
+      <span class="k">else</span><span class="p">:</span>
+	 <span class="k">try</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>i.e. 1 number given (else, the 'int' will give an error)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>	    <span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	    <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="o">=</span><span class="mi">0</span>
+	    <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;number of states: </span><span class="si">%d</span><span class="s2"> and </span><span class="si">%d</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="p">))</span>
+	 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+      <p>two numbers given, try to extract them</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>               <span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;number of states: </span><span class="si">%d</span><span class="s2"> and </span><span class="si">%d</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+      <p>unknown format. Use default and give a respective message.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>               <span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="o">=</span><span class="mi">5</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="o">=</span><span class="mi">0</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;!!number of vibrational states {0} is not an integer.&quot;</span><span class="p">,</span>
+                                    <span class="s2">&quot; Use default instead.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
+      </div>
+      <p>initialise object of the respective class</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">=</span><span class="n">AtAl</span><span class="o">.</span><span class="n">align_atoms</span><span class="p">(</span><span class="n">manipulate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
+      <p>just shift the molecules both to their center of mass</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+      <p>copy the manipulated data back here.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">.</span><span class="n">CartCoord</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      <p>set threshold for smallest HR-factors:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">HRthresh</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=HRthreshold=)[ \d.]+&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="p">,</span><span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">HRthresh</span><span class="o">==</span><span class="p">[]:</span>
+         <span class="n">HRthresh</span><span class="o">=</span><span class="mf">0.015</span>
+      <span class="k">else</span><span class="p">:</span> 
+         <span class="n">HRthresh</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">HRthresh</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>read HR-factors:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">readHR</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+      <p>sort modes according to HR-factors</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;heapsort&#39;</span><span class="p">)</span>
+      <span class="n">f</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">HR</span><span class="o">=</span><span class="p">[]</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)):</span>
+         <span class="n">HR</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+         <span class="n">f</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">=</span><span class="p">[</span><span class="n">f</span><span class="p">,</span><span class="n">f</span><span class="p">]</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="o">=</span><span class="n">HR</span>
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">10</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>if larges HR-factor is too large</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="n">loggingwrite</span><span class="p">(</span><span class="s1">u&#39;</span><span class="se">\n</span><span class="s1">WARNING: THE HUANG-RHYS FACTOR SEEMS TO BE&#39;</span><span class="o">+</span>\
+                                                         <span class="s1">&#39; TOO LARGE !!</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+         <span class="n">loggingwrite</span><span class="p">(</span><span class="s1">u&#39;        the spectrum will be calculated, but most probably&#39;</span><span class="o">+</span>\
+                                       <span class="s1">&#39; the input-state is inconsistent.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>print them</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">u&#39;HR-fact           freq     delta</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+      <p>select all 'big' HR-factors </p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">&gt;=</span><span class="n">HRthresh</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">u&quot;</span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      <p>This function reads the HR-factors and electronic transition energy</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">readHR</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>from a given file and brings them into a 
+  similar structure as they are used in the 'smallscript'.</p>
+<p><strong>PARAMETERS</strong>
+  logging:     This variable consists of two parts: logging[0] specifies 
+               the level of print-out (which is between 0- very detailed
+               and 4- only main information) and logging[1] is the file, 
+               already opened, to write the information in.
+  hr_file:      the file where the information is found</p>
+<p><strong>RETURNS</strong>
+  initial:     a dummy-array that originally contains information about 
+               the inital states. Here at the moment only one
+               is allowed and only its length is relevant in the further 
+               programme.
+  HRm:         a 2-dimensional array containing all Huang-Rhys-factors
+  freqm:       analogously to HRm, containing the respective frequencies
+  Energy:      the energy-difference of the electronic states. 
+               (in atomic units)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="n">fi</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hr_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+      <span class="n">f</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">fi</span><span class="o">.</span><span class="n">fileno</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="n">mmap</span><span class="o">.</span><span class="n">PROT_READ</span><span class="p">)</span>
+      <span class="n">fi</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+      <span class="n">Energy</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=Delta E=)[ \d\.\-]*&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">Energy</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Please specify only one energy-difference!&quot;</span>
+      <span class="n">Energy</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">Energy</span><span class="o">/=</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span>
+      <span class="n">HR</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">funi</span><span class="o">=</span><span class="p">[]</span>
+      <span class="n">HRfreq</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;HR-fact[\s]*freq[\s]*\n[\n\d\.\se\+\-]*&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">HRfreq</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;The file-format could not be read. exit now&quot;</span>
+      <span class="n">HRf</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=\n)[\d\.]*[\s]+[\d\.]*&quot;</span><span class="p">,</span> <span class="n">HRfreq</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">HRf</span><span class="p">)):</span>
+         <span class="n">line</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;[\d.]+&quot;</span><span class="p">,</span><span class="n">HRf</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+         <span class="n">HR</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+         <span class="n">funi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>the following is just to be consistent with structure of 
+                        HR calculated in first part</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">=</span><span class="n">funi</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="o">=</span><span class="n">HR</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">Energy</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="mi">0</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>function calcspect is enherited from FC_spects
+more functions are not needed.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="n">version</span><span class="o">=</span><span class="s1">&#39;0.0.1&#39;</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>End of HR_spects.py</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
