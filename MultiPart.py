@@ -129,13 +129,13 @@ class OPAtoNPA:
                   newfreq.append(freq2[k])
          return np.array(newfreq), np.array(newintens)
            
-      length=len(freq)
+      length=len(self.frequency)
       freq00=self.frequency[ind00]
       intens00=self.intensity[ind00]
       for i in range(length):
          self.frequency[i]-=freq00
          self.intensity[i]/=intens00
-      newmode=np.zeros((1,len(mode))) #for n>1: matrix-structure needed
+      newmode=np.zeros((1,len(self.mode))) #for n>1: matrix-structure needed
       newmode[0]=self.mode
       x=self.mode.max()
       if self.n>x:
@@ -171,7 +171,7 @@ class OPAtoNPA:
          ind+=1
          for j in range(i+1,length):
             #not only same mode but all modes with lower number should not be taken into account here!?
-            if mode[i]<=mode[j] or mode[j]==0: 
+            if mode[i]==mode[j] or mode[j]==0: 
                #both have same mode... or mode[j] is 0-0 transition
                continue
             if intens[i]*intens[j]<intens00*intens00*0.0001:
@@ -279,15 +279,16 @@ class OPAtoNPA:
    def Calc(self):
       #first, get the index of the purely electronic transition
       ind=self.mode.argmin()
+      print self.function
       if self.function==None:
          return self.intensity, self.frequency
       elif self.function=='OPA2TPA':
          #now, calculate the full spectrum in 2-particle approx.
-         TPAfreq, TPAintens=self.__OPA2nPA(ind)
-      elif self.function=='OPA23PA':
          TPAfreq, TPAintens=self.__OPA2TPA(ind)
-      elif self.function=='OPA2nPA':
+      elif self.function=='OPA23PA':
          TPAfreq, TPAintens=self.__OPA23PA(ind)
+      elif self.function=='OPA2nPA':
+         TPAfreq, TPAintens=self.__OPA2nPA(ind)
       # finally sort and truncate the full spectrum.
       index=np.argsort(TPAintens,kind='heapsort')
       TPAintens=TPAintens[index] #resort by intensity
