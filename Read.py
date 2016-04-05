@@ -406,7 +406,14 @@ class Read:
             for j in range(dim//3):
                Coord[i][j]=float(tmp[3*i+j])
          Coord*=self.Angs2Bohr
-      return Coord
+
+      #now reformat the coordinates consistently with gradient and Hessian:
+      fCoord=np.zeros(len(Coord[0])*3)
+      for i in range(len(Coord[0])):
+         fCoord[3*i+0]=Coord[0][i]
+         fCoord[3*i+1]=Coord[1][i]
+         fCoord[3*i+2]=Coord[2][i]
+      return fCoord
 
    def __Read_Energy(self, logfile, rtype):
       files=open(logfile, "r")

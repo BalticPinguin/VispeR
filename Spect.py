@@ -16,6 +16,7 @@ import atoms_align as AtAl
 #in version 0.2.0:  
 #   a) removed function 'quantity()'; it was not in use any more.
 #   b) removed the function IsZero() since it didn't do anything
+#   c) changed format of self.CartCoord
 #
 #in version 0.1.7:  
 #   a) fixed rmsd-reorient: forgot to reorder Forces, transform of 
@@ -279,9 +280,9 @@ class  Spect:
       # results obtained from NWChem. 
       # Moreover, I allow for very small changes that could occur due to shifting or
       # roundoff e.g. when converting units.
-      if all(abs(self.CartCoord[0][i][j]-self.CartCoord[1][i][j] - 
-                  self.CartCoord[0][i][0]+self.CartCoord[1][i][0]) <0.00001
-                      for i in range(3) for j in range(self.dim//3) ):
+      if all(abs(self.CartCoord[0][i*3+j]-self.CartCoord[1][i*3+j] - 
+                  self.CartCoord[0][j]+self.CartCoord[1][j]) <0.00001
+                      for j in range(3) for i in range(self.dim//3) ):
          self.Grad=self.reader.Gradient() 
       elif re.search(r"gradient", self.opt, re.M) is not None:
          self.Grad=self.reader.Gradient() 
@@ -299,9 +300,9 @@ class  Spect:
                         ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
       if self.log.level<2:
             self.log.write('Cartesian coordinates of initial state: \n')
-            self.log.printMat(self.CartCoord[0].T/self.Angs2Bohr)
+            self.log.printVec(self.CartCoord[0]/self.Angs2Bohr)
             self.log.write('Cartesian coordinates of final state: \n')
-            self.log.printMat(self.CartCoord[1].T/self.Angs2Bohr)
+            self.log.printVec(self.CartCoord[1]/self.Angs2Bohr)
             if self.log.level==0:
                self.log.write('Hessian of initial state: \n')
                self.log.printMat(self.F[0])
@@ -319,31 +320,31 @@ class  Spect:
 
       #first, print the initial state:
       output.write("%d\n    inital state\n"%(self.dim//3))
-      for i in range(len(self.CartCoord[0][0])):
+      for i in range(len(self.CartCoord[0]//3)):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
-                                             self.CartCoord[0][0][i]/self.Angs2Bohr,
-                                             self.CartCoord[0][1][i]/self.Angs2Bohr,
-                                             self.CartCoord[0][2][i]/self.Angs2Bohr) )
+                                             self.CartCoord[0][i*3+0]/self.Angs2Bohr,
+                                             self.CartCoord[0][i*3+1]/self.Angs2Bohr,
+                                             self.CartCoord[0][i*3+2]/self.Angs2Bohr) )
       #second, print the final state:
       output.write("\n%d\n    final state\n"%(self.dim//3))
-      for i in range(len(self.CartCoord[0][0])):
+      for i in range(len(self.CartCoord[0]//3)):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
-                                             self.CartCoord[1][0][i]/self.Angs2Bohr,
-                                             self.CartCoord[1][1][i]/self.Angs2Bohr,
-                                             self.CartCoord[1][2][i]/self.Angs2Bohr) )
+                                             self.CartCoord[1][i*3+0]/self.Angs2Bohr,
+                                             self.CartCoord[1][i*3+1]/self.Angs2Bohr,
+                                             self.CartCoord[1][i*3+2]/self.Angs2Bohr) )
 
       #finally, print block with both states after another:
       output.write("\n%d\n    Both states\n"%(self.dim//3)*2)
-      for i in range(len(self.CartCoord[0][0])):
+      for i in range(len(self.CartCoord[0]//3)):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
-                                             self.CartCoord[0][0][i]/self.Angs2Bohr,
-                                             self.CartCoord[0][1][i]/self.Angs2Bohr,
-                                             self.CartCoord[0][2][i]/self.Angs2Bohr) )
-      for i in range(len(self.CartCoord[0][0])):
+                                             self.CartCoord[0][i*3+0]/self.Angs2Bohr,
+                                             self.CartCoord[0][i*3+1]/self.Angs2Bohr,
+                                             self.CartCoord[0][i*3+2]/self.Angs2Bohr) )
+      for i in range(len(self.CartCoord[0]//3)):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
-                                             self.CartCoord[1][0][i]/self.Angs2Bohr,
-                                             self.CartCoord[1][1][i]/self.Angs2Bohr,
-                                             self.CartCoord[1][2][i]/self.Angs2Bohr) )
+                                             self.CartCoord[1][i*3+0]/self.Angs2Bohr,
+                                             self.CartCoord[1][i*3+1]/self.Angs2Bohr,
+                                             self.CartCoord[1][i*3+2]/self.Angs2Bohr) )
       output.close()
    # END OF FUNCTION DEFINITIONS
 

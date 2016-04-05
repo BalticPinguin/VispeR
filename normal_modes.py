@@ -170,13 +170,13 @@ class NormalMode():
       """
       # Getting tensor of inertia, transforming to principlas axes
       moi=np.zeros((3,3))# this is Moment Of Inertia
-      # print Coord[1]
       for j in [0,1,2]:
          for k in [0,1,2]:
             if k == j:
-               moi[j][j]=np.sum(self.mass*self.mass*(self.Coord[i][0]*self.Coord[i][0]+\
-                        self.Coord[i][1]*self.Coord[i][1]+self.Coord[i][2]*self.Coord[i][2]-\
-                        self.Coord[i][j]*self.Coord[i][k]))
+               for l in range(len(self.mass)):
+                  moi[j][j]+=np.sum(self.mass[k]*self.mass[k]*(self.Coord[i][0]*self.Coord[i][0]+\
+                           self.Coord[i][1]*self.Coord[i][1]+self.Coord[i][2]*self.Coord[i][2]-\
+                           self.Coord[i][j]*self.Coord[i][k]))
             else:
                moi[j][k]=np.sum(self.mass*self.mass*(self.Coord[i][j]*self.Coord[i][k]))
       diagI,Moi_trafo=np.linalg.eig(moi) # this can be shortened of course!

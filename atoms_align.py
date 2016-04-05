@@ -11,6 +11,7 @@ import random
 #     since mass is sqrt(atomic mass).   
 #  3) Corrected apply_change: don't transform the
 #     force constant matrix, if gradient is used.
+#  4) changed format of self.CartCoord
 #
 
 class align_atoms():
@@ -69,7 +70,8 @@ class align_atoms():
          #loop over coordinates:
          for j in [0,1,2]:
             #self.spect.mass is the square root of the respective mass.
-            COM[j]=np.sum(self.CartCoord[i][j]*self.spect.mass*self.spect.mass)
+            for k in range(len(self.CartCoord[i])//3)
+               COM[j]+=self.CartCoord[i][3*k+j]*self.spect.mass[k]*self.spect.mass[k]
             COM[j]/=np.sum(self.spect.mass*self.spect.mass) 
          #now it is Cartesian center of mass
          if self.log.level<2:
@@ -80,7 +82,8 @@ class align_atoms():
             self.log.printVec(COM)
          for j in [0,1,2]:
             #displacement of molecule into center of mass:
-            self.CartCoord[i][j]-=COM[j]
+            for k in range(len(self.CartCoord[i])//3)
+               self.CartCoord[i][3*k+j]-=COM[j]
 
    def MOI_reorient(self):
       """This function reorients the final state in space such that
@@ -100,12 +103,13 @@ class align_atoms():
          MOI=np.zeros((3,3))# this is Moment Of Inertia
          #loop over coordinates:
          for j in [0,1,2]:
-            MOI[j][j]=np.sum(self.spect.mass*self.spect.mass*(self.CartCoord[i][0]*self.CartCoord[i][0]+\
-                     self.CartCoord[i][1]*self.CartCoord[i][1]+self.CartCoord[i][2]*self.CartCoord[i][2]-\
-                     self.CartCoord[i][j]*self.CartCoord[i][j]))
-            for k in range(j):
-               MOI[j][k]=np.sum(self.spect.mass*self.spect.mass*(self.CartCoord[i][j]*self.CartCoord[i][k]))
-               MOI[k][j]=MOI[j][k]
+            for k in range(len(self.spect.mass)):
+               MOI[j][j]+=self.spect.mass[k]*self.spect.mass[k]*(self.CartCoord[i][3*k+0]*self.CartCoord[i][3*k+0]+\
+                        self.CartCoord[i][3*k+1]*self.CartCoord[i][3*k+1]+self.CartCoord[i][3*k+2]*self.CartCoord[i][3*k+2]-\
+                        self.CartCoord[i][3*k+j]*self.CartCoord[i][3*k+j])
+               for l in range(j):
+                  MOI[j][l]+=self.spect.mass[k]*self.spect.mass[k]*(self.CartCoord[i][3*k+j]*self.CartCoord[i][3*k+l])
+                  MOI[l][j]=MOI[j][l]
          #calculate the eigen-system of MOI
          diagI[i],X[i]=np.linalg.eig(MOI) 
          # sort it such, that the rotation is minimal. Therefore, first check
@@ -141,7 +145,10 @@ class align_atoms():
             #they give redundant results.
             continue
          U=np.dot(sign,O.T)
-         rmsdi.append(self.RMSD(self.CartCoord[0]-np.dot(U,self.CartCoord[1])))
+         Y=np.zeros( (self.dim,self.dim) )
+         for j in range(self.dim//3):
+            Y[3*j:3*j+3, 3*j:3*j+3]=U
+         rmsdi.append(self.RMSD(self.CartCoord[0]-np.dot(Y,self.CartCoord[1])))
 
          #print  self.RMSD(self.CartCoord[0]-self.CartCoord[1]), self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
       rmsd=RMSD(self.CartCoord[0]-self.CartCoord[1])
@@ -177,9 +184,9 @@ class align_atoms():
          self.log.printMat(U)
          self.log.write("Coordinates after manipulation: \n")
          self.log.write('Cartesian coordinates of initial state: \n')
-         self.log.printMat(self.CartCoord[0].T/self.Angs2Bohr)
+         self.log.printVec(self.CartCoord[0]/self.Angs2Bohr)
          self.log.write('Cartesian coordinates of final state: \n')
-         self.log.printMat(self.CartCoord[1].T/self.Angs2Bohr)
+         self.log.printVec(self.CartCoord[1]/self.Angs2Bohr)
    
    def apply_change(self, U):
       """ This function applies the rotation matrix U to the coordinates
@@ -187,16 +194,13 @@ class align_atoms():
           and gradient (if given) as well.
           This function is only needed by RMSD_reorient and MOI_reorient.
       """
-      self.CartCoord[1]=np.dot(U, self.CartCoord[1])
-      #print information on the manipulation conducted:
-      if self.log.level<2:
-         self.log.write("Rotation matrix for final state:\n")
-         self.log.printMat(U)
-         self.log.write("RMSD-value after rotation: %f\n" %(self.RMSD(self.CartCoord[0]-self.CartCoord[1])))
-
+      #set up the respective matrix:
       Y=np.zeros( (self.dim,self.dim) )
       for j in range(self.dim//3):
          Y[3*j:3*j+3, 3*j:3*j+3]=U
+      #apply it
+      self.CartCoord[1]=np.dot(Y,self.CartCoord[1])
+
       # apply the respective rotation to gradient or Hessian as well:
       if any(self.spect.Grad[i]>0 for i in range(len(self.spect.Grad))):
          self.spect.Grad=np.dot(Y,self.spect.Grad)
@@ -205,6 +209,12 @@ class align_atoms():
          #In that case, no transformation should be conducted because it will
          # be given in the initial state.
          self.spect.F[1]=np.dot(np.dot(Y,self.spect.F[1]),Y.T)
+
+      #print information on the manipulation conducted:
+      if self.log.level<2:
+         self.log.write("Rotation matrix for final state:\n")
+         self.log.printMat(U)
+         self.log.write("RMSD-value after rotation: %f\n" %(self.RMSD(self.CartCoord[0]-self.CartCoord[1])))
 
    def RMSD_reorient(self):
       """This function reorients the final state in space such that
@@ -240,12 +250,14 @@ class align_atoms():
                #they give redundant results.
                continue
             U=np.dot(sign,O)
-            #print np.shape(rotated) ,np.shape(self.CartCoord[0]), np.shape(U.dot(self.CartCoord[1]))
-            if self.RMSD(self.CartCoord[0]-rotated) >self.RMSD(self.CartCoord[0]-np.dot(U, self.CartCoord[1])):
+            Y=np.zeros( (self.dim,self.dim) )
+            for j in range(self.dim//3):
+               Y[3*j:3*j+3, 3*j:3*j+3]=U
+            if self.RMSD(self.CartCoord[0]-rotated) >self.RMSD(self.CartCoord[0]-np.dot(Y, self.CartCoord[1])):
                #if the current combination is the best, save it.
                U_min=U
-               rotated=np.dot(U_min,self.CartCoord[1])
-               #print self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
+               Y_min=Y
+               rotated=np.dot(Y_min,self.CartCoord[1])
       try:
          #if U_min is known: coordinate system changed.
          # This change is applied to the other quantities as well:
@@ -256,7 +268,7 @@ class align_atoms():
 
       #THIRD STEP: follow some Monte Carlo scheme.
       # comparatively small angles. Do 200 steps.
-      U=np.eye(3)
+      U=np.eye(len(self.CartCoordinate[1]))
       for i in range(40):
          #chose some angle:
          #for every level: do 5 tests and the refine the search...
@@ -275,11 +287,14 @@ class align_atoms():
                   [np.sin(nu),np.cos(nu),0],
                   [0,0,1] ], dtype=float)
             R=np.dot(R_x,np.dot(R_y,R_z))
-            test=np.dot(R.A, np.dot(U, self.CartCoord[1]))
+            Y=np.zeros( (self.dim,self.dim) )
+            for j in range(self.dim//3):
+               Y[3*j:3*j+3, 3*j:3*j+3]=U
+            test=np.dot(Y, np.dot(U, self.CartCoord[1]))
             if self.RMSD(self.CartCoord[0]-np.dot(U,self.CartCoord[1]))> self.RMSD(self.CartCoord[0]-test):
                #if it gets better: apply the change.
                #self.CartCoord[1]=test
-               U=np.dot(R.A, U)
+               U=np.dot(Y, U)
       
       #FOURTH STEP: apply the rotation.
 
@@ -289,9 +304,9 @@ class align_atoms():
       if self.log.level==0:
          self.log.write("Coordinates after manipulation: \n")
          self.log.write('Cartesian coordinates of initial state: \n')
-         self.log.printMat(self.CartCoord[0].T/self.Angs2Bohr)
+         self.log.printVec(self.CartCoord[0]/self.Angs2Bohr)
          self.log.write('Cartesian coordinates of final state: \n')
-         self.log.printMat(self.CartCoord[1].T/self.Angs2Bohr)
+         self.log.printVec(self.CartCoord[1]/self.Angs2Bohr)
 
    def RMSD(self,Delta):
       """This function calculates the RMSD of a matrix (intended
@@ -299,8 +314,7 @@ class align_atoms():
       """
       rmsd=0
       for i in range(len(Delta)):
-         for j in range(len(Delta[0])):
-            rmsd+=Delta[i][j]*Delta[i][j]
+         rmsd+=Delta[i]*Delta[i]
       return rmsd
    # END OF FUNCTION DEFINITIONS
 
