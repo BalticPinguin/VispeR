@@ -6,6 +6,7 @@ import numpy as np
 # =========
 #to version 0.1.0:  
 #   a) fixed error with self.function and self.n
+#   b) added some documentation
 
 class OPAtoNPA:
    """This class gets a spectrum in one-particle approximation of the format
@@ -55,6 +56,10 @@ class OPAtoNPA:
          self.n=n
    
    def __OPA2nPA(self,ind00):
+      """This function calculates a spectrum with arbitrarily many chaneing modes per transition.
+         How ever, the implementation is quite demanding in memory and time, so the number should
+         not be chosen to be too high.
+      """
       def allnonzero(foo):
          """ a more efficient version of np.all(foo!=0), made for arrays and integers...
          """
@@ -150,6 +155,8 @@ class OPAtoNPA:
       return TPAfreq, TPAintens
    
    def __OPA2TPA(self,ind00):
+      """ This function computes combination transit with up to two modes changeing at once.
+      """
       length=len(self.intensity)
       TPAfreq=np.zeros((length+1)*(length+2)//2+length+1) #this is overestimation of size...
       TPAintens=np.zeros((length+1)*(length+2)//2+length+1)
@@ -186,6 +193,8 @@ class OPAtoNPA:
       return TPAfreq, TPAintens
 
    def __OPA23PA(self,ind00):
+      """ This function computes combination transit with up to three modes changeing at once.
+      """
       length=len(self.frequency)
       TPAfreq=[]
       TPAintens=[]
@@ -272,24 +281,32 @@ class OPAtoNPA:
       return freq2, intens2
 
    def GetSpect(self,linspect, minint=0):
+      """ This function needs to be called before calculating the combination spectrum.
+         It copies the quantites needed ( frequency, intensity and the number of respective mode
+         that changes) to members of the class OPAtoNPA.
+      """
       self.frequency=linspect[0][minint:]
       self.intensity=linspect[1][minint:]
       self.mode     =linspect[2][minint:]
   
    def Calc(self):
+      """This function interfaces the computation of combination transitions to the respective spectrum
+         that is calculated.
+      """
       #first, get the index of the purely electronic transition
       ind=self.mode.argmin()
-      print self.function
       if self.function==None:
          return self.intensity, self.frequency
       elif self.function=='OPA2TPA':
          #now, calculate the full spectrum in 2-particle approx.
          TPAfreq, TPAintens=self.__OPA2TPA(ind)
       elif self.function=='OPA23PA':
+         #or three-particle approx. 
          TPAfreq, TPAintens=self.__OPA23PA(ind)
       elif self.function=='OPA2nPA':
+         # or any other number of particles.
          TPAfreq, TPAintens=self.__OPA2nPA(ind)
-      # finally sort and truncate the full spectrum.
+      # finally sort and truncate the full spectrum. (by low-intensity-transitions)
       index=np.argsort(TPAintens,kind='heapsort')
       TPAintens=TPAintens[index] #resort by intensity
       TPAfreq=TPAfreq[index]

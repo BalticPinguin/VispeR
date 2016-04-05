@@ -129,7 +129,8 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       for a in xrange(n):
          if setM:
             # set M to fit best to the value at that moment.
-            M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
+            #M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
+            M=self.states2
          for j in range(self.states1):  # initial state
             for i in range(self.states2):  #final states
                if i==0 and j==0:
