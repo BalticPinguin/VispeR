@@ -56,8 +56,8 @@ class align_atoms():
          self.shift()
       #now, copy the coordinates back to parent-class
       self.spect.CartCoord=self.CartCoord
-      self.log.write("gradient after realignment:")
-      self.log.printVec(self.spect.Grad)
+      #self.log.write("gradient after realignment:")
+      #self.log.printVec(self.spect.Grad)
 
    def shift(self):
       """This function performs a shift of both states into the center

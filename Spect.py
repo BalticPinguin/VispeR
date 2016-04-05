@@ -285,8 +285,8 @@ class  Spect:
          self.Grad=self.reader.Gradient() 
       elif re.search(r"gradient", self.opt, re.M) is not None:
          self.Grad=self.reader.Gradient() 
-         self.log.write("gradient in input-format")
-         self.log.printVec(self.Grad)
+         #self.log.write("gradient in input-format")
+         #self.log.printVec(self.Grad)
       else: 
          #define this for easier syntax in function MOI_reorient
          # and Duschinsky.
