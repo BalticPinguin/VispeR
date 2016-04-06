@@ -163,11 +163,11 @@ class logging():
         " Number     Number       Type             X           Y           Z\n"+
         " ---------------------------------------------------------------------\n")
       #print molecular geometry:
-      for i,coord in enumerate(coords.T):
+      for i in range(len(coords)):
          output.write("    %3d"%(i+1))
          output.write("        %3d"%math.ceil(mass[i]/2.)) 
          output.write("           0") 
-         output.write("        %.6f    %.6f   %.6f\n"%(coord[0],coord[1],coord[2]))
+         output.write("        %.6f    %.6f   %.6f\n"%(coords[3*i+0],coord[3*i+1],coord[3*i+2]))
       output.write(" ---------------------------------------------------------------------\n\n")
      
       #print the frequencies:

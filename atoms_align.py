@@ -70,7 +70,7 @@ class align_atoms():
          #loop over coordinates:
          for j in [0,1,2]:
             #self.spect.mass is the square root of the respective mass.
-            for k in range(len(self.CartCoord[i])//3)
+            for k in range(len(self.CartCoord[i])//3):
                COM[j]+=self.CartCoord[i][3*k+j]*self.spect.mass[k]*self.spect.mass[k]
             COM[j]/=np.sum(self.spect.mass*self.spect.mass) 
          #now it is Cartesian center of mass
@@ -82,7 +82,7 @@ class align_atoms():
             self.log.printVec(COM)
          for j in [0,1,2]:
             #displacement of molecule into center of mass:
-            for k in range(len(self.CartCoord[i])//3)
+            for k in range(len(self.CartCoord[i])//3):
                self.CartCoord[i][3*k+j]-=COM[j]
 
    def MOI_reorient(self):

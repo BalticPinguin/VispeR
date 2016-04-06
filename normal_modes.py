@@ -174,15 +174,14 @@ class NormalMode():
          for k in [0,1,2]:
             if k == j:
                for l in range(len(self.mass)):
-                  moi[j][j]+=np.sum(self.mass[k]*self.mass[k]*(self.Coord[i][0]*self.Coord[i][0]+\
-                           self.Coord[i][1]*self.Coord[i][1]+self.Coord[i][2]*self.Coord[i][2]-\
-                           self.Coord[i][j]*self.Coord[i][k]))
+                  moi[j][j]+=self.mass[l]*self.mass[l]*(self.Coord[i][3*l+0]*self.Coord[i][3*l+0]+\
+                           self.Coord[i][3*l+1]*self.Coord[i][3*l+1]+self.Coord[i][3*l+2]*self.Coord[i][3*l+2]-\
+                           self.Coord[i][3*l+j]*self.Coord[i][3*l+j])
             else:
-               moi[j][k]=np.sum(self.mass*self.mass*(self.Coord[i][j]*self.Coord[i][k]))
+                  moi[j][k]+=self.mass[k]*self.mass[k]*(self.Coord[i][3*l+j]*self.Coord[i][3*l+k])
       diagI,Moi_trafo=np.linalg.eig(moi) # this can be shortened of course!
       index=np.argsort(diagI,kind='heapsort')
       #X=np.matrix(X[index]) #sorting by eigenvalues
-      Moi_trafo=np.matrix(Moi_trafo) #notsorting by eigenvalues
    
       #now, construct the projector onto frame of rotation and translation using Sayvetz conditions
       D=np.zeros((self.dim,6))
@@ -192,7 +191,8 @@ class NormalMode():
             D[3*j+k][k]=self.mass[j]
       for k in range(self.dim):# next three rows in D: The rotational vectors
          #rotations in mass-weighted coordinates
-         D[k][3:6]=(np.cross(np.dot(Moi_trafo,self.Coord[i])[:].T[k//3],Moi_trafo[:].T[k%3]))*self.mass[k//3]
+         D[k][3:6]=np.cross(np.dot(Moi_trafo,self.Coord[i][(k//3)*3:(k//3)*3+3]),Moi_trafo[:, k%3])\
+                    *self.mass[k//3]
       D_orthog=self.__gs(np.array(D)) #orhogonalize it
       ones=np.identity(self.dim)
       one_P=ones-np.dot(D_orthog,D_orthog.T)
@@ -294,7 +294,7 @@ class NormalMode():
          #FIXME: this seems to be inconsistent! may be matrix or vector...
 
       else:
-         DeltaX=np.array(self.Coord[1]-self.Coord[0]).flatten('F')  # need initial - final here.
+         DeltaX=self.Coord[1]-self.Coord[0]
          if self.log.level <1:
             self.log.write('changes of Cartesian coordinates:\n')
             self.log.printVec(DeltaX)
