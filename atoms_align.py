@@ -15,7 +15,8 @@ import random
 #
 
 class align_atoms():
-   """This class is intended to solve situations where the coordinate systems of initial and final state do not coincide; espacially in Gaussian-files, the coordonates can flip or 
+   """This class is intended to solve situations where the coordinate systems of initial and final state 
+      do not coincide; espacially in Gaussian-files, the coordonates can flip or 
       change their sign. But also shifts occur often.
    """
    #required constants and variables:
@@ -184,7 +185,7 @@ class align_atoms():
          self.log.printMat(U)
          self.log.write("Coordinates after manipulation: \n")
          self.log.write('Cartesian coordinates of initial state: \n')
-         self.log.printVec(self.CartCoord[0]/self.Angs2Bohr)
+         self.log.printCoordinates(self.CartCoord[0]/self.Angs2Bohr)
          self.log.write('Cartesian coordinates of final state: \n')
          self.log.printVec(self.CartCoord[1]/self.Angs2Bohr)
    
@@ -304,9 +305,9 @@ class align_atoms():
       if self.log.level==0:
          self.log.write("Coordinates after manipulation: \n")
          self.log.write('Cartesian coordinates of initial state: \n')
-         self.log.printVec(self.CartCoord[0]/self.Angs2Bohr)
+         self.log.printCoordinates(self.CartCoord[0]/self.Angs2Bohr)
          self.log.write('Cartesian coordinates of final state: \n')
-         self.log.printVec(self.CartCoord[1]/self.Angs2Bohr)
+         self.log.printCoordinates(self.CartCoord[1]/self.Angs2Bohr)
 
    def RMSD(self,Delta):
       """This function calculates the RMSD of a matrix (intended

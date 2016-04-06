@@ -102,23 +102,24 @@ class logging():
       """
       if level>self.level:
          self.loghandler.write(text)
-
-   def printVec(self,vec):
-      """This funcion is no that tricky but better than rewriting it everywhere it is
-         indeed.
-      """
-      num = self.width//2
-      self.loghandler.write("\n")
-      if len(vec)>num:
-         for j in range(len(vec)//num):
-            for k in range(num):
-               self.loghandler.write("    %03d  %e \t"%(j+k*len(vec)//num+1, vec[j+k*len(vec)//num]))
-            self.loghandler.write("\n")
-      else:
-         for k in range(len(vec)):
-            self.loghandler.write("    %03d  %e \t"%(k+1, vec[k]))
-      self.loghandler.write("\n")
    
+   def printCoordinates(self,Coords):
+      """This function prints the nuclear coordinates, given as a vector
+         of the form
+         (atom1_x, atom1_y, atom1_z, atom2_x,...,atomN_z)
+         in a convenient format with the atoms as lines and coordinates
+         as rows.
+      """
+      self.loghandler.write("\n")
+      self.loghandler.write("          X               \t")
+      self.loghandler.write("     Y               \t")
+      self.loghandler.write("     Z\n")
+      for j in range(len(Coords)//3):
+         for k in [0,1,2]:
+            self.loghandler.write(" %03d  %e \t"%(j+k*len(Coords)//3+1, Coords[j*3+k]))
+         self.loghandler.write("\n")
+      self.loghandler.write("\n")
+
    def printNormalModes(self,parent,i):
       """This function prints the normal modes (in Cartesian basis)
          to an extra file (*.nm) in the G09-log format. These files are understood
@@ -201,6 +202,22 @@ class logging():
          s=t
          t=min(s+3,len(L[0]))
       output.close()
+
+   def printVec(self,vec):
+      """This funcion is no that tricky but better than rewriting it everywhere it is
+         indeed.
+      """
+      num = self.width//2
+      self.loghandler.write("\n")
+      if len(vec)>num:
+         for j in range(len(vec)//num):
+            for k in range(num):
+               self.loghandler.write("    %03d  %e \t"%(j+k*len(vec)//num+1, vec[j+k*len(vec)//num]))
+            self.loghandler.write("\n")
+      else:
+         for k in range(len(vec)):
+            self.loghandler.write("    %03d  %e \t"%(k+1, vec[k]))
+      self.loghandler.write("\n")
 
    def printMat(self,mat):
       """Function to print matrices in a nice way to the log-file.

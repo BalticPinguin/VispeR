@@ -300,9 +300,9 @@ class  Spect:
                         ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
       if self.log.level<2:
             self.log.write('Cartesian coordinates of initial state: \n')
-            self.log.printVec(self.CartCoord[0]/self.Angs2Bohr)
+            self.log.printCoordinates(self.CartCoord[0]/self.Angs2Bohr)
             self.log.write('Cartesian coordinates of final state: \n')
-            self.log.printVec(self.CartCoord[1]/self.Angs2Bohr)
+            self.log.printCoordinates(self.CartCoord[1]/self.Angs2Bohr)
             if self.log.level==0:
                self.log.write('Hessian of initial state: \n')
                self.log.printMat(self.F[0])
