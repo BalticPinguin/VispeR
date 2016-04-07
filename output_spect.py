@@ -15,7 +15,7 @@ import re
 
 class broaden():
    """ This class computes the broadened spectrum out of a stick-spectrum.
-
+         
        **Interface functions **
        init     - initialisation of the class. Its argument is a pointer 
                   to a class of type Spect (or inherited from it); than

@@ -195,6 +195,8 @@ class OPAtoNPA:
    def __OPA23PA(self,ind00):
       """ This function computes combination transit with up to three modes changeing at once.
       """
+      #FIRST initialise some quantities making later synatax 
+      # more convenient
       length=len(self.frequency)
       TPAfreq=[]
       TPAintens=[]
@@ -206,7 +208,7 @@ class OPAtoNPA:
       mode=self.mode
       TPAintens.append(intens00) #this is OPA-part
       TPAfreq.append(freq00)
-      # go through the whole spectrum (besides 0-0) and compute all combinations 
+      #SECOND go through the whole spectrum (besides 0-0) and compute all combinations 
       #        besides self-combination
       for i in range(length):
          if mode[i]==0:
@@ -237,7 +239,7 @@ class OPAtoNPA:
                TPAintens.append(intens[i]*intens[j]*intens[k]/
                                                     (intens00*intens00))
                TPAfreq.append(freq[i]+freq[k]+freq[j]-2*freq00)
-      # save the spectrum into numpy-matrices
+      #FINALLY save the spectrum into numpy-matrices
       freq=np.zeros(len(TPAfreq))
       intens=np.zeros(len(TPAintens))
       #this can not be done by np.matrix() due to dimensionality...
@@ -247,18 +249,17 @@ class OPAtoNPA:
       return freq, intens
 
    def concise(self,broadness):
-      """
-      This function shrinks length of the stick-spectrum to speed-up the 
-      calculation of broadened spectrum (folding with lineshape-function).
-      It puts all transitions within a tenth of the Gaussian-width into one line.
-
-      ==PARAMETERS==
-      broadness:   gamma from the Lorentian-courve; specifying, 
-                   how many lines will be put together
-
-      ==RETURNS==
-      intens2:     shrinked intensity-vector, sorted by increasing frequency
-      freq2:       shrinked frequency-vector, sorted by increasing frequency
+      """ This function shrinks length of the stick-spectrum to speed-up the 
+         calculation of broadened spectrum (folding with lineshape-function).
+         It puts all transitions within a tenth of the Gaussian-width into one line.
+      
+         ==PARAMETERS==
+         broadness:   gamma from the Lorentian-courve; specifying, 
+                     how many lines will be put together
+      
+         ==RETURNS==
+         intens2:     shrinked intensity-vector, sorted by increasing frequency
+         freq2:       shrinked frequency-vector, sorted by increasing frequency
       """
       # both arrays are frequency-sorted 
       #initialize arrays

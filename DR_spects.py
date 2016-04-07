@@ -18,7 +18,9 @@ import re, mmap, math, os
 #  1) remove dist_FCfOPA(); the model behind is inconsistent.   
 #  2) renamed resortFCfOPA to calcspect and made the interface
 #     accordingly.  
-#  3) SDR_spect class runs now, but seems to be buggy
+#  3) SDR_spect class runs now
+#  4) Changed makeLine in SDR_spect to be compatible with the MultiPart
+#     class. The model is inconsistent but may be still better.
 #
 
 class URDR_spect(Spect.Spect):
@@ -565,6 +567,30 @@ class SDR_spect(Spect.Spect):
          return L2, L3
 
       def makeLine(intens, E0, T, index, ex, Gamma, Gammap, E, n):
+         """This function computes the actual spectrum .
+
+            ===PARAMETERS===
+            intens   a vector containing the square root of intensities of
+                     the transitions
+            E0       offset in energy compared to lowest electronic state
+                     (always 0, will be removed in later versions)
+            T        temperature of system, in a.u.
+            index    contains the number of mode that changes in the 
+                     respective transition (is a vector)
+            ex       vector containing the number of quanta in the initial 
+                     vibronic state
+            Gamma    vector of frequencies in final state
+            Gammap   vector of frequencies in initial state
+            E        electronic energy gap (minimum to minimum)
+            n        total number of vibrational quanta considered
+
+            ===RETURNS===
+            F   Matrix containing the vibronic transitions in the format
+                energy    intensity   mode nr.
+                Due to the model used, these transitions all are in OPA,
+                the use of MultiPart is inconsistent but can be used to enhance
+                the spectrum.
+         """
          #F=np.zeros(( len(index),3 ))
          F=[]
          for i in xrange(len(index)):
@@ -573,7 +599,7 @@ class SDR_spect(Spect.Spect):
                F.append([(-np.sign(E)*Gamma[indi]*(n-ex[i])
                          +np.sign(E)*Gammap[indi]*(ex[i])+np.abs(E))*self.Hartree2cm_1,
                         intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) ,
-                        7])
+                        indi+1])
               # if F[-1][1]>0.0001:
               #    print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*self.Hartree2cm_1
    

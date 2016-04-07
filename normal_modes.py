@@ -85,7 +85,7 @@ class NormalMode():
          #project out the rotations and vibrations and not just throw away the smallest 6 eigen values
          # and respective eigen modes.
          if project:
-            D=self.GetProjector(i)
+            D=self.__GetProjector(i)
             self.F[i]=np.dot(np.dot(D.T,self.F[i]),D)
             #Why can I not construct D such that I don't need to throw away anything?
          else:
@@ -133,7 +133,7 @@ class NormalMode():
       #  and hence may change their order, the final states L and f are resorted via the
       #  largest overlap. When strong changes occur, there is no fair method. This one tries
       #  to be as fair as possible.
-      f[1],L[1]=self.SortL(np.dot(np.linalg.pinv(L[0]),L[1]),L[1],f[1])
+      f[1],L[1]=self.__SortL(np.dot(np.linalg.pinv(L[0]),L[1]),L[1],f[1])
 
       #recalculate Lmass for final state.
       Lmass[1]=np.dot(M, L[1]) # recalculate Lmass!
@@ -163,7 +163,7 @@ class NormalMode():
          Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
       return np.matrix(Y).T # undo transposition in the beginning
 
-   def GetProjector(self, i):
+   def __GetProjector(self, i):
       """ This function calculates a projection-matrix that is used to project the mass-weighted
          Hessian onto the space of vibrations. Therefore, we first construct a projector D onto
          translations and rotations and than apply 1-D onto F.
@@ -204,7 +204,7 @@ class NormalMode():
                "Projecting out translations and rotations from probe vector"
       return one_P
    
-   def SortL(self, J,L,f):
+   def __SortL(self, J,L,f):
       """This functions resorts the normal modes (L, f) such that the Duschinsky-Rotation
          matrix J becomes most close to unity (as possible just by sorting).
          In many cases, here chosing max(J[i]) does not help since there will be rows/columns occur
@@ -261,7 +261,7 @@ class NormalMode():
       
       #since resort is a permutation matrix, it is unitary. Using this:
       return np.dot(f,resort), np.dot(L,resort)
-      #  END OF SortL
+      #  END OF __SortL
    
    def Duschinsky(self):
       """This function calculates the shift between two electronic states 

@@ -1,5 +1,5 @@
 #!/usr/bin/python2
-# filename: smallscript.py
+# filename: VispeR.py
 
 #include [[Spect.py]]
 import Spect
@@ -20,12 +20,15 @@ import output_spect
 import sys, re, mmap, numpy as np
 import time
 
-# ============ CHANGELOG =================  
-#version=2.0.1
-#  1. removed class GFC.
+#   CHANGELOG   
+#   =========   
+#version=2.0.1  
+#  1. removed class GFC.  
+#  2. added class HR.  
+#
 
 def usage():
-   print "usage: smallscript <input-file>"
+   print "usage: VispeR <input-file>"
 
 def getModel(f):
    """ This function looks into the input-file 'f' and searches for the option model.
@@ -124,4 +127,4 @@ if __name__ == "__main__":
    main(sys.argv[1:])
 
 version='2.0.1'
-# End of smallscript.py
+# End of VispeR.py

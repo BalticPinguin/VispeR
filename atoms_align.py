@@ -5,13 +5,15 @@ import random
 
 # CHANGELOG
 # =========
+#in version 0.1.1:  
+#
 #in version 0.1.0:  
-#  1) Intialised class
+#  1) Intialised class   
 #  2) Corrected shift: take square of mass
 #     since mass is sqrt(atomic mass).   
 #  3) Corrected apply_change: don't transform the
-#     force constant matrix, if gradient is used.
-#  4) changed format of self.CartCoord
+#     force constant matrix, if gradient is used.  
+#  4) changed format of self.CartCoord   
 #
 
 class align_atoms():
@@ -27,7 +29,9 @@ class align_atoms():
    dim=0
 
    def __init__(self, method, spect):
-      """
+      """initialisation of the class: copies the required data to class-members
+         and gets the type of manipulation to be performed.
+
          ===PARAMETERS===
          method: a string; either moi or rmsd that describes, which criterion to
                  use for reorientation of final state.
@@ -195,26 +199,22 @@ class align_atoms():
           and gradient (if given) as well.
           This function is only needed by RMSD_reorient and MOI_reorient.
       """
-      #set up the respective matrix:
-      Y=np.zeros( (self.dim,self.dim) )
-      for j in range(self.dim//3):
-         Y[3*j:3*j+3, 3*j:3*j+3]=U
       #apply it
-      self.CartCoord[1]=np.dot(Y,self.CartCoord[1])
+      self.CartCoord[1]=np.dot(U,self.CartCoord[1])
 
       # apply the respective rotation to gradient or Hessian as well:
       if any(self.spect.Grad[i]>0 for i in range(len(self.spect.Grad))):
-         self.spect.Grad=np.dot(Y,self.spect.Grad)
+         self.spect.Grad=np.dot(U,self.spect.Grad)
       else:
          #if there is a gradient given, only one force constant matrix is used. 
          #In that case, no transformation should be conducted because it will
          # be given in the initial state.
-         self.spect.F[1]=np.dot(np.dot(Y,self.spect.F[1]),Y.T)
+         self.spect.F[1]=np.dot(np.dot(U,self.spect.F[1]),U.T)
 
       #print information on the manipulation conducted:
       if self.log.level<2:
          self.log.write("Rotation matrix for final state:\n")
-         self.log.printMat(U)
+         self.log.printMat(U[:3,:3])
          self.log.write("RMSD-value after rotation: %f\n" %(self.RMSD(self.CartCoord[0]-self.CartCoord[1])))
 
    def RMSD_reorient(self):
@@ -262,14 +262,14 @@ class align_atoms():
       try:
          #if U_min is known: coordinate system changed.
          # This change is applied to the other quantities as well:
-         self.apply_change(U_min)
+         self.apply_change(Y_min)
       except NameError:
          #do nothing
          U=0
 
       #THIRD STEP: follow some Monte Carlo scheme.
       # comparatively small angles. Do 200 steps.
-      U=np.eye(len(self.CartCoordinate[1]))
+      U=np.eye(len(self.CartCoord[1]))
       for i in range(40):
          #chose some angle:
          #for every level: do 5 tests and the refine the search...
@@ -290,7 +290,7 @@ class align_atoms():
             R=np.dot(R_x,np.dot(R_y,R_z))
             Y=np.zeros( (self.dim,self.dim) )
             for j in range(self.dim//3):
-               Y[3*j:3*j+3, 3*j:3*j+3]=U
+               Y[3*j:3*j+3, 3*j:3*j+3]=R
             test=np.dot(Y, np.dot(U, self.CartCoord[1]))
             if self.RMSD(self.CartCoord[0]-np.dot(U,self.CartCoord[1]))> self.RMSD(self.CartCoord[0]-test):
                #if it gets better: apply the change.
@@ -319,5 +319,5 @@ class align_atoms():
       return rmsd
    # END OF FUNCTION DEFINITIONS
 
-version='0.1'  
+version='0.1.1'  
 # End of atoms_align.py

@@ -79,7 +79,8 @@ class HR_spect(FC_spects.FC_spect):
       if (re.search(r"(?<=width=)[\d .]+", self.opt, re.M)) is not None:
          self.log.width=int(re.findall(r"(?<=width=)[\d .]+", self.opt, re.M)[-1])
 
-      # get number of maximal excited/ground from opt:
+      #get number of maximal excited/ground from opt:
+      #  Therefore: check all possible ways of specifying it.
       states=re.findall(r"(?<=states=)[\d ,]*", self.opt, re.I)
       if len(states)==0:
          # i.e. no states given
@@ -117,10 +118,12 @@ class HR_spect(FC_spects.FC_spect):
          HRthresh=0.015
       else: 
          HRthresh=float(HRthresh[-1])
+      #END READING DATA FROM input-FILE
 
       #read HR-factors:
       self.readHR()
       
+      #POSTPROCESSING: sorting, error-checking, printing.
       #sort modes according to HR-factors
       index=np.argsort(self.HR, kind='heapsort')
       f=[]
@@ -168,15 +171,18 @@ class HR_spect(FC_spects.FC_spect):
                       (in atomic units)
          
       """
+      #FIRST get a mmap-object of the data
       fi=open(self.hr_file, "r")
       f=mmap.mmap(fi.fileno(), 0, prot=mmap.PROT_READ)
       fi.close()
+      #search for the energy
       Energy=re.findall(r"(?<=Delta E=)[ \d\.\-]*", f, re.I)
       assert len(Energy)==1, "Please specify only one energy-difference!"
       Energy=float(Energy[0])
       Energy/=self.Hartree2cm_1
       HR=[]
       funi=[]
+      #search for the table with HR-factors
       HRfreq=re.findall(r"HR-fact[\s]*freq[\s]*\n[\n\d\.\se\+\-]*", f, re.I)
       assert len(HRfreq)==1, "The file-format could not be read. exit now"
       HRf=re.findall(r"(?<=\n)[\d\.]*[\s]+[\d\.]*", HRfreq[0], re.I)
