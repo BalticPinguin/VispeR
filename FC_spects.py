@@ -244,13 +244,6 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       # now, make the new results being objects of that class:
       self.HR=uniHR
       self.f=uniFall
-      Esign=np.sign(self.Energy[0]-self.Energy[1])
-      if Esign==0:
-         for i in range(len(self.HR)):
-            self.Energy[1]-=self.f[1][i]*self.HR[i]
-      else:
-         for i in range(len(self.HR)):
-            self.Energy[1]+=Esign*self.f[1][i]*self.HR[i]
 
 class CFC_spect(FC_spect):
    """This is more general class compared to FC_spect. Here, both states need to have different
@@ -265,6 +258,15 @@ class CFC_spect(FC_spect):
       """
       self.type='CFC'
       FC_spect.__init__(self, f)
+      
+      # correct 0-0 transition for vibrational ground state
+      Esign=np.sign(self.Energy[0]-self.Energy[1])
+      if Esign==0:
+         for i in range(len(self.HR)):
+            self.Energy[1]-=(self.f[1][i]-self.f[0][i])*self.HR[i]
+      else:
+         for i in range(len(self.HR)):
+            self.Energy[1]+=Esign*(self.f[1][i]-self.f[0][i])*self.HR[i]
 
    def calcspect(self):
        """This is used to calculate the line spectrum assuming no mode mixing 

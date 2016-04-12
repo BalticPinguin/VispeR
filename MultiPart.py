@@ -122,12 +122,14 @@ class OPAtoNPA:
                if np.shape(xmode)[1]>=2:
                   xmode=np.matrix(xmode).T
                   nmode=np.zeros(( len(xmode)+1, len(xmode.T) ))
-                  nmode[:-1]=xmode
-                  nmode[-1]=nwemode
+	          for i in range(len(nwemode)):
+                     nmode[:-1,i]=xmode[:,i].T
+                     nmode[-1][i]=nwemode[i]
                else:
                   nmode=np.zeros(( 2 , len(xmode) ))
-                  nmode[0]=xmode
-                  nmode[1]=nwemode
+	          for i in range(len(xmode)):
+		     nmode[0][i]=xmode[i]
+		     nmode[1][i]=nwemode[i]
                freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode)
                for k in range(len(intens2)):
                   newintens.append(intens2[k])

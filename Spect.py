@@ -211,17 +211,11 @@ class  Spect:
       manipulate=re.findall(r"(?<=manipulate:)[\w ,]*", self.opt, re.M)
       if manipulate!=[]:
          manipulate=manipulate[0].strip()
-         #initialise object of the respective class
-         self.manipulate=AtAl.align_atoms(manipulate, self)
-         #perform the calculation
-         self.manipulate.perform()
-      else:
-         #initialise object of the respective class
-         self.manipulate=AtAl.align_atoms(manipulate, self)
-         # just shift the molecules both to their center of mass
-         self.manipulate.shift()
-         #copy the manipulated data back here.
-         self.CartCoord=self.manipulate.CartCoord
+      #initialise object of the respective class
+      self.manipulate=AtAl.align_atoms(manipulate, self)
+      #perform the calculation. By default only a shift towards the center
+      # of mass is performed.
+      self.manipulate.perform()
 
       #Calculate Frequencies and normal modes. Therefore, intialise
       # an object of the respective class and do the calculations there.
@@ -293,10 +287,10 @@ class  Spect:
          # and Duschinsky.
          self.Grad=[0,0]
       if self.Energy[0]-self.Energy[1]<0:
-         self.log.write('vertical relaxation energy:'
-                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
+         self.log.write('adiabatic relaxation energy:'
+                        ' Delta E= {0}\n'.format((-self.Energy[0]+self.Energy[1])*self.Hartree2cm_1), 3)
       else:
-         self.log.write('vertical excitation energy:'
+         self.log.write('adiabatic excitation energy:'
                         ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
       if self.log.level<2:
             self.log.write('Cartesian coordinates of initial state: \n')
@@ -320,14 +314,14 @@ class  Spect:
 
       #first, print the initial state:
       output.write("%d\n    inital state\n"%(self.dim//3))
-      for i in range(len(self.CartCoord[0]//3)):
+      for i in range(len(self.CartCoord[0])//3):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
                                              self.CartCoord[0][i*3+0]/self.Angs2Bohr,
                                              self.CartCoord[0][i*3+1]/self.Angs2Bohr,
                                              self.CartCoord[0][i*3+2]/self.Angs2Bohr) )
       #second, print the final state:
       output.write("\n%d\n    final state\n"%(self.dim//3))
-      for i in range(len(self.CartCoord[0]//3)):
+      for i in range(len(self.CartCoord[0])//3):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
                                              self.CartCoord[1][i*3+0]/self.Angs2Bohr,
                                              self.CartCoord[1][i*3+1]/self.Angs2Bohr,
@@ -335,12 +329,12 @@ class  Spect:
 
       #finally, print block with both states after another:
       output.write("\n%d\n    Both states\n"%(self.dim//3)*2)
-      for i in range(len(self.CartCoord[0]//3)):
+      for i in range(len(self.CartCoord[0])//3):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
                                              self.CartCoord[0][i*3+0]/self.Angs2Bohr,
                                              self.CartCoord[0][i*3+1]/self.Angs2Bohr,
                                              self.CartCoord[0][i*3+2]/self.Angs2Bohr) )
-      for i in range(len(self.CartCoord[0]//3)):
+      for i in range(len(self.CartCoord[0])//3):
          output.write("%d    %f   %f   %f\n"%(round(self.mass[i]*self.mass[i]/self.AMU2au/2),
                                              self.CartCoord[1][i*3+0]/self.Angs2Bohr,
                                              self.CartCoord[1][i*3+1]/self.Angs2Bohr,
