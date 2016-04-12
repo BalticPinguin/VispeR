@@ -350,10 +350,11 @@ include  <a href="Spect.html">Spect.py</a></p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-22'>#</a>
       </div>
-      <p>set M to fit best to the value at that moment.</p>
+      <p>set M to fit best to the value at that moment.
+M=max(3,int(-1.1<em>self.HR[a]</em>self.HR[a]+6.4*self.HR[a]+9.))</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="n">M</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="nb">int</span><span class="p">(</span><span class="o">-</span><span class="mf">1.1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">+</span><span class="mf">6.4</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">a</span><span class="p">]</span><span class="o">+</span><span class="mf">9.</span><span class="p">))</span>
+      <div class="highlight"><pre>            <span class="n">M</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">states2</span>
          <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="p">):</span>  <span class="c1"># initial state</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="p">):</span>  <span class="c1">#final states</span>
                <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">j</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span></pre></div>
@@ -608,14 +609,7 @@ they can easily cause some trouble!</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="o">=</span><span class="n">uniHR</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">=</span><span class="n">uniFall</span>
-      <span class="n">Esign</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-      <span class="k">if</span> <span class="n">Esign</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
-         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-=</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-      <span class="k">else</span><span class="p">:</span>
-         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+=</span><span class="n">Esign</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre></div>
+      <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">=</span><span class="n">uniFall</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -665,10 +659,16 @@ they can easily cause some trouble!</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-41'>#</a>
       </div>
-      <p>This is used to calculate the line spectrum assuming no mode mixing</p>
+      <p>correct 0-0 transition for vibrational ground state</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">calcspect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre>      <span class="n">Esign</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+      <span class="k">if</span> <span class="n">Esign</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+=</span><span class="n">Esign</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -676,6 +676,18 @@ they can easily cause some trouble!</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+      <p>This is used to calculate the line spectrum assuming no mode mixing</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">calcspect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
       </div>
       <p>(shift only)  and coinciding frequencies in both electronic states.</p>
 <p><strong>PARAMETERS:</strong>
@@ -696,10 +708,10 @@ they can easily cause some trouble!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-43'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-43'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>This function calculates the FC-factors for a mode with HR-factor HR,</p>
     </div>
@@ -708,10 +720,10 @@ they can easily cause some trouble!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-44'>
+  <div class='section' id='section-45'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
+        <a class='octothorpe' href='#section-45'>#</a>
       </div>
       <p>frequency freq and the highest achievable states N,M in initial and
   final state respectively. 
@@ -726,10 +738,10 @@ they can easily cause some trouble!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-45'>
+  <div class='section' id='section-46'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
       <p>R00=sqrt(2<em>delta/(1+delta</em>delta))<em>np.exp(-.5</em>D<em>D/(1+delta</em>delta))</p>
     </div>
@@ -738,10 +750,10 @@ they can easily cause some trouble!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-46'>
+  <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-47'>#</a>
       </div>
       <p>R_00 is normalisation -&gt; actually calculate FC_ij/FC_00 --&gt; 
                     than I can chose FC_00 outside.</p>
@@ -770,10 +782,10 @@ they can easily cause some trouble!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-47'>
+  <div class='section' id='section-48'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
+        <a class='octothorpe' href='#section-48'>#</a>
       </div>
       <p>Calculation of the line spectrum respecting only shift of minima</p>
     </div>
@@ -782,10 +794,10 @@ they can easily cause some trouble!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-49'>#</a>
       </div>
       <p>(no Duschinsky rotation) 
  and assuming coinciding frequencies for initial and final state</p>
@@ -802,10 +814,10 @@ they can easily cause some trouble!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-50'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-50'>#</a>
       </div>
       <p>first transition: 0-0 transition. </p>
     </div>
@@ -825,10 +837,10 @@ they can easily cause some trouble!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-51'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-51'>#</a>
       </div>
       <p>correct for vibrational groundstates:
 E+=(sum(freq[0])-sum(freq[1]))*.5
@@ -839,10 +851,10 @@ print E, freq[0]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-51'>
+  <div class='section' id='section-52'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
+        <a class='octothorpe' href='#section-52'>#</a>
       </div>
       <p>there was not specified, how many vibr. states in ground-state 
           should be taken into account</p>
@@ -855,10 +867,10 @@ print E, freq[0]</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-52'>
+  <div class='section' id='section-53'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-52'>#</a>
+        <a class='octothorpe' href='#section-53'>#</a>
       </div>
       <p>if setM: the size of these arrays will be overestimated.
 calculate 0-&gt;0 transition</p>
@@ -868,10 +880,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-53'>
+  <div class='section' id='section-54'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-53'>#</a>
+        <a class='octothorpe' href='#section-54'>#</a>
       </div>
       <p>print 0,0,0, 10</p>
     </div>
@@ -885,10 +897,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-54'>
+  <div class='section' id='section-55'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-54'>#</a>
+        <a class='octothorpe' href='#section-55'>#</a>
       </div>
       <p>here a goes over all modes</p>
     </div>
@@ -901,10 +913,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-55'>
+  <div class='section' id='section-56'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-55'>#</a>
+        <a class='octothorpe' href='#section-56'>#</a>
       </div>
       <p>set M to fit best to the value at that moment.</p>
     </div>
@@ -913,10 +925,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-56'>
+  <div class='section' id='section-57'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-56'>#</a>
+        <a class='octothorpe' href='#section-57'>#</a>
       </div>
       <p>print a, HR[a]</p>
     </div>
@@ -928,10 +940,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-57'>
+  <div class='section' id='section-58'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-57'>#</a>
+        <a class='octothorpe' href='#section-58'>#</a>
       </div>
       <p>skip 0-0 transitions</p>
     </div>
@@ -950,10 +962,10 @@ calculate 0-&gt;0 transition</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-58'>
+  <div class='section' id='section-59'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-58'>#</a>
+        <a class='octothorpe' href='#section-59'>#</a>
       </div>
       <p>End of FC_Spects.py</p>
     </div>

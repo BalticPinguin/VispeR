@@ -79,7 +79,10 @@
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
       <h1>CHANGELOG</h1>
-<p>in version 0.2.0:  </p>
+<p>in version 0.2.0:<br />
+  a) removed function 'quantity()'; it was not in use any more.
+  b) removed the function IsZero() since it didn't do anything
+  c) changed format of self.CartCoord</p>
 <p>in version 0.1.7:<br />
   a) fixed rmsd-reorient: forgot to reorder Forces, transform of 
       gradient was wrong. Lead to ceveir errors.<br />
@@ -174,6 +177,7 @@
    <span class="n">CartCoord</span><span class="o">=</span><span class="p">[]</span>
    <span class="n">read</span><span class="o">=</span><span class="p">[]</span>  <span class="c1"># this object is valid only after __init__. Maybe it doesn&#39;t belong here...</span>
    <span class="n">spect</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">0</span><span class="p">]]</span>
+   <span class="n">sameF</span><span class="o">=</span><span class="bp">False</span> <span class="c1">#remembers, whether two different force constant matrices are in use.</span>
    <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;Spect&quot;</span></pre></div>
     </div>
   </div>
@@ -243,7 +247,7 @@
   only the information for output is read and the logging object,
   which has the output-file and the level of output-information is defined.
   All variables/functions that are common to all spectral tyes are initialised here.</p>
-<p>START LOG-FILE DEFINITION   <br />
+<p>START DEFINITION OF LOG-FUNCTION
 invoke logging (write results into file specified by 'out: ' or into 'calculation.log')</p>
     </div>
     <div class='code'>
@@ -289,8 +293,7 @@ invoke logging (write results into file specified by 'out: ' or into 'calculatio
       <div class='octowrap'>
         <a class='octothorpe' href='#section-16'>#</a>
       </div>
-      <p>self.log.write("calculations to be done: %s\n"%(todo))
-END LOG-FILE DEFINITION     </p>
+      <p>END DEFINITION OF LOG-FUNCTION</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      
@@ -309,8 +312,8 @@ get files with electronic states:</p>
     <div class='code'>
       <div class="highlight"><pre>      <span class="n">final</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=final: )[\w.\-]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
       <span class="n">initial</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=initial: )[\w.\-]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
-      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;there must be one initial state&#39;</span>
-      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">final</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;there must be one final state&#39;</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">initial</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;there must be one initial state&#39;</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">final</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span>  <span class="s1">&#39;there must be one final state&#39;</span>
       <span class="n">initial</span><span class="o">=</span><span class="n">initial</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
       <span class="n">final</span><span class="o">=</span><span class="n">final</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></pre></div>
     </div>
@@ -465,9 +468,7 @@ get files with electronic states:</p>
       <div class="highlight"><pre>               <span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="o">=</span><span class="mi">5</span>
                <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="o">=</span><span class="mi">0</span>
                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;!!number of vibrational states {0} is not an integer.&quot;</span><span class="p">,</span>
-                                    <span class="s2">&quot; Use default instead.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="p">))</span>
-      
-      <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">=</span><span class="n">Read</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">)</span></pre></div>
+                                    <span class="s2">&quot; Use default instead.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">states2</span><span class="p">))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -477,10 +478,11 @@ get files with electronic states:</p>
         <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <p>The ReadData class finds out which format the input-files have
-and reads the most important data from them.</p>
+and reads all important data from them. </p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">ReadData</span><span class="p">()</span></pre></div>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">=</span><span class="n">Read</span><span class="o">.</span><span class="n">Read</span><span class="p">(</span><span class="n">initial</span><span class="p">,</span> <span class="n">final</span><span class="p">)</span> <span class="c1">#initialise class</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">ReadData</span><span class="p">()</span>                       <span class="c1">#do the actual work</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -508,7 +510,7 @@ give too large or just unphysical HR-factors.</p>
       <p>initialise object of the respective class</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">=</span><span class="n">AtAl</span><span class="o">.</span><span class="n">align_atoms</span><span class="p">(</span><span class="n">manipulate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">=</span><span class="n">AtAl</span><span class="o">.</span><span class="n">align_atoms</span><span class="p">(</span><span class="n">manipulate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -517,11 +519,11 @@ give too large or just unphysical HR-factors.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-31'>#</a>
       </div>
-      <p>perform the calculation</p>
+      <p>perform the calculation. By default only a shift towards the center
+of mass is performed.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span>
-      <span class="k">else</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">.</span><span class="n">perform</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -530,10 +532,15 @@ give too large or just unphysical HR-factors.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-32'>#</a>
       </div>
-      <p>initialise object of the respective class</p>
+      <p>Calculate Frequencies and normal modes. Therefore, intialise
+an object of the respective class and do the calculations there.
+Except for the frequencies, the normal-mode based quantities are
+always taken from self.nm.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">=</span><span class="n">AtAl</span><span class="o">.</span><span class="n">align_atoms</span><span class="p">(</span><span class="n">manipulate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">=</span><span class="n">NormalModes</span><span class="o">.</span><span class="n">NormalMode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">GetL</span><span class="p">()</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">Duschinsky</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -542,10 +549,11 @@ give too large or just unphysical HR-factors.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-33'>#</a>
       </div>
-      <p>just shift the molecules both to their center of mass</p>
+      <p>give a copy of the frequencies to Spect because they are used more 
+frequently.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span></pre></div>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">f</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -554,10 +562,11 @@ give too large or just unphysical HR-factors.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-34'>#</a>
       </div>
-      <p>copy the manipulated data back here.</p>
+      <p>this is how to use the function to print normal modes of final state
+self.log.printNormalModes(self,1) # use 0 for initial state.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">.</span><span class="n">CartCoord</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -566,13 +575,10 @@ give too large or just unphysical HR-factors.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-35'>#</a>
       </div>
-      <p>Calculate Frequencies and normal modes. Therefore, intialise
-an object of the respective class and do the respect. calculations</p>
+      <p>This function gathers most essential parts for calculation of</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">=</span><span class="n">NormalModes</span><span class="o">.</span><span class="n">NormalMode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Grad</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">GetL</span><span class="p">()</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">Duschinsky</span><span class="p">()</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">ReadData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -581,88 +587,11 @@ an object of the respective class and do the respect. calculations</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-36'>#</a>
       </div>
-      <p>give me a copy of the frequencies</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">f</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nm</span><span class="o">.</span><span class="n">f</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-37'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
-      </div>
-      <p>Here some frequencies are defined; it is just for clearer code.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-38'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-38'>#</a>
-      </div>
-      <p>This function is called by CalculationHR.</p>
-<p><strong>PARAMETERS</strong>
-  dim      dimension of matrices/vectors</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="n">F</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">))</span> 
-      <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">))</span>
-      <span class="n">P</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span><span class="n">dim</span><span class="p">))</span>
-      <span class="k">return</span> <span class="n">F</span><span class="p">,</span> <span class="n">P</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-39'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-39'>#</a>
-      </div>
-      <p>This function gathers most essential parts for calculation of</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">ReadData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-40'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-40'>#</a>
-      </div>
       <p>HR-factors from g09-files. That is: read neccecary information from the
   g09-files and calculate HR-factors as well as the  Duschinsky-rotation
   matrix and the shift between minima (needed later if the option Duschinsky
   is specified)</p>
-<p>checks, if a matrix is zero</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="k">def</span> <span class="nf">IsZero</span><span class="p">(</span><span class="n">mat</span><span class="p">):</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-41'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-41'>#</a>
-      </div>
-      
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">mat</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-42'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
-      </div>
-      <p>read coordinates, force constant, binding energies from log-files and 
+<p>read coordinates, force constant, binding energies from log-files and 
 from the file, using the type of file that is known now...</p>
     </div>
     <div class='code'>
@@ -678,28 +607,41 @@ from the file, using the type of file that is known now...</p>
       
       <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span><span class="o">*</span><span class="mi">3</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Dimensions: </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; Masses: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span> <span class="c1"># print not the square-root!</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; Masses: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      <p>print not the square-root! Print in amu for convenience.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span>
    
       <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">Force</span><span class="p">()</span>
-      <span class="k">if</span> <span class="n">IsZero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+      <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;WARNING: Only one force constant matrix given.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">sameF</span><span class="o">=</span><span class="bp">True</span>
          <span class="k">assert</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;FC&#39;</span><span class="p">),</span> <span class="s2">&quot;You must specify both force constant matrices in this model.&quot;</span>
-      <span class="k">elif</span> <span class="n">IsZero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+      <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;WARNING: Only one force constant matrix given.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">sameF</span><span class="o">=</span><span class="bp">True</span>
          <span class="k">assert</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s1">&#39;FC&#39;</span><span class="p">),</span> <span class="s2">&quot;You must specify both force constant matrices in this model.&quot;</span>
-      <span class="k">assert</span> <span class="ow">not</span> <span class="n">IsZero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">&quot;ERROR: No force constant matrix given.&quot;</span>
+      <span class="k">assert</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;ERROR: No force constant matrix given.&quot;</span>
       
       <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">Coordinates</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-43'>
+  <div class='section' id='section-38'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-43'>#</a>
+        <a class='octothorpe' href='#section-38'>#</a>
       </div>
       <p>this ugly statement is true if the molecule is just shifted (not rotated or deformed)
 between states. I need to allow for shifts as it seems from looking at 
@@ -708,45 +650,61 @@ Moreover, I allow for very small changes that could occur due to shifting or
 roundoff e.g. when converting units.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> 
-                  <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span><span class="mf">0.00001</span>
-                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">)</span> <span class="p">):</span>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> 
+                  <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">j</span><span class="p">])</span> <span class="o">&lt;</span><span class="mf">0.00001</span>
+                      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">)</span> <span class="p">):</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">Grad</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">Gradient</span><span class="p">()</span> 
       <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">r&quot;gradient&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">Grad</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">Gradient</span><span class="p">()</span> 
-      <span class="k">else</span><span class="p">:</span></pre></div>
+         <span class="bp">self</span><span class="o">.</span><span class="n">Grad</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">Gradient</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-44'>
+  <div class='section' id='section-39'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>self.log.write("gradient in input-format")
+self.log.printVec(self.Grad)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>      <span class="k">else</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
       </div>
       <p>define this for easier syntax in function MOI_reorient
 and Duschinsky.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">Grad</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;difference of minimum energy between states:&#39;</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;adiabatic relaxation energy:&#39;</span>
+                        <span class="s1">&#39; Delta E= {0}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;adiabatic excitation energy:&#39;</span>
                         <span class="s1">&#39; Delta E= {0}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Energy</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Cartesian coordinates of initial state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Cartesian coordinates of final state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
-               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;initial state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Hessian of initial state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;final state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Hessian of final state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-45'>
+  <div class='section' id='section-41'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
+        <a class='octothorpe' href='#section-41'>#</a>
       </div>
       <p>This function creates an .xyz-file for opening e.g. with Chemcraft.</p>
     </div>
@@ -755,10 +713,10 @@ and Duschinsky.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-46'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       <p>It is intended to be called whenever it is likely that the input-states do not
    fit together or harmonic approximation will not hold.
@@ -770,82 +728,81 @@ and Duschinsky.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-47'>
+  <div class='section' id='section-43'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
+        <a class='octothorpe' href='#section-43'>#</a>
       </div>
       <p>first, print the initial state:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="se">\n</span><span class="s2">    inital state</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">))</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])):</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
          <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">    </span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span> <span class="p">)</span></pre></div>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>second, print the final state:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">%d</span><span class="se">\n</span><span class="s2">    final state</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">))</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])):</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
          <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">    </span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span> <span class="p">)</span></pre></div>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span> <span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-45'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-45'>#</a>
       </div>
       <p>finally, print block with both states after another:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">%d</span><span class="se">\n</span><span class="s2">    Both states</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])):</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
          <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">    </span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span> <span class="p">)</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])):</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span> <span class="p">)</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
          <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">    </span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="s2">   </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
-                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span> <span class="p">)</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">,</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span> <span class="p">)</span>
       <span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-46'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
       <p>END OF FUNCTION DEFINITIONS</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre><span class="n">version</span><span class="o">=</span><span class="s1">&#39;0.2.0&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-51'>
+  <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
+        <a class='octothorpe' href='#section-47'>#</a>
       </div>
-      <p>version=0.2.0 <br />
-End of Spect.py</p>
+      <p>End of Spect.py</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>

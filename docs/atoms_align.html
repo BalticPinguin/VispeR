@@ -31,12 +31,14 @@
         <a class='octothorpe' href='#section-1'>#</a>
       </div>
       <h1>CHANGELOG</h1>
+<p>in version 0.1.1:  </p>
 <p>in version 0.1.0:<br />
- 1) Intialised class
+ 1) Intialised class <br />
  2) Corrected shift: take square of mass
     since mass is sqrt(atomic mass). <br />
  3) Corrected apply_change: don't transform the
-    force constant matrix, if gradient is used.</p>
+    force constant matrix, if gradient is used.<br />
+ 4) changed format of self.CartCoord   </p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -48,7 +50,7 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-2'>#</a>
       </div>
-      <p>This class is intended to solve situations where the coordinate systems of initial and</p>
+      <p>This class is intended to solve situations where the coordinate systems of initial and final state</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">class</span> <span class="nc">align_atoms</span><span class="p">():</span></pre></div>
@@ -60,7 +62,7 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
-      <p>final state do not coincide; espacially in Gaussian-files, the coordonates can flip or 
+      <p>do not coincide; espacially in Gaussian-files, the coordonates can flip or 
    change their sign. But also shifts occur often.</p>
 <p>required constants and variables:</p>
     </div>
@@ -78,11 +80,7 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-4'>#</a>
       </div>
-      <p>===PARAMETERS===
-   method: a string; either moi or rmsd that describes, which criterion to
-           use for reorientation of final state.
-   spect:  the self-pointer of the parent class. Via this pointer, most quantities
-           are brought to this class.</p>
+      <p>initialisation of the class: copies the required data to class-members</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">spect</span><span class="p">):</span></pre></div>
@@ -94,7 +92,12 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-5'>#</a>
       </div>
-      
+      <p>and gets the type of manipulation to be performed.</p>
+<p>===PARAMETERS===
+   method: a string; either moi or rmsd that describes, which criterion to
+           use for reorientation of final state.
+   spect:  the self-pointer of the parent class. Via this pointer, most quantities
+           are brought to this class.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="k">if</span> <span class="n">method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;moi&quot;</span><span class="p">,</span> <span class="s2">&quot;MOI&quot;</span><span class="p">]:</span>
@@ -157,10 +160,11 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-9'>#</a>
       </div>
-      <p>This function performs a shift of both states into the center</p>
+      <p>self.log.write("gradient after realignment:")
+self.log.printVec(self.spect.Grad)</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -169,10 +173,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-10'>#</a>
       </div>
-      <p>of mass frame.</p>
+      <p>This function performs a shift of both states into the center</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">COM</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -181,10 +185,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-11'>#</a>
       </div>
-      <p>do for initial and final state:</p>
+      <p>of mass frame.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span></pre></div>
+      <div class="highlight"><pre>      <span class="n">COM</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -193,10 +197,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-12'>#</a>
       </div>
-      <p>loop over coordinates:</p>
+      <p>do for initial and final state:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span></pre></div>
+      <div class="highlight"><pre>      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -205,11 +209,10 @@
       <div class='octowrap'>
         <a class='octothorpe' href='#section-13'>#</a>
       </div>
-      <p>self.spect.mass is the square root of the respective mass.</p>
+      <p>loop over coordinates:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
-            <span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -217,6 +220,20 @@
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>self.spect.mass is the square root of the respective mass.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+               <span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">/=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
       </div>
       <p>now it is Cartesian center of mass</p>
     </div>
@@ -231,22 +248,23 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-15'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-15'>#</a>
-      </div>
-      <p>displacement of molecule into center of mass:</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>            <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">-=</span><span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
   <div class='section' id='section-16'>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+      <p>displacement of molecule into center of mass:</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="o">-=</span><span class="n">COM</span><span class="p">[</span><span class="n">j</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
       </div>
       <p>This function reorients the final state in space such that</p>
     </div>
@@ -255,10 +273,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-17'>
+  <div class='section' id='section-18'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-17'>#</a>
+        <a class='octothorpe' href='#section-18'>#</a>
       </div>
       <p>the moment of inertia frames coincide.
    The function will fail when the order of the moments changes
@@ -272,10 +290,10 @@
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-18'>
+  <div class='section' id='section-19'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-18'>#</a>
+        <a class='octothorpe' href='#section-19'>#</a>
       </div>
       <p>SECOND STEP: Calculate the inertia-system.
 do the following for the initial and final state:</p>
@@ -285,10 +303,10 @@ do the following for the initial and final state:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-19'>
+  <div class='section' id='section-20'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-19'>#</a>
+        <a class='octothorpe' href='#section-20'>#</a>
       </div>
       <p>(MOI: Moment Of Inertia)</p>
     </div>
@@ -297,28 +315,29 @@ do the following for the initial and final state:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-20'>
+  <div class='section' id='section-21'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-20'>#</a>
+        <a class='octothorpe' href='#section-21'>#</a>
       </div>
       <p>loop over coordinates:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]:</span>
-            <span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span>\
-                     <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span>\
-                     <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]))</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
-               <span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">]))</span>
-               <span class="n">MOI</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">k</span><span class="p">]</span></pre></div>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">)):</span>
+               <span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span>\
+                        <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span>\
+                        <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="n">j</span><span class="p">])</span>
+               <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+                  <span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">l</span><span class="p">]</span><span class="o">+=</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="o">*</span><span class="n">k</span><span class="o">+</span><span class="n">l</span><span class="p">])</span>
+                  <span class="n">MOI</span><span class="p">[</span><span class="n">l</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">MOI</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">l</span><span class="p">]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-21'>
+  <div class='section' id='section-22'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-21'>#</a>
+        <a class='octothorpe' href='#section-22'>#</a>
       </div>
       <p>calculate the eigen-system of MOI</p>
     </div>
@@ -327,10 +346,10 @@ do the following for the initial and final state:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-22'>
+  <div class='section' id='section-23'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-22'>#</a>
+        <a class='octothorpe' href='#section-23'>#</a>
       </div>
       <p>sort it such, that the rotation is minimal. Therefore, first check
 that it is not too big; otherwise, this simple code might fail.</p>
@@ -342,10 +361,10 @@ that it is not too big; otherwise, this simple code might fail.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-23'>
+  <div class='section' id='section-24'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-23'>#</a>
+        <a class='octothorpe' href='#section-24'>#</a>
       </div>
       <p>end for i in [0,1].</p>
     </div>
@@ -354,10 +373,10 @@ that it is not too big; otherwise, this simple code might fail.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-24'>
+  <div class='section' id='section-25'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-24'>#</a>
+        <a class='octothorpe' href='#section-25'>#</a>
       </div>
       <p>output on the information gathered above</p>
     </div>
@@ -373,25 +392,25 @@ that it is not too big; otherwise, this simple code might fail.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-26'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       <p>overlap of the moi-systems: gives the rotation of the respective frames
 but is free in sign; correct this in the following:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">O</span><span class="o">=</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> 
+      <div class="highlight"><pre>      <span class="n">O</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> 
 
       <span class="n">rmsdi</span><span class="o">=</span><span class="p">[]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <p>now: test all combinations of signs. criterion is the least square of 
 Cartesian coordinates.</p>
@@ -402,10 +421,10 @@ Cartesian coordinates.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-28'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <p>indeed, this gives all combinations 
 after another...</p>
@@ -416,24 +435,27 @@ after another...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-29'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-29'>#</a>
       </div>
       <p>they give redundant results.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>            <span class="k">continue</span>
-         <span class="n">U</span><span class="o">=</span><span class="n">sign</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">O</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-         <span class="n">rmsdi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">U</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span></pre></div>
+         <span class="n">U</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sign</span><span class="p">,</span><span class="n">O</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+         <span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span> <span class="p">)</span>
+         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">Y</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">U</span>
+         <span class="n">rmsdi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-29'>
+  <div class='section' id='section-30'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
+        <a class='octothorpe' href='#section-30'>#</a>
       </div>
       <p>print  self.RMSD(self.CartCoord[0]-self.CartCoord[1]), self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))</p>
     </div>
@@ -443,10 +465,10 @@ after another...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-30'>
+  <div class='section' id='section-31'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-30'>#</a>
+        <a class='octothorpe' href='#section-31'>#</a>
       </div>
       <p>reassign i </p>
     </div>
@@ -456,10 +478,10 @@ after another...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-31'>
+  <div class='section' id='section-32'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-31'>#</a>
+        <a class='octothorpe' href='#section-32'>#</a>
       </div>
       <p>no rotation into MOI-frame should be done because initial 
 geometry is the best. This is the case especially, if there
@@ -470,10 +492,10 @@ are (almost) degenerate moments of intertia.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-32'>
+  <div class='section' id='section-33'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
+        <a class='octothorpe' href='#section-33'>#</a>
       </div>
       <p>recover the sing-combination with least squares:</p>
     </div>
@@ -491,14 +513,14 @@ are (almost) degenerate moments of intertia.</p>
       <span class="n">sign</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
          <span class="n">sign</span><span class="p">[</span><span class="nb">int</span><span class="p">((</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">)][</span><span class="nb">int</span><span class="p">((</span><span class="n">j</span><span class="o">//</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">)]</span><span class="o">*=-</span><span class="mi">1</span>
-      <span class="n">U</span><span class="o">=</span><span class="n">sign</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">O</span><span class="p">)</span></pre></div>
+      <span class="n">U</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sign</span><span class="p">,</span><span class="n">O</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-33'>
+  <div class='section' id='section-34'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-34'>#</a>
       </div>
       <p>apply this combination to coordinates of final state</p>
     </div>
@@ -507,10 +529,10 @@ are (almost) degenerate moments of intertia.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-34'>
+  <div class='section' id='section-35'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
+        <a class='octothorpe' href='#section-35'>#</a>
       </div>
       <p>finally: print what is done.</p>
     </div>
@@ -520,21 +542,9 @@ are (almost) degenerate moments of intertia.</p>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="n">U</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Coordinates after manipulation: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Cartesian coordinates of initial state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Cartesian coordinates of final state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-35'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
-      </div>
-      <p>This function applies the rotation matrix U to the coordinates</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">apply_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span></pre></div>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -543,12 +553,10 @@ are (almost) degenerate moments of intertia.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-36'>#</a>
       </div>
-      <p>of final staten and generates a matrix to rotate the Hessian
-   and gradient (if given) as well.
-   This function is only needed by RMSD_reorient and MOI_reorient.</p>
+      <p>This function applies the rotation matrix U to the coordinates</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">U</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></pre></div>
+      <div class="highlight"><pre>   <span class="k">def</span> <span class="nf">apply_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">U</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -557,18 +565,13 @@ are (almost) degenerate moments of intertia.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-37'>#</a>
       </div>
-      <p>print information on the manipulation conducted:</p>
+      <p>of final staten and generates a matrix to rotate the Hessian
+   and gradient (if given) as well.
+   This function is only needed by RMSD_reorient and MOI_reorient.</p>
+<p>apply it</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Rotation matrix for final state:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="n">U</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;RMSD-value after rotation: </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
-
-
-      <span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span> <span class="p">)</span>
-      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
-         <span class="n">Y</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">U</span></pre></div>
+      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">U</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -577,10 +580,12 @@ are (almost) degenerate moments of intertia.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-38'>#</a>
       </div>
-      <p>apply the respective rotation:</p>
+      <p>apply the respective rotation to gradient or Hessian as well:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">Grad</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">Grad</span><span class="p">))):</span></pre></div>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">Grad</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">Grad</span><span class="p">))):</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">Grad</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">U</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">Grad</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -589,17 +594,12 @@ are (almost) degenerate moments of intertia.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-39'>#</a>
       </div>
-      <p>temp=np.zeros( (3,len(self.spect.Grad)//3) )
-for i in [0,1,2]:
-   for j in range(len(temp)):
-      temp[i][j]=self.spect.Grad[j<em>3+i]
-temp=U.dot(temp)
-for i in [0,1,2]:
-   for j in range(len(temp)):
-      self.spect.Grad[j</em>3+i]=temp[i][j]</p>
+      <p>if there is a gradient given, only one force constant matrix is used. 
+In that case, no transformation should be conducted because it will
+be given in the initial state.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">U</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="n">U</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -608,13 +608,13 @@ for i in [0,1,2]:
       <div class='octowrap'>
         <a class='octothorpe' href='#section-40'>#</a>
       </div>
-      <p>self.spect.Grad=Y.dot(self.spect.Grad)</p>
+      <p>print information on the manipulation conducted:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">Grad</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">U</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">Grad</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">])</span>
-
-      <span class="k">else</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Rotation matrix for final state:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="n">U</span><span class="p">[:</span><span class="mi">3</span><span class="p">,:</span><span class="mi">3</span><span class="p">])</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;RMSD-value after rotation: </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -623,20 +623,6 @@ for i in [0,1,2]:
       <div class='octowrap'>
         <a class='octothorpe' href='#section-41'>#</a>
       </div>
-      <p>if there is a gradient given, only one force constant matrix is used. 
-In that case, no transformation should be conducted because it will
-be given in the initial state.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spect</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span><span class="n">Y</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-42'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-42'>#</a>
-      </div>
       <p>This function reorients the final state in space such that</p>
     </div>
     <div class='code'>
@@ -644,10 +630,10 @@ be given in the initial state.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-43'>
+  <div class='section' id='section-42'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-43'>#</a>
+        <a class='octothorpe' href='#section-42'>#</a>
       </div>
       <p>the moment of inertia of coordinates is minimized.
    I assume that there might be coordinate flips and/or switches
@@ -659,10 +645,10 @@ be given in the initial state.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-44'>
+  <div class='section' id='section-43'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-44'>#</a>
+        <a class='octothorpe' href='#section-43'>#</a>
       </div>
       <p>test all combinations of signs. and permutations:</p>
     </div>
@@ -672,10 +658,10 @@ be given in the initial state.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-45'>
+  <div class='section' id='section-44'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-45'>#</a>
+        <a class='octothorpe' href='#section-44'>#</a>
       </div>
       <p>loop over all permutations:</p>
     </div>
@@ -685,10 +671,10 @@ be given in the initial state.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-46'>
+  <div class='section' id='section-45'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-46'>#</a>
+        <a class='octothorpe' href='#section-45'>#</a>
       </div>
       <p>for cyclic permutations</p>
     </div>
@@ -697,10 +683,10 @@ be given in the initial state.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-47'>
+  <div class='section' id='section-46'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-47'>#</a>
+        <a class='octothorpe' href='#section-46'>#</a>
       </div>
       <p>for cyclic ones, this works...</p>
     </div>
@@ -710,10 +696,10 @@ be given in the initial state.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-48'>
+  <div class='section' id='section-47'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-48'>#</a>
+        <a class='octothorpe' href='#section-47'>#</a>
       </div>
       <p>for anti-cyclic permutations</p>
     </div>
@@ -722,10 +708,10 @@ be given in the initial state.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-49'>
+  <div class='section' id='section-48'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-49'>#</a>
+        <a class='octothorpe' href='#section-48'>#</a>
       </div>
       <p>for cyclic ones, this works...</p>
     </div>
@@ -736,10 +722,10 @@ be given in the initial state.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-50'>
+  <div class='section' id='section-49'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-50'>#</a>
+        <a class='octothorpe' href='#section-49'>#</a>
       </div>
       <p>loop over all sing-combinations.
 indeed, this gives all combinations 
@@ -751,16 +737,35 @@ after another...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-51'>
+  <div class='section' id='section-50'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-51'>#</a>
+        <a class='octothorpe' href='#section-50'>#</a>
       </div>
       <p>they give redundant results.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>               <span class="k">continue</span>
-            <span class="n">U</span><span class="o">=</span><span class="n">sign</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">O</span><span class="p">)</span></pre></div>
+            <span class="n">U</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">sign</span><span class="p">,</span><span class="n">O</span><span class="p">)</span>
+            <span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span> <span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+               <span class="n">Y</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">U</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">rotated</span><span class="p">)</span> <span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-51'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-51'>#</a>
+      </div>
+      <p>if the current combination is the best, save it.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>               <span class="n">U_min</span><span class="o">=</span><span class="n">U</span>
+               <span class="n">Y_min</span><span class="o">=</span><span class="n">Y</span>
+               <span class="n">rotated</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y_min</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+      <span class="k">try</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -769,10 +774,12 @@ after another...</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-52'>#</a>
       </div>
-      <p>print np.shape(rotated) ,np.shape(self.CartCoord[0]), np.shape(U.dot(self.CartCoord[1]))</p>
+      <p>if U_min is known: coordinate system changed.
+This change is applied to the other quantities as well:</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">rotated</span><span class="p">)</span> <span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">U</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span></pre></div>
+      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">apply_change</span><span class="p">(</span><span class="n">Y_min</span><span class="p">)</span>
+      <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -781,11 +788,10 @@ after another...</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-53'>#</a>
       </div>
-      <p>if the current combination is the best, save it.</p>
+      <p>do nothing</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>               <span class="n">U_min</span><span class="o">=</span><span class="n">U</span>
-               <span class="n">rotated</span><span class="o">=</span><span class="n">U_min</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></pre></div>
+      <div class="highlight"><pre>         <span class="n">U</span><span class="o">=</span><span class="mi">0</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -794,10 +800,12 @@ after another...</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-54'>#</a>
       </div>
-      <p>print self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))</p>
+      <p>THIRD STEP: follow some Monte Carlo scheme.
+comparatively small angles. Do 200 steps.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="k">try</span><span class="p">:</span></pre></div>
+      <div class="highlight"><pre>      <span class="n">U</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -805,46 +813,6 @@ after another...</p>
     <div class='docs'>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-55'>#</a>
-      </div>
-      <p>if U_min is known: coordinate system changed.
-This change is applied to the other quantities as well:</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">apply_change</span><span class="p">(</span><span class="n">U_min</span><span class="p">)</span>
-      <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-56'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-56'>#</a>
-      </div>
-      <p>do nothing</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="n">U</span><span class="o">=</span><span class="mi">0</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-57'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-57'>#</a>
-      </div>
-      <p>THIRD STEP: follow some Monte Carlo scheme.
-comparatively small angles. Do 200 steps.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>      <span class="n">U</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">):</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-58'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-58'>#</a>
       </div>
       <p>chose some angle:
 for every level: do 5 tests and the refine the search...</p>
@@ -854,10 +822,10 @@ for every level: do 5 tests and the refine the search...</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-59'>
+  <div class='section' id='section-56'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-59'>#</a>
+        <a class='octothorpe' href='#section-56'>#</a>
       </div>
       <p>a rotation-matrix with small rotations:</p>
     </div>
@@ -874,29 +842,32 @@ for every level: do 5 tests and the refine the search...</p>
             <span class="n">R_z</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">nu</span><span class="p">),</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">nu</span><span class="p">),</span><span class="mi">0</span><span class="p">],</span>
                   <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">nu</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">nu</span><span class="p">),</span><span class="mi">0</span><span class="p">],</span>
                   <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-            <span class="n">R</span><span class="o">=</span><span class="n">R_x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">R_y</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">R_z</span><span class="p">)</span>
-            <span class="n">test</span><span class="o">=</span><span class="n">R</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">U</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">U</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">test</span><span class="p">):</span></pre></div>
+            <span class="n">R</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">R_x</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">R_y</span><span class="p">,</span><span class="n">R_z</span><span class="p">))</span>
+            <span class="n">Y</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span> <span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="o">//</span><span class="mi">3</span><span class="p">):</span>
+               <span class="n">Y</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span><span class="o">=</span><span class="n">R</span>
+            <span class="n">test</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">U</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span><span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">RMSD</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">test</span><span class="p">):</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-60'>
+  <div class='section' id='section-57'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-60'>#</a>
+        <a class='octothorpe' href='#section-57'>#</a>
       </div>
       <p>if it gets better: apply the change.
 self.CartCoord[1]=test</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>               <span class="n">U</span><span class="o">=</span><span class="n">R</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">U</span><span class="p">)</span></pre></div>
+      <div class="highlight"><pre>               <span class="n">U</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-61'>
+  <div class='section' id='section-58'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-61'>#</a>
+        <a class='octothorpe' href='#section-58'>#</a>
       </div>
       <p>FOURTH STEP: apply the rotation.</p>
     </div>
@@ -905,10 +876,10 @@ self.CartCoord[1]=test</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-62'>
+  <div class='section' id='section-59'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-62'>#</a>
+        <a class='octothorpe' href='#section-59'>#</a>
       </div>
       <p>finally: print what is done.</p>
     </div>
@@ -916,16 +887,16 @@ self.CartCoord[1]=test</p>
       <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Coordinates after manipulation: </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Cartesian coordinates of initial state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span>
          <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;Cartesian coordinates of final state: </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printMat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span></pre></div>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Angs2Bohr</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-63'>
+  <div class='section' id='section-60'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-63'>#</a>
+        <a class='octothorpe' href='#section-60'>#</a>
       </div>
       <p>This function calculates the RMSD of a matrix (intended</p>
     </div>
@@ -934,41 +905,39 @@ self.CartCoord[1]=test</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-64'>
+  <div class='section' id='section-61'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-64'>#</a>
+        <a class='octothorpe' href='#section-61'>#</a>
       </div>
       <p>for self.CartCoords)</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="n">rmsd</span><span class="o">=</span><span class="mi">0</span>
       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Delta</span><span class="p">)):</span>
-         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Delta</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
-            <span class="n">rmsd</span><span class="o">+=</span><span class="n">Delta</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">Delta</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+         <span class="n">rmsd</span><span class="o">+=</span><span class="n">Delta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">Delta</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
       <span class="k">return</span> <span class="n">rmsd</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-65'>
+  <div class='section' id='section-62'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-65'>#</a>
+        <a class='octothorpe' href='#section-62'>#</a>
       </div>
       <p>END OF FUNCTION DEFINITIONS</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre><span class="n">version</span><span class="o">=</span><span class="s1">&#39;0.1.1&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-66'>
+  <div class='section' id='section-63'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-66'>#</a>
+        <a class='octothorpe' href='#section-63'>#</a>
       </div>
-      <p>version=0.1<br />
-End of atoms_align.py</p>
+      <p>End of atoms_align.py</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
