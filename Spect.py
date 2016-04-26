@@ -79,9 +79,9 @@ class  Spect:
       the energy, geometry,frequencies,...
    """
    # Below are the conversion factors and fundamental constant
-   AMU2au=1822.88839                                          
-   Angs2Bohr=1/0.52917721092                                  
-   Hartree2GHz=6.579684e6                                     
+   AMU2au=1822.88839 
+   Angs2Bohr=1/0.52917721092
+   Hartree2GHz=6.579684e6   
    Hartree2cm_1=219474.63 
    
    # BEGIN OF DATA-DEF.
@@ -171,6 +171,13 @@ class  Spect:
       else:
          self.T=float(self.T[-1])
       self.T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
+
+      if re.search(r"vertical energy:", self.opt, re.M) is not None:
+         self.Energy[0]=1.
+         self.Energy[1]=1.+float(re.findall(r"(?<=vertical energy:)[\d\- .]+", self.opt, re.M)[0])/self.Hartree2cm_1
+      elif re.search(r"adiabatic energy:", self.opt, re.M) is not None:
+         self.Energy[0]=1.
+         self.Energy[1]=1.+float(re.findall(r"(?<=adiabatic energy:)[\d\- .]+", self.opt, re.M)[0])/self.Hartree2cm_1
       
       if (re.search(r"(?<=width=)[\d .]+", self.opt, re.M)) is not None:
          self.log.width=int(re.findall(r"(?<=width=)[\d .]+", self.opt, re.M)[-1])
@@ -239,7 +246,8 @@ class  Spect:
       """ 
       #read coordinates, force constant, binding energies from log-files and 
       # from the file, using the type of file that is known now...
-      self.Energy[0], self.Energy[1]=self.reader.Energy()
+      if self.Energy[0]==0:
+         self.Energy[0], self.Energy[1]=self.reader.Energy()
       
       self.mass=self.reader.mass()
       if np.any(self.mass[0]==0):
