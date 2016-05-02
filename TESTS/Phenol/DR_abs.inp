@@ -1,0 +1,6 @@
+final: excited.nwo
+initial: ground.nwo
+out: DR_absa.log
+model URDR
+opt: print=0 T=300.001 HRthreshold=0.001 states=8 modes=12
+broaden: gamma=25, grid=14000, spectfile=DR_absa.spe shape=g

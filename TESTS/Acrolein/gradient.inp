@@ -1,0 +1,6 @@
+initial: t1-freq.fchk
+final: gradient.fchk  
+out: gradient.log
+model FC
+opt: print=0 T=3.000
+broaden: grid=80000, to nPA: 50  spectfile=gradient.spe, gamma=50 shape=g

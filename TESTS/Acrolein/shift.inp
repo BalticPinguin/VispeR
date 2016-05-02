@@ -1,0 +1,6 @@
+initial: t1-freq.fchk
+final: s0-freq.fchk
+out: shift.log
+model FC
+opt: print=0 T=3.000
+broaden: grid=80000, to nPA: 7 spectfile=shift.spe, gamma=50 shape=g

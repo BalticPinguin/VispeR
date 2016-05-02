@@ -1,0 +1,6 @@
+initial: ground_freq.g09.log
+final: excited_freqg.g09.log
+out: FC_fluor.log
+model FC
+opt: print=0 T=300.001 HRthreshold=0.001 
+broaden: to nPA:3 gamma=60, grid=14000, spectfile=FC_fluor.spe shape=g stick

@@ -1,0 +1,10 @@
+%nproc=8
+%mem=1000MB
+%chk=S1.chk
+
+#P Geom=AllCheck Freq=(ReadFC,FC,SaveNM,ReadFCHT) NoSymm
+
+EMISSION PRTMAT=1 SPECHWHM=50. SPECRES=10.
+
+S0.chk
+

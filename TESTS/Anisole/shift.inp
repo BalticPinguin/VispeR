@@ -1,0 +1,6 @@
+initial: S0.FChk
+final: S1.FChk
+out: shift_test_a.log
+opt HRthreshold=0.0001 print=0 T=0.015
+model FC
+broaden: to nPA: 5, gamma=2.5, grid=12400;-49190;-47990, spectfile=shift_test_a.spe shape=g, stick
