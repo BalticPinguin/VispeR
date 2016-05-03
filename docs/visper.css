@@ -33,7 +33,7 @@ h1{
    line-height: 55px;
    font-variant:small-caps;
    font-weight: normal;
-   text-decoration: underline
+   #text-decoration: underline;
    text-rendering: optimizeLegibility;
    margin: 8px auto;
    border-bottom: 1px solid black;
@@ -44,11 +44,12 @@ h2{
    text-transform: uppercase;
    font-family: Antiqua,"Agency FB";
    font-style: normal;
-   font-size: 22px;
-   line-height: 35px;
+   font-size: 21px;
+   line-height: 40px;
    font-variant:small-caps;
    font-weight: normal;
    text-rendering: optimizeLegibility;
+   margin: 8px auto;
 }
 h3{
    margin-left: 45px;
