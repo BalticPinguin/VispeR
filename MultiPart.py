@@ -98,11 +98,11 @@ class OPAtoNPA:
             nwemode=[]
             # here a parallelisation can be done. Just need some library for that.
             for k in range(len(oldmode[0])): # go through whole range of states ...
-               tempmode=oldmode[:].T[k]
+               tempmode=oldmode[:,k]
                if tempmode==[0]:
                   # that means, if mode[:].T[k] contains 0-0 transition
                   continue
-               tmpmode=mode[:].T[i]
+               tmpmode=mode[:,i]
                if tmpmode==[]:
                   continue
                if not allnonzero(tmpmode):
