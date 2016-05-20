@@ -77,32 +77,26 @@ class OPAtoNPA:
                return False
          return True
       
-      def putN(intens, freq, mode):
+      def putN(intens, freq, mode, n):
          """Function wrapper for the C-function that calculates the combination transition
             energies. I expect a large speedup and some spare memory from this construction.
          """
          # add the corresponding C-libraries:
          #LIBRARY_PATH = './putN.so'
          lib = C.CDLL('/home/tm162/bin/smallscript/libputN.so')
-         # define the structs needed:
-      #   class transition(Structure):
-      #         _fields_ = [('intens',c_double ),
-      #                  ('freq', c_double),
-      #                  ('mode', c_double)]
-      #   class Spect(Structure):
-      #         _fields_ = [('trans', transition)]
-      #   # call the function:
-      #   opa = Spect(intens.ctypes.data, freq.ctypes.data, mode.ctypes.data)
-      #   return putN( byref(opa), self.n)
          length= C.c_int(len(intens))
-         TPA= lib.putN( intens.C.data_as(C.POINTER(C.c_double)), 
-                      freq.C.data_as(C.POINTER(C.c_double)), 
-                      mode.C.data_as(C.POINTER(C.c_int)),
-                      C.c_int(n),length)
-
+         print freq
+         print freq.ctypes.data_as(C.POINTER(C.c_double))[0]
+         TPA=lib.putN( intens.ctypes.data_as(C.POINTER(C.c_double)), 
+                      freq.ctypes.data_as(C.POINTER(C.c_double)), 
+                      mode.ctypes.data_as(C.POINTER(C.c_int)),
+                      C.c_int(int(n)),length)
          TPAintens=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[0]
          TPAfreq=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[1]
-         return TPAintens, TPAfreq
+         print TPA.ctypes.data_as(C.POINTER(C.c_double))[0][0]
+         print freq[0]
+
+         return intens, freq
 
       length=len(self.frequency)
       freq00=self.frequency[ind00]
@@ -118,9 +112,9 @@ class OPAtoNPA:
          #save complexity, that it does not try to make more combinations 
          # than actually possible...
       
-      PAfreq, TPAintens=putN(self.intensity, self.frequency, self.mode)
+      TPAfreq, TPAintens=putN(self.intensity, self.frequency, self.mode, self.n)
 
-      TPAfreq, TPAintens=putN( byref(opa), self.n)
+      #TPAfreq, TPAintens=putN( byref(opa), self.n)
       for i in xrange(len(TPAfreq)):
          TPAfreq[i]+=freq00
          TPAintens[i]*=intens00
