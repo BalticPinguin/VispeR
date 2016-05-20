@@ -1,9 +1,13 @@
 #!/usr/bin/python2
 # filename: MultiPart.py
 import numpy as np
+import ctypes as C
 
 # CHANGELOG
 # =========
+#to version 0.2.0:  
+#   a) add ctypes library to make OPA2nPA more efficient
+#
 #to version 0.1.0:  
 #   a) fixed error with self.function and self.n
 #   b) added some documentation
@@ -72,85 +76,51 @@ class OPAtoNPA:
             if foo==0:
                return False
          return True
- 
-      def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
-         """ This function does the most calculation that is the iteration to 
-             the next number of particles
-             therefor it is highly optimised into C
+      
+      def putN(intens, freq, mode):
+         """Function wrapper for the C-function that calculates the combination transition
+            energies. I expect a large speedup and some spare memory from this construction.
          """
-         newintens=[]
-         newfreq=[]
+         # add the corresponding C-libraries:
+         #LIBRARY_PATH = './putN.so'
+         lib = C.CDLL('/home/tm162/bin/smallscript/libputN.so')
+         # define the structs needed:
+      #   class transition(Structure):
+      #         _fields_ = [('intens',c_double ),
+      #                  ('freq', c_double),
+      #                  ('mode', c_double)]
+      #   class Spect(Structure):
+      #         _fields_ = [('trans', transition)]
+      #   # call the function:
+      #   opa = Spect(intens.ctypes.data, freq.ctypes.data, mode.ctypes.data)
+      #   return putN( byref(opa), self.n)
+         length= C.c_int(len(intens))
+         TPA= lib.putN( intens.C.data_as(C.POINTER(C.c_double)), 
+                      freq.C.data_as(C.POINTER(C.c_double)), 
+                      mode.C.data_as(C.POINTER(C.c_int)),
+                      C.c_int(n),length)
 
-         for i in xrange(len(intens)):
-            intensi=intens[i]
-            if intensi<5e-6: # only use this if the intensity is reasonably high
-               continue
-            newintens.append(intensi) #this is OPA-part
-            freqi=freq[i]
-            newfreq.append(freqi)
+         TPAintens=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[0]
+         TPAfreq=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[1]
+         return TPAintens, TPAfreq
 
-            if n<=1:
-               continue 
-               #this saves creating new objects and running through loops without having results
-            tmpintens=[]
-            tmpfreq=[]
-            newmode=[]
-            nwemode=[]
-            # here a parallelisation can be done. Just need some library for that.
-            for k in range(len(oldmode[0])): # go through whole range of states ...
-               tempmode=oldmode[:].T[k]
-               if tempmode==[0]:
-                  # that means, if mode[:].T[k] contains 0-0 transition
-                  continue
-               tmpmode=mode[:].T[i]
-               if tmpmode==[]:
-                  continue
-               if not allnonzero(tmpmode):
-                  continue
-               if tempmode<=np.max(tmpmode):
-                  #avoid for multiple changes in one mode (=)
-                  # and for double counts of equal transitions (<)
-                  continue
-               foo=newmode # don't touch this black magic; it's working!!
-               foo.append(tmpmode) # don't touch this black magic; it's working!!
-               newmode=foo # don't touch this black magic; it's working!!
-               nwemode.append(tempmode)
-               tmpintens.append(OPAintens[k]*intensi)
-               tmpfreq.append(OPAfreq[k]+freqi)
-            if len(tmpintens)>0:
-               xmode=newmode
-               if np.shape(xmode)[1]>=2:
-                  xmode=np.matrix(xmode).T
-                  nmode=np.zeros(( len(xmode)+1, len(xmode.T) ))
-	          for i in range(len(nwemode)):
-                     nmode[:-1,i]=xmode[:,i].T
-                     nmode[-1][i]=nwemode[i]
-               else:
-                  nmode=np.zeros(( 2 , len(xmode) ))
-	          for i in range(len(xmode)):
-		     nmode[0][i]=xmode[i]
-		     nmode[1][i]=nwemode[i]
-               freq2, intens2=putN(i, n-1, tmpintens, tmpfreq, nmode, OPAintens, OPAfreq, oldmode)
-               for k in range(len(intens2)):
-                  newintens.append(intens2[k])
-                  newfreq.append(freq2[k])
-         return np.array(newfreq), np.array(newintens)
-           
       length=len(self.frequency)
       freq00=self.frequency[ind00]
       intens00=self.intensity[ind00]
       for i in range(length):
          self.frequency[i]-=freq00
          self.intensity[i]/=intens00
-      newmode=np.zeros((1,len(self.mode))) #for n>1: matrix-structure needed
-      newmode[0]=self.mode
+      #newmode=np.zeros((1,len(self.mode))) #for n>1: matrix-structure needed
+      #newmode[0]=self.mode
       x=self.mode.max()
       if self.n>x:
          self.n=x
          #save complexity, that it does not try to make more combinations 
          # than actually possible...
-      #np.set_printoptions(precision=5, linewidth=138)
-      TPAfreq, TPAintens=putN(-1, self.n, self.intensity, self.frequency, newmode, self.intensity, self.frequency, newmode)
+      
+      PAfreq, TPAintens=putN(self.intensity, self.frequency, self.mode)
+
+      TPAfreq, TPAintens=putN( byref(opa), self.n)
       for i in xrange(len(TPAfreq)):
          TPAfreq[i]+=freq00
          TPAintens[i]*=intens00
@@ -322,5 +292,5 @@ class OPAtoNPA:
    # DEFINITION OF FUNCTIONS END
    # end of class definition.
 
-version='0.1.0'  
+version='0.2.0'  
 # End of MultiPart.py
