@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -6,6 +7,7 @@ using namespace std;
 extern "C" {
 #endif
 unsigned int putN( double* intens, double* freq, int* mode, unsigned int n, unsigned int len);
+//double** putN( double* intens, double* freq, int* mode, unsigned int n, unsigned int len);
 #ifdef __cplusplus
 }
 #endif
@@ -20,9 +22,9 @@ struct Spect{
    vector<transition> trans;
 
    unsigned int n(unsigned int i){return trans[i].mode.size();}
-   unsigned int size(){ return trans.size();}
+   unsigned int size(){return trans.size();}
    void add(transition newtrans){
-      trans.push_back(newtrans);
+      this->trans.push_back(newtrans);
    }
    transition operator()(unsigned int i){
      return trans[i];
@@ -46,21 +48,21 @@ Spect putN2( Spect opa, unsigned int n){
    // parallelise this loop:
    #pragma omp parallel for
    for( unsigned int i=0; i<opa.size(); i++){
-      if (opa.trans[i].intens<5e-6)
+      if (opa(i).intens<5e-6)
          continue;
       // be carefull that only one process writes at the same time
       #pragma omp critical
-      {npa.add(npa(i));}
+      npa.add(opa(i));
       if (n<1)
          continue;
       Spect tempSpect;
       transition tempTrans;
-      for(unsigned int j=0; i<opa.size(); i++){
+      for(unsigned int j=0; j<opa.size(); j++){
          // add all possible combinations with previously computed
          if (opa.n(j)>1)
             // if transition j is already a combination transition
             continue;
-         if (min(opa.trans[j].mode)==0)
+         if (min(opa(j).mode)==0)
             //no combinations with 0-0 transitions
             continue;
          for(unsigned int k=0; k<opa.n(i); k++){
@@ -106,13 +108,13 @@ unsigned int putN( double* intens, double* freq, int* mode, unsigned int n, unsi
       trans.mode[0]=mode[i];
       opa.add(trans);
    }
-   delete [] intens; 
-   delete [] freq;
    // calculate n-particle spectrum:
    Spect npa=putN2(opa, n);
    len=npa.size();
-   intens= new double[len]; 
-   freq= new double[len]; 
+   //---> this is memory-magic. One should not do it this way!
+   intens=(double*) realloc(intens,len*sizeof(double));
+   freq=(double*) realloc(freq, len*sizeof(double));
+   //NPA[3][0]=len; // I want to have information on length as well.
    for(unsigned int i=0; i<len; i++){
       intens[i]=npa.trans[i].intens;
       freq[i]=npa.trans[i].freq;

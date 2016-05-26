@@ -85,17 +85,28 @@ class OPAtoNPA:
          #LIBRARY_PATH = './putN.so'
          lib = C.CDLL('/home/tm162/bin/smallscript/libputN.so')
          length= C.c_int(len(intens))
-         print freq
-         print freq.ctypes.data_as(C.POINTER(C.c_double))[0]
-         TPA=lib.putN( intens.ctypes.data_as(C.POINTER(C.c_double)), 
-                      freq.ctypes.data_as(C.POINTER(C.c_double)), 
-                      mode.ctypes.data_as(C.POINTER(C.c_int)),
-                      C.c_int(int(n)),length)
-         TPAintens=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[0]
-         TPAfreq=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[1]
-         print TPA.ctypes.data_as(C.POINTER(C.c_double))[0][0]
-         print freq[0]
-
+         #leng=lib.putN( intens.ctypes.data_as(C.POINTER(C.c_double)), 
+         #             freq.ctypes.data_as(C.POINTER(C.c_double)), 
+         #             mode.ctypes.data_as(C.POINTER(C.c_int)),
+         #             C.c_int(int(n)),length)
+         #print TPA
+         #TPAintens=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[0]
+         #TPAfreq=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[1]
+         #print TPA.ctypes.data_as(C.POINTER(C.c_double))[0][0]
+         i=intens.ctypes.data_as(C.POINTER(C.c_double))
+         f=freq.ctypes.data_as(C.POINTER(C.c_double))
+         m=mode.ctypes.data_as(C.POINTER(C.c_double))
+         print f
+         print f[5]
+         leng=lib.putN( i, f, m,
+                      C.c_int(int(n)), length)
+         print "deine Mudda!"
+         print f[5]
+         print f
+         print leng
+         freq=np.ctypeslib.as_array((C.c_double*leng).from_address(C.addressof(f.contents)))
+         intens=np.ctypeslib.as_array((C.c_double*leng).from_address(C.addressof(i.contents)))
+         #intens=np.ctypeslib.as_array(i)
          return intens, freq
 
       length=len(self.frequency)
