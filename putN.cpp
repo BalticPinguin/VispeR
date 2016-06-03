@@ -1,4 +1,5 @@
 #include <vector>
+#include <stdlib.h>
 #include <iostream>
 
 using namespace std;
@@ -6,7 +7,9 @@ using namespace std;
 #ifdef __cplusplus
 extern "C" {
 #endif
-unsigned int putN( double* intens, double* freq, int* mode, unsigned int n, unsigned int len);
+//void putN( double*, double*, double* , double**, double** , unsigned int, unsigned int*);
+void putN(int* length, double** intens, double** freq, double** mode, int n);
+void test(int *size, double **out1, double **out2);
 //double** putN( double* intens, double* freq, int* mode, unsigned int n, unsigned int len);
 #ifdef __cplusplus
 }
@@ -96,13 +99,16 @@ Spect putN2( Spect opa, unsigned int n){
    return npa;
 }
 
-unsigned int putN( double* intens, double* freq, int* mode, unsigned int n, unsigned int len){
+void putN3( double* intens, double* freq, double* mode,
+           double** npa_i, double** npa_f, unsigned int n, unsigned int* leng){
    // set-up new variables
    Spect opa;
+   unsigned int length = *leng ;
+   std::cout<<length<<std::endl;
    transition trans;
    trans.mode.resize(1);
    // add given quantities into structures needed here:
-   for(unsigned int i=0; i<len; i++){
+   for(unsigned int i=0; i<length; i++){
       trans.intens=intens[i];
       trans.freq=freq[i];
       trans.mode[0]=mode[i];
@@ -110,19 +116,67 @@ unsigned int putN( double* intens, double* freq, int* mode, unsigned int n, unsi
    }
    // calculate n-particle spectrum:
    Spect npa=putN2(opa, n);
-   len=npa.size();
-   //---> this is memory-magic. One should not do it this way!
-   intens=(double*) realloc(intens,len*sizeof(double));
-   freq=(double*) realloc(freq, len*sizeof(double));
-   //NPA[3][0]=len; // I want to have information on length as well.
-   for(unsigned int i=0; i<len; i++){
-      intens[i]=npa.trans[i].intens;
-      freq[i]=npa.trans[i].freq;
+   length=npa.size();
+   
+   double* npa_int, * npa_fre ;
+   npa_int = (double*)malloc(sizeof(double) * length);
+   npa_fre = (double*)malloc(sizeof(double) * length);
+   for(unsigned int i=0; i<length; i++){
+      npa_int[i]=npa.trans[i].intens;
+      npa_fre[i]=npa.trans[i].freq;
    }
-   return len;
-   // how can i free the memeory of spectrum? --> is there an implicit descructor?
+   *leng=length;
+   *npa_i = npa_int;
+   *npa_f = npa_fre;
 }
 
-int main(){
-   return 0;
+void putN( int* length, double** intens, double** freq, double** mode, int n){
+   // set-up new variables
+   Spect opa;
+   unsigned int leng = *length ;
+   double* opa_int = *intens;
+   double* opa_fre = *freq;
+   double* opa_mod = *mode;
+   transition trans;
+   trans.mode.resize(1);
+   // add given quantities into structures needed here:
+   for(unsigned int i=0; i<leng; i++){
+      trans.intens=opa_int[i];
+      trans.freq=opa_fre[i];
+      trans.mode[0]=opa_mod[i];
+      opa.add(trans);
+   }
+   // calculate n-particle spectrum:
+   Spect npa=putN2(opa, n);
+   leng=npa.size();
+   
+   double* npa_int, * npa_fre ;
+   npa_int = (double*)malloc(sizeof(double) * leng);
+   npa_fre = (double*)malloc(sizeof(double) * leng);
+   for(unsigned int i=0; i<leng; i++){
+      npa_int[i]=npa.trans[i].intens;
+      npa_fre[i]=npa.trans[i].freq;
+   }
+   *length=leng;
+   *intens=npa_int;
+   *freq = npa_fre;
 }
+
+void test(int *size, double **out1, double **out2) {
+    int i;
+    * size=10;
+    double *data1, *data2;
+    data1 = (double *)malloc(sizeof(double) * *size);
+    data2 = (double *)malloc(sizeof(double) * *size);
+    for (i = 0; i < *size; i++){
+        data1[i] = i;
+        data2[i] = i * 2;
+    }
+    //*size = N;
+    *out1 = data1;
+    *out2 = data2;
+}
+
+//int main(){
+   //return 0;
+//}

@@ -84,29 +84,26 @@ class OPAtoNPA:
          # add the corresponding C-libraries:
          #LIBRARY_PATH = './putN.so'
          lib = C.CDLL('/home/tm162/bin/smallscript/libputN.so')
+         #lib.putN.restype=C.POINTER(ctypes.c_int)
          length= C.c_int(len(intens))
-         #leng=lib.putN( intens.ctypes.data_as(C.POINTER(C.c_double)), 
-         #             freq.ctypes.data_as(C.POINTER(C.c_double)), 
-         #             mode.ctypes.data_as(C.POINTER(C.c_int)),
-         #             C.c_int(int(n)),length)
-         #print TPA
-         #TPAintens=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[0]
-         #TPAfreq=np.array(np.fromiter(TPA, dtype=np.float64, count=length))[1]
-         #print TPA.ctypes.data_as(C.POINTER(C.c_double))[0][0]
-         i=intens.ctypes.data_as(C.POINTER(C.c_double))
-         f=freq.ctypes.data_as(C.POINTER(C.c_double))
-         m=mode.ctypes.data_as(C.POINTER(C.c_double))
-         print f
-         print f[5]
-         leng=lib.putN( i, f, m,
-                      C.c_int(int(n)), length)
-         print "deine Mudda!"
-         print f[5]
-         print f
-         print leng
-         freq=np.ctypeslib.as_array((C.c_double*leng).from_address(C.addressof(f.contents)))
-         intens=np.ctypeslib.as_array((C.c_double*leng).from_address(C.addressof(i.contents)))
-         #intens=np.ctypeslib.as_array(i)
+
+         opa_i=intens.ctypes.data_as(C.POINTER(C.c_double))
+         opa_f=freq.ctypes.data_as(C.POINTER(C.c_double))
+         opa_m=mode.ctypes.data_as(C.POINTER(C.c_double))
+         npa_i = C.POINTER(C.c_double)()
+         npa_f = C.POINTER(C.c_double)()
+         #lib.test(C.byref(length), C.byref(npa_i), C.byref(npa_f))
+         size = C.c_int(len(intens))
+         
+         lib.putN(C.byref(size), C.byref(opa_i), C.byref(opa_f), C.byref(opa_m), C.c_int(int(n)))
+
+         intens=np.zeros(size.value)
+         freq=np.zeros(size.value)
+         for i in range(size.value):
+            #print i, opa_i[i], opa_f[i]
+            intens[i]=opa_i[i]
+            freq[i]=opa_f[i]
+         #print
          return intens, freq
 
       length=len(self.frequency)
