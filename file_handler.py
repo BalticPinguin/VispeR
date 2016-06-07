@@ -1,12 +1,14 @@
 #!/usr/bin/python2
 # filename: file_handler.py
 import math  # needed for function ceil in printNormalModes
+from numpy import ceil
 
 # CHANGELOG
 # =========
 #in version 0.1.0:  
 #  1) Intialised class
 #  2) Added function printNormalModes()
+#  3) fixed error in printVec() to print not all values
 #
 
 class logging():
@@ -209,10 +211,16 @@ class logging():
       """
       num = self.width//2
       self.loghandler.write("\n")
+      rows=int(ceil(float(len(vec))/num))
       if len(vec)>num:
-         for j in range(len(vec)//num):
+         #for j in range(len(vec)//num):
+         for j in range(rows):
             for k in range(num):
-               self.loghandler.write("    %03d  %e \t"%(j+k*len(vec)//num+1, vec[j+k*len(vec)//num]))
+               if (j+k*rows)<len(vec):
+                  self.loghandler.write("    %03d  %e \t"%(j+k*rows+1, vec[j+k*rows]))
+               else:
+                  #vector is out of range.
+                  break
             self.loghandler.write("\n")
       else:
          for k in range(len(vec)):

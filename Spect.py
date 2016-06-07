@@ -17,6 +17,7 @@ import atoms_align as AtAl
 #   a) removed function 'quantity()'; it was not in use any more.
 #   b) removed the function IsZero() since it didn't do anything
 #   c) changed format of self.CartCoord
+#   d) output of energy distinguishes vertical and adiabatic case
 #
 #in version 0.1.7:  
 #   a) fixed rmsd-reorient: forgot to reorder Forces, transform of 
@@ -290,15 +291,21 @@ class  Spect:
          self.Grad=self.reader.Gradient() 
          #self.log.write("gradient in input-format")
          #self.log.printVec(self.Grad)
+         if self.Energy[0]-self.Energy[1]<0:
+            self.log.write('vertical relaxation energy:'
+                           ' Delta E= {0}\n'.format((-self.Energy[0]+self.Energy[1])*self.Hartree2cm_1), 3)
+         else:
+            self.log.write('vertical excitation energy:'
+                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
       else: 
          #define this for easier syntax in function MOI_reorient
          # and Duschinsky.
          self.Grad=[0,0]
-      if self.Energy[0]-self.Energy[1]<0:
-         self.log.write('adiabatic relaxation energy:'
-                        ' Delta E= {0}\n'.format((-self.Energy[0]+self.Energy[1])*self.Hartree2cm_1), 3)
-      else:
-         self.log.write('adiabatic excitation energy:'
+         if self.Energy[0]-self.Energy[1]<0:
+            self.log.write('adiabatic relaxation energy:'
+                           ' Delta E= {0}\n'.format((-self.Energy[0]+self.Energy[1])*self.Hartree2cm_1), 3)
+         else:
+            self.log.write('adiabatic excitation energy:'
                         ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
       if self.log.level<2:
             self.log.write('Cartesian coordinates of initial state: \n')
