@@ -11,6 +11,7 @@ import re
 #in version 0.1.0:  
 #   1) intitialised class
 #   2) fixed class-related issues (missing self.)
+#   3) Added function concise to speed-up calculations.
 #
 
 class broaden():
@@ -217,13 +218,13 @@ class broaden():
       outwrite=self.out.write
 
       #this shrinks the size of the spectral lines; hopefully accelerates the script.
-      #intens, freq=concise(intens,freq, sigma)
+      intens, freq=concise(intens, freq, sigma)
       lenfreq=len(freq)
       maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too low
       mini=0
       # set the largest index to be taken into account for the first transition.
       for i in range(0,lenfreq-1):
-         if freq[i]>=10*self.gamma+freq[0]:
+         if freq[i]>=10*sigma+freq[0]:
             maxi=i
             break
 
@@ -260,7 +261,7 @@ class broaden():
       outwrite=self.out.write
       
       #this shrinks the size of the spectral lines; hopefully accelerates the script.
-      #intens, freq=concise(intens,freq, sigma)
+      intens, freq=concise(intens,freq, sigma)
       lenfreq=len(freq)
       maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too low
       mini=0
@@ -291,6 +292,37 @@ class broaden():
          #write the value to file
          outwrite(u" %f   %e\n" %(omegai, spect))
    #END DEFINITION OF METHODS
+   
+def concise(intens, freq, sigma):
+   """ This function shrinks length of the stick-spectrum to speed-up the 
+      calculation of broadened spectrum (folding with lineshape-function).
+      It puts all transitions within a tenth of the Gaussian-width into one line.
+   
+      ==PARAMETERS==
+      broadness:   gamma from the Lorentian-courve; specifying, 
+                  how many lines will be put together
+   
+      ==RETURNS==
+      intens2:     shrinked intensity-vector, sorted by increasing frequency
+      freq2:       shrinked frequency-vector, sorted by increasing frequency
+   """
+   # both arrays are frequency-sorted 
+   #initialize arrays
+   intens2=[]
+   freq2=[]
+   mini=0
+   #go through spectrum and sum everything up.
+   for i in range(len(freq)):
+      # index-range, put into one line is broadness/5; this should be enough
+      tempintens=0
+      for j in xrange(mini, len(freq)):
+         tempintens+=intens[j]
+         if freq[j]>=freq[mini]+sigma/5.:
+            mini=j # set mini to its new value
+            intens2.append(tempintens)
+            freq2.append(freq[j]-sigma/10.)
+            break
+   return intens2, freq2
 
 version='0.1'
 #End of output_spect.py
