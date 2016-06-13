@@ -133,7 +133,7 @@ class URDR_spect(Spect.Spect):
          **RETURNS:**  
          linespectrum 
       """
-      def CalcI00():
+      def CalcI00(J, Gamma, Gammap):
          """This function calculates the overlap-integral for zero vibrations 
          """
    
@@ -145,10 +145,25 @@ class URDR_spect(Spect.Spect):
          for i in range(len(self.Gammap)):
             E+=.5*(self.Gammap[i][i]-self.Gamma[i][i])
          Tree.insert(Zero, np.array([1.0, (self.Energy[0]-self.Energy[1])*self.Hartree2cm_1, 0]) )
-         #I_00 transition-probability [[Btree.py#extract]]
-         #this is done using implicit side effects
-         lines.append(1.0)
-         freqs.append(E*self.Hartree2cm_1)
+
+         #COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+         #  first, compute nominator of prefactor
+         I_00=np.sqrt(np.pow(2, len(Gamma))*np.sqrt(np.linalg.det(np.linalg.dot(J,J))) )
+         # divide by denominator:
+         I_00/=np.sqrt(np.linalg.det(np.linalg.dot(J,np.linalg.dot(J.T,np.linalg.dot(Gammap,J))+Gamma)))
+         exp2=np.linalg.dot(self.nm.K.T, np.linalg.dot(Gammap, self.nm.K))
+         exp1=np.linalg.dot(np.linalg.dot(J.T,Gammap),J)+Gamma
+         exp1=np.linalg.dot(np.linalg.dot(Gammap,J),np.linalg.inv(exp1),J.T)
+         exp1=np.linalg.dot(np.linalg.dot(self.nm.K.T,exp1), np.linalg.dot(Gammap,self.nm.K))
+         I_00*=np.exp(.5*(exp1-exp2))
+         #FINISHED COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+
+         #this is done using implicit side effects.
+         # Take the correction of ground state energy difference due to different
+         # energies into account as well.
+         00_shift=np.sum(np.linalg.diag(Gammap)-np.linalg.diag(Gamma))
+         lines.append(I_00*00_shift)
+         freqs.append(E*self.Hartree2cm_1+00_shift)
          initF.append(0) #needed for boltzmann-weighing
          return Tree
       
@@ -391,7 +406,7 @@ class URDR_spect(Spect.Spect):
       freqapp=freqs.append
       initapp=initF.append
    
-      L2=CalcI00()
+      L2=CalcI00(self.nm.J, self.Gamma, self.Gammap)
       #both trees can be considered to coincide for first state. 
       L1=L2 
       for i in range(1,N+1):
@@ -475,14 +490,26 @@ class SDR_spect(Spect.Spect):
          linespectrum 
       """
    
-      def CalcI00( E):
+      def CalcI00( E, J,Gamma, Gammap):
          """This function calculates the overlap-integral for zero vibrations """
          opa=OPA(self.dim,0) #call OPA-class, initialize object for 0->0 trasition.
          zeros=np.zeros(2*self.dim)
          #set intensity of pure electronic transition (scaled arbitrarily)
-         inten=1.00 
+
+         #COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+         #  first, compute nominator of prefactor
+         I_00=np.sqrt(np.pow(2, len(Gamma))*np.sqrt(np.linalg.det(np.linalg.dot(J,J))) )
+         # divide by denominator:
+         I_00/=np.sqrt(np.linalg.det(np.linalg.dot(J,np.linalg.dot(J.T,np.linalg.dot(Gammap,J))+Gamma)))
+         exp2=np.linalg.dot(self.nm.K.T, np.linalg.dot(Gammap, self.nm.K))
+         exp1=np.linalg.dot(np.linalg.dot(J.T,Gammap),J)+Gamma
+         exp1=np.linalg.dot(np.linalg.dot(Gammap,J),np.linalg.inv(exp1),J.T)
+         exp1=np.linalg.dot(np.linalg.dot(self.nm.K.T,exp1), np.linalg.dot(Gammap,self.nm.K))
+         I_00*=np.exp(.5*(exp1-exp2))
+         #FINISHED COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+         
          # insert the transition
-         opa.insert(zeros, np.sqrt(inten)) 
+         opa.insert(zeros, np.sqrt(I_00*00_shift))
          return opa
    
       def iterate(L1, L2, i, f, J, K):
@@ -600,8 +627,6 @@ class SDR_spect(Spect.Spect):
                          +np.sign(E)*Gammap[indi]*(ex[i])+np.abs(E))*self.Hartree2cm_1,
                         intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) ,
                         indi+1])
-              # if F[-1][1]>0.0001:
-              #    print index[i], ex[i], n-ex[i], F[-1][1], F[-1][0]-E*self.Hartree2cm_1
    
          if F==[]: # no transitions with enough intensity occured.
             F=[0,0,7]
@@ -618,7 +643,7 @@ class SDR_spect(Spect.Spect):
       inten=1.00 
       linspect.append(np.matrix([abs(Energy)*self.Hartree2cm_1, inten, 7])) 
 
-      L2=CalcI00(Energy)
+      L2=CalcI00(Energy, Gamma, Gammap)
       #this is already extracted to linspect (using side-effects)
       L1=L2 
       for i in range(1, N+1):

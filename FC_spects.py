@@ -74,6 +74,9 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
           for x in range(int(min(N,M))+1):# +1: to go to really reach min(M,N).
              FC+=math.pow(-1,N-x)*math.pow(Deltag,(M+N)*0.5-x)/(fact(M-x)*fact(N-x))*\
                    math.sqrt(faktNM)/fact(x)
+          # return the square of the above computed value since FC here is
+          #  <Xi_N|Xi_M> only.
+          # normalisation due to multiplication with I_00.
           return FC*FC
        
       def unifSpect(intens, freqs, E, FC00):
@@ -118,11 +121,19 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
 
       #avoiding dots accelerates python quite a lot
       loggingwrite=self.log.write
-      npexp=np.exp 
+      FC00=np.exp(-np.sum(self.HR))
+      # also, consider the thermal population of the states:
+      # and normalise ground state accordingly:
+      if self.states1>1:
+         #here a goes over all modes
+         for a in xrange(n):
+            therm_pop=0
+            for j in range(self.states1):
+               therm_pop+=np.exp(-f[a]*j/self.T)
+            FC00/=therm_pop
       E=self.Energy[0]-self.Energy[1]
       #set  0->0 transition:
       sgnE=np.sign(E)
-      FC00=1.00
       if sgnE==0:
          sgnE=1
       #here a goes over all modes
@@ -138,7 +149,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
                   continue
                tmp=FCeqf(self.HR[a], i, j)
                try:
-                  FC[a][j*M+i-1]=tmp*FC00*npexp(-(f[a]*j)/self.T)
+                  FC[a][j*M+i-1]=tmp*FC00*np.exp(-(f[a]*j)/self.T)
                   uency[a][j*M+i-1]=(sgnE*E+sgnE*f[a]*(j-i))*self.Hartree2cm_1
                except IndexError:
                   loggingwrite("WARNING: truncated spectrum for mode nr. %d\n"%(a))
@@ -299,11 +310,12 @@ class CFC_spect(FC_spect):
           D=npsqrt(2.*HR) # define this to become consistent with given formula
           delta=npsqrt(freq[1]/freq[0])
           deltasquare=delta*delta
-          #R00=sqrt(2*delta/(1+delta*delta))*np.exp(-.5*D*D/(1+delta*delta))
           R=np.zeros( (M,N) )
-          # R_00 is normalisation -> actually calculate FC_ij/FC_00 --> 
-          #                     than I can chose FC_00 outside.
-          R[0][0]=1.00
+          #R00=sqrt(2*delta/(1+delta*delta))*np.exp(-.5*D*D/(1+delta*delta))
+          # R_00 is not normalised here. The normalisation is done via FC00 in
+          # the main function to have the product (i.e. of all modes) correctly.
+          R[0][0]=1. 
+          np.sqrt(2*delta/(1.+deltasquare))*exp(-.5*D*D/(1.+deltasquare))
           R[0][1]=-npsqrt(2.)*delta*D/(1.+deltasquare) 
           R[1][0]=npsqrt(2.)*D/(1.+deltasquare)
           R[1][1]=(D*R[0][1]+delta*npsqrt(2.)*R[0][0])*npsqrt(2.)/(1+deltasquare)
@@ -363,12 +375,25 @@ class CFC_spect(FC_spect):
           M=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+5.))
        assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
                     " threshold. No mode to be calculated."
-       #if setM: the size of these arrays will be overestimated.
        #calculate 0->0 transition
        FC00=1.00
-       #print 0,0,0, 10
        npexp=np.exp                  #to accelerates python quite a lot
        freq=self.f
+
+       # go through all modes before and normalise the I_00-transition correctly:
+       for a in xrange(n):
+         D=npsqrt(2.*HR[a]) # define this to become consistent with given formula
+         delta=npsqrt(freq[0][a]/freq[1][a])
+         deltasquare=delta*delta
+         # get sum over all transition from single initial state correctly:
+         FC00*=2*delta/(1+deltasquare)*npexp(-D*D/(1+deltasquare))
+         if self.states1>1:
+            # multiply by fraction of molecules that is in vibrational ground state
+            # of the particular mode:
+            therm_pop=0
+            for j in range(self.states1):
+               therm_pop+=np.exp(-freq[0][a]*j/self.T)
+            FC00/=therm_pop
 
        FC=np.zeros((n,M*self.states1))
        uency=np.zeros((n,M*self.states1)) #frequency

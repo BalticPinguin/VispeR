@@ -47,7 +47,7 @@ class HR_spect(FC_spects.FC_spect):
       #START READING DATA FROM FILE
       # get files with electronic states:
       hr_file=re.findall(r"(?<=HR-file: )[\w.\-]+",f, re.I)
-      assert len(hr_file)==1,'there must be one initial state'
+      assert len(hr_file)==1,'there must be one file with HR-factors given.'
       self.hr_file=hr_file[0]
       #check, if they are valid files and through an error if not.
       assert os.path.isfile(self.hr_file) and os.access(self.hr_file, os.R_OK),\
@@ -104,13 +104,6 @@ class HR_spect(FC_spects.FC_spect):
                self.states2=0
                self.log.write("!!number of vibrational states {0} is not an integer.",
                                     " Use default instead.\n".format(self.states1, self.states2))
-      
-         #initialise object of the respective class
-         self.manipulate=AtAl.align_atoms(manipulate, self)
-         # just shift the molecules both to their center of mass
-         self.manipulate.shift()
-         #copy the manipulated data back here.
-         self.CartCoord=self.manipulate.CartCoord
       
       #set threshold for smallest HR-factors:
       HRthresh=re.findall(r"(?<=HRthreshold=)[ \d.]+",self.opt,re.M)

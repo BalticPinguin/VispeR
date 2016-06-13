@@ -78,7 +78,9 @@ class broaden():
    
       #which line shape function should be used?
       # FIXME: also some Voigt-profile should be possible here.
-      shape=re.findall(r"(?<=shape=)[ \w]+", parent.broadopt, re.I)
+      shape=re.findall(r"(?<=shape=)[\w]+", parent.broadopt, re.I)
+      if len(shape)==[]:
+         shape=re.findall(r"(?<=shape= )[\w]+", parent.broadopt, re.I)
       if len(shape)>0:
       # there are several options each
          if shape[0] in ["lorentzian", "Lorentzian", "L", "l"]:
@@ -171,16 +173,14 @@ class broaden():
             self.minfreq=np.min(TPAfreq)-20-self.gamma*15
          if self.maxfreq==0:
             self.maxfreq=np.max(TPAfreq)+20+self.gamma*15
+         #if no other grid is defined: use linspace in range
+         self.omega=np.linspace(self.minfreq,self.maxfreq,self.gridpt)
+         self.log.write("omega is equally spaced\n",2)
       else:
          self.minfreq=self.omega[0]
          self.maxfreq=self.omega[-1]
       self.log.write('maximal and minimal frequencies:\n {0} {1}\n'.format(self.maxfreq, self.minfreq), 3)
-      #if no other grid is defined: use linspace in range
-      if self.omega==None:
-         self.omega=np.linspace(self.minfreq,self.maxfreq,self.gridpt)
-         self.log.write("omega is equally spaced\n",2)
    
-      
       if self.gamma*1.1<=(self.maxfreq-self.minfreq)/self.gridpt:
          self.log.write("\n WARNING: THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.\n"
               "THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!")
@@ -210,17 +210,19 @@ class broaden():
          The intensities and frequencies are required to be sorted by increasing
          frequencies.
       """
-      sigma=self.gamma*2/2.355 #if gaussian used: same FWHM
+      gamma=self.gamma
+      sigma=gamma*2/2.355 #if gaussian used: same FWHM
       omega=self.omega
       sigmasigma=2.*sigma*sigma # these two lines are to avoid multiple calculations of the same
       npexp=np.exp
-      intens/=sigma # scale all transitions according to their width.
+      norm=1./np.sqrt(np.pi*sigmasigma)
       outwrite=self.out.write
 
       #this shrinks the size of the spectral lines; hopefully accelerates the script.
-      intens, freq=concise(intens, freq, sigma)
+      #intens, freq=concise(intens, freq, sigma)
+      assert len(freq)>0, "No transitions are given."
       lenfreq=len(freq)
-      maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too low
+      maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too small
       mini=0
       # set the largest index to be taken into account for the first transition.
       for i in range(0,lenfreq-1):
@@ -234,18 +236,19 @@ class broaden():
          omegai=omega[i]
          #re-adjust the limits for the transitions to be taken into account at this point
          for j in range(maxi,lenfreq):
-            if freq[j]>=10*sigma+omegai:
+            #print j, lenfreq, len(freq)
+            if freq[j]>=10*gamma+omegai:
                maxi=j
                break
          for j in range(mini,maxi):
-            if freq[j]>=omegai-10*sigma:
+            if freq[j]>=omegai-10*gamma:
                # else it becomes -1 and hence the spectrum is wrong
                mini=max(j-1,0) 
                break
          spect=0
          #sum up all contributions of neighbouring transitions.
          for k in range(mini,maxi+1):
-            spect+=intens[k]*npexp(-(omegai-freq[k])*(omegai-freq[k])/(sigmasigma))
+            spect+=norm*intens[k]*npexp((omegai-freq[k])*(freq[k]-omegai)/sigmasigma )
          #write the value to file
          outwrite(u" %f  %e\n" %(omegai, spect))
 
@@ -258,10 +261,11 @@ class broaden():
       gamma=self.gamma
       omega=self.omega
       gammagamma=gamma*gamma
+      norm=gamma/np.pi
       outwrite=self.out.write
       
       #this shrinks the size of the spectral lines; hopefully accelerates the script.
-      intens, freq=concise(intens,freq, sigma)
+      #intens, freq=concise(intens,freq, sigma)
       lenfreq=len(freq)
       maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too low
       mini=0
@@ -276,11 +280,11 @@ class broaden():
          omegai=omega[i]
          #re-adjust the limits for the transitions to be taken into account at this point
          for j in range(maxi,lenfreq):
-            if freq[j]>=30*gamma+omegai:
+            if freq[j]>=10*gamma+omegai:
                maxi=j
                break
          for j in range(mini,maxi):
-            if freq[j]>=omegai-30*gamma:
+            if freq[j]>=omegai-10*gamma:
                # else it becomes -1 and hence the spectrum is wrong
                mini=max(j-1,0) 
                break
@@ -288,7 +292,7 @@ class broaden():
          spect=0
          #sum up all contributions of neighbouring transitions.
          for k in range(mini,maxi+1):
-            spect+=intens[k]*gamma/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
+            spect+=norm*intens[k]/((omegai-freq[k])*(omegai-freq[k])+gammagamma)
          #write the value to file
          outwrite(u" %f   %e\n" %(omegai, spect))
    #END DEFINITION OF METHODS
@@ -311,17 +315,28 @@ def concise(intens, freq, sigma):
    intens2=[]
    freq2=[]
    mini=0
+   print
+   print
    #go through spectrum and sum everything up.
-   for i in range(len(freq)):
-      # index-range, put into one line is broadness/5; this should be enough
+   while (mini<len(freq)-1):
       tempintens=0
-      for j in xrange(mini, len(freq)):
+      for j in range(mini, len(freq)):
          tempintens+=intens[j]
-         if freq[j]>=freq[mini]+sigma/5.:
-            mini=j # set mini to its new value
+         print j, mini, freq[j], freq[mini], sigma
+         if (freq[j]>=freq[mini]+sigma/5.):
+            #if tempintens!=0:
             intens2.append(tempintens)
-            freq2.append(freq[j]-sigma/10.)
+            if mini<j-1:
+               # take the frequency as average of all frequencies.
+               freq2.append(sum(freq[mini:j-1])/len(freq[mini:j-1]))
+            else:
+               freq2.append(freq[mini])
+            mini=j # set mini to its new value
             break
+      #if I went through the whole loop and didn't match the condition
+      mini=j # set mini to its new value
+      intens2.append(tempintens)
+      freq2.append(freq[mini])
    return intens2, freq2
 
 version='0.1'
