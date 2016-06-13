@@ -155,6 +155,8 @@ version=2.0.1<br />
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">r&quot;model&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
       <span class="n">model</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=model )[\w]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="k">if</span> <span class="n">model</span><span class="o">==</span><span class="p">[]:</span>
+	 <span class="n">model</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=model: )[\w]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
    <span class="k">else</span><span class="p">:</span></pre></div>
     </div>
   </div>

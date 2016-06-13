@@ -161,7 +161,7 @@ get files with electronic states:</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>      <span class="n">hr_file</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=HR-file: )[\w.\-]+&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
-      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hr_file</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;there must be one initial state&#39;</span>
+      <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hr_file</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span><span class="s1">&#39;there must be one file with HR-factors given.&#39;</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">hr_file</span><span class="o">=</span><span class="n">hr_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></pre></div>
     </div>
   </div>
@@ -323,42 +323,6 @@ get files with electronic states:</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-21'>#</a>
       </div>
-      <p>initialise object of the respective class</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">=</span><span class="n">AtAl</span><span class="o">.</span><span class="n">align_atoms</span><span class="p">(</span><span class="n">manipulate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-22'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-22'>#</a>
-      </div>
-      <p>just shift the molecules both to their center of mass</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-23'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-23'>#</a>
-      </div>
-      <p>copy the manipulated data back here.</p>
-    </div>
-    <div class='code'>
-      <div class="highlight"><pre>         <span class="bp">self</span><span class="o">.</span><span class="n">CartCoord</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">manipulate</span><span class="o">.</span><span class="n">CartCoord</span></pre></div>
-    </div>
-  </div>
-  <div class='clearall'></div>
-  <div class='section' id='section-24'>
-    <div class='docs'>
-      <div class='octowrap'>
-        <a class='octothorpe' href='#section-24'>#</a>
-      </div>
       <p>set threshold for smallest HR-factors:</p>
     </div>
     <div class='code'>
@@ -370,10 +334,10 @@ get files with electronic states:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-22'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-22'>#</a>
       </div>
       <p>END READING DATA FROM input-FILE</p>
     </div>
@@ -382,10 +346,10 @@ get files with electronic states:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-23'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-23'>#</a>
       </div>
       <p>read HR-factors:</p>
     </div>
@@ -394,10 +358,10 @@ get files with electronic states:</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-24'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-24'>#</a>
       </div>
       <p>POSTPROCESSING: sorting, error-checking, printing.
 sort modes according to HR-factors</p>
@@ -416,10 +380,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-28'>
+  <div class='section' id='section-25'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-28'>#</a>
+        <a class='octothorpe' href='#section-25'>#</a>
       </div>
       <p>if larges HR-factor is too large</p>
     </div>
@@ -431,10 +395,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-29'>
+  <div class='section' id='section-26'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-29'>#</a>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       <p>print them</p>
     </div>
@@ -444,10 +408,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-30'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-30'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <p>select all 'big' HR-factors </p>
     </div>
@@ -457,10 +421,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-31'>
+  <div class='section' id='section-28'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-31'>#</a>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <p>This function reads the HR-factors and electronic transition energy</p>
     </div>
@@ -469,10 +433,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-32'>
+  <div class='section' id='section-29'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-32'>#</a>
+        <a class='octothorpe' href='#section-29'>#</a>
       </div>
       <p>from a given file and brings them into a 
   similar structure as they are used in the 'smallscript'.</p>
@@ -500,10 +464,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-33'>
+  <div class='section' id='section-30'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-33'>#</a>
+        <a class='octothorpe' href='#section-30'>#</a>
       </div>
       <p>search for the energy</p>
     </div>
@@ -517,10 +481,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-34'>
+  <div class='section' id='section-31'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-34'>#</a>
+        <a class='octothorpe' href='#section-31'>#</a>
       </div>
       <p>search for the table with HR-factors</p>
     </div>
@@ -535,10 +499,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-35'>
+  <div class='section' id='section-32'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-35'>#</a>
+        <a class='octothorpe' href='#section-32'>#</a>
       </div>
       <p>the following is just to be consistent with structure of 
                         HR calculated in first part</p>
@@ -551,10 +515,10 @@ sort modes according to HR-factors</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-36'>
+  <div class='section' id='section-33'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-36'>#</a>
+        <a class='octothorpe' href='#section-33'>#</a>
       </div>
       <p>function calcspect is enherited from FC_spects
 more functions are not needed.</p>
@@ -564,10 +528,10 @@ more functions are not needed.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-37'>
+  <div class='section' id='section-34'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-37'>#</a>
+        <a class='octothorpe' href='#section-34'>#</a>
       </div>
       <p>End of HR_spects.py</p>
     </div>

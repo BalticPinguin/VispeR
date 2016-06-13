@@ -92,6 +92,11 @@ There are three mandatory keywords:
    </li>
    <li> To calculate broadened spectrum, specify <b>broaden</b>. Here <a href="#broaden">several options</a> are possible. </li>
 <h1 id='HR'> Calculations based on given HR-factors </h1>
+<p> The main difference to the 'normal' structure given above is for this model, that no <b>initial</b> and <b>final</b> states are needed. Instead, the keyword <b>HR-file: </b> needs to be provided.
+The given file should contain the adiabatic excitation energy in cm^-1 using the keyword <b>Delta E=</b>
+and the Huang-Rhys factors with corresponding frequencies in form of a table whose first line needs to be</p>
+<p> <b>HR-fact      freq</b></p>
+<p> with arbitrarily many spaces/tabs in between, followed by the respective quantities. Frequencies should be given in cm^-1 as well. </p>
 <h1 id='FC'> Calculations with FC/CFC model </h1>
 <h1 id='Duschinsy'> Calculations including Duschinsky-effect </h1>
 
