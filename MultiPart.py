@@ -1,12 +1,20 @@
 #!/usr/bin/python2
 # filename: MultiPart.py
 import numpy as np
+# needed for acceleration of opa2npa.
+import ctypes as C
+from os.path import isfile, dirname, join
 
 # CHANGELOG
 # =========
+#to version 0.2.0:  
+#   a) add ctypes library to make OPA2nPA more efficient
+#   b) removed concise: not needed here (use it in [[output_spect.py]] now).
+#
 #to version 0.1.0:  
 #   a) fixed error with self.function and self.n
 #   b) added some documentation
+#
 
 class OPAtoNPA:
    """This class gets a spectrum in one-particle approximation of the format
@@ -19,7 +27,6 @@ class OPAtoNPA:
       The class's interface-functions are:
 
       init  - gets the number of considered combinations as parameter
-      concise - computes an approximate stick-spectrum with fewer transitions
       Calc - computes the n-particle spectrum
       GetSpect - obtains the spectrum as described above. Second parameter:
                  index for cutoff; assumes the spectrum to be sorted by
@@ -72,7 +79,37 @@ class OPAtoNPA:
             if foo==0:
                return False
          return True
- 
+      
+      def putN_C(intens, freq, mode, n):
+         """Function wrapper for the C-function that calculates the combination transition
+            energies. I expect a large speedup and some spare memory from this construction.
+         """
+         # add the corresponding C-libraries:
+         #lib = C.CDLL('/home/tm162/bin/smallscript/libputN.so')
+         # join and dirame are imported from os.path.
+         lib = C.CDLL(join(dirname(__file__),'libputN.so'))
+         #lib.putN.restype=C.POINTER(ctypes.c_int)
+         length= C.c_int(len(intens))
+
+         opa_i=intens.ctypes.data_as(C.POINTER(C.c_double))
+         opa_f=freq.ctypes.data_as(C.POINTER(C.c_double))
+         opa_m=mode.ctypes.data_as(C.POINTER(C.c_double))
+         npa_i = C.POINTER(C.c_double)()
+         npa_f = C.POINTER(C.c_double)()
+         #lib.test(C.byref(length), C.byref(npa_i), C.byref(npa_f))
+         size = C.c_int(len(intens))
+         
+         lib.putN(C.byref(size), C.byref(opa_i), C.byref(opa_f), C.byref(opa_m), C.c_int(int(n)))
+
+         intens=np.zeros(size.value)
+         freq=np.zeros(size.value)
+         for i in range(size.value):
+            #print i, opa_i[i], opa_f[i]
+            intens[i]=opa_i[i]
+            freq[i]=opa_f[i]
+         #print
+         return intens, freq
+
       def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
          """ This function does the most calculation that is the iteration to 
              the next number of particles
@@ -142,18 +179,29 @@ class OPAtoNPA:
       for i in range(length):
          self.frequency[i]-=freq00
          self.intensity[i]/=intens00
-      newmode=np.zeros((1,len(self.mode))) #for n>1: matrix-structure needed
-      newmode[0]=self.mode
+      #self.frequency-=freq00
+      #self.intensity/=intens00
+      print freq00
       x=self.mode.max()
       if self.n>x:
          self.n=x
          #save complexity, that it does not try to make more combinations 
          # than actually possible...
-      #np.set_printoptions(precision=5, linewidth=138)
-      TPAfreq, TPAintens=putN(-1, self.n, self.intensity, self.frequency, newmode, self.intensity, self.frequency, newmode)
+
+      # isfile(), join and dirname are imported from os.path (see top) here.
+      if isfile(join(dirname(__file__),'libputN.so')):
+         TPAfreq, TPAintens=putN_C(self.intensity, self.frequency, self.mode, self.n)
+      else:
+         newmode=np.zeros((1,len(self.mode))) #for n>1: matrix-structure needed
+         newmode[0]=self.mode
+         #np.set_printoptions(precision=5, linewidth=138)
+         TPAfreq, TPAintens=putN(-1, self.n, self.intensity, self.frequency, newmode, self.intensity, self.frequency, newmode)
+
       for i in xrange(len(TPAfreq)):
          TPAfreq[i]+=freq00
          TPAintens[i]*=intens00
+      #self.frequency+=freq00
+      #self.intensity*=intens00
       return TPAfreq, TPAintens
    
    def __OPA2TPA(self,ind00):
@@ -250,39 +298,6 @@ class OPAtoNPA:
            intens[i]=TPAintens[i]
       return freq, intens
 
-   def concise(self,broadness):
-      """ This function shrinks length of the stick-spectrum to speed-up the 
-         calculation of broadened spectrum (folding with lineshape-function).
-         It puts all transitions within a tenth of the Gaussian-width into one line.
-      
-         ==PARAMETERS==
-         broadness:   gamma from the Lorentian-courve; specifying, 
-                     how many lines will be put together
-      
-         ==RETURNS==
-         intens2:     shrinked intensity-vector, sorted by increasing frequency
-         freq2:       shrinked frequency-vector, sorted by increasing frequency
-      """
-      # both arrays are frequency-sorted 
-      #initialize arrays
-      intens2=[]
-      freq2=[]
-      mini=0
-      #go through spectrum and sum everything up.
-      freq=self.frequency
-      intens=self.intensity
-      for i in range(len(freq)):
-         # index-range, put into one line is broadness/5; this should be enough
-         tempintens=0
-         for j in xrange(mini, len(freq)):
-            tempintens+=intens[j]
-            if freq[j]>=freq[mini]+broadness/5.:
-               mini=j # set mini to its new value
-               intens2.append(tempintens)
-               freq2.append(freq[j]-broadness/10.)
-               break
-      return freq2, intens2
-
    def GetSpect(self,linspect, minint=0):
       """ This function needs to be called before calculating the combination spectrum.
          It copies the quantites needed ( frequency, intensity and the number of respective mode
@@ -322,5 +337,5 @@ class OPAtoNPA:
    # DEFINITION OF FUNCTIONS END
    # end of class definition.
 
-version='0.1.0'  
+version='0.2.0'  
 # End of MultiPart.py
