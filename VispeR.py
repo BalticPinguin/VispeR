@@ -47,6 +47,8 @@ def getModel(f):
    #search the file
    if (re.search(r"model",f, re.I) is not None) is True:
       model = re.findall(r"(?<=model )[\w]+", f, re.I)[-1]
+      if model==[]:
+	 model = re.findall(r"(?<=model: )[\w]+", f, re.I)[-1]
    else:
      #if no model is specified:
      print "You must specify a model to be used."

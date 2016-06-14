@@ -21,6 +21,8 @@ import re, mmap, math, os
 #  3) SDR_spect class runs now
 #  4) Changed makeLine in SDR_spect to be compatible with the MultiPart
 #     class. The model is inconsistent but may be still better.
+#  5) Added function to normalise the spectrum. Do it at the end since the
+#     analytic formula (for I_00) is numerically unstable for larger systems.
 #
 
 class URDR_spect(Spect.Spect):
@@ -120,6 +122,7 @@ class URDR_spect(Spect.Spect):
    
       # finally, calculate the stick spectrum in this picture
       self.spect=self.FCf(self.states1+ self.states2, self.T)
+      self.normalise()
    
    def FCf(self,N, T):
       """Calculates the intensities including the Duschinsky-effect. 
@@ -136,35 +139,43 @@ class URDR_spect(Spect.Spect):
       def CalcI00(J, Gamma, Gammap):
          """This function calculates the overlap-integral for zero vibrations 
          """
-   
-         Tree=bt.Tree(2*len(self.nm.K))
-         Tree.fill(0)
-         Zero=np.zeros(2*len(self.nm.K))
-         # correct for vibrational groundstates
-         E=abs(self.Energy[0]-self.Energy[1])
-         for i in range(len(self.Gammap)):
-            E+=.5*(self.Gammap[i][i]-self.Gamma[i][i])
-         Tree.insert(Zero, np.array([1.0, (self.Energy[0]-self.Energy[1])*self.Hartree2cm_1, 0]) )
-
          #COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+         #for better numerical convergence, use units to make numbers larger
+         #Gamma*=100
+         #Gammap*=100
          #  first, compute nominator of prefactor
-         I_00=np.sqrt(np.pow(2, len(Gamma))*np.sqrt(np.linalg.det(np.linalg.dot(J,J))) )
-         # divide by denominator:
-         I_00/=np.sqrt(np.linalg.det(np.linalg.dot(J,np.linalg.dot(J.T,np.linalg.dot(Gammap,J))+Gamma)))
-         exp2=np.linalg.dot(self.nm.K.T, np.linalg.dot(Gammap, self.nm.K))
-         exp1=np.linalg.dot(np.linalg.dot(J.T,Gammap),J)+Gamma
-         exp1=np.linalg.dot(np.linalg.dot(Gammap,J),np.linalg.inv(exp1),J.T)
-         exp1=np.linalg.dot(np.linalg.dot(self.nm.K.T,exp1), np.linalg.dot(Gammap,self.nm.K))
-         I_00*=np.exp(.5*(exp1-exp2))
+         #I_00=pow(2, len(Gamma))*np.sqrt(np.linalg.det(np.dot(Gamma,Gamma)))
+         #print I_00, np.sqrt(np.linalg.det(np.dot(Gamma,Gamma)))
+         ## divide by denominator:
+         #I_00/=np.linalg.det(np.dot(J,np.dot(J,np.dot(J.T,np.dot(Gammap,J))+Gamma)))
+         #I_00=np.sqrt(I_00)
+         ##print I_00, np.linalg.det(np.dot(J,np.dot(J,np.dot(J.T,np.dot(Gammap,J))+Gamma)))
+         ##print Gamma
+         ##print Gamma+np.dot(J,np.dot(J.T,np.dot(Gammap,J)))
+         #exp2=np.dot(self.nm.K.T, np.dot(Gammap, self.nm.K))
+         #exp1=np.dot(np.dot(J.T,Gammap),J)+Gamma
+         #exp1=np.dot(np.dot(np.dot(Gammap,J),np.linalg.inv(exp1)),J.T)
+         #exp1=np.dot(np.dot(self.nm.K.T,exp1), np.dot(Gammap,self.nm.K))
+         #I_00*=np.exp(.5*(exp1-exp2))
          #FINISHED COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+         I_00=0.7
 
          #this is done using implicit side effects.
          # Take the correction of ground state energy difference due to different
          # energies into account as well.
-         00_shift=np.sum(np.linalg.diag(Gammap)-np.linalg.diag(Gamma))
-         lines.append(I_00*00_shift)
-         freqs.append(E*self.Hartree2cm_1+00_shift)
+         shift_00=(np.trace(Gammap)-np.trace(Gamma))
+         lines.append(I_00*shift_00)
+         # correct for vibrational groundstates
+         E=abs(self.Energy[0]-self.Energy[1])
+         E+=.5*(shift_00)
+         freqs.append(E*self.Hartree2cm_1)
          initF.append(0) #needed for boltzmann-weighing
+   
+         Tree=bt.Tree(2*len(self.nm.K))
+         Tree.fill(0)
+         Zero=np.zeros(2*len(self.nm.K))
+         Tree.insert(Zero, np.array([I_00, (E)*self.Hartree2cm_1, 0]) )
+
          return Tree
       
       def iterate(L1, L2, i):
@@ -427,9 +438,14 @@ class URDR_spect(Spect.Spect):
       for i in range(len(result[0])):
          #arbitrary but constant number for mode
          result[2][i]=42
-         result[1][i]=lines[i]*np.exp(-initF[i]/T) #thermally weighting of transitions
+         #thermally weighting of transitions, use square to get really intensities.
+         result[1][i]=lines[i]*lines[i]*np.exp(-initF[i]/T) 
       return result
-   
+
+   def normalise(self):
+      norm=np.sum(self.spect[1])
+      self.spect[1]/=norm
+
 class SDR_spect(Spect.Spect):
    """The class to calculate Duschinsky-spectra in a pseudo one-particle approximation. 
       This makes the computation much faster than in URDR-spect, but in fact the model behind
@@ -497,19 +513,29 @@ class SDR_spect(Spect.Spect):
          #set intensity of pure electronic transition (scaled arbitrarily)
 
          #COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+         #for better numerical convergence, use units to make numbers larger
+         #Gamma*=100
+         #Gammap*=100
          #  first, compute nominator of prefactor
-         I_00=np.sqrt(np.pow(2, len(Gamma))*np.sqrt(np.linalg.det(np.linalg.dot(J,J))) )
-         # divide by denominator:
-         I_00/=np.sqrt(np.linalg.det(np.linalg.dot(J,np.linalg.dot(J.T,np.linalg.dot(Gammap,J))+Gamma)))
-         exp2=np.linalg.dot(self.nm.K.T, np.linalg.dot(Gammap, self.nm.K))
-         exp1=np.linalg.dot(np.linalg.dot(J.T,Gammap),J)+Gamma
-         exp1=np.linalg.dot(np.linalg.dot(Gammap,J),np.linalg.inv(exp1),J.T)
-         exp1=np.linalg.dot(np.linalg.dot(self.nm.K.T,exp1), np.linalg.dot(Gammap,self.nm.K))
-         I_00*=np.exp(.5*(exp1-exp2))
+         #I_00=pow(2, len(Gamma))*np.sqrt(np.linalg.det(np.dot(Gamma,Gamma)))
+         #print I_00, np.sqrt(np.linalg.det(np.dot(Gamma,Gamma)))
+         ## divide by denominator:
+         #I_00/=np.linalg.det(np.dot(J,np.dot(J,np.dot(J.T,np.dot(Gammap,J))+Gamma)))
+         #I_00=np.sqrt(I_00)
+         ##print I_00, np.linalg.det(np.dot(J,np.dot(J,np.dot(J.T,np.dot(Gammap,J))+Gamma)))
+         ##print Gamma
+         ##print Gamma+np.dot(J,np.dot(J.T,np.dot(Gammap,J)))
+         #exp2=np.dot(self.nm.K.T, np.dot(Gammap, self.nm.K))
+         #exp1=np.dot(np.dot(J.T,Gammap),J)+Gamma
+         #exp1=np.dot(np.dot(np.dot(Gammap,J),np.linalg.inv(exp1)),J.T)
+         #exp1=np.dot(np.dot(self.nm.K.T,exp1), np.dot(Gammap,self.nm.K))
+         #I_00*=np.exp(.5*(exp1-exp2))
          #FINISHED COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+         I_00=0.7
          
          # insert the transition
-         opa.insert(zeros, np.sqrt(I_00*00_shift))
+         shift_00=np.trace(Gammap)-np.trace(Gamma)
+         opa.insert(zeros, np.sqrt(I_00*shift_00))
          return opa
    
       def iterate(L1, L2, i, f, J, K):
@@ -708,6 +734,11 @@ class SDR_spect(Spect.Spect):
       E=self.Energy[0]-self.Energy[1]
       self.__GetQuants()
       self.spect=self.__simpleFCfOPA(self.nm.J, self.nm.K, self.f, E, self.states1+ self.states2, self.T, 0)
+      self.normalise()
+   
+   def normalise(self):
+      norm=np.sum(self.spect[1])
+      self.spect[1]/=norm
    
 class OPA:
    """ This class containes the functions and objects for the calculation of vibronic spectra 

@@ -315,7 +315,6 @@ class CFC_spect(FC_spect):
           # R_00 is not normalised here. The normalisation is done via FC00 in
           # the main function to have the product (i.e. of all modes) correctly.
           R[0][0]=1. 
-          np.sqrt(2*delta/(1.+deltasquare))*exp(-.5*D*D/(1.+deltasquare))
           R[0][1]=-npsqrt(2.)*delta*D/(1.+deltasquare) 
           R[1][0]=npsqrt(2.)*D/(1.+deltasquare)
           R[1][1]=(D*R[0][1]+delta*npsqrt(2.)*R[0][0])*npsqrt(2.)/(1+deltasquare)
@@ -382,9 +381,9 @@ class CFC_spect(FC_spect):
 
        # go through all modes before and normalise the I_00-transition correctly:
        for a in xrange(n):
-         D=npsqrt(2.*HR[a]) # define this to become consistent with given formula
-         delta=npsqrt(freq[0][a]/freq[1][a])
-         deltasquare=delta*delta
+         D=np.sqrt(2.*self.HR[a]) # define this to become consistent with given formula
+         deltasquare=freq[0][a]/freq[1][a]
+         delta=np.sqrt(deltasquare)
          # get sum over all transition from single initial state correctly:
          FC00*=2*delta/(1+deltasquare)*npexp(-D*D/(1+deltasquare))
          if self.states1>1:
@@ -392,7 +391,7 @@ class CFC_spect(FC_spect):
             # of the particular mode:
             therm_pop=0
             for j in range(self.states1):
-               therm_pop+=np.exp(-freq[0][a]*j/self.T)
+               therm_pop+=npexp(-freq[0][a]*j/self.T)
             FC00/=therm_pop
 
        FC=np.zeros((n,M*self.states1))

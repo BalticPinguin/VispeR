@@ -8,7 +8,7 @@ from numpy import ceil
 #in version 0.1.0:  
 #  1) Intialised class
 #  2) Added function printNormalModes()
-#  3) fixed error in printVec() to print not all values
+#  3) fixed error in printVec() to print all values
 #
 
 class logging():
