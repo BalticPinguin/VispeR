@@ -91,6 +91,29 @@ There are three mandatory keywords:
    </ul>
    </li>
    <li> To calculate broadened spectrum, specify <b>broaden</b>. Here <a href="#broaden">several options</a> are possible. </li>
+</ul>
+
+<h2 id='broaden'>Options for broadening</h2>
+Several operations are done after computing the stick-spectrum, most of them are directly related to the broadening.
+Broadening here means convolution either with a Gaussian or Lorentzian function. The available options are:
+<ul>
+   <li>to govern the lineshape function, use the keyword <b>shape=</b> followed by <b>g</b> for Gaussian or <b>l</b> for Lorentzian.
+        Defualt is to use Gaussian functions.</li>
+   <li>The with of the function is specified by <b>gamma=</b>. This specifies the parameter Gamma of Lorentzian, for Gaussian broadening
+        the corresponding FWHM is used.</li>
+   <li>if the full stick-spectrum should be given, type <b>stick</b> into the list of options. The stick spectrum will be printed into a file called 
+       as the log file but with the ending <b>.stick</b>.</li>
+   <li>The keyword <b>grid=</b> governs the numerical grid on which the spectrum should be computed. Here, different ways are possible:
+       </li>
+   <li>With <b>spectfile=</b> you can specify the file in which the broadened spectrum is written. By default it will be added to the
+       log file; for plotting or other operations on the data an extra file however might be advantageous.</li>
+   <li>Specifying the keyword <b>shorten</b> can make the computation of broadenened spectrum significantly faster.
+       With this option, the number of transitions is reduced by summing up the intensities of transitions that are closer than
+       1/5 of the FWHM to a single transition. The effect of this function is almost invisible but can reduce the needed computations
+       strongly; especially for large molecules and large broadening.</li>
+   <li></li>
+</ul>
+
 <h1 id='HR'> Calculations based on given HR-factors </h1>
 <p> The main difference to the 'normal' structure given above is for this model, that no <b>initial</b> and <b>final</b> states are needed. Instead, the keyword <b>HR-file: </b> needs to be provided.
 The given file should contain the adiabatic excitation energy in cm^-1 using the keyword <b>Delta E=</b>

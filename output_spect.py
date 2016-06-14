@@ -33,6 +33,7 @@ class broaden():
    shape='g'
    stick=False
    log=""
+   shorten=False
 
    #BEGIN DEFINITION OF METHODS
    def __init__(self, parent):
@@ -91,6 +92,8 @@ class broaden():
       # should the stick-spectrum be printed?
       if (re.search(r"stick", parent.broadopt, re.I) is not None) is True:
          self.stick=True
+      if (re.search(r"shorten", parent.broadopt, re.I) is not None) is True:
+         self.shorten=True
      
       #output-file for the broadened spectrum
       spectfile=re.findall(r"(?<=spectfile=)[\w._\-]+", parent.broadopt, re.I)
@@ -219,7 +222,8 @@ class broaden():
       outwrite=self.out.write
 
       #this shrinks the size of the spectral lines; hopefully accelerates the script.
-      #intens, freq=concise(intens, freq, sigma)
+      if self.shorten:
+         intens, freq=concise(intens, freq, sigma)
       assert len(freq)>0, "No transitions are given."
       lenfreq=len(freq)
       maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too small
@@ -265,7 +269,8 @@ class broaden():
       outwrite=self.out.write
       
       #this shrinks the size of the spectral lines; hopefully accelerates the script.
-      #intens, freq=concise(intens,freq, sigma)
+      if self.shorten:
+         intens, freq=concise(intens,freq, sigma)
       lenfreq=len(freq)
       maxi=lenfreq-1 #just in case Gamma is too big or frequency-range too low
       mini=0
@@ -303,41 +308,39 @@ def concise(intens, freq, sigma):
       It puts all transitions within a tenth of the Gaussian-width into one line.
    
       ==PARAMETERS==
-      broadness:   gamma from the Lorentian-courve; specifying, 
-                  how many lines will be put together
+      intens:    vector containing the intensities of the stick spectrum
+      freq:      vector containing the frequencies of the stick spectrum
+                 vectors need to be sorted by frequency.
+      sgima:     width of the lineshape function; specifying, 
+                 how many lines will be put together
    
       ==RETURNS==
-      intens2:     shrinked intensity-vector, sorted by increasing frequency
-      freq2:       shrinked frequency-vector, sorted by increasing frequency
+      Sintens:     shrinked intensity-vector, sorted by increasing frequency
+      Sfreq:       shrinked frequency-vector, sorted by increasing frequency
    """
-   # both arrays are frequency-sorted 
-   #initialize arrays
-   intens2=[]
-   freq2=[]
-   mini=0
-   print
-   print
-   #go through spectrum and sum everything up.
-   while (mini<len(freq)-1):
-      tempintens=0
-      for j in range(mini, len(freq)):
-         tempintens+=intens[j]
-         print j, mini, freq[j], freq[mini], sigma
-         if (freq[j]>=freq[mini]+sigma/5.):
-            #if tempintens!=0:
-            intens2.append(tempintens)
-            if mini<j-1:
-               # take the frequency as average of all frequencies.
-               freq2.append(sum(freq[mini:j-1])/len(freq[mini:j-1]))
-            else:
-               freq2.append(freq[mini])
-            mini=j # set mini to its new value
-            break
-      #if I went through the whole loop and didn't match the condition
-      mini=j # set mini to its new value
-      intens2.append(tempintens)
-      freq2.append(freq[mini])
-   return intens2, freq2
+   Sintens=[]
+   Sfreq=[]
+   tmpintens=0
+   endfreq=freq[0]+sigma/10.
+   startfreq=freq[0]
+   startind=0
+   for i in range(1,len(freq)):
+      if freq[i]>endfreq:
+         #add the respective transition:
+         if startind==i-1:
+            Sfreq.append(freq[i-1])
+            Sintens.append(tmpintens)
+         else:
+            #chose the frequency as average over transitions
+            Sfreq.append(sum(freq[startind:i-1])/(i-1-startind))
+            print Sfreq[-1], freq[startind:i-1]
+            Sintens.append(tmpintens)
+         startind=i
+         tmpintens=0
+         endfreq=freq[i]+sigma/10
+      tmpintens+=intens[i]
+   return Sintens, Sfreq
+      
 
 version='0.1'
 #End of output_spect.py
