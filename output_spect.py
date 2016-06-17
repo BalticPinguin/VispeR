@@ -156,6 +156,19 @@ class broaden():
                                                  "-------- \n")
          MakeFull.GetSpect(self.spect, minint)
          TPAintens, TPAfreq=MakeFull.Calc()
+         
+         #sort spectrum with respect to size of elements
+         index=np.argsort(self.spect[1], kind='heapsort')
+         self.spect[0]=self.spect[0][index] #frequency
+         self.spect[1]=self.spect[1][index] #intensity
+         self.spect[2]=self.spect[2][index] #mode
+         #find transition with minimum intensity to be respected
+      
+         #truncate all transitions having less than 0.0001% of
+         for i in range(len(self.spect[1])):
+            if self.spect[1][i]>=1e-6*self.spect[1][-1]:
+               minint=i
+               break
       else: 
          TPAfreq=self.spect[0][minint:]
          TPAintens=self.spect[1][minint:]

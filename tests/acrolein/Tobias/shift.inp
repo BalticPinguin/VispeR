@@ -1,5 +1,0 @@
-initial: t1-freq.fchk
-final: s0-freq.fchk  
-out: shift_stretch.log
-FC-spect(print=0 method: shift)
-Broadening(print=0 grid=80000, to nPA: 50 T=3.000 spectfile=shift_stretch.spe, gamma=50 shape=g)

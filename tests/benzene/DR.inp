@@ -1,5 +1,0 @@
-initial: T.FChk  
-final: S.FChk
-out: DR_changed.log
-Duschinsky-spect(print=0 T=300.001, states=6, model=resort modes=15)
-Broadening(print=0, gamma=1.5, T=300.015 grid=28000;-49190;-47990, spectfile=DR_changed.spe shape=g stick)

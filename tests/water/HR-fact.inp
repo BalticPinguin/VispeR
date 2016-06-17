@@ -1,3 +1,0 @@
-HR-file: HR.inp
-out: gradient.log
-FC-spect(print=0 T=00.001 )

@@ -1,6 +1,0 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<p>Calculations performed in: anisole/ using input-files without 'R'</p>
-<p>date: 25.9.2015 after changing formula for K </p>
-<p>gnuplot-file: anisole/spectra.gp (lower graph from
-<cite>Julien Bloino et. al., J. Chem. Phys. 128, 244105 (2008)</cite>
-</p>

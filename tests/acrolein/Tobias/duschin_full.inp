@@ -1,5 +1,0 @@
-initial: t1-freq.fchk
-final: s0-freq.fchk  
-out: Duschinsky_full.log
-Duschinsky-spect( states=4, modes=40, model=unrestricted)
-Broadening(print=0 grid=80000,  T=3.000 spectfile=Duschinsky_full.spe, gamma=50 shape=g)

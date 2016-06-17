@@ -1,4 +1,0 @@
-HR-file: fit.dat
-out: fit.log
-FC-spect()
-Broadening(print=0 grid=10000, to nPA: 10 T=3.000 spectfile=fit.spe, gamma=50 shape=g)

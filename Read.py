@@ -465,7 +465,7 @@ class Read:
       files.close()
 
       grad=re.findall(rtype.gradString, log)
-      assert len(grad)>0, "ERROR: No gradient given. Searched for: \n      %s"%rtyp.gradString
+      assert len(grad)>0, "ERROR: No gradient given. Searched for: \n      %s"%rtype.gradString
       if rtype.type=='NWChem':
          # in this case, I need to do it differently:
          Grad=re.findall(rtype.gradPolishString, grad[0])

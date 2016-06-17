@@ -1,6 +1,0 @@
-initial: gradient.FChk  
-final: ground.FChk
-out: gradient.log
-HR-fact(HRthreshold=0.00001 print=0, method: gradient)
-FC-spect(print=0 T=300.001 )
-Broadening(print=0, gamma=1.5, T=300.015 grid=24000;-49190;-47990, spectfile=gradient.spe shape=g)

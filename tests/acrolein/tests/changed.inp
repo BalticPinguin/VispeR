@@ -1,5 +1,0 @@
-initial: s0-freq.fchk  
-final: t1-freq.fchk
-out: changed.log
-FC-spect( method: changed)
-Broadening(print=0 grid=80000, T=3.000 spectfile=changed.spe)

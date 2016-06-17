@@ -1,5 +1,0 @@
-initial: t1-freq.fchk
-final: gradient.fchk  
-out: gradient.log
-FC-spect( method: gradient)
-Broadening(print=0 grid=80000, to nPA: 50 T=3.000 spectfile=gradient.spe, gamma=50 shape=g)

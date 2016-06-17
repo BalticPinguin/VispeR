@@ -1,6 +1,0 @@
-initial: S1.FChk
-final: S0.FChk
-out: shift_11_15.log
-HR-fact(HRthreshold=0.0001 print=0)
-FC-spect(print=0 T=00.015, method: shift)
-Broadening(print=0 to nPA: 5, gamma=0.5, T=00.015 grid=12400;-49190;-47990, spectfile=shift_11_15.spe shape=g, stick)

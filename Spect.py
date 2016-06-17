@@ -262,7 +262,8 @@ class  Spect:
       self.log.write("Dimensions: %d\n" %self.dim,2)
       self.log.write(" Masses: \n",2)
       # print not the square-root! Print in amu for convenience.
-      self.log.printVec(self.mass*self.mass/self.AMU2au)
+      if self.log.level<2:
+         self.log.printVec(self.mass*self.mass/self.AMU2au)
    
       self.F=self.reader.Force()
       if np.all(self.F[0]==0):

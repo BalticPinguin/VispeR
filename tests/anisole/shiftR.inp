@@ -1,6 +1,0 @@
-final: S0.FChk
-initial: S1.FChk  
-out: shift2R.log
-HR-fact(HRthreshold=0.0001 print=0)
-FC-spect(print=0 T=300.001, method: shift)
-Broadening(print=0 to nPA: 0, gamma=2.5, T=300.015 grid=8400;-49190;-47990, spectfile=shift2R.spe shape=g, stick)

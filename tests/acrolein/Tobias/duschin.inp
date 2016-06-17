@@ -1,5 +1,0 @@
-initial: t1-freq.fchk
-final: s0-freq.fchk  
-out: Duschinsky.log
-Duschinsky-spect( model=Resort)
-Broadening(print=0 grid=80000,  T=3.000 spectfile=Duschinsky.spe gamma=50 shape=g)

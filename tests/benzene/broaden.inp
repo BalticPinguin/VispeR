@@ -1,3 +1,0 @@
-linespect: DR
-out: broaden.log
-Broadening(print=0, gamma=20, T=0.015, grid=700, spectfile=DR2.spe shape=g)
