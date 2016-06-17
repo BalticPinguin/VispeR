@@ -1,6 +1,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <iostream>
+#include <assert.h>
 
 using namespace std;
 
@@ -9,7 +10,6 @@ extern "C" {
 #endif
 //void putN( double*, double*, double* , double**, double** , unsigned int, unsigned int*);
 void putN(int* length, double** intens, double** freq, double** mode, int n);
-void test(int *size, double **out1, double **out2);
 //double** putN( double* intens, double* freq, int* mode, unsigned int n, unsigned int len);
 #ifdef __cplusplus
 }
@@ -35,6 +35,17 @@ struct Spect{
    void operator=(Spect rhs){
       trans=rhs.trans;
    }
+   void print(){
+      for(unsigned int i=0; i<this->size(); i++){
+         std::cout<<this->trans[i].intens<<"   ";
+         std::cout<<this->trans[i].freq<<"   ";
+         for (unsigned int j=0; j<this->n(i); j++){
+            std::cout<<this->trans[i].mode[j]<<" ";
+         }
+         std::cout<<std::endl;
+      }
+      std::cout<<std::endl;
+   }
 };
 
 unsigned int min(vector<unsigned int> values ){
@@ -46,8 +57,10 @@ unsigned int min(vector<unsigned int> values ){
    return min;
 }
 
-Spect putN2( Spect opa, unsigned int n){
+Spect putN1( Spect opa, unsigned int n){
    Spect npa;
+   std::cout<<n<<std::endl;
+   opa.print();
    // parallelise this loop:
    #pragma omp parallel for
    for( unsigned int i=0; i<opa.size(); i++){
@@ -56,78 +69,114 @@ Spect putN2( Spect opa, unsigned int n){
       // be carefull that only one process writes at the same time
       #pragma omp critical
       npa.add(opa(i));
-      if (n<1)
+      if (n<=1)
          continue;
       Spect tempSpect;
+      tempSpect.add(opa(i)); // add one transition, all combinations with it later.
       transition tempTrans;
       for(unsigned int j=0; j<opa.size(); j++){
          // add all possible combinations with previously computed
-         if (opa.n(j)>1)
+         if (opa.n(j)>1){ //opa[j].mode.size()
             // if transition j is already a combination transition
             continue;
-         if (min(opa(j).mode)==0)
+         }
+         if (opa(j).mode[0]==0){
             //no combinations with 0-0 transitions
             continue;
+         }
+         bool equal=false;
          for(unsigned int k=0; k<opa.n(i); k++){
-            if (opa.trans[i].mode[k]>=min(opa.trans[j].mode))
+            if (opa.trans[i].mode[k]>=opa.trans[j].mode[0]){
                // no combinations with transitions where current transition is involved.
                // Also, take care that no combination is counted twice, therefore 
                //   skip this if the involved modes are larger than those to come.
-               continue;
+               equal=true;
+               break;
+            }
          }
+         if (equal)
+            continue;
+         // else: i /j are valid combination:
          tempTrans.intens=opa.trans[i].intens*opa.trans[j].intens;
          tempTrans.freq=opa.trans[i].freq+opa.trans[j].freq;
          tempTrans.mode.resize(opa.n(i)+opa.n(j));
+         assert(tempTrans.mode.size()==opa.n(i)+1); // assured by first if() condition.
+         tempTrans.mode[0]=opa.trans[j].mode[0]; // opa.n(j)==1
          for(unsigned int k=0; k<opa.n(i); k++){
-            tempTrans.mode[k]=opa.trans[i].mode[k];
-         }
-         for(unsigned int k=opa.n(i); k<opa.n(j)+opa.n(i); k++){
-            tempTrans.mode[k]=opa.trans[j].mode[k];
+            tempTrans.mode[k+1]=opa.trans[i].mode[k];
          }
          tempSpect.add(tempTrans);
          // now, overwrite array tempSpect with the computed combinations.
-         tempSpect=putN2(tempSpect, n-1);
-         // be carefull that only one process writes at the same time
-         #pragma omp critical
-         {
-         for(unsigned int k=opa.n(i); k<tempSpect.size(); k++){
-            npa.add(tempSpect(k));
-         }
-         }
+      }
+      tempSpect=putN1(tempSpect, n-1);
+      // be carefull that only one process writes at the same time
+      #pragma omp critical
+      {
+      //tempSpect(0)=npa(i), therefore leave it away!
+      for(unsigned int k=1; k<tempSpect.size(); k++)
+         npa.add(tempSpect(k));
       }
    }
    return npa;
 }
 
-void putN3( double* intens, double* freq, double* mode,
-           double** npa_i, double** npa_f, unsigned int n, unsigned int* leng){
-   // set-up new variables
-   Spect opa;
-   unsigned int length = *leng ;
-   std::cout<<length<<std::endl;
-   transition trans;
-   trans.mode.resize(1);
-   // add given quantities into structures needed here:
-   for(unsigned int i=0; i<length; i++){
-      trans.intens=intens[i];
-      trans.freq=freq[i];
-      trans.mode[0]=mode[i];
-      opa.add(trans);
+Spect putN2( Spect n_1pa, unsigned int n, Spect opa){
+   Spect npa;
+   //std::cout<<n<<std::endl;
+   //n_1pa.print();
+   // parallelise this loop:
+   #pragma omp parallel for
+   for( unsigned int i=0; i<n_1pa.size(); i++){
+      if (n_1pa(i).intens<5e-6)
+         continue;
+      // be carefull that only one process writes at the same time
+      #pragma omp critical
+      npa.add(n_1pa(i));
+      if (n<=1)
+         continue;
+      Spect tempSpect;
+      transition tempTrans;
+      for(unsigned int j=0; j<opa.size(); j++){
+         // add all possible combinations with previously computed
+         if (opa(j).mode[0]==0){
+            //no combinations with 0-0 transitions
+            continue;
+         }
+         bool equal=false;
+         for(unsigned int k=0; k<n_1pa.n(i); k++){
+            if (n_1pa.trans[i].mode[k]<=opa.trans[j].mode[0]){
+               // no combinations with transitions where current transition is involved.
+               // Also, take care that no combination is counted twice, therefore 
+               //   skip this if the involved modes are smaller than those to come.
+               // Also takes care that no combination with 0 is done.
+               equal=true;
+               break;
+            }
+         }
+         if (equal)
+            continue;
+         // else: i /j are valid combination:
+         tempTrans.intens=n_1pa.trans[i].intens*opa.trans[j].intens;
+         tempTrans.freq=n_1pa.trans[i].freq+opa.trans[j].freq;
+         tempTrans.mode.resize(n_1pa.n(i)+1);
+         tempTrans.mode[0]=opa.trans[j].mode[0]; // opa.n(j)==1
+         for(unsigned int k=0; k<n_1pa.n(i); k++){
+            tempTrans.mode[k+1]=n_1pa.trans[i].mode[k];
+         }
+         tempSpect.add(tempTrans);
+         // now, overwrite array tempSpect with the computed combinations.
+      }
+      if (tempSpect.size()>1){
+         tempSpect=putN2(tempSpect, n-1, opa);
+         // be carefull that only one process writes at the same time
+         #pragma omp critical
+         {
+         for(unsigned int k=0; k<tempSpect.size(); k++)
+            npa.add(tempSpect(k));
+         }
+      }
    }
-   // calculate n-particle spectrum:
-   Spect npa=putN2(opa, n);
-   length=npa.size();
-   
-   double* npa_int, * npa_fre ;
-   npa_int = (double*)malloc(sizeof(double) * length);
-   npa_fre = (double*)malloc(sizeof(double) * length);
-   for(unsigned int i=0; i<length; i++){
-      npa_int[i]=npa.trans[i].intens;
-      npa_fre[i]=npa.trans[i].freq;
-   }
-   *leng=length;
-   *npa_i = npa_int;
-   *npa_f = npa_fre;
+   return npa;
 }
 
 void putN( int* length, double** intens, double** freq, double** mode, int n){
@@ -146,10 +195,15 @@ void putN( int* length, double** intens, double** freq, double** mode, int n){
       trans.mode[0]=opa_mod[i];
       opa.add(trans);
    }
+   //std::cout<<"OPA:"<<std::endl;
+   //opa.print();
    // calculate n-particle spectrum:
-   Spect npa=putN2(opa, n);
-   leng=npa.size();
+   Spect npa=putN2(opa, n, opa);
+   //std::cout<<std::endl;
+   //std::cout<<"NPA:"<<std::endl;
+   //npa.print();
    
+   leng=npa.size();
    double* npa_int, * npa_fre ;
    npa_int = (double*)malloc(sizeof(double) * leng);
    npa_fre = (double*)malloc(sizeof(double) * leng);
@@ -161,22 +215,3 @@ void putN( int* length, double** intens, double** freq, double** mode, int n){
    *intens=npa_int;
    *freq = npa_fre;
 }
-
-void test(int *size, double **out1, double **out2) {
-    int i;
-    * size=10;
-    double *data1, *data2;
-    data1 = (double *)malloc(sizeof(double) * *size);
-    data2 = (double *)malloc(sizeof(double) * *size);
-    for (i = 0; i < *size; i++){
-        data1[i] = i;
-        data2[i] = i * 2;
-    }
-    //*size = N;
-    *out1 = data1;
-    *out2 = data2;
-}
-
-//int main(){
-   //return 0;
-//}

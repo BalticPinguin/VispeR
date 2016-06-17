@@ -84,11 +84,8 @@ class OPAtoNPA:
          """Function wrapper for the C-function that calculates the combination transition
             energies. I expect a large speedup and some spare memory from this construction.
          """
-         # add the corresponding C-libraries:
-         #lib = C.CDLL('/home/tm162/bin/smallscript/libputN.so')
          # join and dirame are imported from os.path.
          lib = C.CDLL(join(dirname(__file__),'libputN.so'))
-         #lib.putN.restype=C.POINTER(ctypes.c_int)
          length= C.c_int(len(intens))
 
          opa_i=intens.ctypes.data_as(C.POINTER(C.c_double))
@@ -96,7 +93,6 @@ class OPAtoNPA:
          opa_m=mode.ctypes.data_as(C.POINTER(C.c_double))
          npa_i = C.POINTER(C.c_double)()
          npa_f = C.POINTER(C.c_double)()
-         #lib.test(C.byref(length), C.byref(npa_i), C.byref(npa_f))
          size = C.c_int(len(intens))
          
          lib.putN(C.byref(size), C.byref(opa_i), C.byref(opa_f), C.byref(opa_m), C.c_int(int(n)))
@@ -104,11 +100,9 @@ class OPAtoNPA:
          intens=np.zeros(size.value)
          freq=np.zeros(size.value)
          for i in range(size.value):
-            #print i, opa_i[i], opa_f[i]
             intens[i]=opa_i[i]
             freq[i]=opa_f[i]
-         #print
-         return intens, freq
+         return freq, intens
 
       def putN(j, n, intens, freq, mode, OPAintens, OPAfreq, oldmode):
          """ This function does the most calculation that is the iteration to 
@@ -179,9 +173,6 @@ class OPAtoNPA:
       for i in range(length):
          self.frequency[i]-=freq00
          self.intensity[i]/=intens00
-      #self.frequency-=freq00
-      #self.intensity/=intens00
-      print freq00
       x=self.mode.max()
       if self.n>x:
          self.n=x
@@ -200,8 +191,6 @@ class OPAtoNPA:
       for i in xrange(len(TPAfreq)):
          TPAfreq[i]+=freq00
          TPAintens[i]*=intens00
-      #self.frequency+=freq00
-      #self.intensity*=intens00
       return TPAfreq, TPAintens
    
    def __OPA2TPA(self,ind00):
