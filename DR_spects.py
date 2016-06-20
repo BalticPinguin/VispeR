@@ -96,12 +96,17 @@ class URDR_spect(Spect.Spect):
          if resort[i][k]==-1:
             resort[i][k]=1 #use absolute value only.
       self.f[1]=resort.dot(self.f[1].T)
-      self.log.write("before truncation:\n")
-      self.log.write("Duschinsky-Matrix:\n")
-      self.log.printMat(self.nm.J)
-      self.log.write("Displacement vector:\n")
-      self.log.printVec(self.nm.K)
+      if self.log.level<1:
+         self.log.write("before truncation:\n")
+         self.log.write("Duschinsky-Matrix:\n")
+         self.log.printMat(self.nm.J)
+         self.log.write("Displacement vector:\n")
+         self.log.printVec(self.nm.K)
    
+
+      # this is needed first for indexing (later) 
+      # and second to get the comparison below right.
+      self.m=int(self.m) 
       #truncate only, if this really is truncation.
       if self.m<len(self.nm.J): 
          index=np.argsort(np.abs(self.nm.K), kind="heapsort")[::-1]
@@ -506,36 +511,18 @@ class SDR_spect(Spect.Spect):
          linespectrum 
       """
    
-      def CalcI00( E, J,Gamma, Gammap):
+      def CalcI00(E,):
          """This function calculates the overlap-integral for zero vibrations """
          opa=OPA(self.dim,0) #call OPA-class, initialize object for 0->0 trasition.
          zeros=np.zeros(2*self.dim)
          #set intensity of pure electronic transition (scaled arbitrarily)
 
-         #COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
-         #for better numerical convergence, use units to make numbers larger
-         #Gamma*=100
-         #Gammap*=100
-         #  first, compute nominator of prefactor
-         #I_00=pow(2, len(Gamma))*np.sqrt(np.linalg.det(np.dot(Gamma,Gamma)))
-         #print I_00, np.sqrt(np.linalg.det(np.dot(Gamma,Gamma)))
-         ## divide by denominator:
-         #I_00/=np.linalg.det(np.dot(J,np.dot(J,np.dot(J.T,np.dot(Gammap,J))+Gamma)))
-         #I_00=np.sqrt(I_00)
-         ##print I_00, np.linalg.det(np.dot(J,np.dot(J,np.dot(J.T,np.dot(Gammap,J))+Gamma)))
-         ##print Gamma
-         ##print Gamma+np.dot(J,np.dot(J.T,np.dot(Gammap,J)))
-         #exp2=np.dot(self.nm.K.T, np.dot(Gammap, self.nm.K))
-         #exp1=np.dot(np.dot(J.T,Gammap),J)+Gamma
-         #exp1=np.dot(np.dot(np.dot(Gammap,J),np.linalg.inv(exp1)),J.T)
-         #exp1=np.dot(np.dot(self.nm.K.T,exp1), np.dot(Gammap,self.nm.K))
-         #I_00*=np.exp(.5*(exp1-exp2))
-         #FINISHED COMPUTE I_00 TRANSITION PROBABILITY [[Btree.py#extract]]
+         # do not compute it explicitely here. The formula seems to be numerically
+         # instable!
          I_00=0.7
          
          # insert the transition
-         shift_00=np.trace(Gammap)-np.trace(Gamma)
-         opa.insert(zeros, np.sqrt(I_00*shift_00))
+         opa.insert(zeros, np.sqrt(I_00))
          return opa
    
       def iterate(L1, L2, i, f, J, K):
@@ -669,7 +656,7 @@ class SDR_spect(Spect.Spect):
       inten=1.00 
       linspect.append(np.matrix([abs(Energy)*self.Hartree2cm_1, inten, 7])) 
 
-      L2=CalcI00(Energy, Gamma, Gammap)
+      L2=CalcI00(Energy) # or other way round?
       #this is already extracted to linspect (using side-effects)
       L1=L2 
       for i in range(1, N+1):

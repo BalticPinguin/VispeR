@@ -119,6 +119,8 @@ def main(argv=None):
    #At this point, already all necessary quantities are calculated.
    spect.calcspect()
    #FINISHED PERFORM CALCULATION OF SPECTRA
+
+   #do some special-purpose-calculations if wanted.
    
    #with this, the broadened spectrum is calculated.
    broaden=output_spect.broaden(spect)

@@ -10,7 +10,13 @@ import numpy as np
 # CHANGELOG
 # =========
 #in version 0.0.1:  
-#   1) invented class VibDeform
+#   1) invented class VibDeform. Use it as
+#       import SpecPurpose as sp   
+#       vibro=sp.VibDeform(spect,0)   
+#       alpha=[-0.5,-0.4,-0.3,-0.2,-0.1,0,0.1,0.2,0.3,0.4,0.5]   
+#       for i in [8,9,14,15,26,27]:   
+#          vibro.printDeformed(i, alpha)   
+#     in VispeR.py.
 #
 
 class  VibDeform:

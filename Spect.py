@@ -216,9 +216,9 @@ class  Spect:
       #changes the orientation of the molecules to coincide with
       # the main axes of inertia. Input-orientations may
       # give too large or just unphysical HR-factors.
-      manipulate=re.findall(r"(?<=manipulate:)[\w ,]*", self.opt, re.M)
+      manipulate=re.findall(r"(?<=manipulate:)[\w ]*", self.opt, re.M)
       if manipulate!=[]:
-         manipulate=manipulate[0].strip()
+         manipulate=manipulate[0].strip().split(" ")[0]
       #initialise object of the respective class
       self.manipulate=AtAl.align_atoms(manipulate, self)
       #perform the calculation. By default only a shift towards the center

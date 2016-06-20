@@ -346,7 +346,6 @@ def concise(intens, freq, sigma):
          else:
             #chose the frequency as average over transitions
             Sfreq.append(sum(freq[startind:i-1])/(i-1-startind))
-            print Sfreq[-1], freq[startind:i-1]
             Sintens.append(tmpintens)
          startind=i
          tmpintens=0
@@ -354,6 +353,5 @@ def concise(intens, freq, sigma):
       tmpintens+=intens[i]
    return Sintens, Sfreq
       
-
 version='0.1'
 #End of output_spect.py
