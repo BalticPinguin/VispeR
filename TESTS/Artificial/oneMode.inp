@@ -1,0 +1,5 @@
+model HR
+out: oneMode.log
+opt: T=300 states=6;2
+HR-file: singlemode
+broaden: gamma=10 shape=l, spectfile=oneMode.vs stick

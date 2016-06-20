@@ -311,11 +311,13 @@ Hessian of final state:
  024  +2.18212e-06  +4.04598e-16  -1.13675e-15  +1.26769e-05
 Center of mass initial state coordinates (Bohr):
 
-    001  -1.671593e-01 	    002  -2.619212e-02 	
+    001  -1.671593e-01 	    003  -6.473416e-06 	
+    002  -2.619212e-02 	
 
 Center of mass final state coordinates (Bohr):
 
-    001  -1.594461e-01 	    002  -3.070797e-02 	
+    001  -1.594461e-01 	    003  -6.338436e-11 	
+    002  -3.070797e-02 	
 
 Initial states frequencies (cm-1)
 
@@ -674,13 +676,13 @@ HR-fact           freq     delta
  STARTING TO CALCULATE BROADENED SPECTRUM.
 neglect 708 transitions, use only 40 instead.
 minimal and maximal intensities:
-1.3162594812753675e-06 1.0
+1.7604584936385525e-07 0.13374707029139771
 
  REACHING OPA TO NPA-PART. 
  ------------------------------------------------ 
+omega is equally spaced
 maximal and minimal frequencies:
  21957.4386806 6572.94064963
-omega is equally spaced
 
 ==================================================================
 =========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============

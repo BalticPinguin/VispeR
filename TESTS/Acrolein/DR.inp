@@ -1,6 +1,0 @@
-initial: t1-freq.fchk
-final: s0-freq.fchk
-out: DR.log
-model DR
-opt: print=0 T=3.000
-broaden: grid=80000, to nPA: 7 spectfile=DR.spe, gamma=50 shape=g

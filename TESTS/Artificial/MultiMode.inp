@@ -1,0 +1,5 @@
+model HR
+out: MultiMode.log
+opt: T=300 states=6;6
+HR-file: multimode
+broaden: to nPA: 4 gamma=1 shape=l, spectfile=MultiMode.spe stick

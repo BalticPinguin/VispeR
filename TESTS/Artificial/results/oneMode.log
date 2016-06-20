@@ -1,0 +1,24 @@
+
+==================================================================
+=====================  output of Visper  =========================
+==================================================================
+
+   INPUT-FILE:
+model HR
+out: oneMode.log
+opt: T=300 states=6;2
+HR-file: singlemode
+broaden: gamma=10 shape=l, spectfile=oneMode.vs stick
+ 
+   END OF INPUT-FILE 
+
+number of states: 6 and 0 
+HR-fact           freq     delta
+0.200000   8000.000000 
+
+ STARTING TO CALCULATE BROADENED SPECTRUM.
+
+==================================================================
+=========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============
+==================================================================
+

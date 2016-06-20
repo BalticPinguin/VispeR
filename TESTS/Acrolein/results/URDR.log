@@ -311,11 +311,13 @@ Hessian of final state:
  024  +2.18212e-06  +4.04598e-16  -1.13675e-15  +1.26769e-05
 Center of mass initial state coordinates (Bohr):
 
-    001  -1.671593e-01 	    002  -2.619212e-02 	
+    001  -1.671593e-01 	    003  -6.473416e-06 	
+    002  -2.619212e-02 	
 
 Center of mass final state coordinates (Bohr):
 
-    001  -1.594461e-01 	    002  -3.070797e-02 	
+    001  -1.594461e-01 	    003  -6.338436e-11 	
+    002  -3.070797e-02 	
 
 Initial states frequencies (cm-1)
 
@@ -790,12 +792,12 @@ Displacement vector:
 
 
  STARTING TO CALCULATE BROADENED SPECTRUM.
-neglect 50711 transitions, use only 2385 instead.
+neglect 52449 transitions, use only 632 instead.
 minimal and maximal intensities:
-1.0038806976808701e-06 1.0
-maximal and minimal frequencies:
- 22204.3507693 10742.9199219
+6.0782689872989653e-07 0.6025293476458593
 omega is equally spaced
+maximal and minimal frequencies:
+ 22204.3507693 12817.3681641
 
 ==================================================================
 =========== VISPER FINISHED OPERATION SUCCESSFULLY.  =============

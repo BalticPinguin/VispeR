@@ -1,6 +1,6 @@
-initial: ground_freq.g09.log
+initial: ground_freq.log
 final: excited_freqg.g09.log
 out: FC_exc.log
 model FC
-opt: HRthreshold=0.001 print=0 T=300.001,
+opt: HRthreshold=0.001 print=0 T=300.001, width=8
 broaden: to nPA:3 gamma=60, grid=14000, spectfile=FC_exc.spe shape=g stick

@@ -1,0 +1,32 @@
+
+==================================================================
+=====================  output of Visper  =========================
+==================================================================
+
+   INPUT-FILE:
+model HR
+out: MultiMode.log
+opt: T=300 states=6;6
+HR-file: multimode
+broaden: to nPA: 4 gamma=1 shape=l, spectfile=MultiMode.spe stick
+ 
+   END OF INPUT-FILE 
+
+number of states: 6 and 0 
+HR-fact           freq     delta
+1.000000   1.000000 
+1.000000   1000.000000 
+1.000000   100.000000 
+1.000000   10.000000 
+
+ STARTING TO CALCULATE BROADENED SPECTRUM.
+
+ REACHING OPA TO NPA-PART. 
+ ------------------------------------------------ 
+
+ WARNING: THE GRID SPACING IS LARGE COMPARED TO THE WIDTH OF THE PEAKS.
+THIS CAN ALTER THE RATIO BETWEEN PEAKS IN THE BROADENED SPECTRUM!
+==================================================================
+=============== VISPER FINISHED WITH 1 WARNINGS.  ================
+==================================================================
+

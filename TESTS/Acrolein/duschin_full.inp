@@ -1,6 +1,0 @@
-initial: t1-freq.fchk
-final: s0-freq.fchk  
-out: duschinsky_full.log
-model URDR
-opt: print=0 T=3.0
-broaden: grid=80000, spectfile=duschinsky_full.spe, gamma=50 shape=g

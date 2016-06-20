@@ -1,6 +1,0 @@
-initial: t1-freq.fchk
-final: s0-freq.fchk
-out: URDR.log
-model URDR
-opt: print=0 T=3.000
-broaden: grid=80000, spectfile=URDR.spe, gamma=50 shape=g

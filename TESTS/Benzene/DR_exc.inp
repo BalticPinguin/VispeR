@@ -1,6 +1,6 @@
-initial: ground_freq.g09.log
+initial: ground_freq.log
 final: excited_freqg.g09.log
 out: DR_exc.log
-HR-fact(HRthreshold=0.001 print=0)
-Duschinsky-spect(print=0 T=300.001, modes=7,  model=unrestricted )
-Broadening(print=0, gamma=60, T=300.015 grid=14000, spectfile=DR_exc.spe shape=g stick)
+model: DR
+opt: HRthreshold=0.001 print=4 T=300.001, modes=7,  model=unrestricted 
+broaden: gamma=60, spectfile=DR_exc.spe

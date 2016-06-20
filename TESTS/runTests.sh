@@ -1,20 +1,21 @@
 #!/bin/bash
 
-alias VispeR.py='~/bin/smallscript-master/VispeR.py'
+# this might be necessary to re-set.
+alias VispeR.py='~/bin/smallscript/VispeR.py'
 
 function test () {
 system=$1
 cd $system
-for files in "$@"
+for files in $@
 do
-   if [[ $files -eq $system ]]
+   if [[ $files == $system ]]
    then
-	continue
+      continue
    fi
-   (~/bin/smallscript-master/VispeR.py $files\.inp
+   (VispeR.py $files\.inp
    diff $files\.log results/$files\.log > $files\.diff
-   isdifferent= $( wc $files\.diff | awk '{print $1}')
-   if [ $isdifferent -ge 0 ]
+   isdifferent=$(wc $files\.diff | awk '{print $1}')
+   if [[ $isdifferent -ge 1 ]]
    then
       echo "some error in system $files ."
    fi
@@ -31,11 +32,15 @@ cd ../
 
 system=Acrolein
 echo "test Acrolein:"
-(test $system DR URDR changed duschin_full gradient shift)
+(test $system changed gradient shift)
 
 system=Anisole 
 echo "test Anisole:"
-(test $system changed G09-spectrum shift smsc)
+(test $system changed shift smsc)
+
+system=Artificial
+echo "test artifical system:"
+(test $system MultiMode oneMode)
 
 system=Benzene 
 echo "test Benzene:"
@@ -43,4 +48,6 @@ echo "test Benzene:"
 
 system=Phenol 
 echo "test Phenole:"
-(test $system DR_abs FC_abs)
+(test $system DR_abs FC_abs FC_abs2)
+
+wait
