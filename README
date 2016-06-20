@@ -39,15 +39,6 @@ using patches. The variants available are:
     of mass is shifted to the center of mass of initial state. This keeps the coordinates of initial
     state untouched.
 
-
-       ====================================================
-       ******************  Licence   **********************
-       ====================================================
-
-Visper is licensed under GPL, so you are free to use it and change as you
-like. 
-      
-
        ====================================================
        **************  Current Issues   *******************
        ====================================================
