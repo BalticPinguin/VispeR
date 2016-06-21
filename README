@@ -19,14 +19,17 @@ parameters blow up the calculation exponentially in time as well as in memory re
        ******************    Usage   **********************
        ====================================================
 
-Visper is easy to use: Unpack the files in a folder, make the main file,
-smallscript.py, executable and execute it, followed by the name of your 
+Visper is easy to use: Unpack the files in a folder, make the file
+"VispeR.py" executable and execute it, followed by the name of your 
 input-file that specifies all options.
 For more detailes about these options, please have a look at doc/DOCUMENTAION.html. 
 
-Some example-calculations (input-files, log-files and results) will follow.
-The examples given in the folder 'tests' are out-of date and may contain results
-that are obtaind with options/models that are no more available in this way.
+Some example-calculations (input-files, log-files and results) are listed in the directory
+"TESTS". You can check the programme works correctly by runnig the 'runTests.sh' file.
+
+To speed-up calculations in FC,CFC or HR model, you can compile the Cpp-files brought with VispeR
+(by calling 'make'). With this, the most demanding tasks are done by a compiled library saving the time- 
+and memory consumption of the programme.
 
        ====================================================
        ******************  Versions  **********************
@@ -45,7 +48,3 @@ using patches. The variants available are:
 
 There are several known issues at this point:
   > Log-files stemming from GAMESS are not accepted at the moment
-  > Only the models FC, GFC and URDR are tested and might work 
-  > There might be issues with some units, especially the energy of
-    electronic transition is problematic.
-  > transformation of coordinates has certain bugs, work in progress.

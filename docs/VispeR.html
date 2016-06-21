@@ -154,9 +154,10 @@ version=2.0.1<br />
     </div>
     <div class='code'>
       <div class="highlight"><pre>   <span class="k">if</span> <span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">r&quot;model&quot;</span><span class="p">,</span><span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
-      <span class="n">model</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=model )[\w]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">model</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=model )[\w]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">model</span><span class="o">==</span><span class="p">[]:</span>
-	 <span class="n">model</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=model: )[\w]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+	 <span class="n">model</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=model: )[\w]+&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+      <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
    <span class="k">else</span><span class="p">:</span></pre></div>
     </div>
   </div>
@@ -360,6 +361,18 @@ At this point, already all necessary quantities are calculated.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-24'>#</a>
       </div>
+      <p>do some special-purpose-calculations if wanted.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
       <p>with this, the broadened spectrum is calculated.</p>
     </div>
     <div class='code'>
@@ -368,10 +381,10 @@ At this point, already all necessary quantities are calculated.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-25'>
+  <div class='section' id='section-26'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-25'>#</a>
+        <a class='octothorpe' href='#section-26'>#</a>
       </div>
       <p>END PERFORMING CALCULATION OF SPECTRA</p>
     </div>
@@ -384,10 +397,10 @@ At this point, already all necessary quantities are calculated.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <p>End of VispeR.py</p>
     </div>

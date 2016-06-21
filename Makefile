@@ -5,6 +5,7 @@ CC=g++
 	#$(CC) --whole-archive -shared -Wl,-soname,libputN.so -o libputN.so libputN.o
 	#$(CC) -O2 -Wall -fPIC -lstdc++ -g -I. -o libputN.o putN.cpp
 	#ld -G -o libputN.so putN.o
+
 all:  putN.cpp 
 	$(CC) -O2 -fPIC -c putN.cpp
 	$(CC) -shared -Wl,-soname,libputN.so putN.o -lsupc++ -o libputN.so

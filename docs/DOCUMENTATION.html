@@ -23,6 +23,7 @@
       <nav role="navigation" class="table-of-contents">
          <ol>
             <li><a href="#main">General information</a></li>
+            <li><a href="#require">Prerequisits</a></li>
             <li><a href="#call">Calling the script</a></li>
            <!-- <li><a href="#input">Input</a></li>
             <li><a href="#model">Available models</a></li>
@@ -58,14 +59,24 @@
 <p> VispeR, formerly called smallscript is an acronym for <b>Vi</b>bronic <b>spe</b>ctrum <b>R</b>ostock. </p>
 <p>It is a python-script for calculating vibronic spectra; being able to work on different levels of theory.</p>
 
-<h2 id="#call">Prerequisits</h2>
-<p>VispeR is written in python2 and needs the non-standard packages numpy and scipy to be installed.</p>
+<h2 id="#purpose">Purpose</h2>
+    <p> VispeR is meant to compute vibronic spectra for single electronic transitions using informations given
+    via <a href="log-files.html">quantum-chemical calculations </a> on these states. </p>
+    <p> It is written to get insight into molecular processes via caluculations on different levels of theory
+    (therefore different models from Franck-Condon (FC) progressions up to inclusion of full
+    Duschinsky effect are implemented).</p>
+    <p>Some features exceding these applications are implemented in the programme as well and further
+    algorithms are easy to add due to the class-based structure of the code, making access to different
+    values easier.</p>
+
+<h2 id="#require">Prerequisites</h2>
+<p>Visper is written in python2 and needs the non-standard packages numpy and scipy to be installed.</p>
 <p>The requirements on hardware strongly depend on the problems to be solved. 
 The basic calculations are possible with some Mbytes of RAM.</p>
 
 <h2 id="#call">Calling the script</h2>
 <p> Visper is invoked with an <a href="input.html">input-file</a> as only argument that contains all options
-as well as the names of two log-files of quantum-chemical programms such as Gaussian or NWChem.</p>
+as well as the names of two log-files of quantum-chemical programs such as Gaussian or NWChem.</p>
 
 <h1 id="model">Available models</h1>
       <ul>
@@ -74,8 +85,8 @@ as well as the names of two log-files of quantum-chemical programms such as Gaus
           <li>FC -> In this model, a purely harmonic spectrum is calculated in Franck-Condon picture.</li>
           <li>CFC -> This model is also Franck-Condon based but includes a correction due frequencies differing between the initial and final electronic states. </li>
         <!--  <li>DR  -> With this option, a spectrum is calculated that takes also Duschinsky rotation into account. In this model restrictions due to the
-                   number of changeing vibrational modes are given.</li> -->
-          <li>URDR -> This model is the least restrictive; it allowes for full spectrum calculation including Duschinsky rotation.</li>
+                   number of changing vibrational modes are given.</li> -->
+          <li>URDR -> This model is the least restrictive; it allows for full spectrum calculation including Duschinsky rotation.</li>
       </ul>
 </body>
 </html>
