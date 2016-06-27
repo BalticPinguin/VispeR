@@ -13,6 +13,7 @@ import FC_spects
 #in version 0.0.1:  
 #  1) initialisation of class
 
+#===  HR_class ===
 class HR_spect(FC_spects.FC_spect):
    """ This class is intended to calculate FC-spectra using HR-factors and frequencies
        read from a file.

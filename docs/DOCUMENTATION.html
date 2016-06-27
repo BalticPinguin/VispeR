@@ -10,64 +10,64 @@
 <body>
 <h1><center>Welcome to the documentation page of Visper</center></h1>
 <table>
-   <tr>
-   <td padding=10% >
+   <tr><td>
       <h2>Table of contents</h2>
-   </td>
-   <td>
-      <h2>The code</h2>
-   </td>
-   </tr>
-   <tr>
-   <td>
       <nav role="navigation" class="table-of-contents">
-         <ol>
-            <li><a href="#main">General information</a></li>
-            <li><a href="#require">Prerequisits</a></li>
-            <li><a href="#call">Calling the script</a></li>
-           <!-- <li><a href="#input">Input</a></li>
-            <li><a href="#model">Available models</a></li>
-            <li><a href="#options">Options</a></li>
-            <li><a href="#broaden">Calculate a line-shaped spectrum</a></li> -->
-         </ol>
-      </nav>
+      <ol>
+         <li><a href="#main">General information</a></li>
+         <li><a href="#require">Prerequisites</a></li>
+         <li><a href="#purpose">Purpose</a></li>
+         <li><a href="#call">Calling the script</a></li>
+         <li><a href="#code">For Developers</a></li>
+         <!-- <li><a href="#input">Input</a></li>
+         <li><a href="#model">Available models</a></li>
+         <li><a href="#options">Options</a></li>
+         <li><a href="#broaden">Calculate a line-shaped spectrum</a></li> -->
+      </ol>
+   </nav>
    </td>
-   <td>
-      <ul class="navbar">
-      <li><a href="VispeR.html">main program code</a>
-      <li><a href="Spect.html">Class Spect</a>
-      <li><a href="FC_spects.html">Derived Classes FC</a>
-      <li><a href="DR_spects.html">Derived Classes DR</a>
-      <li><a href="Btree.html">Dependent Class Btree</a>
-      <li><a href="OPA.html">Dependent Class OPA</a>
-      <li><a href="Read.html">Class Read</a>
-      <li><a href="MultiPart.html">Class MultiPart</a>
-      <li><a href="docs/atoms_align.html"> atoms_align </a>
-      <li><a href="docs/file_handler.html">file_handler</a>
-      <li><a href="docs/normal_modes.html">normal_modes</a>
-      <li><a href="docs/output_spect.html">output_spect</a>
-      </ul>
+   <td width="50%">
+   <p> </p>
+   </td>
+   <td >
+   <h2>Important links</h2>
+   <p> Explanation of <a href="models.html">models</a></p>
+   <p> Printing options for the <a href="log-files.html">log-files</a> </p>
+   <p> Options and structure of <a href="input.html">input files</a> </p>
+   <p> Documentation of Vispers <a href="output.html">output</a></p>
    </td>
    </tr>
 </table>
-<p> Explanations of the output of the calculations is given at the <a href="output.html">output-documentation</a> page.</p>
-<p> The models in use are explained <a href="models.html">here</a>.</p>
-<p>Requirements to the log-files used in the input are specified at <a href="log-files.html">this</a> page. </p>
 <!-- Main content -->
 
 <h1 id="main">General Information</h1>
-<p> VispeR, formerly called smallscript is an acronym for <b>Vi</b>bronic <b>spe</b>ctrum <b>R</b>ostock. </p>
-<p>It is a python-script for calculating vibronic spectra; being able to work on different levels of theory.</p>
+<p> VispeR, formerly called smallscript, is an acronym for <b>Vi</b>bronic <b>spe</b>ctrum <b>R</b>ostock. </p>
+<p> When dealing with molecular spectra such as photo absorption/emission in the UV or visible range, photo electron spectra
+    or similar, people usually consider the electronic transitions for it only. 
+    Doing so, the structure of the spectra is underestimated because of the neglect of the vibrational contributions. 
+    Visper is supposed to correct for this problem by estimating the vibrational structure.</p>
+    <p>There are several shifted and shifted/rotated harmonic oscillator <a href="models.html">models</a> describing the vibrational motion at different approximation levels.
+    Visper implements some of the main model, allowing to study the influence of various effects.</p>
+    <p> The required data (such as electronic energies, Hessians and molecular geometry) are read from log-files of quantum-chemistry programs such as Gaussian or NWChem.</p>
 
 <h2 id="#purpose">Purpose</h2>
-    <p> VispeR is meant to compute vibronic spectra for single electronic transitions using informations given
-    via <a href="log-files.html">quantum-chemical calculations </a> on these states. </p>
-    <p> It is written to get insight into molecular processes via caluculations on different levels of theory
+   <table>
+   <tr><td>
+    <p>Visper is a python-script for calculating vibronic spectra 
+    to get insight into molecular processes via calculations on different levels of theory
     (therefore different models from Franck-Condon (FC) progressions up to inclusion of full
-    Duschinsky effect are implemented).</p>
-    <p>Some features exceding these applications are implemented in the programme as well and further
-    algorithms are easy to add due to the class-based structure of the code, making access to different
-    values easier.</p>
+    Duschinsky rotation effect are implemented).</p>
+
+    <p> It is meant to compute vibronic spectra for transitions between a pair of electronic states
+    using informations given by <a href="log-files.html">quantum-chemical calculations </a> on these states. 
+    It supports Gaussian and NWChem at the moment.</p>
+    <p> Further algorithms e.g. for the description of non-adiabatic transitions are easy to add due to the 
+    class-based structure of the code, making access to different values easier.</p>
+   </td>
+   <td>
+   <IMG SRC="benzen.png" ALT="vibronic spectrum of benzene." WIDTH=500px>
+   </td></tr>
+   </table>
 
 <h2 id="#require">Prerequisites</h2>
 <p>Visper is written in python2 and needs the non-standard packages numpy and scipy to be installed.</p>
@@ -80,13 +80,16 @@ as well as the names of two log-files of quantum-chemical programs such as Gauss
 
 <h1 id="model">Available models</h1>
       <ul>
-         <li>HR -> This model is special in the syntax of required input-file. It is used to calculate a spectrum using just the Huang-Rhys factors
-                    and respective frequencies to calculate a fully harmonic spectrum.<a href="#HR-model">Details see here.</a></li> 
+         <li>HR -> This model is special in the syntax of required input-file. It calculates the spectrum from known Huang-Rhys factors
+                    and respective frequencies.<a href="#HR-model">Details see here.</a></li> 
           <li>FC -> In this model, a purely harmonic spectrum is calculated in Franck-Condon picture.</li>
           <li>CFC -> This model is also Franck-Condon based but includes a correction due frequencies differing between the initial and final electronic states. </li>
         <!--  <li>DR  -> With this option, a spectrum is calculated that takes also Duschinsky rotation into account. In this model restrictions due to the
                    number of changing vibrational modes are given.</li> -->
           <li>URDR -> This model is the least restrictive; it allows for full spectrum calculation including Duschinsky rotation.</li>
       </ul>
+<h1 id="code">Program code</h1>
+The program is written mostly in python (there is 1 Cpp-file as well) and based on classes.
+To understand the code structure and add further capabilities, please have a look at the <a href="code.html">documentation of code</a>.
 </body>
 </html>

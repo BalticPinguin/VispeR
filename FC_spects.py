@@ -20,6 +20,7 @@ import numpy as np
 #  2) Removed the HR-classes from the code  
 #  3) In FC: final states frequencies in use.
 
+#=== CFC-class ===
 class FC_spect(Spect.Spect): # import class Spect from file Spect.
    """ All models that are based on FC-scheme are based on this class. 
       Since it doesn't need any more data than the DR-scheme, everything 
@@ -256,6 +257,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       self.HR=uniHR
       self.f=uniFall
 
+#=== CFC-class ===
 class CFC_spect(FC_spect):
    """This is more general class compared to FC_spect. Here, both states need to have different
       force constant matrices and the change of the respective frequencies are taken into account

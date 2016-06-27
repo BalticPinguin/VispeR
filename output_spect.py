@@ -157,7 +157,7 @@ class broaden():
          MakeFull.GetSpect(self.spect, minint)
          TPAintens, TPAfreq=MakeFull.Calc()
          
-         #sort spectrum with respect to size of elements
+         #sort spectrum with respect to size of intensities
          index=np.argsort(self.spect[1], kind='heapsort')
          self.spect[0]=self.spect[0][index] #frequency
          self.spect[1]=self.spect[1][index] #intensity
@@ -173,14 +173,9 @@ class broaden():
          TPAfreq=self.spect[0][minint:]
          TPAintens=self.spect[1][minint:]
 
-      #print the stick-spectrum to a .stick-file, if it was requested:
-      if self.stick:
-         stickfile=self.parent.log.logfile.split(".")[0]
-         stickout=open(stickfile+".stick", "w")
-         stickout.write(" Intensity  \t frequency \n")
-         for i in range(len(TPAfreq)):
-            stickout.write(" %3.6g  \t %3.6f\n"%(TPAintens[i],TPAfreq[i]))
-         stickout.close()
+      #needed for DR spectra:
+      norm=np.sum(TPAintens)
+      TPAintens/=norm
             
       #find transition with minimum intensity to be respected
       #the range of frequency ( should be greater than the transition-frequencies)
@@ -204,6 +199,15 @@ class broaden():
       index=np.argsort(TPAfreq,kind='heapsort') #sort by freq
       freq=TPAfreq[index]
       intens=TPAintens[index]
+
+      #print the stick-spectrum to a .stick-file, if it was requested:
+      if self.stick:
+         stickfile=self.parent.log.logfile.split(".")[0]
+         stickout=open(stickfile+".stick", "w")
+         stickout.write(" Intensity  \t frequency \n")
+         for i in range(len(freq)):
+            stickout.write(" %3.6g  \t %3.6f\n"%(intens[i],freq[i]))
+         stickout.close()
    
       if self.spectfile==None:
          self.out=self.log
@@ -351,6 +355,16 @@ def concise(intens, freq, sigma):
          tmpintens=0
          endfreq=freq[i]+sigma/10
       tmpintens+=intens[i]
+   #add the last transitions:
+   if startind==len(freq)-1:
+      Sfreq.append(freq[-1])
+      Sintens.append(tmpintens)
+   else:
+      #chose the frequency as average over transitions
+      Sfreq.append(sum(freq[startind:])/len(freq[startind:]))
+      Sintens.append(tmpintens)
+   for i in range(len(Sfreq)):
+      print Sintens[i], Sfreq[i]
    return Sintens, Sfreq
       
 version='0.1'

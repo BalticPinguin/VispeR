@@ -14,6 +14,9 @@ import re, mmap, math, os
 
 #  CHANGELOG 
 # ===========
+#in version 1.1:  
+#  1) Fixed energy-error in SDR-class; should go now to right direction in all cases.
+#
 #in version 1.0:  
 #  1) remove dist_FCfOPA(); the model behind is inconsistent.   
 #  2) renamed resortFCfOPA to calcspect and made the interface
@@ -25,6 +28,7 @@ import re, mmap, math, os
 #     analytic formula (for I_00) is numerically unstable for larger systems.
 #
 
+#=== URDR_class ===
 class URDR_spect(Spect.Spect):
    """The class to calculate full Duschinsky-spectra. Due to its computational structure,
       integral prescreaning is not possible, therefore really all transitions need to be 
@@ -451,6 +455,7 @@ class URDR_spect(Spect.Spect):
       norm=np.sum(self.spect[1])
       self.spect[1]/=norm
 
+#=== DR_class ===
 class SDR_spect(Spect.Spect):
    """The class to calculate Duschinsky-spectra in a pseudo one-particle approximation. 
       This makes the computation much faster than in URDR-spect, but in fact the model behind
@@ -636,8 +641,10 @@ class SDR_spect(Spect.Spect):
          for i in xrange(len(index)):
             indi=index[i]
             if intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) >self.Threshold:
-               F.append([(-np.sign(E)*Gamma[indi]*(n-ex[i])
-                         +np.sign(E)*Gammap[indi]*(ex[i])+np.abs(E))*self.Hartree2cm_1,
+              #F.append([np.sign(E)*(-Gamma[indi]*(n-ex[i])
+              #          +Gammap[indi]*ex[i]-np.abs(E))*self.Hartree2cm_1,
+              F.append([(np.abs(E)+Gamma[indi]*(n-ex[i])
+                        -Gammap[indi]*ex[i])*self.Hartree2cm_1,
                         intens[i]*intens[i]*np.exp(-(Gammap[indi]*ex[i]+E0)/T) ,
                         indi+1])
    
@@ -653,7 +660,7 @@ class SDR_spect(Spect.Spect):
       linspect=[]
 
       #append the 0->0 transition to the linspect-array
-      inten=1.00 
+      inten=0.7
       linspect.append(np.matrix([abs(Energy)*self.Hartree2cm_1, inten, 7])) 
 
       L2=CalcI00(Energy) # or other way round?
@@ -699,6 +706,7 @@ class SDR_spect(Spect.Spect):
       self.log.write("Displacement vector:\n")
       self.log.printVec(self.nm.K)
    
+      self.m=int(self.m)
       #truncate only, if this really is truncation.
       if self.m<len(self.nm.J): 
          index=np.argsort(np.abs(self.nm.K), kind="heapsort")[::-1]
@@ -722,11 +730,13 @@ class SDR_spect(Spect.Spect):
       self.__GetQuants()
       self.spect=self.__simpleFCfOPA(self.nm.J, self.nm.K, self.f, E, self.states1+ self.states2, self.T, 0)
       self.normalise()
+      #print np.sum(self.spect[1])
    
    def normalise(self):
       norm=np.sum(self.spect[1])
       self.spect[1]/=norm
    
+#=== OPA_class ===
 class OPA:
    """ This class containes the functions and objects for the calculation of vibronic spectra 
        with the SDR_spect class.
@@ -785,5 +795,5 @@ class OPA:
 
       return intens, ind, excs, self.L #I need squares as intensities
 
-version='1.0'
+version='1.1'
 # End of DR_spects.py
