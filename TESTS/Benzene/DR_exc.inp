@@ -1,6 +1,6 @@
-initial: ground_freq.log
+initial: ground_freq.g09.log
 final: excited_freqg.g09.log
 out: DR_exc.log
-model: DR
-opt: HRthreshold=0.001 print=4 T=300.001, modes=7,  model=unrestricted 
-broaden: gamma=60, spectfile=DR_exc.spe
+model DR
+opt: print=4 T=300.001, modes=7
+broaden: gamma=60, spectfile=DR_exc.spe shape=g stick shorten

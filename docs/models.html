@@ -10,7 +10,7 @@
 <h1 href='intro'><center>Background of the models implemented in Visper</center></h1>
 <p> Visper implements several models that differ in the approximations done as well as in 
     the required input-data. </p>
-<p> The (admittedly cryptic) names of the models in the programme stand for
+<p> The (admittedly cryptic) names of the models in the program stand for
 <ul>
    <li><b>HR</b>: Huang-Rhys. This model is a bit different from the others: Here, the <a href="#HR">HR-factors</a>
         and corresponding frequencies are given and Visper computes the FC-progression for this.</li>
@@ -30,12 +30,36 @@ It is important to note, however, that all calculations except the URDR-spectrum
 <h2>Contents</h2>
 <nav role="navigation" class="table-of-contents">
    <ol>
+      <li><a href="#intro">Introduction: Vibronic spectroscopy</a></li>
       <li><a href="#FC">FC-based models</a></li>
       <li><a href="#DR">DR-based models</a></li>
       <li><a href="#manipulation">Data-manipulation</a></li>
       <li><a href="#FC-n">Particle-generalisation</a></li>
    </ol>
 </nav>
+
+<h1 id="intro">Introduction: Vibronic spectroscopy</h1>
+The theoretical investigation of molecular spectra often is performed using Fermis Golden Rule, in Born-Oppenheimer apprximation it takes the form
+..-..
+With the XXX, this can be further simplified to the expression
+...-...
+Here, the second product is the overlap integral of the nuclear wave functions which 
+are the eigenstates of harmonic oscillators due to the assumptions of XXX.
+
+<h2>FC-progression</h2>
+Usually, people assume that the curvature of the harmonic oscillator is the same in both states but they are shifted
+with respect to each other by some amount. 
+This yields a transition probability from initial state i to final state f of 
+..._...
+<h2>FC-progression advanced</h2>
+Of course, in most cases the curvature will not be the very same for both states: Usually, electronically excited states
+are loser bound and hence the curvature becomes less steep. If one accounts for the smoother wave function in the overlap integral,
+the transition probability can be no more written in a closed form but is described by the recursive relations
+...^...
+<h2>Duschinsky rotation</h2>
+In addition to changes in the steepness of the potential energy surface, the modes also can intermix if the hyperbolic functions
+are rotated towards each other in the space of normal modes. This effect is denoted as Duschinsky rotation and leads to 
+recursive relations for the transition probability as well which have the form:
 
 <h1 id="HR">HR-factors</h1>
 <p>Since in literature, the variable scaling the FC progression is defined not consistently, we should clarify the

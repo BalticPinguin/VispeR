@@ -115,6 +115,12 @@ def main(argv=None):
       return 2
    #INTRODUCTION END
 
+   #import SpecPurpose as sp   
+   #vibro=sp.VibDeform(spect,0)   
+   #alpha=[-0.5,-0.4,-0.3,-0.2,-0.1,0.1,0.2,0.3,0.4,0.5]   
+   #for i in [7,13,25]:   
+   #   vibro.printDeformed(i, alpha)   
+
    #PERFORM CALCULATION OF SPECTRA  
    #At this point, already all necessary quantities are calculated.
    spect.calcspect()

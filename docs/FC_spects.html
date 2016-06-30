@@ -65,7 +65,8 @@ include  <a href="Spect.html">Spect.py</a></p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
-      <p>All models that are based on FC-scheme are based on this class.</p>
+      <p>=== CFC-class ===
+All models that are based on FC-scheme are based on this class.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">class</span> <span class="nc">FC_spect</span><span class="p">(</span><span class="n">Spect</span><span class="o">.</span><span class="n">Spect</span><span class="p">):</span> <span class="c1"># import class Spect from file Spect.</span></pre></div>
@@ -659,7 +660,8 @@ they can easily cause some trouble!</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-41'>#</a>
       </div>
-      <p>This is more general class compared to FC_spect. Here, both states need to have different</p>
+      <p>=== CFC-class ===
+This is more general class compared to FC_spect. Here, both states need to have different</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre><span class="k">class</span> <span class="nc">CFC_spect</span><span class="p">(</span><span class="n">FC_spect</span><span class="p">):</span></pre></div>
@@ -791,7 +793,6 @@ the main function to have the product (i.e. of all modes) correctly.</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>          <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="mf">1.</span> 
-          <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">delta</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">deltasquare</span><span class="p">))</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="o">-.</span><span class="mi">5</span><span class="o">*</span><span class="n">D</span><span class="o">*</span><span class="n">D</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">deltasquare</span><span class="p">))</span>
           <span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">=-</span><span class="n">npsqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span><span class="o">*</span><span class="n">delta</span><span class="o">*</span><span class="n">D</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">deltasquare</span><span class="p">)</span> 
           <span class="n">R</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="n">npsqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span><span class="o">*</span><span class="n">D</span><span class="o">/</span><span class="p">(</span><span class="mf">1.</span><span class="o">+</span><span class="n">deltasquare</span><span class="p">)</span>
           <span class="n">R</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">=</span><span class="p">(</span><span class="n">D</span><span class="o">*</span><span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">delta</span><span class="o">*</span><span class="n">npsqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span><span class="o">*</span><span class="n">R</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">npsqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">deltasquare</span><span class="p">)</span>
@@ -922,9 +923,9 @@ print E, freq[0]</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre>       <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-         <span class="n">D</span><span class="o">=</span><span class="n">npsqrt</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="n">HR</span><span class="p">[</span><span class="n">a</span><span class="p">])</span> <span class="c1"># define this to become consistent with given formula</span>
-         <span class="n">delta</span><span class="o">=</span><span class="n">npsqrt</span><span class="p">(</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">a</span><span class="p">]</span><span class="o">/</span><span class="n">freq</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">a</span><span class="p">])</span>
-         <span class="n">deltasquare</span><span class="o">=</span><span class="n">delta</span><span class="o">*</span><span class="n">delta</span></pre></div>
+         <span class="n">D</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">HR</span><span class="p">[</span><span class="n">a</span><span class="p">])</span> <span class="c1"># define this to become consistent with given formula</span>
+         <span class="n">deltasquare</span><span class="o">=</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">a</span><span class="p">]</span><span class="o">/</span><span class="n">freq</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">a</span><span class="p">]</span>
+         <span class="n">delta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">deltasquare</span><span class="p">)</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -952,7 +953,7 @@ of the particular mode:</p>
     <div class='code'>
       <div class="highlight"><pre>            <span class="n">therm_pop</span><span class="o">=</span><span class="mi">0</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="p">):</span>
-               <span class="n">therm_pop</span><span class="o">+=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">a</span><span class="p">]</span><span class="o">*</span><span class="n">j</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+               <span class="n">therm_pop</span><span class="o">+=</span><span class="n">npexp</span><span class="p">(</span><span class="o">-</span><span class="n">freq</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">a</span><span class="p">]</span><span class="o">*</span><span class="n">j</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
             <span class="n">FC00</span><span class="o">/=</span><span class="n">therm_pop</span>
 
        <span class="n">FC</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">M</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">states1</span><span class="p">))</span>

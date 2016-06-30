@@ -32,22 +32,22 @@ cd ../
 
 system=Acrolein
 echo "test Acrolein:"
-(test $system changed gradient shift)
+#(test $system changed gradient shift)
 
 system=Anisole 
 echo "test Anisole:"
-(test $system changed shift smsc)
+#(test $system changed shift smsc)
 
 system=Artificial
 echo "test artifical system:"
-(test $system MultiMode oneMode)
+#(test $system MultiMode oneMode)
 
 system=Benzene 
 echo "test Benzene:"
-(test $system DR_exc FC_exc FC_fluor)
+(test $system DR_exc  FC_exc  FC_fluor URDR_exc)
 
 system=Phenol 
 echo "test Phenole:"
-(test $system DR_abs FC_abs FC_abs2)
+#(test $system DR_abs FC_abs FC_abs2)
 
 wait

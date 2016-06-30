@@ -1,4 +1,4 @@
-initial: ground_freq.log
+initial: ground_freq.g09.log
 final: excited_freqg.g09.log
 out: FC_exc.log
 model FC

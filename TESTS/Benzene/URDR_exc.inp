@@ -1,0 +1,6 @@
+initial: ground_freq.g09.log
+final: excited_freqg.g09.log
+out: URDR_exc.log
+model URDR
+opt: print=0 T=300.001, modes=7
+broaden: gamma=60, grid=14000, spectfile=URDR_exc.spe shape=g stick shorten
