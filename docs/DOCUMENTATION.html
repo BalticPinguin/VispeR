@@ -41,28 +41,26 @@
 <!-- Main content -->
 
 <h1 id="main">General Information</h1>
-<p> VispeR, formerly called smallscript, is an acronym for <b>Vi</b>bronic <b>spe</b>ctrum <b>R</b>ostock. </p>
+<p> VispeR is an acronym for <b>Vi</b>bronic <b>spe</b>ctrum <b>R</b>ostock. </p>
 <p> When dealing with molecular spectra such as photo absorption/emission in the UV or visible range, photo electron spectra
     or similar, people usually consider the electronic transitions for it only. 
     Doing so, the structure of the spectra is underestimated because of the neglect of the vibrational contributions. 
     Visper is supposed to correct for this problem by estimating the vibrational structure.</p>
-    <p>There are several shifted and shifted/rotated harmonic oscillator <a href="models.html">models</a> describing the vibrational motion at different approximation levels.
-    Visper implements some of the main model, allowing to study the influence of various effects.</p>
+    <p>Among a large number of shifted and shifted/rotated harmonic oscillator <a href="models.html">models</a> describing the vibrational motion, Visper implements some of the main.
+    With this, it allows to study the influence of various effects independently.</p>
     <p> The required data (such as electronic energies, Hessians and molecular geometry) are read from log-files of quantum-chemistry programs such as Gaussian or NWChem.</p>
 
 <h2 id="#purpose">Purpose</h2>
    <table>
    <tr><td>
     <p>Visper is a python-script for calculating vibronic spectra 
-    to get insight into molecular processes via calculations on different levels of theory
-    (therefore different models from Franck-Condon (FC) progressions up to inclusion of full
-    Duschinsky rotation effect are implemented).</p>
+    to get insight into molecular processes via calculations on different levels of theory</p>
 
     <p> It is meant to compute vibronic spectra for transitions between a pair of electronic states
     using informations given by <a href="log-files.html">quantum-chemical calculations </a> on these states. 
     It supports Gaussian and NWChem at the moment.</p>
-    <p> Further algorithms e.g. for the description of non-adiabatic transitions are easy to add due to the 
-    class-based structure of the code, making access to different values easier.</p>
+    <p>Support for other program packages as well as further algorithms e.g. for the description of non-adiabatic 
+    transitions are easy to add due to the class-based structure of the code, making access to different values easier.</p>
    </td>
    <td>
    <IMG SRC="benzen.png" ALT="vibronic spectrum of benzene." WIDTH=500px>
@@ -73,6 +71,7 @@
 <p>Visper is written in python2 and needs the non-standard packages numpy and scipy to be installed.</p>
 <p>The requirements on hardware strongly depend on the problems to be solved. 
 The basic calculations are possible with some Mbytes of RAM.</p>
+<p> There is also an option to use a  Cpp-extension that can speed up the most demanding part of the Visper.</p>
 
 <h2 id="#call">Calling the script</h2>
 <p> Visper is invoked with an <a href="input.html">input-file</a> as only argument that contains all options

@@ -8,18 +8,19 @@
 
 <body>
 <h1 href='intro'><center>Background of the models implemented in Visper</center></h1>
-<p> Visper implements several models that differ in the approximations done as well as in 
-    the required input-data. </p>
-<p> The (admittedly cryptic) names of the models in the program stand for
+<p>Visper works always in the harmonic approximation and does not account for the Jahn-Teller effect.
+    If this is not valid of effects due to non-linearities should be described, this program can not be used for it.
+    However, there are different levels of approximation available, requireing different amounts of input-data.
+    These models are specified in Visper by the names:
 <ul>
-   <li><b>HR</b>: Huang-Rhys. This model is a bit different from the others: Here, the <a href="#HR">HR-factors</a>
-        and corresponding frequencies are given and Visper computes the FC-progression for this.</li>
+   <li><b>HR</b>: Huang-Rhys. In this model, the <a href="#HR">HR-factors</a>
+        and corresponding frequencies need to be given and Visper computes the FC-progression for this.</li>
    <li><b>FC</b>: (normal) Franck-Condon. It uses Franck-Condon progressions based on the shift of normal modes
         to calculate the spectrum.</li>
    <li><b>CFC</b>: Changed Franck-Condon. In addition to the shift of the modes, the change of frequencies is
-       taken into account for the calculation of intensities as well.</li>
+       taken into account for the calculation of intensities here.</li>
    <li><b>DR</b>: Duschinsky-Rotation. In addition to CFC, here the coupling of modes in terms of rotations
-       is also taken into account for the frequency-calculation.</li>
+       is also taken into account.</li>
    <li><b>URDR</b>: unrestricted Duschinsky-Rotation. This method is the more consistent version of DR since it
        does not make any approximation to the changing modes </li>
 </ul>
@@ -39,64 +40,144 @@ It is important to note, however, that all calculations except the URDR-spectrum
 </nav>
 
 <h1 id="intro">Introduction: Vibronic spectroscopy</h1>
-The theoretical investigation of molecular spectra often is performed using Fermis Golden Rule, in Born-Oppenheimer apprximation it takes the form
-..-..
-With the XXX, this can be further simplified to the expression
-...-...
-Here, the second product is the overlap integral of the nuclear wave functions which 
-are the eigenstates of harmonic oscillators due to the assumptions of XXX.
+The starting point here is Fermi's Golden Rule. In Born-Oppenheimer approximation and neglecting Jahn-Teller contributions, it takes the form
+   <!-- MATH
+   $I\propto |\langle \phi_f|\hat{\mu}|\phi_i\rangle|^2 \sum_{n,m}\prod_k|\langle \chi^k_{f,m}|\chi^k_{i,n}\rangle|^2$
+   -->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="450" HEIGHT="30" ALIGN="MIDDLE" BORDER="0"
+   SRC="FGR.png"
+   ALT="$I\propto |\langle \phi_f|\hat{\mu}|\phi_i\rangle|^2 |\langle \chi_f|\chi_i\rangle|^2$"></SPAN> 
+with the first term being the electronic transition dipole moment (which is not taken into account here).
+The overlap integrals in the sum thereafter are the overlap of nuclear wave functions, hence the vibronic progression where k denotes 
+the vibrational modes and n,m specify the degree of excitation in initial and final state respectively.
+<p>The nuclear wave functions are approximated as harmonic oscillators here.
+   This is valid as long as the modes m and n are not too large.</p>
 
-<h2>FC-progression</h2>
-Usually, people assume that the curvature of the harmonic oscillator is the same in both states but they are shifted
-with respect to each other by some amount. 
+<h2>FC-progression (model <b>FC</b>)</h2>
+In the simplest picture one assumes that the normal modes coincide in both electronic states.
+This means that the curvature of the harmonic oscillator (hence the frequency) is the same 
+and there is just a shift of the equilibrium position.
 This yields a transition probability from initial state i to final state f of 
-..._...
-<h2>FC-progression advanced</h2>
-Of course, in most cases the curvature will not be the very same for both states: Usually, electronically excited states
-are loser bound and hence the curvature becomes less steep. If one accounts for the smoother wave function in the overlap integral,
-the transition probability can be no more written in a closed form but is described by the recursive relations
-...^...
-<h2>Duschinsky rotation</h2>
-In addition to changes in the steepness of the potential energy surface, the modes also can intermix if the hyperbolic functions
-are rotated towards each other in the space of normal modes. This effect is denoted as Duschinsky rotation and leads to 
-recursive relations for the transition probability as well which have the form:
+<p>
+   <!-- MATH
+   \[I^k_{m,n}=|\langle \chi^k_{f,m}|\chi^k_{i,n}\rangle|^2=e^{-\text{HR(k)}^2}\left|\sum_{i=0}^n\sum_{j=0}^m(-1)^i 
+          \frac{HR(k)^{i+j}}{j!i!}\frac{n!}{(n-i)!}\sqrt{\frac{n!m!}{(n-i)!(m-j)!}}\delta(m-j,n-i)\right|^2\]
+   -->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="850" HEIGHT="70" ALIGN="TOP" BORDER="0"
+   SRC="HR_base.png"
+   ALT="\[I^k_{m,n}=|\langle \chi_{f,m}|\chi_{i,n}\rangle|^2=e^{-\text{HR(k)}^2}\left|\sum_{i=0}^n\sum_{j=0}^m(-1)^i 
+      \frac{HR(k)^{i+j}}{j!i!}\frac{n!}{(n-i)!}\sqrt{\frac{n!m!}{(n-i)!(m-j)!}}\delta(m-j,n-i)\right|^2\]"></SPAN> 
+</p>
+where HR(k) is the Huang-Rhys factor specifying the shift of normal modes.
+The above formula yields the famous Poisson profile.</p>
 
-<h1 id="HR">HR-factors</h1>
-<p>Since in literature, the variable scaling the FC progression is defined not consistently, we should clarify the
-term HR-factor at this point.</p>
-<p> Within Visper, the HR-factor can be computed as
+<h2>FC-progression advanced (model <b>CFC</b>)</h2>
+In real applications, the frequencies of initial and final state in general do not coincide and hence the wave function of vibronic states 
+changes its spacial extend, leading to a different overlap integral.
+Usually, electronically excited states are loser bound and hence the curvature becomes less steep. 
+If one accounts for the smoother wave function in the overlap integral,
+the transition probability can be no more written in a closed form but is described by 
+<!--MATH\[ I^k_{m,n}=|R^k_{m,n}|^2\]-->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="150" HEIGHT="28" ALIGN="TOP" BORDER="0"
+   SRC="CFC_R.png"
+   ALT="\[ I^k_{m,n}=|R^k_{m,n}|^2\]"></SPAN> 
+   where 
+<p>
+   <!-- MATH
+      \[ R^k_{m,n+1}=\frac{1}{(1+\delta^2)\sqrt{2(n+1)}}\left( 2\delta\sqrt{2m} R_{m-1,n}-2\delta D R_{m,n}-(\delta^2-1)\sqrt{2n}R_{m,n-1}\right) \]
+   -->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="850" HEIGHT="60" ALIGN="TOP" BORDER="0"
+   SRC="CFC_relation1.png"
+   ALT="\[ R^k_{m,n+1}=\frac{1}{(1+\delta^2)\sqrt{2(n+1)}}\left( 2\delta\sqrt{2m} R_{m-1,n}-2\delta D R_{m,n}-(\delta^2-1)\sqrt{2n}R_{m,n-1}\right) \]"></SPAN> 
+</p>
+<p>
+   <!-- MATH
+      \[ R^k_{m+1,n}=\frac{1}{(1+\delta^2)\sqrt{2(m+1)}}\left( 2\delta\sqrt{2n} R_{m,n-1}+2\delta D R_{m,n}+(\delta^2-1)\sqrt{2m}R_{m-1,n}\right) \]
+   -->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="850" HEIGHT="60" ALIGN="TOP" BORDER="0"
+   SRC="CFC_relation2.png"
+   ALT="\[ R^k_{m+1,n}=\frac{1}{(1+\delta^2)\sqrt{2(m+1)}}\left( 2\delta\sqrt{2n} R_{m,n-1}+2\delta D R_{m,n}+(\delta^2-1)\sqrt{2m}R_{m-1,n}\right) \]"></SPAN> 
+</p>
+with
+<!--MATH $ \delta=\frac{\omega_f}{\omega_i} $ -->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="100" HEIGHT="28" ALIGN="TOP" BORDER="0"
+   SRC="cfc_delta.png"
+   ALT="$ \delta=\frac{\omega_f}{\omega_i} $"></SPAN> 
+   being the ratio of final state frequency and initial states frequency of the particular mode and
+<!--MATH $ D=\sqrt{2}HR(k) $ -->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="150" HEIGHT="28" ALIGN="TOP" BORDER="0"
+   SRC="cfc_hr.png"
+   ALT="$D=\sqrt{2}HR(k) $"></SPAN> 
+   the scaled HR-factor.
+   Finally, for correct normalisation, the purely electronic transition is
+<!--MATH $ R_{0,0}=\sqrt{\frac{2\delta}{1+\delta^2}} e^{\frac 12 \frac{D^2}{1+\delta^2}} $ -->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="160" HEIGHT="32" ALIGN="TOP" BORDER="0"
+   SRC="cfc_r00.png"
+   ALT="$R_{0,0}=\sqrt{\frac{2\delta}{1+\delta^2}} e^{\frac 12 \frac{D^2}{1+\delta^2}} $"></SPAN>.
+
+<h2>Duschinsky rotation (model <b>URDR</b>)</h2>
+The Franck-Condon model has one further effect that is not taken into account in any of the above models: If considering two modes,
+the potential energy surface is a two-dimensional hyperbolic function that has different stiffness in the two directions.
+Now it may happen that in the final state the normal modes are linear combinations of those in inital state and by this the hyperbel will
+be rotated with respect to the ground state (see adjacent graph).
+<p>
+   <IMG SRC="DR_explain.png" ALT="figure showing the Duschinsky rotation for two modes." style="float:right;WIDTH:300px">
+In the graph on the right hand side, the initial state is shown in blue. 
+Since the final state (red) is rotated, both vibronic states couple with each other or, in other words, there is no full correspondence
+between the vibrational states in initial and final electronic state.
+This means first, that the one-particle picture is not applicable here and further, the product structure exploited above can not be conserved
+in this model, making the calculations much more demanding.
+</p>
+<p> 
+For this case we can write a recursive formula similar to the CFC-case.
+However, it has a complex shape and a larger number of quantities need to be defined.
+The interested reader may have a look at <cite>P.T. Ruhoff and M.A. Ratner, "Algorithms for Computing Franck-Condon Overlap integrals" Intern. J. Quant. Chem. 77, 383-390 (2000)</cite>
+where these equations are explained in more detail.
+</p>
+
+<h1 id="FC">FC-based models</h1>
+<p> Within Visper, the HR-factors are computed as
    <!-- MATH
    $HR=\frac 12 \Delta^2 f$
    -->
    <SPAN CLASS="MATH"><IMG
-   WIDTH="100" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
+   WIDTH="130" HEIGHT="40" ALIGN="TOP" BORDER="0"
    SRC="img10.png"
    ALT="$ HR=\frac 12 \Delta^2 f$"></SPAN> 
-   where 
+   where
    <SPAN CLASS="MATH"><IMG
-   WIDTH="19" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+   WIDTH="30" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
    SRC="img11.png"
    ALT="$ \Delta$"></SPAN> 
-   is the shift of the modes in normal coordinates
-   (to be computed via <!-- here the factor 1/1.63 is not correct anymore!-->
+   is the shift of normal modes. 
+   This can be computed in two ways: Either from the shift of Cartesian coordinates
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="40" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+   SRC="deltax.png"
+   ALT="$ \Delta X$"></SPAN> 
+   using the formula
       <!-- MATH
-      $\vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$
+      $\vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}$
       -->
-         <SPAN CLASS="MATH"><IMG
-         WIDTH="167" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
-         SRC="img17.png"
-         ALT="$ \vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$"></SPAN>
-         using the Cartesian shift or via
       <SPAN CLASS="MATH"><IMG
-      WIDTH="111" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
-      SRC="img16.png"
-      ALT="$ \Delta=F_{nm}\frac{1}{f^2\sqrt{2}}$"></SPAN> 
-      using the gradient at the initial states equilibrium geometry).
+      WIDTH="150" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+      SRC="shift.png"
+      ALT="$ \vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$"></SPAN>.
+   Alternatively, it can be calculated from the gradient g as
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="111" HEIGHT="35" ALIGN="TOP" BORDER="0"
+   SRC="grad.png"
+   ALT="$ \Delta=g\frac{1}{f^2\sqrt{2}}$"></SPAN> 
+   where the gradient is evaluated at the initial states equilibrium geometry.
    </p>
-
-<h1 id="FC">FC-based models</h1>
-Assuming harmonic approximation, there are two methods for determining the shift of the normal modes,
-depending on the given information.
 <table>
    <tr>
    <td>

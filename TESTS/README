@@ -1,0 +1,6 @@
+In this folder, several test-systems are prepared, utilising
+most of the available options for Visper.
+
+Moreover, for Anisole, Benzene and Phenol some reference-data
+are provided, so you can use these cases to check for some properties
+of the models.
