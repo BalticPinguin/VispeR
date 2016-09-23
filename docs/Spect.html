@@ -504,9 +504,9 @@ the main axes of inertia. Input-orientations may
 give too large or just unphysical HR-factors.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">manipulate</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=manipulate:)[\w ,]*&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
+      <div class="highlight"><pre>      <span class="n">manipulate</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">r&quot;(?&lt;=manipulate:)[\w ]*&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">M</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">manipulate</span><span class="o">!=</span><span class="p">[]:</span>
-         <span class="n">manipulate</span><span class="o">=</span><span class="n">manipulate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></pre></div>
+         <span class="n">manipulate</span><span class="o">=</span><span class="n">manipulate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -628,7 +628,8 @@ from the file, using the type of file that is known now...</p>
       <p>print not the square-root! Print in amu for convenience.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span>
+      <div class="highlight"><pre>      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">level</span><span class="o">&lt;</span><span class="mi">2</span><span class="p">:</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">printVec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">AMU2au</span><span class="p">)</span>
    
       <span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">Force</span><span class="p">()</span>
       <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">F</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>

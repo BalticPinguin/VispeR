@@ -59,6 +59,8 @@
         <a class='octothorpe' href='#section-3'>#</a>
       </div>
       <h1>CHANGELOG</h1>
+<p>in version 1.1:<br />
+ 1) Fixed energy-error in SDR-class; should go now to right direction in all cases.</p>
 <p>in version 1.0:<br />
  1) remove dist_FCfOPA(); the model behind is inconsistent. <br />
  2) renamed resortFCfOPA to calcspect and made the interface
@@ -1371,9 +1373,21 @@ instable!</p>
       <div class="highlight"><pre>         <span class="n">F</span><span class="o">=</span><span class="p">[]</span>
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)):</span>
             <span class="n">indi</span><span class="o">=</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">Gammap</span><span class="p">[</span><span class="n">indi</span><span class="p">]</span><span class="o">*</span><span class="n">ex</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">E0</span><span class="p">)</span><span class="o">/</span><span class="n">T</span><span class="p">)</span> <span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">Threshold</span><span class="p">:</span>
-               <span class="n">F</span><span class="o">.</span><span class="n">append</span><span class="p">([(</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">E</span><span class="p">)</span><span class="o">*</span><span class="n">Gamma</span><span class="p">[</span><span class="n">indi</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">ex</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                         <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">E</span><span class="p">)</span><span class="o">*</span><span class="n">Gammap</span><span class="p">[</span><span class="n">indi</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">ex</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">E</span><span class="p">))</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span><span class="p">,</span>
+            <span class="k">if</span> <span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">Gammap</span><span class="p">[</span><span class="n">indi</span><span class="p">]</span><span class="o">*</span><span class="n">ex</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">E0</span><span class="p">)</span><span class="o">/</span><span class="n">T</span><span class="p">)</span> <span class="o">&gt;</span><span class="bp">self</span><span class="o">.</span><span class="n">Threshold</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-79'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-79'>#</a>
+      </div>
+      <p>F.append([np.sign(E)<em>(-Gamma[indi]</em>(n-ex[i])
+         +Gammap[indi]<em>ex[i]-np.abs(E))</em>self.Hartree2cm_1,</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>              <span class="n">F</span><span class="o">.</span><span class="n">append</span><span class="p">([(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">E</span><span class="p">)</span><span class="o">+</span><span class="n">Gamma</span><span class="p">[</span><span class="n">indi</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">ex</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                        <span class="o">-</span><span class="n">Gammap</span><span class="p">[</span><span class="n">indi</span><span class="p">]</span><span class="o">*</span><span class="n">ex</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span><span class="p">,</span>
                         <span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">intens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">Gammap</span><span class="p">[</span><span class="n">indi</span><span class="p">]</span><span class="o">*</span><span class="n">ex</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">E0</span><span class="p">)</span><span class="o">/</span><span class="n">T</span><span class="p">)</span> <span class="p">,</span>
                         <span class="n">indi</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
    
@@ -1385,10 +1399,10 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-79'>
+  <div class='section' id='section-80'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-79'>#</a>
+        <a class='octothorpe' href='#section-80'>#</a>
       </div>
       <p>correct for vibrational groundstates:</p>
     </div>
@@ -1399,25 +1413,25 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-80'>
+  <div class='section' id='section-81'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-80'>#</a>
+        <a class='octothorpe' href='#section-81'>#</a>
       </div>
       <p>append the 0-&gt;0 transition to the linspect-array</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>      <span class="n">inten</span><span class="o">=</span><span class="mf">1.00</span> 
+      <div class="highlight"><pre>      <span class="n">inten</span><span class="o">=</span><span class="mf">0.7</span>
       <span class="n">linspect</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">Energy</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Hartree2cm_1</span><span class="p">,</span> <span class="n">inten</span><span class="p">,</span> <span class="mi">7</span><span class="p">]))</span> 
 
       <span class="n">L2</span><span class="o">=</span><span class="n">CalcI00</span><span class="p">(</span><span class="n">Energy</span><span class="p">)</span> <span class="c1"># or other way round?</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-81'>
+  <div class='section' id='section-82'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-81'>#</a>
+        <a class='octothorpe' href='#section-82'>#</a>
       </div>
       <p>this is already extracted to linspect (using side-effects)</p>
     </div>
@@ -1438,10 +1452,10 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-82'>
+  <div class='section' id='section-83'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-82'>#</a>
+        <a class='octothorpe' href='#section-83'>#</a>
       </div>
       <p>This function prepares all variables according to the given</p>
     </div>
@@ -1450,10 +1464,10 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-83'>
+  <div class='section' id='section-84'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-83'>#</a>
+        <a class='octothorpe' href='#section-84'>#</a>
       </div>
       <p>options to calculate the spectrum.</p>
 <p>first: resort the elements of J, K, f to make J most closely to unity</p>
@@ -1485,10 +1499,10 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-84'>
+  <div class='section' id='section-85'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-84'>#</a>
+        <a class='octothorpe' href='#section-85'>#</a>
       </div>
       <p>truncate only, if this really is truncation.</p>
     </div>
@@ -1505,10 +1519,10 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-85'>
+  <div class='section' id='section-86'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-85'>#</a>
+        <a class='octothorpe' href='#section-86'>#</a>
       </div>
       <p>print truncated quantites:</p>
     </div>
@@ -1521,10 +1535,10 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-86'>
+  <div class='section' id='section-87'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-86'>#</a>
+        <a class='octothorpe' href='#section-87'>#</a>
       </div>
       <p>finally, calculate the stick spectrum in this picture</p>
     </div>
@@ -1536,10 +1550,22 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-87'>
+  <div class='section' id='section-88'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-87'>#</a>
+        <a class='octothorpe' href='#section-88'>#</a>
+      </div>
+      <p>print np.sum(self.spect[1])</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-89'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-89'>#</a>
       </div>
       
     </div>
@@ -1550,10 +1576,10 @@ instable!</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-88'>
+  <div class='section' id='section-90'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-88'>#</a>
+        <a class='octothorpe' href='#section-90'>#</a>
       </div>
       <p>=== OPA_class ===
 This class containes the functions and objects for the calculation of vibronic spectra</p>
@@ -1563,10 +1589,10 @@ This class containes the functions and objects for the calculation of vibronic s
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-89'>
+  <div class='section' id='section-91'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-89'>#</a>
+        <a class='octothorpe' href='#section-91'>#</a>
       </div>
       <p>with the SDR_spect class.</p>
 <p>==OBJECTS==
@@ -1578,10 +1604,10 @@ This class containes the functions and objects for the calculation of vibronic s
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-90'>
+  <div class='section' id='section-92'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-90'>#</a>
+        <a class='octothorpe' href='#section-92'>#</a>
       </div>
       <p>initialises the class</p>
     </div>
@@ -1590,10 +1616,10 @@ This class containes the functions and objects for the calculation of vibronic s
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-91'>
+  <div class='section' id='section-93'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-91'>#</a>
+        <a class='octothorpe' href='#section-93'>#</a>
       </div>
       <p>alpha: number of vibrational modes
   L:     number of states excited</p>
@@ -1604,10 +1630,10 @@ This class containes the functions and objects for the calculation of vibronic s
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-92'>
+  <div class='section' id='section-94'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-92'>#</a>
+        <a class='octothorpe' href='#section-94'>#</a>
       </div>
       <p>first index in mat:number of mode, second: excitation number</p>
     </div>
@@ -1616,10 +1642,10 @@ This class containes the functions and objects for the calculation of vibronic s
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-93'>
+  <div class='section' id='section-95'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-93'>#</a>
+        <a class='octothorpe' href='#section-95'>#</a>
       </div>
       
     </div>
@@ -1635,10 +1661,10 @@ This class containes the functions and objects for the calculation of vibronic s
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-94'>
+  <div class='section' id='section-96'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-94'>#</a>
+        <a class='octothorpe' href='#section-96'>#</a>
       </div>
       
     </div>
@@ -1653,10 +1679,10 @@ This class containes the functions and objects for the calculation of vibronic s
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-95'>
+  <div class='section' id='section-97'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-95'>#</a>
+        <a class='octothorpe' href='#section-97'>#</a>
       </div>
       
     </div>
@@ -1682,14 +1708,14 @@ This class containes the functions and objects for the calculation of vibronic s
 
       <span class="k">return</span> <span class="n">intens</span><span class="p">,</span> <span class="n">ind</span><span class="p">,</span> <span class="n">excs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">L</span> <span class="c1">#I need squares as intensities</span>
 
-<span class="n">version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span></pre></div>
+<span class="n">version</span><span class="o">=</span><span class="s1">&#39;1.1&#39;</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-96'>
+  <div class='section' id='section-98'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-96'>#</a>
+        <a class='octothorpe' href='#section-98'>#</a>
       </div>
       <p>End of DR_spects.py</p>
     </div>

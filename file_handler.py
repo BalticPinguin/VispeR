@@ -49,13 +49,13 @@ class logging():
          #remove all white spaces and take only first character.
          mode= mode.strip()[0]
          #search, which option was set.
-         if mode in ['a', "A", "0", 0]:
+         if mode in ['a', "A", "0", 0]: # all
             logging=0
             log.write('use log-level all\n')
-         elif mode in ['d', 'D', "1"]:
+         elif mode in ['d', 'D', "1"]: #detailed
             logging=1
             log.write('use log-level detailed\n')
-         elif mode in ['m', 'M','2']:
+         elif mode in ['m', 'M','2']: # medium
             logging=2
             log.write('use log-level medium\n')
          elif mode in ['i', 'I','3']:

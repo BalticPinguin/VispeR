@@ -336,11 +336,14 @@ already does most of the calculations needed.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-22'>#</a>
       </div>
-      <p>PERFORM CALCULATION OF SPECTRA<br />
-At this point, already all necessary quantities are calculated.</p>
+      <p>import SpecPurpose as sp <br />
+vibro=sp.VibDeform(spect,0) <br />
+alpha=[-0.5,-0.4,-0.3,-0.2,-0.1,0.1,0.2,0.3,0.4,0.5] <br />
+for i in [7,13,25]: <br />
+  vibro.printDeformed(i, alpha)   </p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre>   <span class="n">spect</span><span class="o">.</span><span class="n">calcspect</span><span class="p">()</span></pre></div>
+      <div class="highlight"><pre></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -349,10 +352,11 @@ At this point, already all necessary quantities are calculated.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-23'>#</a>
       </div>
-      <p>FINISHED PERFORM CALCULATION OF SPECTRA</p>
+      <p>PERFORM CALCULATION OF SPECTRA<br />
+At this point, already all necessary quantities are calculated.</p>
     </div>
     <div class='code'>
-      <div class="highlight"><pre></pre></div>
+      <div class="highlight"><pre>   <span class="n">spect</span><span class="o">.</span><span class="n">calcspect</span><span class="p">()</span></pre></div>
     </div>
   </div>
   <div class='clearall'></div>
@@ -361,7 +365,7 @@ At this point, already all necessary quantities are calculated.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-24'>#</a>
       </div>
-      <p>do some special-purpose-calculations if wanted.</p>
+      <p>FINISHED PERFORM CALCULATION OF SPECTRA</p>
     </div>
     <div class='code'>
       <div class="highlight"><pre></pre></div>
@@ -373,6 +377,18 @@ At this point, already all necessary quantities are calculated.</p>
       <div class='octowrap'>
         <a class='octothorpe' href='#section-25'>#</a>
       </div>
+      <p>do some special-purpose-calculations if wanted.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
       <p>with this, the broadened spectrum is calculated.</p>
     </div>
     <div class='code'>
@@ -381,10 +397,10 @@ At this point, already all necessary quantities are calculated.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-26'>
+  <div class='section' id='section-27'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-26'>#</a>
+        <a class='octothorpe' href='#section-27'>#</a>
       </div>
       <p>END PERFORMING CALCULATION OF SPECTRA</p>
     </div>
@@ -397,10 +413,10 @@ At this point, already all necessary quantities are calculated.</p>
     </div>
   </div>
   <div class='clearall'></div>
-  <div class='section' id='section-27'>
+  <div class='section' id='section-28'>
     <div class='docs'>
       <div class='octowrap'>
-        <a class='octothorpe' href='#section-27'>#</a>
+        <a class='octothorpe' href='#section-28'>#</a>
       </div>
       <p>End of VispeR.py</p>
     </div>

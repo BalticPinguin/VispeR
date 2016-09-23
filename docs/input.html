@@ -14,114 +14,93 @@
    <ul>
       <li><a href="#General">General Structure</a></li>
       <li><a href="#HR">Calculations based on given HR-factors</a></li>
-      <li><a href="#FC">Calculations with FC/CFC-class</a></li>
-      <li><a href="#Duschinsky">Calculations including Duschinsky-effect</a></li>
    </ul>
 </nav>
 
 <h1 id='General'>General Structure of Input-files</h1>
-<p>The input-file needs to consist of several keywords, starting a logical section and is free in format: Most options are case-insensitive and the order does not matter.
-A line break within one section is not allowed.
+<p>The input-file needs to consist of several keywords which start a logical section and are free in format: 
+Most options are case-insensitive and the order does not matter.
+A line break indicates the start of a new section.
 </p>
-There are three mandatory keywords:
-<ul>
-   <li>The keyword <b>model</b> specifies the method that should be used. Here, one can chose between
-   <table>
-   <th>
-   <td>
-      <ul>
-      <li>HR </li> 
-      </ul>
-   </td>
-   <td>
-      <ul>
-      <li>FC </li> 
-      </ul>
-   </td>
-   <td>
-      <ul>
-      <li>CFC</li> 
-      </ul>
-   </td>
-   <td>
-      <ul>
-      <li>DR </li> 
-      </ul>
-   </td>
-   <td>
-      <ul>
-      <li>URDR</li>
-      </ul>
-   </th>
-   </table>
-      For information about this, see the <a href="#model">section about models </a> or the more detailed <a href="models.html">page</a> about implemented models.
-   </li>
-   <li>With <b>initial:</b> you specify the file that contains the information of initial state. </li>
-   <li>With <b>final:</b> you specify the file that contains the information of final state. </li>
-</ul>
-<p>As input-files, the <a href="#log">log-files</a> from the different quantum-chemical programme-packages can be used. </p>
+<table style="border:2px solid black;">
+   <tr> 
+   <td><b> keyword</b> </td> <td> <b>mandatory </b></td> <td> <b>possible values</b> </td> <td><b> meaning </b></td>  <td><b> default </b></td>
+   </tr>
+   <tr> 
+   <td> model: </td><td>yes</td><td> FC CFC DR URDR HR </td><td> specifies, which <a href="models.html">model</a> should be used.</td> <td>-</td>
+   </tr>
+   <tr> 
+   <td> initial: </td><td> (yes) </td><td> string </td><td> file name of the <a href="#log">log-file</a> containing the calculations of initial state </td> <td>-</td>
+   </tr>
+   <tr> 
+   <td> final: </td><td> (yes) </td><td> string </td><td> file name of the <a href="#log">log-file</a> containing the calculations of final state </td> <td>-</td>
+   </tr>
+   <tr> 
+   <td> HR-file: </td><td> (yes) </td><td> string </td><td> Alternative to initial: and final: specifies a file containing the Huang-Rhys factors and corresponding frequencies</td> <td>-</td>
+   </tr>
+   <tr> 
+   <td> out: </td><td> no </td><td> string </td><td> file name of the file where the output should be written in.  </td> <td> calculation.log</td>
+   </tr>
+   <tr> 
+   <td> print: </td><td> no </td><td> 0-4; a,d,m,i,s </td><td>how detailed (all, detailed,medium,important,short) </td> <td>3</td>
+   </tr>
+   <tr> 
+   <td> opt: </td><td> no </td><td> <p>T=</p> 
+                                    <p>states=<tt>nr</tt></p> 
+                                    <p>states=<tt>nr1; nr2</tt></p> 
+                                    <p>manipulate:<tt>rmsd</tt> or <tt>moi</tt></p> 
+                                    <p>gradient</p> 
+                                    <p>width=<nr></p> 
+                                             </td><td><p>temperature</p> 
+                                                      <p>max. number of excitations per mode (initial state)</p>
+                                                      <p>max. number of excitations (init.; fin.)</p> 
+                                                      <p>if alignment of molecules is wished</p>
+                                                      <p> .</p>
+                                                      <p>force to use gradient to obtain shift</p>
+                                                      <p>nr. of matrix elements per line in output file</p></td> 
+                                                                                 </td><td><p>300</p>
+                                                                                 <p>5</p>
+                                                                                 <p>-</p>
+                                                                                  <p>. </p>
+                                                                                 <p>-</p>
+                                                                                 <p>-</p>
+                                                                                 <p>5</p></td>
+   </tr>
+   <tr>
+   <td> broaden: </td><td> no </td><td> <p>. </p>    
+                                    <p>shape= <tt>g</tt> or <tt>l</tt></p> 
+                                    <p>gamma= ...</p> 
+                                    <p>stick</p> 
+                                    <p>grid=#pts</p> 
+                                    <p>grid=#pts,min,max</p> 
+                                    <p>grid=filename</p> 
+                                    <p>shorten</p> 
+                                             </td><td><p>If this is specified, the stick spectrum will be
+                                                         convoluted with a line shape function</p> 
+                                                      <p>which function to use (Gaussian/Lorentzian) </p>
+                                                      <p>FWHM of the line shape function (in cm<sup>-1</sup></p>
+                                                      <p>If specified, also the stick-spectrum is printed </p>
+                                                      <p>specifies the number of grid-points </p>
+                                                     <p>specifies the number of grid-points, min./ max. freq</p>
+                                                     <p>filename is file containing all gridpoints</p>
+                                                     <p> merges transitions with close-lying energy</p>
+                                                                                 </td><td><p>-</p>
+                                                                                   <p>g</p>
+                                                                                   <p> 1</p>
+                                                                                   <p> -</p>
+                                                                                   <p> 5000</p>
+                                                                           <p> 5000, min trans, max. trans.</p>
+                                                                                   <p> -</p>
+                                                                                   <p> -</p>
+   </td></tr>
+</table>
 
-<p>In addition to these options, there are four additional, non-mandatory sections: </p>
-<ul>
-   <li> With the key word <b>out:</b> you can specify an output-file. By default it is called 'calculation.log'.</li>
-   <li>The option <b>print:</b> gives you controll over the output-verbosity of visper. Possible levels are:
-      <table>
-      <tr>
-         <td> <b>0</b> or <b>all</b> for most verbose output  </td>
-         <td>    <b>1</b> or <b>detailed</b>  </td>
-      </tr>
-      <tr>
-         <td> <b>2</b> or <b>medium</b> (default case)  </td>
-         <td>   <b>3</b> or <b>important</b>  </td>
-      </tr>
-      <tr>
-         <td> <b>4</b> <b>short</b>  </td>
-         <td>  </td>
-      </tr>
-   </table>
-   </li>
-   <li>Most options to the script are set after the keyword <b>opt:</b>.
-   While some options are specific to the model in use (and are shown below), there are some options that are always valid:
-   <ul>
-      <li> system temperature: <b>T=</b> (in K, default 300)</li>
-      <li> highest vibrational number (initial state): <b>states=number</b>  (default is 5) </li>
-      <li> highest vibrational number (intial state, final state): <b>states=number1, number2</b> </li>
-      <li> You can align the geometries by specifying <b>manipulate: </b> with either <b>rmsd</b> or <b>moi</b>.</li>
-      <li> to force the calculation of HR-factors by the gradient, specify <b>gradient</b>.</li>
-   </ul>
-   </li>
-   <li> To calculate broadened spectrum, specify <b>broaden</b>. Here <a href="#broaden">several options</a> are possible. </li>
-</ul>
-
-<h2 id='broaden'>Options for broadening</h2>
-Several operations are done after computing the stick-spectrum, most of them are directly related to the broadening.
-Broadening here means convolution either with a Gaussian or Lorentzian function. The available options are:
-<ul>
-   <li>to govern the lineshape function, use the keyword <b>shape=</b> followed by <b>g</b> for Gaussian or <b>l</b> for Lorentzian.
-        Defualt is to use Gaussian functions.</li>
-   <li>The with of the function is specified by <b>gamma=</b>. This specifies the parameter Gamma of Lorentzian, for Gaussian broadening
-        the corresponding FWHM is used.</li>
-   <li>if the full stick-spectrum should be given, type <b>stick</b> into the list of options. The stick spectrum will be printed into a file called 
-       as the log file but with the ending <b>.stick</b>.</li>
-   <li>The keyword <b>grid=</b> governs the numerical grid on which the spectrum should be computed. Here, different ways are possible:
-       </li>
-   <li>With <b>spectfile=</b> you can specify the file in which the broadened spectrum is written. By default it will be added to the
-       log file; for plotting or other operations on the data an extra file however might be advantageous.</li>
-   <li>Specifying the keyword <b>shorten</b> can make the computation of broadenened spectrum significantly faster.
-       With this option, the number of transitions is reduced by summing up the intensities of transitions that are closer than
-       1/5 of the FWHM to a single transition. The effect of this function is almost invisible but can reduce the needed computations
-       strongly; especially for large molecules and large broadening.</li>
-   <li></li>
-</ul>
-
-<h1 id='HR'> Calculations based on given HR-factors </h1>
+<h1 id='HR'> Calculations with model: HR </h1>
 <p> The main difference to the 'normal' structure given above is for this model, that no <b>initial</b> and <b>final</b> states are needed. Instead, the keyword <b>HR-file: </b> needs to be provided.
-The given file should contain the adiabatic excitation energy in cm^-1 using the keyword <b>Delta E=</b>
+The given file should contain the adiabatic excitation energy in cm<sup>-1</sup> using the keyword <b>Delta E=</b>
 and the Huang-Rhys factors with corresponding frequencies in form of a table whose first line needs to be</p>
 <p> <b>HR-fact      freq</b></p>
-<p> with arbitrarily many spaces/tabs in between, followed by the respective quantities. Frequencies should be given in cm^-1 as well. </p>
-<h1 id='FC'> Calculations with FC/CFC model </h1>
-<h1 id='Duschinsy'> Calculations including Duschinsky-effect </h1>
+<p> with arbitrarily many spaces/tabs in between, followed by the respective quantities. Frequencies should be given in cm<sup>-1</sup> as well. </p>
 
 </body>
 </html>

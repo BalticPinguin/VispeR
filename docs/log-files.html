@@ -20,12 +20,20 @@
 </nav>
 
 <h1 id='intro'> Introduction </h1>
-<p> VispeR allows for different input-formats and tries to calculate the requested data with
+<p> VispeR understands different input-formats and tries to calculate the requested data with
 that values that are given.</p>
-<p> However, some restrictions are needed.</p>
+<p> However, some data are needed and not all possible print-formats can be supported.</p>
 <h1 id='G09'> Gaussian-Files </h1>
-<p> You should use the <tt>NoSymm</tt>-option to avoid axis-flips.</p>
+<p>option <tt>Freq</tt> is needed to calculate the frequencies and print the Hessian respectively.</p>
+<p> 
+Gaussian has the feature that it turns the molecules always to its moment of intertia axis.
+This, however, has disadvantages here: First, the direction of an axis is not defined by it and
+second for symmetric molecules the order of moments of inertia changes due to (almost) degeneracy.
+ One should therefor use the <tt>NoSymm</tt>-option to avoid axis-flips.</p>
+<p> Also, it is (especially for larger molecules) recommended to use the formcheck-files (.fchk or .FCkh) as input
+since the data therein are numerically more stable. </p>
 <h1 id='NWChem'> NWChem-Files </h1>
+<p>To get frequency information, specify <tt>task dft freq</tt> or the respective method of choise.</p>
 <h1 id='gamess'> GAMESS-Files </h1>
 Gamess-files used to be supported and maybe will be later on, but at the moment 
 calculations trying to use them will fail and through errors.

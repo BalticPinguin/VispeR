@@ -26,11 +26,10 @@ class NormalMode():
    L=[]
    K=[]
    J=[]
-   grad=[]
    F=[]
-   Grad=[]
+   Grad=[] # in format: atom1: x,y,z; atom2: x,y,z; ...
    mass=[]
-   Coord=[]
+   Coord=[]# in format: atom1: x,y,z; atom2: x,y,z; ...
    dim=0
 
    def __init__(self, parent):

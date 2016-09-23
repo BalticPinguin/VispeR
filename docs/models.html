@@ -31,7 +31,8 @@ It is important to note, however, that all calculations except the URDR-spectrum
 <h2>Contents</h2>
 <nav role="navigation" class="table-of-contents">
    <ol>
-      <li><a href="#intro">Introduction: Vibronic spectroscopy</a></li>
+      <li><a href="#intro">Introduction:vibronic spectroscopy</a></li>
+      <li><a href="#detail">The models in more detail</a></li>
       <li><a href="#FC">FC-based models</a></li>
       <li><a href="#DR">DR-based models</a></li>
       <li><a href="#manipulation">Data-manipulation</a></li>
@@ -52,8 +53,59 @@ with the first term being the electronic transition dipole moment (which is not 
 The overlap integrals in the sum thereafter are the overlap of nuclear wave functions, hence the vibronic progression where k denotes 
 the vibrational modes and n,m specify the degree of excitation in initial and final state respectively.
 <p>The nuclear wave functions are approximated as harmonic oscillators here.
-   This is valid as long as the modes m and n are not too large.</p>
+   This is valid as long as the modes m and n are not too large.
+   The different models that are described <a href="#detail">below</a> in more detail 
+   differ in the approximations they apply to the harmonic oscillators.</p>
 
+<h2 id="HR-fact">Shift of oscillators</h2>
+   <IMG SRC="HR.png" ALT="graphical clarification of the two concepts"  style="float:left; WIDTH:300px" >
+<p> The main contribution to the vibrational structure comes from a shift of the oscillators in
+   initial state with respect to the ground state. 
+   In the simplest case, this shift can described for each mode separately by the Huang-Rhys (HR) factor
+   <!-- MATH
+   $HR=\frac 12 \Delta^2 f$
+   -->
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="130" HEIGHT="40" ALIGN="TOP" BORDER="0"
+   SRC="img10.png"
+   ALT="$ HR=\frac 12 \Delta^2 f$"></SPAN>
+   . Here
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="30" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
+   SRC="img11.png"
+   ALT="$ \Delta$"></SPAN> 
+   is the shift and f is the frequency of the normal mode.
+   <p>
+   This can be obtained either from the shift of Cartesian coordinates
+   or from the gradient and the Hessian of the energy.
+   Knowing the nuclear positions in both equilibrium geometries, the
+   shift of Cartesian coordinates
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="40" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+   SRC="deltax.png"
+   ALT="$ \Delta X$"></SPAN> 
+   can be used to determine the shift of normal modes via
+      <!-- MATH
+      $\vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}$
+      -->
+      <SPAN CLASS="MATH"><IMG
+      WIDTH="150" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+      SRC="shift.png"
+      ALT="$ \vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$"></SPAN>
+   . Here, M is the mass matrix with M<sub>ij</sub>=(m<sub>i</sub>m<sub>j</sub>)<sup>-1/2</sup> and L 
+     is the unitary transformation matrix between Cartesian coordinates and normal modes, obtained by 
+     solving the full eigenvalue problem of the Hessian matrix.
+   </p>
+   <p>An alternative route uses the gradient g of the potential energy surface of the final state at the 
+   position of the equilibrium geometry of the initial state. 
+   From this, the shift of normal modes is obtained with
+   <SPAN CLASS="MATH"><IMG
+   WIDTH="111" HEIGHT="35" ALIGN="TOP" BORDER="0"
+   SRC="grad.png"
+   ALT="$ \Delta=g\frac{1}{f^2\sqrt{2}}$"></SPAN> 
+   </p>
+
+<h1 id="detail">Details on the models</h1>
 <h2>FC-progression (model <b>FC</b>)</h2>
 In the simplest picture one assumes that the normal modes coincide in both electronic states.
 This means that the curvature of the harmonic oscillator (hence the frequency) is the same 
@@ -72,6 +124,9 @@ This yields a transition probability from initial state i to final state f of
 </p>
 where HR(k) is the Huang-Rhys factor specifying the shift of normal modes.
 The above formula yields the famous Poisson profile.</p>
+
+<h2>Pre-known progression (model <b>HR</b>)</h2>
+If the HR-factors are known from other calculations already, Visper also can be used to calculate a spectrum in the FC model using these data. Here, instead of the keywords <tt>initial:</tt> and <tt>final:</tt>,the keyword <tt>HR-file:</tt> is used to specify the file where the respective data are stored.
 
 <h2>FC-progression advanced (model <b>CFC</b>)</h2>
 In real applications, the frequencies of initial and final state in general do not coincide and hence the wave function of vibronic states 
@@ -142,117 +197,32 @@ However, it has a complex shape and a larger number of quantities need to be def
 The interested reader may have a look at <cite>P.T. Ruhoff and M.A. Ratner, "Algorithms for Computing Franck-Condon Overlap integrals" Intern. J. Quant. Chem. 77, 383-390 (2000)</cite>
 where these equations are explained in more detail.
 </p>
-
-<h1 id="FC">FC-based models</h1>
-<p> Within Visper, the HR-factors are computed as
-   <!-- MATH
-   $HR=\frac 12 \Delta^2 f$
-   -->
-   <SPAN CLASS="MATH"><IMG
-   WIDTH="130" HEIGHT="40" ALIGN="TOP" BORDER="0"
-   SRC="img10.png"
-   ALT="$ HR=\frac 12 \Delta^2 f$"></SPAN> 
-   where
-   <SPAN CLASS="MATH"><IMG
-   WIDTH="30" HEIGHT="20" ALIGN="BOTTOM" BORDER="0"
-   SRC="img11.png"
-   ALT="$ \Delta$"></SPAN> 
-   is the shift of normal modes. 
-   This can be computed in two ways: Either from the shift of Cartesian coordinates
-   <SPAN CLASS="MATH"><IMG
-   WIDTH="40" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
-   SRC="deltax.png"
-   ALT="$ \Delta X$"></SPAN> 
-   using the formula
-      <!-- MATH
-      $\vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}$
-      -->
-      <SPAN CLASS="MATH"><IMG
-      WIDTH="150" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
-      SRC="shift.png"
-      ALT="$ \vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$"></SPAN>.
-   Alternatively, it can be calculated from the gradient g as
-   <SPAN CLASS="MATH"><IMG
-   WIDTH="111" HEIGHT="35" ALIGN="TOP" BORDER="0"
-   SRC="grad.png"
-   ALT="$ \Delta=g\frac{1}{f^2\sqrt{2}}$"></SPAN> 
-   where the gradient is evaluated at the initial states equilibrium geometry.
-   </p>
-<table>
-   <tr>
-   <td>
-   <IMG SRC="HR.png" ALT="graphical clarification of the two concepts"  width=100%; >
-   </td>
-   <td>
-      <p> If both electronic states are given in their equilibrium geometry, the Cartesian shift can be easily
-         computed and transformed to the shift of normal modes via
-      <!-- MATH
-      $\vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$
-      -->
-         <SPAN CLASS="MATH"><IMG
-         WIDTH="167" HEIGHT="40" ALIGN="MIDDLE" BORDER="0"
-         SRC="img17.png"
-         ALT="$ \vec {\Delta}=\bm{M}\cdot \bm{L}\cdot \vec {\Delta X}\frac{1}{1.63}$"></SPAN>.
-      </p>
-      <p>On the other hand, the shift can be infered if both states are given in the initial states
-         equilibrium geometry given the gradient of the final state and its frequency.</p>
-   </td>
-   <tr>
-</table>
-<p>Visper by default uses the shift to determine HR-factors. If the shift is too small or the keyword 
-   <it>gradient</it> is given in the list of options, it will seek informations on the gradient.</p>
-
-<h3 id="HR-m,s">FC</h3>
-<p> Calculations with this model compute the vibronic transitions as described <a href="HR">above</a>.
-    In addition to the Poisson distribution known for FC-progressions, also transitions from vibrationally
-    excited initial levels are computed, changing the behaviour a bit.</p>
-
-<h3 id="HR-m,c">CFC</h3>
-   <p> This method works similar to that shown <a href="HR-m,s">above</a> but takes explicitly into account
-    that the frequencies of electronic states don't coincide and hence the overlap is different.</p>
-   <p> advantages of this method
-   <ul class="navbar">
-      <li> more exact results since additional effects are taken into account
-      <li> structure of the spectrum can change due to lifted degeneracies
-   </ul>
-   <p> disadvantages of this method
-   <ul class="navbar">
-      <li> For larger molecules this method can take longer because the HR-factors are calculated iteratively
-      <li> for many (large) systems the frequencies are expected to be very close to each other
-   </ul>
-
-<h1 id="DR">Models in the Duschinsky picture</h1>
-   Taking Duschinsky-rotation into account leads to some problems by applying further 
-   approximations such as the one-particle approximation (OPA); but the full calculation is 
-   not feasible (or at least not wanted) for some molecules. 
-   It turned out that the main problem is that one can not simply assign the vibrational modes 
-   to each other since the modes in excited state are different from those in ground state
-   Therefore Visper has four models with differently strong approximations:
-<h3 id="DR-m,s">Simple</h3>
-   In this simple model, one simply neglects that the modes do not coincide, but also that 
-   the order of modes may have changed and applies OPA to it.
-   This can lead to unreasonable results and hence this method should never be used.
-<h3 id="DR-m,u">URDR</h3>
-   Here no one-particle approximation is applied. Instead the number of normal modes taken into 
-   account is truncated as it is done in the Franck-Condon scheme.
-   As in the Franck-Condon scheme, the modes taken into account explicitly are chosen by the size 
-   of the respective shift. But for these modes, the sub-system is
-   calculated in full scheme.
+<h2>simplified Duschinsky rotation (model <b>DR</b>)</h2>
+Since the calculations done in URDR are really demanding, there is a simpler model implemented which 
+assumes that the mode mixing is only weak and hence the modes of final states can be assigned to those
+of the initial state. Than one can apply the one-particle approximation and hence reduce the amount of
+calculations needed significantly. 
+<p>In this model the governing equations are the same as those in URDR but only one vibrational mode
+is excited.</p>
 
 <h1 id="manipulation">Data-manipulations</h1>
-<p>Some of the data given (ether calculated or given via the input-files) need some manipulation to get best results. These include:</p>
-<p>Shifting and rotating the coordinates into the same frame</p>
-<p>projecting out rotations and vibrations</p>
-<p>assign the modes in the respective states physically.</p>
+<p>In some cases, the coordinates of the nuclei differ not only due to changes in the molecular structure but are shifted and/or rotated towards each other. </p>
+<p> Especially when using Gaussian without the <tt>NoSymm</tt> option can lead to changes herein.</p>
+<p>To account for this, Visper always shifts the molecules such that their center of mass is in the center of the coordinate system. Further rotations to the moment of inertia system or minimising the rmsd can be applied.</p>
+<p> Further, the order of modes can change between the states since they change the frequency independently.
+Therefore, Visper always resorts the modes of the final state such that their eigenmodes are in best
+possible agreement. However, for almost degenerate modes it may happen that the assignment of the modes is
+almost impossible.</p>
 
 <h1 id="FC-n">Particle-approximations (Franck-Condon scheme)</h1>
-   In the Franck-Condon picture, the intensity is determined by the Franck-Condon 
-   factor which is, besides some factors,
-   .
-   Hence the spectrum can be calculated easily from a one-particle spectrum, if one 
-   knows all the intensity, frequency and changing mode for all transitions in one-particle approximation.
-   <p> The full FC-spectrum can be calculated exactly, if the option <tt> to nPA: m </tt> 
-   is set with <tt> m </tt> is not lower than 3*N-6 and the threshold for the HR-factors is set to <tt>0</tt>.
+In all models except the URDR scheme, the intensity of some vibrational transition can be factorised into the different modes.
+<p>In these cases, Visper by default calculates only the factors, corresponding to one-particle approximation.</p>
+<p> To obtain the full vibrational structure, the option <tt> to nPA: m </tt> 
+   is needed in the <b>opt:</b>-section. 
+   Here, <tt>m</tt> may be any positive integer, specifying how many combinations should be 
+   taken into account per transition. </p>
+<p> In most cases, here <tt>m=3</tt> is sufficient. Be aware that the number of terms grows 
+  exponentially with <tt>m</tt>.</p>
 
 </body>
 </html>
