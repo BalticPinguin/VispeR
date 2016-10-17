@@ -112,7 +112,8 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
          # there was not specified, how many vibr. states in ground-state 
          #     should be taken into account
          setM=True
-         self.states2=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+9.))
+         #self.states2=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+9.))
+         self.states2=max(3,int(4+2*self.HR[0]+np.sqrt(self.HR[0])*2))
          #i.e. take M following an empirical value as function of the HR-file
       assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
                                         "threshold. No mode to be calculated."
@@ -120,7 +121,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       FC=np.zeros((n,self.states2*self.states1-1))
       uency=np.zeros((n,self.states2*self.states1-1)) #frequency
 
-      #avoiding dots accelerates python quite a lot
+     #avoiding dots accelerates python quite a lot
       loggingwrite=self.log.write
       FC00=np.exp(-np.sum(self.HR))
       # also, consider the thermal population of the states:
