@@ -218,7 +218,6 @@ class Read:
          dim=int(re.findall("(?<=N\= )[\d ]+", atmwgt[0])[0])
          dim*=3
    
-         foonum=0
          mass=np.zeros(dim/3) # this is an integer since dim=3*N with N=atomicity
          for j in range(len(mtemp)):
             mass[j]=np.sqrt(float(mtemp[j])*self.AMU2au) #elements in m are sqrt(m_i) where m_i is the i-th atoms mass
@@ -362,6 +361,14 @@ class Read:
       files=open(logfile, "r")
       log=mmap.mmap(files.fileno(), 0, prot=mmap.PROT_READ)
       files.close()
+      cutFile=False
+      
+      if rtype.type=='G09':
+         templog=re.findall(r"(?<=  YES)[*]+", log)
+         # if opt is given: use only part behind YES.
+         if len(templog)>1:
+            log=templog[-1]
+            cutFile=True
 
       dim=self.dim
       # Reading Cartesian coordinates
@@ -369,7 +376,13 @@ class Read:
       Coord=np.zeros((3,dim//3))
       
       if rtype.type=='G09':
-         tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
+         # if optimisation was done: use data directly after the convergence
+         # to not mess up with the frequency-calculations done thereafter.
+         if len(temp)==1:
+            if cutFile:
+               tmp=re.findall(r'[ -][\d]+.[\d]+', temp[0])
+            else:
+               tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
          for j in range(len(tmp)):
             Coord[j%3][j/3]=tmp[j]
          Coord*=self.Angs2Bohr

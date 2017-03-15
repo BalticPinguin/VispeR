@@ -16,6 +16,7 @@ import re, mmap, math, os
 # ===========
 #in version 1.1:  
 #  1) Fixed energy-error in SDR-class; should go now to right direction in all cases.
+#  2) syntax-changes in dot-products.
 #
 #in version 1.0:  
 #  1) remove dist_FCfOPA(); the model behind is inconsistent.   
@@ -73,12 +74,18 @@ class URDR_spect(Spect.Spect):
       sqGammap=np.diag(np.sqrt(self.f[1]))
       unity=np.eye(len(self.Gamma))
 
-      TMP=np.linalg.inv(self.nm.J.T.dot(self.Gammap).dot(self.nm.J) + self.Gamma)
-      self.A=2.*sqGammap.dot(self.nm.J).dot(TMP).dot(self.nm.J.T).dot(sqGammap) -unity
-      self.b=2.*sqGammap.dot( unity - self.nm.J.dot(TMP).dot(self.nm.J.T).dot(self.Gammap) ).dot(self.nm.K)
-      self.C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
-      self.d=-2.*sqGamma.dot(TMP).dot(self.nm.J.T.dot(self.Gammap.dot(self.nm.K)))
-      self.E=4.*sqGamma.dot(TMP).dot(self.nm.J.T).dot(sqGammap)
+      #TMP=np.linalg.inv(self.nm.J.T.dot(self.Gammap).dot(self.nm.J) + self.Gamma)
+      #self.A=2.*sqGammap.dot(self.nm.J).dot(TMP).dot(self.nm.J.T).dot(sqGammap) -unity
+      #self.b=2.*sqGammap.dot( unity - self.nm.J.dot(TMP).dot(self.nm.J.T).dot(self.Gammap) ).dot(self.nm.K)
+      #self.C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
+      #self.d=-2.*sqGamma.dot(TMP).dot(self.nm.J.T.dot(self.Gammap.dot(self.nm.K)))
+      #self.E=4.*sqGamma.dot(TMP).dot(self.nm.J.T).dot(sqGammap)
+      TMP=np.linalg.inv(  np.dot(np.dot(self.nm.J.T, self.Gammap),self.nm.J) + self.Gamma)
+      self.A=2.*np.dot(np.dot(np.dot(np.dot(sqGammap, self.nm.J), TMP), self.nm.J.T), sqGammap) -unity
+      self.b=2.*np.dot(sqGammap, np.dot(unity - np.dot(np.dot(np.dot(self.nm.J, TMP), self.nm.J.T),self.Gammap),self.nm.K))
+      self.C=2.*np.dot(np.dot(sqGamma,TMP),sqGammap) -unity
+      self.d=-2.*np.dot(np.dot(sqGamma,TMP), np.dot(self.nm.J.T, np.dot(self.Gammap,self.nm.K)))
+      self.E=4.*np.dot(np.dot( np.dot(sqGamma, TMP), self.nm.J.T), sqGammap)
 
    def calcspect(self):
       """This function prepares all variables according to the given 
@@ -93,13 +100,13 @@ class URDR_spect(Spect.Spect):
            resort[i][j]=1
          else:
             resort[i][k]=-1
-      self.nm.J=resort.dot(self.nm.J.T)
-      self.nm.K=resort.dot(self.nm.K.T)
+      self.nm.J=np.dot(resort,self.nm.J.T)
+      self.nm.K=np.dot(resort,self.nm.K.T)
       for i in xrange(len(resort)):
          k=np.argmin(resort[i])
          if resort[i][k]==-1:
             resort[i][k]=1 #use absolute value only.
-      self.f[1]=resort.dot(self.f[1].T)
+      self.f[1]=np.dot(resort,self.f[1].T)
       if self.log.level<1:
          self.log.write("before truncation:\n")
          self.log.write("Duschinsky-Matrix:\n")
@@ -491,12 +498,12 @@ class SDR_spect(Spect.Spect):
       sqGammap=np.diag(np.sqrt(self.f[1]))
       unity=np.eye(len(self.Gamma))
 
-      TMP=np.linalg.inv(self.nm.J.T.dot(self.Gammap).dot(self.nm.J) + self.Gamma)
-      self.A=2.*sqGammap.dot(self.nm.J).dot(TMP).dot(self.nm.J.T).dot(sqGammap) -unity
-      self.b=2.*sqGammap.dot( unity - self.nm.J.dot(TMP).dot(self.nm.J.T).dot(self.Gammap) ).dot(self.nm.K)
-      self.C=2.*sqGamma.dot(TMP).dot(sqGammap) -unity
-      self.d=-2.*sqGamma.dot(TMP).dot(self.nm.J.T.dot(self.Gammap.dot(self.nm.K)))
-      self.E=4.*sqGamma.dot(TMP).dot(self.nm.J.T).dot(sqGammap)
+      TMP=np.linalg.inv(  np.dot(np.dot(self.nm.J.T, self.Gammap),self.nm.J) + self.Gamma)
+      self.A=2.*np.dot(np.dot(np.dot(np.dot(sqGammap, self.nm.J), TMP), self.nm.J.T), sqGammap) -unity
+      self.b=2.*np.dot(sqGammap, np.dot(unity - np.dot(np.dot(np.dot(self.nm.J, TMP), self.nm.J.T),self.Gammap),self.nm.K))
+      self.C=2.*np.dot(np.dot(sqGamma,TMP),sqGammap) -unity
+      self.d=-2.*np.dot(np.dot(sqGamma,TMP), np.dot(self.nm.J.T, np.dot(self.Gammap,self.nm.K)))
+      self.E=4.*np.dot(np.dot( np.dot(sqGamma, TMP), self.nm.J.T), sqGammap)
 
    def __simpleFCfOPA(self, J, K, f, Energy, N, T, E0=0):
       """Calculates the FC-factors for given Duschinsky-effect. No restriction to OPA
@@ -693,13 +700,13 @@ class SDR_spect(Spect.Spect):
          else:
             resort[i][k]=-1
 
-      self.nm.J=resort.dot(self.nm.J.T)
-      self.nm.K=resort.dot(self.nm.K.T)
+      self.nm.J=np.dot(resort,self.nm.J.T)
+      self.nm.K=np.dot(resort,self.nm.K.T)
       for i in xrange(len(resort)):
          k=np.argmin(resort[i])
          if resort[i][k]==-1:
             resort[i][k]=1 #use absolute value only.
-      self.f[1]=resort.dot(self.f[1].T)
+      self.f[1]=np.dot(resort,self.f[1].T)
       self.log.write("before truncation:\n")
       self.log.write("Duschinsky-Matrix:\n")
       self.log.printMat(self.nm.J)

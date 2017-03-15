@@ -9,11 +9,14 @@ import numpy as np
 
 #  CHANGELOG 
 # ===========
+# to version 0.2:
+#
 # to version 0.1.5:  
 #  1) removed GFC-class  
 #  2) Added term for energy-correction in case of gradient.
 #  3) Changed setting self.type.
 #  4) repaired CFC_spect to work with the new structure.
+#  5) corrected fitting-formula for number of states in CFC-class
 #
 # to version 0.1.0:  
 #  1) Added some sense to GFC  
@@ -141,8 +144,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
       #here a goes over all modes
       for a in xrange(n):
          if setM:
-            # set M to fit best to the value at that moment.
-            #M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+9.))
+            # set M to fit best to the value.
             M=self.states2
          for j in range(self.states1):  # initial state
             for i in range(self.states2):  #final states
@@ -374,7 +376,7 @@ class CFC_spect(FC_spect):
           # there was not specified, how many vibr. states in ground-state 
           #           should be taken into account
           setM=True
-          M=max(3,int(-1.1*self.HR[0]*self.HR[0]+6.4*self.HR[0]+5.))
+          M=max(3,int(4+2*self.HR[0]+np.sqrt(self.HR[0])*2))
        assert n>0, "There is no Huang-Rhys factor larger than the respective"+\
                     " threshold. No mode to be calculated."
        #calculate 0->0 transition
@@ -407,7 +409,7 @@ class CFC_spect(FC_spect):
        for a in xrange(n):
           if setM:
              # set M to fit best to the value at that moment.
-             M=max(3,int(-1.1*self.HR[a]*self.HR[a]+6.4*self.HR[a]+5.))
+             M=max(3,int(4+2*self.HR[0]+np.sqrt(self.HR[0])*2))
           #print a, HR[a]
           R=FCchf(self.HR[a],self.states1,M,[freq[0][a], freq[1][a]])
           for j in range(self.states1): 
@@ -424,5 +426,5 @@ class CFC_spect(FC_spect):
                    break
        self.spect=unifSpect(FC, uency, sgnE*E*self.Hartree2cm_1, FC00)
    
-version='0.1.5'  
+version='0.2.0'  
 #End of FC_Spects.py

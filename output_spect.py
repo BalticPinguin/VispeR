@@ -45,7 +45,9 @@ class broaden():
       self.log=self.parent.log
 
       #get some information about the grid
-      tmpgrid=re.findall(r"(?<=grid=)[ \=\s\w\.;]+", parent.broadopt, re.M)
+      tmpgrid=re.findall(r"(?<=grid=)[\s\w\.;]+", parent.broadopt, re.M)
+      if (tmpgrid==[]):
+         tmpgrid=re.findall(r"(?<=grid=)[ \s\w\.;]+", parent.broadopt, re.M)
       if len(tmpgrid)==1: 
          # i.e. if grid is specified
          grid=re.findall(r"[\w\.]+", tmpgrid[0], re.M)
