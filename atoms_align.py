@@ -40,7 +40,7 @@ class align_atoms():
       """
       if method in ["moi", "MOI"]:
          self.type='moi'
-      if method in ["rmsd" ,"RMSD"]:
+      elif method in ["rmsd" ,"RMSD"]:
          self.type='rmsd'
       else:
          self.type='shift'
@@ -101,8 +101,11 @@ class align_atoms():
       #FIRST STEP: move the center of mass (COM) to origin:
       self.shift()
 
+      self.log.write("do MOI-reorient.\n")
       #SECOND STEP: Calculate the inertia-system.
       # do the following for the initial and final state:
+      diagI=np.zeros((2,3))
+      X=np.zeros((2,3,3))
       for i in [0,1]:
          #  (MOI: Moment Of Inertia)
          MOI=np.zeros((3,3))# this is Moment Of Inertia
@@ -117,10 +120,9 @@ class align_atoms():
                   MOI[l][j]=MOI[j][l]
          #calculate the eigen-system of MOI
          diagI[i],X[i]=np.linalg.eig(MOI) 
-         # sort it such, that the rotation is minimal. Therefore, first check
-         # that it is not too big; otherwise, this simple code might fail.
+         # sort it such, that the geometries are rotated minimal wrt each other.
          index=np.argsort(diagI[i], kind='heapsort')
-         X[i]=(X[i].T[index]).T
+         X[i]=X[i][0:3][index]
          diagI[i]=diagI[i][index]
       #end for i in [0,1].
       
@@ -156,7 +158,7 @@ class align_atoms():
          rmsdi.append(self.RMSD(self.CartCoord[0]-np.dot(Y,self.CartCoord[1])))
 
          #print  self.RMSD(self.CartCoord[0]-self.CartCoord[1]), self.RMSD(self.CartCoord[0]-U.dot(self.CartCoord[1]))
-      rmsd=RMSD(self.CartCoord[0]-self.CartCoord[1])
+      rmsd=self.RMSD(self.CartCoord[0]-self.CartCoord[1])
       rmsdi.append(rmsd)
       #reassign i 
       i=np.argmin(rmsdi)
@@ -164,6 +166,8 @@ class align_atoms():
          # no rotation into MOI-frame should be done because initial 
          # geometry is the best. This is the case especially, if there
          # are (almost) degenerate moments of intertia.
+         self.log.write("No rotation applied, because the RMSD is smaller without.\n")
+         self.log.write("Please check the method RMSD instead of MOI.\n")
          return
       #recover the sing-combination with least squares:
       if i>=4:

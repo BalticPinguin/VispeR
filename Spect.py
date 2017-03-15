@@ -145,9 +145,9 @@ class  Spect:
       initial=initial[0]
       final=final[0]
       #check, if they are valid files and through an error if not.
-      assert os.path.isfile(initial) and os.access(initial, os.R_OK),\
+      assert (os.path.isfile(initial) and os.access(initial, os.R_OK)),\
                initial+' is not a valid file name or not readable.'
-      assert os.path.isfile(final) and os.access(final, os.R_OK),\
+      assert (os.path.isfile(final) and os.access(final, os.R_OK)),\
                final+' is not a valid file name or not readable.'
       
       #read options from input-file:
@@ -216,7 +216,7 @@ class  Spect:
       #changes the orientation of the molecules to coincide with
       # the main axes of inertia. Input-orientations may
       # give too large or just unphysical HR-factors.
-      manipulate=re.findall(r"(?<=manipulate:)[\w ]*", self.opt, re.M)
+      manipulate=re.findall(r"(?<=manipulate:)[\w ]+", self.opt, re.M)
       if manipulate!=[]:
          manipulate=manipulate[0].strip().split(" ")[0]
       #initialise object of the respective class
