@@ -17,6 +17,7 @@ import re, mmap, math, os
 #in version 1.1:  
 #  1) Fixed energy-error in SDR-class; should go now to right direction in all cases.
 #  2) syntax-changes in dot-products.
+#  3) Added checks for the size of HR-factors. Not sure, these values are reasonable...
 #
 #in version 1.0:  
 #  1) remove dist_FCfOPA(); the model behind is inconsistent.   
@@ -426,6 +427,13 @@ class URDR_spect(Spect.Spect):
             States2.append(np.array(distributions, dtype=np.int8)) #save memory!
          return States2
    
+      # check that the total number of states is large enough that the spectrum can be roughly converged.
+      allHR= [np.floor(self.nm.K[mode]*self.nm.K[mode]*self.f[0][mode]*.5) for mode in range(m) ]
+      if N< allHR:
+          self.log.write("WARNING: There is no chance that the spectrum will be correct!")
+      elif N< 3*allHR:
+          self.log.write("WARNING: There is only little chance that the spectrum will be correct!")
+
       lines=[]
       freqs=[]
       initF=[]
@@ -659,8 +667,15 @@ class SDR_spect(Spect.Spect):
             F=[0,0,7]
          return np.matrix(F)
       
+      # check that the total number of states is large enough that the spectrum can be roughly converged.
+      allHR= [np.floor(self.nm.K[mode]*self.nm.K[mode]*self.f[0][mode]*.5) for mode in range(m) ]
+      if N< allHR:
+          self.log.write("WARNING: There is no chance that the spectrum will be correct!")
+      elif N< 3*allHR:
+          self.log.write("WARNING: There is only little chance that the spectrum will be correct!")
+
       dimen=0
-   
+
       # correct for vibrational groundstates:
       Energy+=(sum(f[0])-sum(f[1]))*.5
    
