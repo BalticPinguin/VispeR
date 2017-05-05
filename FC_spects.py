@@ -10,6 +10,8 @@ import numpy as np
 #  CHANGELOG 
 # ===========
 # to version 0.2:
+#  1) Corrected energy-correction for CFC
+#  2) removed correction for gradient-case.
 #
 # to version 0.1.5:  
 #  1) removed GFC-class  
@@ -274,15 +276,9 @@ class CFC_spect(FC_spect):
       """
       self.type='CFC'
       FC_spect.__init__(self, f)
-      
+
       # correct 0-0 transition for vibrational ground state
-      Esign=np.sign(self.Energy[0]-self.Energy[1])
-      if Esign==0:
-         for i in range(len(self.HR)):
-            self.Energy[1]-=(self.f[1][i]-self.f[0][i])*self.HR[i]
-      else:
-         for i in range(len(self.HR)):
-            self.Energy[1]+=Esign*(self.f[1][i]-self.f[0][i])*self.HR[i]
+      self.Energy[1]+=(sum(self.f[0])-sum(self.f[1]))*.5
 
    def calcspect(self):
        """This is used to calculate the line spectrum assuming no mode mixing 
@@ -369,9 +365,6 @@ class CFC_spect(FC_spect):
        n=len(self.HR) #=len(freq)
        setM=False
    
-       # correct for vibrational groundstates:
-       #E+=(sum(freq[0])-sum(freq[1]))*.5
-       #print E, freq[0]
        if self.states2==1: 
           # there was not specified, how many vibr. states in ground-state 
           #           should be taken into account

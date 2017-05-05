@@ -22,28 +22,34 @@
 Most options are case-insensitive and the order does not matter.
 A line break indicates the start of a new section.
 </p>
-<table style="border:2px solid black;">
+<table style="border:2px solid black; ">
    <tr> 
    <td><b> keyword</b> </td> <td> <b>mandatory </b></td> <td> <b>possible values</b> </td> <td><b> meaning </b></td>  <td><b> default </b></td>
    </tr>
    <tr> 
    <td> model: </td><td>yes</td><td> FC CFC DR URDR HR </td><td> specifies, which <a href="models.html">model</a> should be used.</td> <td>-</td>
    </tr>
+   <tr style="border-bottom:2px solid green"><td ></td><td ></td><td ></td><td ></td><td ></td></tr>
    <tr> 
    <td> initial: </td><td> (yes) </td><td> string </td><td> file name of the <a href="#log">log-file</a> containing the calculations of initial state </td> <td>-</td>
    </tr>
+   <tr style="border-bottom:2px solid green"><td ></td><td ></td><td ></td><td ></td><td ></td></tr>
    <tr> 
    <td> final: </td><td> (yes) </td><td> string </td><td> file name of the <a href="#log">log-file</a> containing the calculations of final state </td> <td>-</td>
    </tr>
+   <tr style="border-bottom:2px solid green"><td ></td><td ></td><td ></td><td ></td><td ></td></tr>
    <tr> 
    <td> HR-file: </td><td> (yes) </td><td> string </td><td> Alternative to initial: and final: specifies a file containing the Huang-Rhys factors and corresponding frequencies</td> <td>-</td>
    </tr>
+   <tr style="border-bottom:2px solid green"><td ></td><td ></td><td ></td><td ></td><td ></td></tr>
    <tr> 
    <td> out: </td><td> no </td><td> string </td><td> file name of the file where the output should be written in.  </td> <td> calculation.log</td>
    </tr>
+   <tr style="border-bottom:2px solid green"><td ></td><td ></td><td ></td><td ></td><td ></td></tr>
    <tr> 
    <td> print: </td><td> no </td><td> 0-4; a,d,m,i,s </td><td>how detailed (all, detailed,medium,important,short) </td> <td>3</td>
    </tr>
+   <tr style="border-bottom:2px solid green"><td ></td><td ></td><td ></td><td ></td><td ></td></tr>
    <tr> 
    <td> opt: </td><td> no </td><td> <p>T=</p> 
                                     <p>states=<tt>nr</tt></p> 
@@ -51,21 +57,27 @@ A line break indicates the start of a new section.
                                     <p>manipulate:<tt>rmsd</tt> or <tt>moi</tt></p> 
                                     <p>gradient</p> 
                                     <p>width=<nr></p> 
+                                    <p>electronic energy=<nr></p> 
                                              </td><td><p>temperature</p> 
                                                       <p>max. number of excitations per mode (initial state)</p>
                                                       <p>max. number of excitations (init.; fin.)</p> 
                                                       <p>if alignment of molecules is wished</p>
-                                                      <p> .</p>
                                                       <p>force to use gradient to obtain shift</p>
-                                                      <p>nr. of matrix elements per line in output file</p></td> 
+                                                      <p>nr. of matrix elements per line in output file</p>
+                                                      <p>value of electronic energy-diff.; can be used to overwrite the value from the source files</p>
+                                                      
+                                                      </td> 
                                                                                  </td><td><p>300</p>
                                                                                  <p>5</p>
                                                                                  <p>-</p>
                                                                                   <p>. </p>
                                                                                  <p>-</p>
                                                                                  <p>-</p>
-                                                                                 <p>5</p></td>
+                                                                                 <p>5</p>
+                                                                                 <p>-</p>
+                                                                                 </td>
    </tr>
+   <tr style="border-bottom:2px solid green"><td ></td><td ></td><td ></td><td ></td><td ></td></tr>
    <tr>
    <td> broaden: </td><td> no </td><td> <p>. </p>    
                                     <p>shape= <tt>g</tt> or <tt>l</tt></p> 

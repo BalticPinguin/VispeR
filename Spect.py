@@ -18,6 +18,7 @@ import atoms_align as AtAl
 #   b) removed the function IsZero() since it didn't do anything
 #   c) changed format of self.CartCoord
 #   d) output of energy distinguishes vertical and adiabatic case
+#   e) Added correction for energy in case of gradient-calculation.
 #
 #in version 0.1.7:  
 #   a) fixed rmsd-reorient: forgot to reorder Forces, transform of 
@@ -173,12 +174,13 @@ class  Spect:
          self.T=float(self.T[-1])
       self.T*=8.6173324e-5/27.21138386 # multiplied by k_B in hartree/K
 
-      if re.search(r"vertical energy:", self.opt, re.M) is not None:
+      #if re.search(r"vertical energy=", self.opt, re.M) is not None:
+      #   self.Energy[0]=1.
+      #   self.Energy[1]=1.+float(re.findall(r"(?<=vertical energy:)[\d\- .]+", self.opt, re.M)[0])/self.Hartree2cm_1
+      #elif re.search(r"electronic energy=", self.opt, re.M) is not None:
+      if re.search(r"electronic energy=", self.opt, re.M) is not None:
          self.Energy[0]=1.
-         self.Energy[1]=1.+float(re.findall(r"(?<=vertical energy:)[\d\- .]+", self.opt, re.M)[0])/self.Hartree2cm_1
-      elif re.search(r"adiabatic energy:", self.opt, re.M) is not None:
-         self.Energy[0]=1.
-         self.Energy[1]=1.+float(re.findall(r"(?<=adiabatic energy:)[\d\- .]+", self.opt, re.M)[0])/self.Hartree2cm_1
+         self.Energy[1]=1.+float(re.findall(r"(?<=electronic energy=)[\d\- .]+", self.opt, re.M)[0])/self.Hartree2cm_1
       
       if (re.search(r"(?<=width=)[\d .]+", self.opt, re.M)) is not None:
          self.log.width=int(re.findall(r"(?<=width=)[\d .]+", self.opt, re.M)[-1])
@@ -303,10 +305,10 @@ class  Spect:
          # and Duschinsky.
          self.Grad=[0,0]
          if self.Energy[0]-self.Energy[1]<0:
-            self.log.write('adiabatic relaxation energy:'
+            self.log.write('electronic relaxation energy:'
                            ' Delta E= {0}\n'.format((-self.Energy[0]+self.Energy[1])*self.Hartree2cm_1), 3)
          else:
-            self.log.write('adiabatic excitation energy:'
+            self.log.write('electronic excitation energy:'
                         ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
       if self.log.level<2:
             self.log.write('Cartesian coordinates of initial state: \n')
@@ -318,7 +320,20 @@ class  Spect:
                self.log.printMat(self.F[0])
                self.log.write('Hessian of final state: \n')
                self.log.printMat(self.F[1])
-   
+  
+      # if the gradient is not 0, the given energy is the vertical one (including vibrational excitations)
+      # thus, we need to correct it to become the electronic energy-difference...
+      #if any(self.Grad[i]>0 for i in range(len(self.Grad))): this is alternative test.
+      if np.sum(np.abs(self.Grad))>1e-12:
+         Esign=np.sign(self.Energy[0]-self.Energy[1])
+         if Esign==0:
+            for i in range(len(self.HR)):
+               self.Energy[1]-=(self.f[1][i])*self.HR[i]
+         else:
+            for i in range(len(self.HR)):
+               self.Energy[1]+=Esign*(self.f[1][i])*self.HR[i]
+
+
    def makeXYZ(self):
       """This function creates an .xyz-file for opening e.g. with Chemcraft.
          It is intended to be called whenever it is likely that the input-states do not
