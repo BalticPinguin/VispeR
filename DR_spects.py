@@ -428,7 +428,7 @@ class URDR_spect(Spect.Spect):
          return States2
    
       # check that the total number of states is large enough that the spectrum can be roughly converged.
-      allHR= [np.floor(self.nm.K[mode]*self.nm.K[mode]*self.f[0][mode]*.5) for mode in range(m) ]
+      allHR= [np.floor(self.nm.K[mode]*self.nm.K[mode]*self.f[0][mode]*.5) for mode in range(self.m) ]
       if N< allHR:
           self.log.write("WARNING: There is no chance that the spectrum will be correct!")
       elif N< 3*allHR:

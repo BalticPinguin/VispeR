@@ -139,6 +139,7 @@ class FC_spect(Spect.Spect): # import class Spect from file Spect.
                therm_pop+=np.exp(-f[a]*j/self.T)
             FC00/=therm_pop
       E=self.Energy[0]-self.Energy[1]
+      #print(E,self.Energy)
       #set  0->0 transition:
       sgnE=np.sign(E)
       if sgnE==0:
@@ -277,8 +278,10 @@ class CFC_spect(FC_spect):
       self.type='CFC'
       FC_spect.__init__(self, f)
 
-      # correct 0-0 transition for vibrational ground state
-      self.Energy[1]+=(sum(self.f[0])-sum(self.f[1]))*.5
+      # correct the transition-energies for vibrational ground state
+      #self.Energy[1]+=(sum(self.f[0])-sum(self.f[1]))*.5
+      self.Energy[0]+=np.sum(self.f[0])*.5
+      self.Energy[1]+=np.sum(self.f[1])*.5
 
    def calcspect(self):
        """This is used to calculate the line spectrum assuming no mode mixing 
@@ -397,6 +400,8 @@ class CFC_spect(FC_spect):
        E=self.Energy[0]-self.Energy[1]
        #here a goes over all modes
        sgnE=np.sign(E)
+       #print("DeineMudda")
+       #print(E,self.Energy)
        if np.sign(E)==0:
           sgnE=1
        for a in xrange(n):

@@ -153,13 +153,22 @@ class NormalMode():
       X=A.T # I want to orthogonalize row-wise
       Y = []
       npdot=np.dot
+      linDep=0 # to handle linear molecules
       for i in range(len(X)):
          temp_vec = X[i]
          for inY in Y :
             #proj_vec = proj(inY, X[i])
             proj_vec = map(lambda x : x *(npdot(X[i],inY) / npdot(inY, inY)) , inY)
             temp_vec = map(lambda x, y : x - y, temp_vec, proj_vec)
-         Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
+         if np.linalg.norm(temp_vec)<1e-7:
+            #We have linear dependent vectors here, maybe the molecule is linear.
+            # lets still append the 0-vector.
+            linDep+=1
+            #Y.append( temp_vec)
+         else:
+            Y.append( temp_vec/np.linalg.norm(temp_vec)) # normalise vectors
+      for i in range(linDep):
+         Y.append(np.zeros(len(temp_vec))) #add 0-vector
       return np.matrix(Y).T # undo transposition in the beginning
 
    def __GetProjector(self, i):
@@ -194,6 +203,8 @@ class NormalMode():
                     *self.mass[k//3]
       D_orthog=self.__gs(np.array(D)) #orhogonalize it
       ones=np.identity(self.dim)
+      #print ones
+      #print D_orthog
       one_P=ones-np.dot(D_orthog,D_orthog.T)
       prob_vec=(D_orthog.T[1]+D_orthog.T[4]+D_orthog.T[0]+D_orthog.T[5]).T #what is this actually??
       assert not np.any(np.abs(prob_vec-np.dot(np.dot(D_orthog,D_orthog.T),prob_vec))>0.00001), \
@@ -284,7 +295,7 @@ class NormalMode():
       self.J=np.dot(np.linalg.pinv(self.Lmassw[0]),self.Lmassw[1]) # for Lmassw
    
       #print "J\n", J
-      if any(self.Grad[i]>0 for i in range(len(self.Grad))):
+      if any(abs(self.Grad[i])>0 for i in range(len(self.Grad))):
          self.K=np.dot(self.Grad.T,self.Lmassw[0])
          #self.K=(np.linalg.pinv(self.Lmassw[0]).dot(self.Grad)).T  # w p Lmassw
          # scale consistently: Now it is really the shift in terms of normal modes

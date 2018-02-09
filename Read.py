@@ -81,7 +81,7 @@ class Read:
          if typestring=="G09":
             self.gradString=r"Number     Number              X              Y              Z\n [\-\.\d \n]+"
             self.gradPolishString=r"[\-\d\.]+[\d]{9}"
-            self.Estring=r"(?<=SCF Done:  E)[\d.\n \(\)\w\+\-=]+"
+            self.Estring=r"(?<=Total Energy, E)[\d.\n \(\)\w\+\-=]+"
             self.Estring2=r"(?<=SCF Done:  E)[\d.\n \(\)\w\+\-=]+"
             self.ForceString=r"Force constants in Cartesian coordinates: [\n\d .+-D]+"
             self.MassString=r"AtmWgt= [\d .]+"
@@ -383,6 +383,10 @@ class Read:
                tmp=re.findall(r'[ -][\d]+.[\d]+', temp[0])
             else:
                tmp=re.findall(r'[ -][\d]+.[\d]+', temp[-1])
+         else: # this could be due to numeric frequency calculation:
+            # use the first occurrence, assuming that later coordinates
+            # are manipulated due to calculation of some properties.
+            tmp=re.findall(r'[ -][\d]+.[\d]+', temp[0])
          for j in range(len(tmp)):
             Coord[j%3][j/3]=tmp[j]
          Coord*=self.Angs2Bohr
