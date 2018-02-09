@@ -239,6 +239,22 @@ class  Spect:
       self.f=self.nm.f
       # this is how to use the function to print normal modes of final state
       #self.log.printNormalModes(self,1) # use 0 for initial state.
+  
+      # if the gradient is not 0, the given energy is the vertical one (including vibrational excitations)
+      # thus, we need to correct it to become the electronic energy-difference...
+      #if any(self.Grad[i]>0 for i in range(len(self.Grad))): this is alternative test.
+      if np.sum(np.abs(self.Grad))>1e-12:
+         Esign=np.sign(self.Energy[0]-self.Energy[1])
+         # lets compute HR-factors to correct the energies:
+         HR=np.zeros(len(self.nm.K))
+         for j in range(len(self.nm.K)):
+            HR[j]=self.nm.K[j]*self.nm.K[j]*self.f[0][j]*.5 
+         if Esign==0:
+            for i in range(len(HR)):
+               self.Energy[1]-=(self.f[1][i])*HR[i]
+         else:
+            for i in range(len(HR)):
+               self.Energy[1]+=Esign*(self.f[1][i])*HR[i]
       
    def ReadData(self):
       """ This function gathers most essential parts for calculation of
@@ -290,26 +306,25 @@ class  Spect:
                   self.CartCoord[0][j]+self.CartCoord[1][j]) <0.00001
                       for j in range(3) for i in range(self.dim//3) ):
          self.Grad=self.reader.Gradient() 
+         self.log.write('Compute HR-factors from gradient since geometry did not change\n',3)
       elif re.search(r"gradient", self.opt, re.M) is not None:
          self.Grad=self.reader.Gradient() 
          #self.log.write("gradient in input-format")
          #self.log.printVec(self.Grad)
-         if self.Energy[0]-self.Energy[1]<0:
-            self.log.write('vertical relaxation energy:'
-                           ' Delta E= {0}\n'.format((-self.Energy[0]+self.Energy[1])*self.Hartree2cm_1), 3)
-         else:
-            self.log.write('vertical excitation energy:'
-                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
+         self.log.write('Compute HR-factors from gradient because it was asked in the input\n.',3)
       else: 
          #define this for easier syntax in function MOI_reorient
          # and Duschinsky.
          self.Grad=[0,0]
-         if self.Energy[0]-self.Energy[1]<0:
-            self.log.write('electronic relaxation energy:'
-                           ' Delta E= {0}\n'.format((-self.Energy[0]+self.Energy[1])*self.Hartree2cm_1), 3)
-         else:
-            self.log.write('electronic excitation energy:'
-                        ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
+         self.log.write('Compute HR-factors from change in geometry\n.',3)
+
+      if self.Energy[0]-self.Energy[1]<0:
+         self.log.write('electronic relaxation energy:'
+                        ' Delta E= {0}\n'.format((-self.Energy[0]+self.Energy[1])*self.Hartree2cm_1), 3)
+      else:
+         self.log.write('electronic excitation energy:'
+                     ' Delta E= {0}\n'.format((self.Energy[0]-self.Energy[1])*self.Hartree2cm_1), 3)
+      self.log.write('E_ini: {0}, E_fin: {1}'.format(self.Energy[0],self.Energy[1]),3 )
       if self.log.level<2:
             self.log.write('Cartesian coordinates of initial state: \n')
             self.log.printCoordinates(self.CartCoord[0]/self.Angs2Bohr)
@@ -320,18 +335,6 @@ class  Spect:
                self.log.printMat(self.F[0])
                self.log.write('Hessian of final state: \n')
                self.log.printMat(self.F[1])
-  
-      # if the gradient is not 0, the given energy is the vertical one (including vibrational excitations)
-      # thus, we need to correct it to become the electronic energy-difference...
-      #if any(self.Grad[i]>0 for i in range(len(self.Grad))): this is alternative test.
-      if np.sum(np.abs(self.Grad))>1e-12:
-         Esign=np.sign(self.Energy[0]-self.Energy[1])
-         if Esign==0:
-            for i in range(len(self.HR)):
-               self.Energy[1]-=(self.f[1][i])*self.HR[i]
-         else:
-            for i in range(len(self.HR)):
-               self.Energy[1]+=Esign*(self.f[1][i])*self.HR[i]
 
 
    def makeXYZ(self):

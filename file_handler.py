@@ -9,6 +9,7 @@ from numpy import ceil
 #  1) Intialised class
 #  2) Added function printNormalModes()
 #  3) fixed error in printVec() to print all values
+#  4) initialised the class modify(). It does nothing yet.
 #
 
 class logging():
@@ -246,6 +247,66 @@ class logging():
             self.loghandler.write("\n")
          s=t
          t=min(s+self.width,len(mat[0]))
+
+class modify(logging):
+   """This class is meant to be used to warn the user about modifications done 
+      on the data during the calculations. 
+      By this, the user gets control, how much 'repair' should be done and whether he will
+      be notified about it.
+   """
+   logfile=''
+   level='0'
+   loghandler=""
+   numWarn=0
+   width=5  
+
+   def __init__(self, level, logfile):
+      """initialise the quantities important for writing.
+      """
+
+      def invokeLogging(logfile, mode="important"):
+         """ initialises the logging-functionality
+            **PARAMETERS**
+            logfile   name of file to be used as log-file. It is expected to be an array of 
+                   length 0 or one.
+            mode:     5 different values are possible (see below); the lowest means: print 
+                     much, higher values mean 
+                     less printing
+
+            **RETURNS**
+            log:      opened file to write in
+         """
+         if logfile==[]:
+            log=open("calculation.log", "a")
+            self.logfile="calculation.log"
+         else:
+            s=logfile[-1].strip()
+            log=open(s, "a")
+            self.logfile=s
+         
+         #remove all white spaces and take only first character.
+         mode= mode.strip()[0]
+         #search, which option was set.
+         if mode in ['a', "A", "0", 0]: # all
+            logging=0
+            log.write('use log-level all\n')
+         elif mode in ['d', 'D', "1"]: #detailed
+            logging=1
+            log.write('use log-level detailed\n')
+         elif mode in ['m', 'M','2']: # medium
+            logging=2
+            log.write('use log-level medium\n')
+         elif mode in ['i', 'I','3']:
+            logging=3
+         elif mode in ['s', 'S', '4']:
+            logging=4
+         else:
+            logging=3
+            log.write("logging-mode "+mode+" not recognized. Using 'important' instead\n")
+         return logging, log
+      
+      self.logfile=logfile
+      self.level, self.loghandler = invokeLogging(logfile, level)
 
 version='0.1.0'
 # End of file_handler.py

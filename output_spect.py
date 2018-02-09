@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python,2
 # filename: output_spect.py
 
 #include [[MultiPart.py]]
@@ -62,6 +62,8 @@ class broaden():
             self.gridpt=float(grid[0])
             self.minfreq=float(grid[1])
             self.maxfreq=float(grid[2])
+         else:
+            self.log.write("\n WARNING: Grid was specified but not recognised!\n")
    
          if self.gridfile!=None:
                #read file in format of spect
@@ -153,8 +155,8 @@ class broaden():
       n=re.findall(r"(?<=to nPA:)[ \d]*", self.parent.broadopt, re.I)
       if n!=[]:
          MakeFull=MultiPart.OPAtoNPA(float(n[-1].strip()))
-         self.log.write("\n REACHING OPA TO NPA-PART. \n")
-         self.log.write(" ----------------------------------------"+
+         logwrite("\n REACHING OPA TO NPA-PART. \n")
+         logwrite(" ----------------------------------------"+
                                                  "-------- \n")
          MakeFull.GetSpect(self.spect, minint)
          TPAintens, TPAfreq=MakeFull.Calc()
@@ -365,8 +367,8 @@ def concise(intens, freq, sigma):
       #chose the frequency as average over transitions
       Sfreq.append(sum(freq[startind:])/len(freq[startind:]))
       Sintens.append(tmpintens)
-   for i in range(len(Sfreq)):
-      print Sintens[i], Sfreq[i]
+   #for i in range(len(Sfreq)):
+   #   print Sintens[i], Sfreq[i]
    return Sintens, Sfreq
       
 version='0.1'
